@@ -1,0 +1,111 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Skills Directory Management{% endblock %}
+{% block breadcrumb %}Skills Directory{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+    <!-- Left: Skills Catalog Table -->
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <div>
+                <div class="admin-card-title">
+                    <i data-lucide="award"></i>
+                    <span>Skills Catalog ({{ total_count }})</span>
+                </div>
+                <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
+                    Central repository of skills available for student discovery and swaps.
+                </p>
+            </div>
+        </div>
+
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Skill Name</th>
+                        <th>Category</th>
+                        <th>Students Teaching</th>
+                        <th>Students Learning</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in skills %}
+                    {% set s = item.skill %}
+                    <tr>
+                        <td style="font-weight: 700; color: #FFFFFF;">
+                            {{ s.name }}
+                        </td>
+                        <td>
+                            <span class="admin-badge admin-badge-blue">{{ s.category }}</span>
+                        </td>
+                        <td style="color: #34D399; font-weight: 600;">
+                            {{ item.teachers_count }} students
+                        </td>
+                        <td style="color: #FBBF24; font-weight: 600;">
+                            {{ item.learners_count }} students
+                        </td>
+                        <td style="text-align: right;">
+                            <form method="POST" action="{{ url_for('admin.skill_delete', skill_id=s.id) }}" onsubmit="return confirm('Delete skill {{ s.name }} from global catalog?');" style="display: inline-block; margin: 0;">
+                                <button type="submit" class="admin-btn admin-btn-danger" style="padding: 4px 8px;" title="Delete skill">
+                                    <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--admin-text-muted); padding: 40px;">
+                            No skills in the catalog yet. Use the form on the right to add one.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Right: Add Skill Form -->
+    <div>
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="admin-card-title">
+                    <i data-lucide="plus-circle"></i>
+                    <span>Add New Skill to Catalog</span>
+                </div>
+            </div>
+
+            <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-bottom: 16px;">
+                Directly register a new subject or talent into the platform database without editing code.
+            </p>
+
+            <form method="POST" action="{{ url_for('admin.skill_add') }}">
+                <div class="admin-form-group">
+                    <label class="admin-label">Skill Name</label>
+                    <input type="text" name="name" class="admin-input" placeholder="e.g. Flutter Development, Machine Learning, Calculus" required>
+                </div>
+
+                <div class="admin-form-group">
+                    <label class="admin-label">Category</label>
+                    <select name="category" class="admin-select">
+                        <option value="Computer Science">Computer Science & IT</option>
+                        <option value="Data Science & AI">Data Science & AI</option>
+                        <option value="Design & Media">Design & UI/UX</option>
+                        <option value="Business & Finance">Business & Finance</option>
+                        <option value="Languages">Languages & Communication</option>
+                        <option value="Engineering & Math">Engineering & Math</option>
+                        <option value="Academics">Academics & Exam Prep</option>
+                        <option value="General" selected>General Knowledge</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; padding: 10px;">
+                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                    <span>Register Skill in MongoDB</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Learning Sessions — Skill Rock{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+            <h1 class="page-title">Learning Sessions</h1>
+            <p class="page-subtitle">Track your peer learning sessions, join Google Meet calls, and rate completed swaps.</p>
+        </div>
+        <a href="{{ url_for('connections.connections_list') }}" class="btn btn-primary btn-sm">
+            Schedule Session
+        </a>
+    </div>
+
+    <!-- Upcoming Sessions -->
+    <div style="margin-bottom: 36px;">
+        <h2 style="margin-bottom: 16px;">Upcoming</h2>
+
+        {% if upcoming_sessions %}
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                {% for sess in upcoming_sessions %}
+                    {% set is_teacher = (sess.teacher_id|string) == (current_user.id|string) %}
+                    {% set partner = sess.learner if is_teacher else sess.teacher %}
+                    <div class="card" style="padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <h3 style="margin-bottom: 0;">{{ sess.title }}</h3>
+                                <span class="skill-tag {% if is_teacher %}teach{% else %}learn{% endif %}" style="font-size: 0.72rem; padding: 2px 6px;">
+                                    {% if is_teacher %}Teaching{% else %}Learning{% endif %}
+                                </span>
+                            </div>
+                            <div style="font-size: 0.88rem; color: var(--text-secondary); margin-top: 4px;">
+                                With {{ partner.name if partner else 'Peer' }} • {{ sess.scheduled_date }} at {{ sess.scheduled_time }} • {{ sess.duration_minutes }} min
+                            </div>
+                            {% if sess.notes %}
+                                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; font-style: italic;">
+                                    "{{ sess.notes }}"
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            {% if sess.meeting_link %}
+                                <a href="{{ sess.meeting_link }}" target="_blank" class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="video" style="width: 14px; height: 14px;"></i>
+                                    <span>{% if 'meet.google.com' in sess.meeting_link %}Join Google Meet{% else %}Join Video Room{% endif %}</span>
+                                </a>
+                            {% endif %}
+
+                            {% if not sess.meeting_link or 'meet.google.com' not in sess.meeting_link %}
+                                {% if current_user.has_google_connected %}
+                                    <form action="{{ url_for('sessions.generate_meet_link', session_id=sess.id) }}" method="POST" style="margin: 0;">
+                                        <button type="submit" class="btn btn-outline btn-sm" style="display: flex; align-items: center; gap: 6px;" title="Auto-generate Google Meet link via your connected Google account">
+                                            <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#00832d" d="M19 10.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-4.5l5 4.5V6l-5 4.5z"/></svg>
+                                            <span>Generate Meet Link</span>
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <a href="{{ url_for('auth.google_login', next=url_for('sessions.sessions_list')) }}" class="btn btn-outline btn-sm" style="display: flex; align-items: center; gap: 6px;" title="Connect your Google account to auto-generate a real Google Meet link">
+                                        <svg width="14" height="14" viewBox="0 0 24 24">
+                                            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                                            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                                            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                                            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                                        </svg>
+                                        <span>Connect Google Meet</span>
+                                    </a>
+                                {% endif %}
+                                <button type="button" class="btn btn-secondary btn-sm btn-open-link-modal" data-session-id="{{ sess.id }}" data-current-link="{{ sess.meeting_link or '' }}" title="Set or paste custom meeting link">
+                                    <i data-lucide="link" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            {% endif %}
+
+                            <form action="{{ url_for('sessions.complete_session', session_id=sess.id) }}" method="POST" style="margin: 0;">
+                                <button type="submit" class="btn btn-success btn-sm">Mark Completed</button>
+                            </form>
+                            <form action="{{ url_for('sessions.cancel_session', session_id=sess.id) }}" method="POST" style="margin: 0;">
+                                <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm('Cancel this session?')">Cancel</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card" style="padding: 32px 20px; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+                <p style="margin-bottom: 8px;">No sessions scheduled yet.</p>
+                <a href="{{ url_for('connections.connections_list') }}" style="color: var(--primary-blue); font-weight: 600;">Schedule a session with a connected student &rarr;</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Completed & Cancelled Sessions -->
+    <div>
+        <h2 style="margin-bottom: 16px;">History</h2>
+
+        {% if past_sessions %}
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                {% for sess in past_sessions %}
+                    {% set is_teacher = (sess.teacher_id|string) == (current_user.id|string) %}
+                    {% set partner = sess.learner if is_teacher else sess.teacher %}
+                    {% set already_rated = (sess.rating != None) %}
+                    <div class="card" style="padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.95rem; color: var(--primary-navy);">
+                                {{ sess.title }}
+                            </div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
+                                With {{ partner.name if partner else 'Peer' }} • {{ sess.scheduled_date }} • <span style="font-weight: 500; color: {% if sess.status == 'completed' %}var(--success){% else %}var(--danger){% endif %};">{{ sess.status.capitalize() }}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            {% if sess.status == 'completed' %}
+                                {% if already_rated %}
+                                    <span style="font-size: 0.85rem; color: var(--success); font-weight: 600;">✓ Rated</span>
+                                {% else %}
+                                    <button type="button" class="btn btn-secondary btn-sm btn-open-rate-modal"
+                                            data-session-id="{{ sess.id }}"
+                                            data-partner-name="{{ partner.name if partner else 'Peer' }}"
+                                            data-skill-name="{{ sess.skill.name }}">
+                                        Rate Session
+                                    </button>
+                                {% endif %}
+                            {% else %}
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Cancelled</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card" style="padding: 32px 20px; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+                No completed sessions yet. After finishing a scheduled session, mark it completed to exchange ratings and earn XP.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Simple Rate Session Modal -->
+<div id="rateSessionModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div>
+                <h3 style="font-size: 1.15rem;">Rate Session with <span id="ratePartnerName">Student</span></h3>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 2px;">Skill: <span id="rateSkillName">Skill</span></p>
+            </div>
+            <button type="button" class="modal-close">&times;</button>
+        </div>
+
+        <form id="rateSessionForm" action="" method="POST">
+            <div class="form-group" style="text-align: center; margin: 18px 0;">
+                <label class="form-label" style="margin-bottom: 10px;">How was your session?</label>
+                <div class="star-input-group" style="display: flex; justify-content: center; gap: 8px;">
+                    {% for i in range(1, 6) %}
+                        <input type="radio" name="score" id="star{{ i }}" value="{{ i }}" {% if i == 5 %}checked{% endif %} style="display: none;">
+                        <label for="star{{ i }}" style="font-size: 2rem; cursor: pointer; color: {% if i <= 5 %}#f59e0b{% else %}#475569{% endif %}; transition: color 0.15s ease;">★</label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Feedback (Optional)</label>
+                <textarea name="feedback" class="form-control" rows="2" placeholder="Leave a short note about what you learned..."></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+                <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+                <button type="submit" class="btn btn-primary">Submit Rating (+5 XP if 5★)</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for Setting/Pasting Meeting Link -->
+<div id="setLinkModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 440px;">
+        <div class="modal-header">
+            <h3>Set Meeting Link</h3>
+            <button type="button" class="modal-close">&times;</button>
+        </div>
+        <form id="setLinkForm" method="POST" action="">
+            <div class="form-group">
+                <label class="form-label">Google Meet or Video Call Link</label>
+                <input type="text" name="meeting_link" id="modalLinkInput" class="form-control" placeholder="https://meet.google.com/xxx-yyyy-zzz" required>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 5px;">
+                    Paste a Google Meet link, or submit empty to generate an instant video room.
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+                <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Meeting Link</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

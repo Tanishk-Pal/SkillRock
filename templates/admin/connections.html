@@ -1,0 +1,107 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Student Connections Network{% endblock %}
+{% block breadcrumb %}Student Connections{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div>
+            <div class="admin-card-title">
+                <i data-lucide="git-merge"></i>
+                <span>Active Student Connections ({{ total_count }})</span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
+                Inspect or moderate mutual skill connections across colleges.
+            </p>
+        </div>
+    </div>
+
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Connection ID</th>
+                    <th>Student 1</th>
+                    <th>Connection Link</th>
+                    <th>Student 2</th>
+                    <th>Connected Since</th>
+                    <th style="text-align: right;">Moderation Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in connections %}
+                <tr>
+                    <td>
+                        <code style="font-family: monospace; color: #60A5FA; font-size: 0.78rem;">{{ c.id }}</code>
+                    </td>
+
+                    <!-- Student 1 -->
+                    <td>
+                        {% if c.user1 %}
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="{{ c.user1.avatar_url }}" alt="avatar" style="width: 30px; height: 30px; border-radius: 50%; background: #1F293D;">
+                            <div>
+                                <a href="{{ url_for('admin.user_detail', user_id=c.user1.id) }}" style="font-weight: 700; color: #FFFFFF;">
+                                    {{ c.user1.name }}
+                                </a>
+                                <div style="font-size: 0.72rem; color: var(--admin-text-muted);">{{ c.user1.email }}</div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <span style="color: var(--admin-text-muted);">Deleted Student</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Connection link badge -->
+                    <td style="text-align: center;">
+                        <span class="admin-badge admin-badge-green">
+                            <i data-lucide="link" style="width: 12px; height: 12px;"></i>
+                            <span>Followed</span>
+                        </span>
+                    </td>
+
+                    <!-- Student 2 -->
+                    <td>
+                        {% if c.user2 %}
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="{{ c.user2.avatar_url }}" alt="avatar" style="width: 30px; height: 30px; border-radius: 50%; background: #1F293D;">
+                            <div>
+                                <a href="{{ url_for('admin.user_detail', user_id=c.user2.id) }}" style="font-weight: 700; color: #FFFFFF;">
+                                    {{ c.user2.name }}
+                                </a>
+                                <div style="font-size: 0.72rem; color: var(--admin-text-muted);">{{ c.user2.email }}</div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <span style="color: var(--admin-text-muted);">Deleted Student</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Date -->
+                    <td style="color: var(--admin-text-muted); font-size: 0.8rem;">
+                        {{ c.created_at.strftime('%b %d, %Y %H:%M') if c.created_at else 'Unknown' }}
+                    </td>
+
+                    <!-- Sever connection -->
+                    <td style="text-align: right;">
+                        <form method="POST" action="{{ url_for('admin.connection_delete', conn_id=c.id) }}" onsubmit="return confirm('Sever this connection between students?');" style="margin: 0; display: inline-block;">
+                            <button type="submit" class="admin-btn admin-btn-danger" style="padding: 4px 8px;" title="Sever Connection">
+                                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                                <span>Sever</span>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--admin-text-muted); padding: 40px;">
+                        No active connections established yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

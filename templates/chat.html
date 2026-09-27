@@ -1,0 +1,665 @@
+{% extends "base.html" %}
+
+{% block title %}Messages — Skill Rock{% endblock %}
+
+{% block head %}
+<style>
+    .chat-layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        height: calc(100vh - 160px);
+        min-height: 540px;
+        max-height: 750px;
+        background: #FFFFFF;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+
+    /* Sidebar Conversation List */
+    .chat-sidebar {
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        background: #FAFAFA;
+    }
+
+    .chat-sidebar-header {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+        background: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .chat-sidebar-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--primary-navy);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .chat-search-wrap {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border-color);
+        background: #FFFFFF;
+    }
+
+    .chat-search-input {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-full);
+        outline: none;
+        background: #F8FAFC;
+    }
+    .chat-search-input:focus {
+        border-color: var(--primary-blue);
+        background: #FFFFFF;
+    }
+
+    .chat-contacts-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+        color: inherit;
+        transition: var(--transition);
+        position: relative;
+    }
+    .contact-item:hover {
+        background: #F1F5F9;
+    }
+    .contact-item.active {
+        background: #EFF6FF;
+        border: 1px solid #BFDBFE;
+    }
+
+    .contact-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1px solid var(--border-color);
+    }
+
+    .contact-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .contact-name {
+        font-weight: 600;
+        font-size: 0.92rem;
+        color: var(--primary-navy);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .contact-snippet {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 2px;
+    }
+
+    .unread-pill {
+        background: var(--primary-blue);
+        color: #FFFFFF;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: var(--radius-full);
+    }
+
+    /* Main Chat Panel */
+    .chat-main {
+        display: flex;
+        flex-direction: column;
+        background: #FFFFFF;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border-color);
+        background: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 2;
+    }
+
+    .chat-header-user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .chat-messages-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: #F8FAFC;
+    }
+
+    .msg-row {
+        display: flex;
+        flex-direction: column;
+        max-width: 75%;
+        margin-bottom: 2px;
+    }
+
+    /* FRONT ONE (Opposite Person / Partner) -> LEFT SIDE */
+    .msg-row.them {
+        align-self: flex-start;
+        align-items: flex-start;
+        margin-right: auto;
+    }
+
+    .msg-row.them .msg-bubble-wrapper {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+    }
+
+    .msg-row.them .msg-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1px solid #E2E8F0;
+        background: #FFFFFF;
+        flex-shrink: 0;
+        margin-bottom: 2px;
+    }
+
+    .msg-row.them .msg-bubble {
+        background: #FFFFFF;
+        color: #0F172A;
+        border: 1px solid #E2E8F0;
+        border-radius: 18px 18px 18px 4px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+        padding: 10px 16px;
+        font-size: 0.92rem;
+        line-height: 1.45;
+        word-break: break-word;
+    }
+
+    .msg-row.them .msg-time {
+        font-size: 0.72rem;
+        color: #94A3B8;
+        margin-top: 4px;
+        padding-left: 36px;
+        text-align: left;
+    }
+
+    /* OUR CHAT (Logged-in User) -> RIGHT SIDE */
+    .msg-row.me {
+        align-self: flex-end;
+        align-items: flex-end;
+        margin-left: auto;
+    }
+
+    .msg-row.me .msg-bubble-wrapper {
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+    }
+
+    .msg-row.me .msg-bubble {
+        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+        color: #FFFFFF;
+        border: none;
+        border-radius: 18px 18px 4px 18px;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.22);
+        padding: 10px 16px;
+        font-size: 0.92rem;
+        line-height: 1.45;
+        word-break: break-word;
+    }
+
+    .msg-row.me .msg-time {
+        font-size: 0.72rem;
+        color: #94A3B8;
+        margin-top: 4px;
+        padding-right: 4px;
+        text-align: right;
+    }
+
+    /* Composer Bar */
+    .chat-composer {
+        padding: 12px 18px;
+        border-top: 1px solid var(--border-color);
+        background: #FFFFFF;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .composer-input {
+        flex: 1;
+        padding: 11px 16px;
+        font-size: 0.92rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-full);
+        outline: none;
+        background: #F8FAFC;
+        transition: var(--transition);
+    }
+    .composer-input:focus {
+        border-color: var(--primary-blue);
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .composer-send-btn {
+        background: var(--primary-blue);
+        color: #FFFFFF;
+        border: none;
+        border-radius: 50%;
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        flex-shrink: 0;
+    }
+    .composer-send-btn:hover {
+        background: #1D4ED8;
+        transform: scale(1.04);
+    }
+    .composer-send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Empty states */
+    .chat-empty-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+        padding: 30px;
+        color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+        .chat-layout {
+            grid-template-columns: 1fr;
+            height: calc(100vh - 120px);
+        }
+        .chat-sidebar {
+            display: {% if active_partner %}none{% else %}flex{% endif %};
+        }
+        .chat-main {
+            display: {% if active_partner %}flex{% else %}none{% endif %};
+        }
+        .mobile-back-btn {
+            display: inline-flex !important;
+        }
+    }
+    @media (min-width: 769px) {
+        .mobile-back-btn {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <div class="chat-layout">
+        <!-- Sidebar: Conversations -->
+        <div class="chat-sidebar">
+            <div class="chat-sidebar-header">
+                <h2 class="chat-sidebar-title">
+                    <i data-lucide="message-circle" style="width: 20px; height: 20px; color: var(--primary-blue);"></i>
+                    <span>Messages</span>
+                </h2>
+                <a href="{{ url_for('connections.connections_list') }}" title="View Connections" style="color: var(--text-secondary); font-size: 0.8rem; text-decoration: none;">
+                    Connections
+                </a>
+            </div>
+
+            {% if conversations %}
+                <div class="chat-search-wrap">
+                    <input type="text" id="contactSearchInput" class="chat-search-input" placeholder="Search connections...">
+                </div>
+
+                <div class="chat-contacts-list" id="contactsList">
+                    {% for item in conversations %}
+                        {% set partner = item.partner %}
+                        <a href="{{ url_for('chat.conversation', partner_id=partner.id) }}" 
+                           class="contact-item {% if active_partner and active_partner.id|string == partner.id|string %}active{% endif %}"
+                           data-name="{{ partner.name|lower }}">
+                            <img src="{{ partner.avatar_url }}" alt="avatar" class="contact-avatar">
+                            <div class="contact-info">
+                                <div class="contact-name">
+                                    <span>{{ partner.name }}</span>
+                                    {% if item.unread_count > 0 %}
+                                        <span class="unread-pill">{{ item.unread_count }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="contact-snippet">
+                                    {% if item.last_message %}
+                                        {% if item.last_message.sender_id|string == current_user.id|string %}You: {% endif %}{{ item.last_message.text }}
+                                    {% else %}
+                                        Connected • Say hi! 👋
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="padding: 32px 18px; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+                    <div style="font-size: 2rem; margin-bottom: 8px;">🤝</div>
+                    <div style="font-weight: 600; color: var(--primary-navy); margin-bottom: 4px;">No connections yet</div>
+                    <p style="font-size: 0.82rem; margin-bottom: 14px;">Connect with other students on campus to message them.</p>
+                    <a href="{{ url_for('discover.discover') }}" class="btn btn-primary btn-sm">Find Students</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="chat-main">
+            {% if active_partner %}
+                <!-- Header -->
+                <div class="chat-header">
+                    <div class="chat-header-user">
+                        <a href="{{ url_for('chat.chat_inbox') }}" class="mobile-back-btn btn btn-secondary btn-sm" style="padding: 6px 10px; margin-right: 4px;">
+                            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                        </a>
+                        <img src="{{ active_partner.avatar_url }}" alt="avatar" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-color);">
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.98rem; color: var(--primary-navy);">
+                                {{ active_partner.name }}
+                            </div>
+                            <div style="font-size: 0.78rem; color: var(--text-secondary);">
+                                {{ active_partner.branch }} • {{ active_partner.college }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <a href="{{ url_for('profile.view_user_profile', user_id=active_partner.id) }}" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 6px 10px;">
+                            Profile
+                        </a>
+                        <a href="{{ url_for('connections.connections_list') }}" class="btn btn-primary btn-sm" style="font-size: 0.8rem; padding: 6px 12px; display: flex; align-items: center; gap: 4px;">
+                            <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
+                            <span>Schedule</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Messages Stream -->
+                <div class="chat-messages-container" id="chatMessages">
+                    <div style="text-align: center; padding: 18px 0; color: var(--text-muted); font-size: 0.82rem;">
+                        <img src="{{ active_partner.avatar_url }}" alt="avatar" style="width: 52px; height: 52px; border-radius: 50%; margin-bottom: 8px; border: 2px solid #E2E8F0;">
+                        <div style="font-weight: 700; color: var(--primary-navy); font-size: 0.95rem;">{{ active_partner.name }}</div>
+                        <div>You are connected on Skill Rock. Send a message to get started!</div>
+                    </div>
+
+                    {% for m in messages %}
+                        {% set is_me = (m.sender_id|string == current_user.id|string) %}
+                        <div class="msg-row {% if is_me %}me{% else %}them{% endif %}" data-msg-id="{{ m.id }}">
+                            <div class="msg-bubble-wrapper">
+                                {% if not is_me %}
+                                <img src="{{ active_partner.avatar_url }}" alt="{{ active_partner.name }}" class="msg-avatar" title="{{ active_partner.name }}">
+                                {% endif %}
+                                <div class="msg-bubble">
+                                    {{ m.text }}
+                                </div>
+                            </div>
+                            <div class="msg-time">
+                                {% if m.created_at %}
+                                    {{ m.created_at.strftime('%I:%M %p') }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Message Composer -->
+                <form id="chatForm" class="chat-composer" autocomplete="off">
+                    <input type="text" id="chatInput" class="composer-input" placeholder="Message {{ active_partner.name.split()[0] }}..." required autofocus>
+                    <button type="submit" id="sendBtn" class="composer-send-btn" title="Send Message">
+                        <i data-lucide="send" style="width: 18px; height: 18px; margin-left: 2px;"></i>
+                    </button>
+                </form>
+            {% else %}
+                <div class="chat-empty-panel">
+                    <div style="width: 72px; height: 72px; border-radius: 50%; background: #EFF6FF; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                        <i data-lucide="message-circle" style="width: 36px; height: 36px; color: var(--primary-blue);"></i>
+                    </div>
+                    <h3 style="font-size: 1.25rem; margin-bottom: 6px;">Your Messages</h3>
+                    <p style="font-size: 0.9rem; max-width: 320px; margin-bottom: 20px;">
+                        Send direct messages and coordinate skill swaps with your connection members.
+                    </p>
+                    <a href="{{ url_for('discover.discover') }}" class="btn btn-primary btn-sm">
+                        Find & Follow Students
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if active_partner %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const messagesContainer = document.getElementById("chatMessages");
+    const chatForm = document.getElementById("chatForm");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const partnerId = "{{ active_partner.id }}";
+    const currentUserId = "{{ current_user.id }}";
+    
+    // Auto scroll to bottom
+    const scrollToBottom = (smooth = true) => {
+        if (messagesContainer) {
+            if (smooth) {
+                messagesContainer.scrollTo({
+                    top: messagesContainer.scrollHeight,
+                    behavior: "smooth"
+                });
+            } else {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+    };
+    scrollToBottom(false);
+
+    // Set of rendered message IDs to avoid duplicate rendering
+    const renderedMsgIds = new Set();
+    document.querySelectorAll(".msg-row[data-msg-id]").forEach(el => {
+        const id = el.getAttribute("data-msg-id");
+        if (id) renderedMsgIds.add(String(id));
+    });
+
+    // Helper: Update snippet in left sidebar
+    const updateContactSnippet = (lastText, isFromMe) => {
+        const activeItem = document.querySelector(`.contact-item[href*="${partnerId}"]`);
+        if (activeItem) {
+            const snippet = activeItem.querySelector(".contact-snippet");
+            if (snippet && lastText) {
+                snippet.textContent = (isFromMe ? "You: " : "") + lastText;
+            }
+            const unreadBadge = activeItem.querySelector(".unread-pill");
+            if (unreadBadge) {
+                unreadBadge.remove();
+            }
+        }
+    };
+
+    const partnerAvatarUrl = "{{ active_partner.avatar_url }}";
+
+    // Helper: Append a message to the stream
+    const appendMessage = (msg, isLive = false) => {
+        const msgId = String(msg.id);
+        if (renderedMsgIds.has(msgId)) return;
+        renderedMsgIds.add(msgId);
+
+        const isMe = (String(msg.sender_id) === String(currentUserId));
+        const row = document.createElement("div");
+        row.className = `msg-row ${isMe ? 'me' : 'them'} ${isLive ? 'new-msg' : ''}`;
+        row.setAttribute("data-msg-id", msgId);
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "msg-bubble-wrapper";
+
+        if (!isMe) {
+            const avatar = document.createElement("img");
+            avatar.src = partnerAvatarUrl;
+            avatar.alt = "";
+            avatar.className = "msg-avatar";
+            wrapper.appendChild(avatar);
+        }
+
+        const bubble = document.createElement("div");
+        bubble.className = "msg-bubble";
+        bubble.textContent = msg.text;
+        wrapper.appendChild(bubble);
+
+        const time = document.createElement("div");
+        time.className = "msg-time";
+        time.textContent = msg.created_at || "Just now";
+
+        row.appendChild(wrapper);
+        row.appendChild(time);
+        messagesContainer.appendChild(row);
+        scrollToBottom(true);
+        updateContactSnippet(msg.text, isMe);
+    };
+
+    // Form submission (Send Message)
+    if (chatForm) {
+        chatForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            chatInput.value = "";
+            sendBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/chat/${partnerId}/messages`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+                if (data.success && data.message) {
+                    appendMessage(data.message, true);
+                    // Fast follow-up poll
+                    setTimeout(pollMessages, 300);
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            } catch (err) {
+                console.error("Failed to send message:", err);
+            } finally {
+                sendBtn.disabled = false;
+                chatInput.focus();
+            }
+        });
+    }
+
+    // Live real-time polling with cache-busting (every 1 second)
+    let isPolling = false;
+    const pollMessages = async () => {
+        if (isPolling) return;
+        isPolling = true;
+
+        try {
+            const timestamp = Date.now();
+            const response = await fetch(`/api/chat/${partnerId}/messages?_=${timestamp}`, {
+                cache: "no-store",
+                headers: {
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache"
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && Array.isArray(data.messages)) {
+                    let hasNew = false;
+                    data.messages.forEach(msg => {
+                        if (!renderedMsgIds.has(String(msg.id))) {
+                            appendMessage(msg, true);
+                            hasNew = true;
+                        }
+                    });
+                    if (hasNew) {
+                        scrollToBottom(true);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error("Chat real-time polling error:", err);
+        } finally {
+            isPolling = false;
+        }
+    };
+
+    // Fast 1000ms (1 second) interval for true real-time chat
+    const pollInterval = setInterval(pollMessages, 1000);
+
+    window.addEventListener("beforeunload", () => {
+        clearInterval(pollInterval);
+    });
+
+    // Contact search filter
+    const searchInput = document.getElementById("contactSearchInput");
+    if (searchInput) {
+        searchInput.addEventListener("input", () => {
+            const q = searchInput.value.trim().toLowerCase();
+            document.querySelectorAll(".contact-item").forEach(item => {
+                const name = item.getAttribute("data-name") || "";
+                item.style.display = name.includes(q) ? "flex" : "none";
+            });
+        });
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

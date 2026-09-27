@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Skill Rock{% endblock %}</title>
+    
+    <!-- Search Engine Optimization (SEO) & Social Meta Tags -->
+    <meta name="description" content="{% block meta_description %}Skill Rock is a peer-to-peer student skill exchange and collaborative learning platform. Learn, teach, and grow together on your campus with SkillBot AI and real-time scheduling.{% endblock %}">
+    <meta name="keywords" content="Skill Rock, SkillRock, peer learning, college students, skill exchange, study groups, campus networking, AI tutoring, TanxPal">
+    <meta name="author" content="TanxPal">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#2563EB">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ request.base_url }}">
+
+    <!-- Open Graph (Facebook / LinkedIn / WhatsApp) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% block og_title %}Skill Rock — Learn. Teach. Grow Together.{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Exchange skills peer-to-peer with students on your campus. Connect, swap skills, and schedule Google Meet sessions with AI guidance.{% endblock %}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:site_name" content="Skill Rock">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Skill Rock — Learn. Teach. Grow Together.">
+    <meta name="twitter:description" content="Exchange skills peer-to-peer with students on your campus. Connect, swap skills, and schedule Google Meet sessions with AI guidance.">
+
+    <!-- Favicon (Brand Logo) -->
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/logo.jpg') }}">
+
+    <!-- Schema.org JSON-LD Structured Data for Google Rich Results -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Skill Rock",
+      "alternateName": "SkillRock",
+      "url": "{{ request.url_root }}",
+      "description": "Exchange skills peer-to-peer with students on your campus. Connect, swap skills, and schedule Google Meet sessions with AI guidance.",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "creator": {
+        "@type": "Person",
+        "name": "TanxPal"
+      }
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom SaaS Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% if announcement_enabled and announcement_text %}
+    <!-- System Announcement Ribbon -->
+    <div style="background: linear-gradient(90deg, #0f172a, #1e293b); color: #f8fafc; font-size: 0.84rem; padding: 7px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
+        <span>{{ announcement_text }}</span>
+    </div>
+    {% endif %}
+
+    <!-- Top Navigation Bar (Instagram-Style Clean Iconic SaaS Nav) -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <!-- Brand Logo & Author Credit -->
+            <div class="nav-left">
+                <a href="{{ url_for('index') if not current_user.is_authenticated else url_for('dashboard.dashboard') }}" class="brand-logo" aria-label="SkillRock Home">
+                    <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="SkillRock" class="brand-logo-img">
+                    <span class="brand-name">Skill<span class="brand-name-highlight">Rock</span></span>
+                    <span class="brand-dev-tag">by TanxPal</span>
+                </a>
+            </div>
+
+            {% if current_user.is_authenticated %}
+            <!-- Center: Instagram-Style Iconic Navigation Links -->
+            <div class="nav-center" id="navLinks">
+                <!-- 1. Dashboard / Home -->
+                <a href="{{ url_for('dashboard.dashboard') }}" 
+                   class="nav-icon-link {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}" 
+                   data-tooltip="Dashboard" 
+                   aria-label="Dashboard">
+                    <i data-lucide="home"></i>
+                    <span class="mobile-nav-label">Dashboard</span>
+                </a>
+
+                <!-- 2. Discover Students / Explore -->
+                <a href="{{ url_for('discover.discover') }}" 
+                   class="nav-icon-link {% if request.endpoint == 'discover.discover' %}active{% endif %}" 
+                   data-tooltip="Discover Students" 
+                   aria-label="Discover">
+                    <i data-lucide="compass"></i>
+                    <span class="mobile-nav-label">Discover</span>
+                </a>
+
+                <!-- 3. Follow Requests (Heart / Network) -->
+                <a href="{{ url_for('swap.requests_list') }}" 
+                   class="nav-icon-link {% if request.endpoint == 'swap.requests_list' %}active{% endif %}" 
+                   data-tooltip="Follow Requests" 
+                   aria-label="Follow Requests">
+                    <div class="nav-icon-wrapper">
+                        <i data-lucide="heart"></i>
+                        {% if pending_requests_count > 0 %}
+                            <span class="nav-icon-badge">{{ pending_requests_count }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="mobile-nav-label">Follow Requests</span>
+                </a>
+
+                <!-- 4. Connections Network -->
+                <a href="{{ url_for('connections.connections_list') }}" 
+                   class="nav-icon-link {% if request.endpoint == 'connections.connections_list' %}active{% endif %}" 
+                   data-tooltip="Connections" 
+                   aria-label="Connections">
+                    <i data-lucide="users"></i>
+                    <span class="mobile-nav-label">Connections</span>
+                </a>
+
+                <!-- 5. Direct Messages (Paper Plane like Instagram Direct) -->
+                <a href="{{ url_for('chat.chat_inbox') }}" 
+                   class="nav-icon-link {% if request.endpoint and 'chat.' in request.endpoint %}active{% endif %}" 
+                   data-tooltip="Direct Messages" 
+                   aria-label="Messages">
+                    <div class="nav-icon-wrapper">
+                        <i data-lucide="send"></i>
+                        {% if unread_messages_count and unread_messages_count > 0 %}
+                            <span class="nav-icon-badge">{{ unread_messages_count }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="mobile-nav-label">Messages</span>
+                </a>
+
+                <!-- 6. Scheduled Sessions -->
+                <a href="{{ url_for('sessions.sessions_list') }}" 
+                   class="nav-icon-link {% if request.endpoint == 'sessions.sessions_list' %}active{% endif %}" 
+                   data-tooltip="Sessions" 
+                   aria-label="Sessions">
+                    <i data-lucide="calendar"></i>
+                    <span class="mobile-nav-label">Sessions</span>
+                </a>
+
+                <!-- Mobile Only Menu Options -->
+                <div class="mobile-only-section">
+                    <a href="{{ url_for('profile.profile') }}" class="mobile-nav-item">
+                        <img src="{{ current_user.avatar_url }}" alt="avatar" class="mobile-nav-avatar">
+                        <span>Profile ({{ current_user.name.split()[0] }})</span>
+                    </a>
+                    {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="mobile-nav-item" style="color: #d97706; font-weight: 600;">
+                        <i data-lucide="shield-check"></i>
+                        <span>Admin Panel</span>
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('auth.logout') }}" class="mobile-nav-item mobile-logout">
+                        <i data-lucide="log-out"></i>
+                        <span>Log Out</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right: SkillBot AI Pill + Profile Avatar + Logout Button -->
+            <div class="nav-right">
+                {% if current_user.is_admin %}
+                <!-- Master Admin Portal Button -->
+                <a href="{{ url_for('admin.admin_dashboard') }}" 
+                   class="nav-admin-btn" 
+                   data-tooltip="Master Admin Panel"
+                   style="background: linear-gradient(135deg, #d97706, #b45309); color: white; padding: 6px 13px; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35); letter-spacing: 0.03em;">
+                    <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                    <span>ADMIN</span>
+                </a>
+                {% endif %}
+
+                <!-- SkillBot AI Button -->
+                <a href="{{ url_for('ai.assistant_page') }}" 
+                   class="nav-skillbot-btn {% if request.endpoint == 'ai.assistant_page' %}active{% endif %}" 
+                   data-tooltip="SkillBot AI Assistant">
+                    <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>
+                    <span>SkillBot</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <!-- User Profile Avatar Button -->
+                <a href="{{ url_for('profile.profile') }}" 
+                   class="nav-avatar-btn {% if request.endpoint == 'profile.profile' %}active{% endif %}" 
+                   data-tooltip="Profile ({{ current_user.name.split()[0] }})" 
+                   aria-label="Profile">
+                    <img src="{{ current_user.avatar_url }}" alt="avatar" class="nav-avatar-img">
+                </a>
+
+                <!-- Always-Visible Clean Log Out Button -->
+                <a href="{{ url_for('auth.logout') }}" 
+                   class="nav-logout-btn" 
+                   data-tooltip="Log Out" 
+                   aria-label="Log Out">
+                    <i data-lucide="log-out"></i>
+                </a>
+
+                <!-- Mobile Menu Button -->
+                <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+            {% else %}
+            <!-- Unauthenticated Visitor -->
+            <div class="nav-right">
+                <a href="{{ url_for('ai.assistant_page') }}" class="nav-skillbot-btn" style="margin-right: 8px;">
+                    <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>
+                    <span>SkillBot</span>
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-sm">Log In</a>
+                <a href="{{ url_for('auth.google_login') }}" class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                    </svg>
+                    <span>Google Sign In</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="main-wrapper">
+        <div class="container">
+            <!-- Flash Message Alerts -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-container">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    {% if category == 'success' %}
+                                        <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+                                    {% elif category == 'danger' %}
+                                        <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i>
+                                    {% else %}
+                                        <i data-lucide="info" style="width: 16px; height: 16px;"></i>
+                                    {% endif %}
+                                    <span>{{ message }}</span>
+                                </div>
+                                <button type="button" class="alert-dismiss" style="background:none; border:none; color:inherit; cursor:pointer;">
+                                    <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Follow & Connect Modal -->
+    <div id="requestSwapModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-size: 1.15rem;">Follow & Connect with <span id="modalReceiverName">Student</span></h3>
+                </div>
+                <button type="button" class="modal-close">&times;</button>
+            </div>
+            <form action="{{ url_for('swap.send_request') }}" method="POST">
+                <input type="hidden" name="receiver_id" id="modalReceiverId">
+
+                <div class="form-group">
+                    <label class="form-label">You will learn (Optional)</label>
+                    <select name="learn_skill_id" id="modalLearnSkill" class="form-select">
+                        <option value="">-- Choose what to learn (or default) --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">You will teach (Optional)</label>
+                    <select name="teach_skill_id" id="modalTeachSkill" class="form-select">
+                        <option value="">-- Choose what you will teach (or default) --</option>
+                        {% if current_user.is_authenticated %}
+                            {% for ts in current_user.teaching_skills %}
+                                <option value="{{ ts.id }}">{{ ts.name }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                    {% if current_user.is_authenticated and not current_user.teaching_skills %}
+                        <div style="font-size: 0.8rem; color: var(--warning); margin-top: 4px;">
+                            You have no teaching skills added. <a href="{{ url_for('profile.profile') }}">Add one to your profile</a>.
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Message (Optional)</label>
+                    <textarea name="message" class="form-control" rows="2" placeholder="Say hi or mention what you'd like to collaborate on..."></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+                    <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i>
+                        <span>Follow & Connect</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Clean Footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <div>
+                <strong>Skill Rock</strong> — Developed by <strong>TanxPal</strong>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 3px;">
+                    Students teach what they know and learn what they want.
+                </div>
+            </div>
+            <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                <span style="font-size: 0.82rem; color: var(--text-secondary); background: #F1F5F9; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                    Crafted with ❤️ by <strong>TanxPal</strong>
+                </span>
+                <a href="{{ url_for('discover.discover') }}">Discover</a>
+                <a href="{{ url_for('ai.assistant_page') }}">SkillBot</a>
+                <a href="{{ url_for('auth.login') }}">Sign In</a>
+            </div>
+        </div>
+    </footer>
+
+    {% if current_user.is_authenticated %}
+    <!-- Mobile App-Style Bottom Tab Bar (Fixed at bottom on phones) -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <a href="{{ url_for('dashboard.dashboard') }}" class="mobile-bottom-item {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}" aria-label="Dashboard">
+            <i data-lucide="home"></i>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('discover.discover') }}" class="mobile-bottom-item {% if request.endpoint == 'discover.discover' %}active{% endif %}" aria-label="Discover">
+            <i data-lucide="compass"></i>
+            <span>Discover</span>
+        </a>
+        <a href="{{ url_for('swap.requests_list') }}" class="mobile-bottom-item {% if request.endpoint == 'swap.requests_list' %}active{% endif %}" aria-label="Requests">
+            <div class="nav-icon-wrapper">
+                <i data-lucide="heart"></i>
+                {% if pending_requests_count > 0 %}
+                <span class="nav-icon-badge">{{ pending_requests_count }}</span>
+                {% endif %}
+            </div>
+            <span>Requests</span>
+        </a>
+        <a href="{{ url_for('chat.chat_inbox') }}" class="mobile-bottom-item {% if request.endpoint and 'chat.' in request.endpoint %}active{% endif %}" aria-label="Messages">
+            <div class="nav-icon-wrapper">
+                <i data-lucide="send"></i>
+                {% if unread_messages_count and unread_messages_count > 0 %}
+                <span class="nav-icon-badge">{{ unread_messages_count }}</span>
+                {% endif %}
+            </div>
+            <span>Chat</span>
+        </a>
+        <a href="{{ url_for('sessions.sessions_list') }}" class="mobile-bottom-item {% if request.endpoint == 'sessions.sessions_list' %}active{% endif %}" aria-label="Sessions">
+            <i data-lucide="calendar"></i>
+            <span>Sessions</span>
+        </a>
+    </nav>
+    {% endif %}
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,272 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Manage {{ target_user.name }}{% endblock %}
+{% block breadcrumb %}
+<a href="{{ url_for('admin.users_list') }}" style="color: var(--admin-text-muted); text-decoration: none;">Users</a>
+<i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+<span>{{ target_user.name }}</span>
+{% endblock %}
+
+{% block content %}
+<!-- User Profile Header Banner -->
+<div class="admin-card" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; background: linear-gradient(135deg, #111827, #162032);">
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <img src="{{ target_user.avatar_url }}" alt="avatar" style="width: 72px; height: 72px; border-radius: 50%; background: #1F293D; border: 3px solid #2D3A54;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <h1 style="font-size: 1.5rem; font-weight: 800; color: #FFFFFF;">{{ target_user.name }}</h1>
+                {% if target_user.is_admin %}
+                <span class="admin-badge admin-badge-gold">Super Admin</span>
+                {% elif target_user.is_banned %}
+                <span class="admin-badge admin-badge-red">Suspended</span>
+                {% else %}
+                <span class="admin-badge admin-badge-green">Active Student</span>
+                {% endif %}
+            </div>
+            <div style="font-size: 0.86rem; color: var(--admin-text-muted); margin-top: 4px; display: flex; flex-wrap: wrap; gap: 14px;">
+                <span><strong>Email:</strong> {{ target_user.email }}</span>
+                <span><strong>ID:</strong> <code style="font-family: monospace; color: #60A5FA;">{{ target_user.id }}</code></span>
+                <span><strong>Joined:</strong> {{ target_user.created_at.strftime('%b %d, %Y') if target_user.created_at else 'Unknown' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <a href="{{ url_for('profile.view_user_profile', user_id=target_user.id) }}" class="admin-btn admin-btn-secondary" target="_blank" rel="noopener">
+            <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+            <span>View Public Profile</span>
+        </a>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 24px;">
+    <!-- Left Column: Edit Profile & Password Management -->
+    <div>
+        <!-- 1. Edit Profile Form (Direct Mongo Updates without code changes) -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="admin-card-title">
+                    <i data-lucide="edit-3"></i>
+                    <span>Modify Profile Details (Live Database)</span>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('admin.user_edit', user_id=target_user.id) }}">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="admin-form-group">
+                        <label class="admin-label">Full Name</label>
+                        <input type="text" name="name" class="admin-input" value="{{ target_user.name }}" required>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label class="admin-label">Email Address</label>
+                        <input type="email" name="email" class="admin-input" value="{{ target_user.email }}" required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                    <div class="admin-form-group">
+                        <label class="admin-label">College / University</label>
+                        <input type="text" name="college" class="admin-input" value="{{ target_user.college }}">
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label class="admin-label">Branch / Major</label>
+                        <input type="text" name="branch" class="admin-input" value="{{ target_user.branch }}">
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label class="admin-label">Academic Year</label>
+                        <input type="text" name="year" class="admin-input" value="{{ target_user.year }}">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="admin-form-group">
+                        <label class="admin-label">System Role</label>
+                        <select name="role" class="admin-select">
+                            <option value="student" {% if target_user.role != 'admin' %}selected{% endif %}>Student</option>
+                            <option value="admin" {% if target_user.role == 'admin' %}selected{% endif %}>Administrator</option>
+                        </select>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label class="admin-label">XP Points (Gamification)</label>
+                        <input type="number" name="xp" class="admin-input" value="{{ target_user.xp }}">
+                    </div>
+                </div>
+
+                <div class="admin-form-group">
+                    <label class="admin-label">Biography / About</label>
+                    <textarea name="bio" class="admin-textarea" rows="3">{{ target_user.bio }}</textarea>
+                </div>
+
+                <button type="submit" class="admin-btn admin-btn-primary">
+                    <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+                    <span>Save Profile Changes</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- 2. Security & Password Control Card -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="admin-card-title">
+                    <i data-lucide="key"></i>
+                    <span>Credential Security & Password Management</span>
+                </div>
+            </div>
+
+            <!-- Security Architecture Notice -->
+            <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; padding: 14px; margin-bottom: 20px;">
+                <div style="font-weight: 700; color: #60A5FA; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                    <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+                    <span>Enterprise Security Architecture (OWASP / NIST SP 800-63B)</span>
+                </div>
+                <p style="font-size: 0.8rem; color: #D1D5DB; line-height: 1.5;">
+                    In accordance with production security standards, passwords in Skill Rock are protected by one-way cryptographic salted hashes (<code style="font-family: monospace; color: #F59E0B;">{{ hash_algorithm }}</code>) and are never stored in raw plaintext.
+                    As Super Administrator, you have full authority to immediately overwrite, reset, or set a new password for this user below.
+                </p>
+            </div>
+
+            <!-- Hash Details -->
+            <div style="background: #090D16; border: 1px solid var(--admin-border); border-radius: 8px; padding: 14px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.82rem;">
+                    <div>
+                        <span style="color: var(--admin-text-muted);">Hash Algorithm:</span>
+                        <strong style="color: #FFFFFF; margin-left: 6px;">{{ hash_algorithm }}</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--admin-text-muted);">Google OAuth:</span>
+                        <strong style="color: {% if target_user.google_id %}#10B981{% else %}#9CA3AF{% endif %}; margin-left: 6px;">
+                            {{ 'Connected' if target_user.google_id else 'Not Connected' }}
+                        </strong>
+                    </div>
+                </div>
+                <div style="margin-top: 8px; font-size: 0.76rem; color: var(--admin-text-muted); word-break: break-all;">
+                    <span>Hash Fingerprint: </span><code style="font-family: monospace; color: #9CA3AF;">{{ hash_preview }}</code>
+                </div>
+            </div>
+
+            <!-- Reset Password Form -->
+            <form method="POST" action="{{ url_for('admin.user_reset_password', user_id=target_user.id) }}">
+                <div class="admin-form-group">
+                    <label class="admin-label">Set New Password for User</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="password" name="new_password" class="admin-input" placeholder="Enter new password (min. 6 characters)" required minlength="6">
+                        <button type="submit" class="admin-btn admin-btn-warning" style="white-space: nowrap;">
+                            <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
+                            <span>Update Password</span>
+                        </button>
+                    </div>
+                    <span style="font-size: 0.74rem; color: var(--admin-text-muted); margin-top: 4px; display: block;">
+                        The user can immediately log in with this new password without needing an email verification link.
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Column: Account Status & Danger Zone -->
+    <div>
+        <!-- Account Status & Suspension -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="admin-card-title">
+                    <i data-lucide="shield-alert"></i>
+                    <span>Account Suspension Control</span>
+                </div>
+            </div>
+
+            {% if target_user.is_banned %}
+            <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+                <div style="font-weight: 700; color: #F87171; font-size: 0.88rem; margin-bottom: 4px;">
+                    Account is Currently Suspended
+                </div>
+                <p style="font-size: 0.8rem; color: #D1D5DB;">
+                    Reason: {{ target_user.ban_reason or 'Terms violation or community guideline breach.' }}
+                </p>
+            </div>
+
+            <form method="POST" action="{{ url_for('admin.user_toggle_ban', user_id=target_user.id) }}">
+                <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; background: #10B981;">
+                    <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                    <span>Lift Suspension (Unban User)</span>
+                </button>
+            </form>
+            {% else %}
+            <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-bottom: 14px;">
+                Suspending an account immediately blocks the student from logging in, chatting, or sending requests.
+            </p>
+
+            <form method="POST" action="{{ url_for('admin.user_toggle_ban', user_id=target_user.id) }}">
+                <div class="admin-form-group">
+                    <label class="admin-label">Reason for Suspension (Optional)</label>
+                    <input type="text" name="ban_reason" class="admin-input" placeholder="e.g. Inappropriate behavior in chat, spamming">
+                </div>
+                <button type="submit" class="admin-btn admin-btn-warning" style="width: 100%; justify-content: center;">
+                    <i data-lucide="slash" style="width: 16px; height: 16px;"></i>
+                    <span>Suspend / Ban Account</span>
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        <!-- Danger Zone: Permanent Deletion -->
+        {% if target_user.email.lower() != 'palt51419@gmail.com' %}
+        <div class="admin-card" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.04);">
+            <div class="admin-card-header" style="border-color: rgba(239, 68, 68, 0.3);">
+                <div class="admin-card-title" style="color: #F87171;">
+                    <i data-lucide="trash-2" style="color: #F87171;"></i>
+                    <span>Danger Zone: Permanent Purge</span>
+                </div>
+            </div>
+
+            <p style="font-size: 0.82rem; color: #D1D5DB; margin-bottom: 16px; line-height: 1.5;">
+                Permanently deletes <strong>{{ target_user.name }}</strong> and cascades deletion across all MongoDB collections:
+                their skills, chat history, active connections, follow requests, and session bookings will be completely wiped out.
+            </p>
+
+            <form method="POST" action="{{ url_for('admin.user_delete', user_id=target_user.id) }}" onsubmit="return confirm('PERMANENT ACTION: Are you 100% sure you want to permanently delete {{ target_user.name }} ({{ target_user.email }}) and cascade-delete all their records?');">
+                <button type="submit" class="admin-btn admin-btn-danger" style="width: 100%; justify-content: center; padding: 10px;">
+                    <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    <span>Permanently Delete Profile</span>
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- User Skills List -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="admin-card-title">
+                    <i data-lucide="award"></i>
+                    <span>Active Skills</span>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <div style="font-size: 0.76rem; text-transform: uppercase; color: #60A5FA; font-weight: 700; margin-bottom: 6px;">Can Teach</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    {% for s in target_user.teaching_skills %}
+                    <span class="admin-badge admin-badge-blue">{{ s.name }}</span>
+                    {% else %}
+                    <span style="font-size: 0.8rem; color: var(--admin-text-muted);">None registered</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div>
+                <div style="font-size: 0.76rem; text-transform: uppercase; color: #F59E0B; font-weight: 700; margin-bottom: 6px;">Wants to Learn</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    {% for s in target_user.learning_skills %}
+                    <span class="admin-badge admin-badge-gold">{{ s.name }}</span>
+                    {% else %}
+                    <span style="font-size: 0.8rem; color: var(--admin-text-muted);">None registered</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

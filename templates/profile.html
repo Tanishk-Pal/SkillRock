@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.name }} — Skill Rock Profile{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <!-- Profile Header Card -->
+    <div class="card" style="padding: 24px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <img src="{{ user.avatar_url }}" alt="avatar" class="avatar-img" style="width: 64px; height: 64px;">
+                <div>
+                    <h1 style="font-size: 1.6rem; margin-bottom: 2px;">{{ user.name }}</h1>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 6px;">
+                        {{ user.branch }} • {{ user.year }} • {{ user.college }}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85rem;">
+                        <span style="font-weight: 600; color: var(--primary-blue);">
+                            {{ user.level_name }} ({{ user.xp }} XP)
+                        </span>
+                        <span style="color: var(--border-color);">|</span>
+                        <span style="color: var(--text-secondary);">
+                            {{ user.rating_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                {% if is_own_profile %}
+                    <a href="{{ url_for('profile.edit_profile') }}" class="btn btn-secondary btn-sm">
+                        Edit Profile
+                    </a>
+                {% else %}
+                    {% if match_info %}
+                        <div style="text-align: right; margin-bottom: 8px;">
+                            <span class="match-pill">{{ match_info.score }}% Match</span>
+                        </div>
+                    {% endif %}
+                    {% if is_connected %}
+                        <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
+                            <span class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; cursor: default; background: #F1F5F9; color: #0F172A; border-color: #CBD5E1; font-weight: 600;">
+                                <i data-lucide="check" style="width: 15px; height: 15px; color: var(--primary-blue);"></i>
+                                <span>Following</span>
+                            </span>
+                            <a href="{{ url_for('chat.conversation', partner_id=user.id) }}" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+                                <i data-lucide="send" style="width: 14px; height: 14px;"></i>
+                                <span>Message</span>
+                            </a>
+                        </div>
+                    {% elif is_pending_sent %}
+                        <span class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; cursor: default; background: #F8FAFC; color: var(--text-secondary); border-color: var(--border-color); font-weight: 500;">
+                            <i data-lucide="clock" style="width: 15px; height: 15px;"></i>
+                            <span>Requested</span>
+                        </span>
+                    {% elif is_pending_received %}
+                        <a href="{{ url_for('swap.quick_follow', user_id=user.id) }}" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+                            <i data-lucide="user-check" style="width: 15px; height: 15px;"></i>
+                            <span>Follow Back</span>
+                        </a>
+                    {% else %}
+                        <button type="button" class="btn btn-primary btn-sm btn-request-swap" style="display: inline-flex; align-items: center; gap: 6px;"
+                                data-user-id="{{ user.id }}"
+                                data-user-name="{{ user.name }}"
+                                data-teaches='[{% for s in user.teaching_skills %}{"id": "{{ s.id }}", "name": "{{ s.name }}"}{% if not loop.last %},{% endif %}{% endfor %}]'>
+                            <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i>
+                            <span>Follow</span>
+                        </button>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        {% if user.bio %}
+            <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">
+                {{ user.bio }}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Skills Sections: What can you teach & What do you want to learn -->
+    <div class="grid-2" style="margin-bottom: 24px;">
+        <!-- I Can Teach -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 style="color: var(--success); font-size: 1.05rem;">What I Can Teach</h3>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">{{ teach_user_skills|length }} skills</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                {% for us in teach_user_skills %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px;">
+                        <div>
+                            <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary-navy);">{{ us.skill.name }}</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary); margin-left: 6px;">({{ us.proficiency }})</span>
+                        </div>
+                        {% if is_own_profile %}
+                            <form action="{{ url_for('profile.remove_skill', user_skill_id=us.id) }}" method="POST" style="margin: 0;">
+                                <button type="submit" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 2px;" title="Remove">✕</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div style="color: var(--text-muted); font-size: 0.85rem; padding: 8px 0;">
+                        No teaching skills added yet.
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if is_own_profile %}
+                <form action="{{ url_for('profile.add_skill') }}" method="POST" style="border-top: 1px solid var(--border-color); padding-top: 12px;">
+                    <input type="hidden" name="skill_type" value="teach">
+                    <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Add skill to teach</div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 6px;">
+                        <input type="text" name="skill_name" class="form-control" placeholder="Skill (e.g. Python)" required list="predefinedSkills" style="font-size: 0.85rem; padding: 6px 10px;">
+                        <select name="proficiency" class="form-select" style="font-size: 0.85rem; padding: 6px 8px;">
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate" selected>Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                        </select>
+                        <button type="submit" class="btn btn-secondary btn-sm">+ Add</button>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+
+        <!-- I Want to Learn -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 style="color: var(--secondary-indigo); font-size: 1.05rem;">What I Want to Learn</h3>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">{{ learn_user_skills|length }} goals</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                {% for us in learn_user_skills %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px;">
+                        <div>
+                            <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary-navy);">{{ us.skill.name }}</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary); margin-left: 6px;">(Target: {{ us.proficiency }})</span>
+                        </div>
+                        {% if is_own_profile %}
+                            <form action="{{ url_for('profile.remove_skill', user_skill_id=us.id) }}" method="POST" style="margin: 0;">
+                                <button type="submit" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 2px;" title="Remove">✕</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div style="color: var(--text-muted); font-size: 0.85rem; padding: 8px 0;">
+                        No learning goals added yet.
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if is_own_profile %}
+                <form action="{{ url_for('profile.add_skill') }}" method="POST" style="border-top: 1px solid var(--border-color); padding-top: 12px;">
+                    <input type="hidden" name="skill_type" value="learn">
+                    <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Add skill to learn</div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 6px;">
+                        <input type="text" name="skill_name" class="form-control" placeholder="Skill (e.g. UI/UX)" required list="predefinedSkills" style="font-size: 0.85rem; padding: 6px 10px;">
+                        <select name="proficiency" class="form-select" style="font-size: 0.85rem; padding: 6px 8px;">
+                            <option value="Beginner" selected>Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                        </select>
+                        <button type="submit" class="btn btn-secondary btn-sm">+ Add</button>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Datalist for autocomplete skills -->
+    <datalist id="predefinedSkills">
+        {% if all_skills %}
+            {% for sk in all_skills %}
+                <option value="{{ sk.name }}">{{ sk.name }}</option>
+            {% endfor %}
+        {% endif %}
+    </datalist>
+
+    <!-- Achievements (5 Badges) -->
+    <div class="card" style="padding: 20px 24px;">
+        <h3 style="margin-bottom: 4px;">Achievements</h3>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">Milestones unlocked through peer swaps and sessions.</p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px;">
+            {% set earned_slugs = earned_badges | map(attribute='slug') | list %}
+            {% for badge in all_system_badges %}
+                {% set is_earned = badge.slug in earned_slugs %}
+                <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; text-align: center; background: {% if is_earned %}#FFFFFF{% else %}#F8FAFC{% endif %}; opacity: {% if is_earned %}1{% else %}0.5{% endif %};">
+                    <div style="font-size: 1.3rem; margin-bottom: 4px;">
+                        {% if badge.slug == 'first-swap' %}⚡
+                        {% elif badge.slug == 'knowledge-sharer' %}📖
+                        {% elif badge.slug == 'fast-learner' %}🎓
+                        {% elif badge.slug == 'community-builder' %}👥
+                        {% elif badge.slug == 'skill-mentor' %}👑
+                        {% else %}🏆{% endif %}
+                    </div>
+                    <div style="font-weight: 600; font-size: 0.82rem; color: var(--primary-navy);">
+                        {{ badge.name }}
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                        {% if is_earned %}Unlocked{% else %}Locked{% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

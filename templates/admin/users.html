@@ -1,0 +1,176 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}User Management{% endblock %}
+{% block breadcrumb %}User Management{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div>
+            <div class="admin-card-title">
+                <i data-lucide="users"></i>
+                <span>Registered Students & Profiles ({{ total_count }})</span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
+                Inspect, modify profiles, change passwords, suspend abusers, or permanently delete accounts.
+            </p>
+        </div>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <form method="GET" action="{{ url_for('admin.users_list') }}" style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+        <div style="flex: 1; min-width: 260px;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search by name, email, college, or branch..." class="admin-input">
+        </div>
+
+        <div style="width: 160px;">
+            <select name="role" class="admin-select" onchange="this.form.submit()">
+                <option value="all" {% if role_filter == 'all' %}selected{% endif %}>All Roles</option>
+                <option value="student" {% if role_filter == 'student' %}selected{% endif %}>Students Only</option>
+                <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admins Only</option>
+            </select>
+        </div>
+
+        <div style="width: 160px;">
+            <select name="status" class="admin-select" onchange="this.form.submit()">
+                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Accounts</option>
+                <option value="banned" {% if status_filter == 'banned' %}selected{% endif %}>Suspended Accounts</option>
+            </select>
+        </div>
+
+        <button type="submit" class="admin-btn admin-btn-primary">
+            <i data-lucide="search" style="width: 16px; height: 16px;"></i>
+            <span>Search</span>
+        </button>
+
+        {% if q or role_filter != 'all' or status_filter != 'all' %}
+        <a href="{{ url_for('admin.users_list') }}" class="admin-btn admin-btn-secondary">
+            <span>Clear Filters</span>
+        </a>
+        {% endif %}
+    </form>
+
+    <!-- Users Table -->
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Student Profile</th>
+                    <th>College & Branch</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Auth Type</th>
+                    <th>XP Points</th>
+                    <th>Connections</th>
+                    <th style="text-align: right;">Administrative Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in users %}
+                {% set u = item.user %}
+                <tr>
+                    <!-- Profile -->
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <img src="{{ u.avatar_url }}" alt="avatar" style="width: 36px; height: 36px; border-radius: 50%; background: #1F293D; flex-shrink: 0;">
+                            <div>
+                                <a href="{{ url_for('admin.user_detail', user_id=u.id) }}" style="font-weight: 700; color: #FFFFFF; font-size: 0.9rem;">
+                                    {{ u.name }}
+                                </a>
+                                <div style="font-size: 0.75rem; color: var(--admin-text-muted);">
+                                    {{ u.email }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- College -->
+                    <td>
+                        <div style="font-weight: 600;">{{ u.college or 'Campus Not Specified' }}</div>
+                        <div style="font-size: 0.74rem; color: var(--admin-text-muted);">{{ u.branch or 'N/A' }} • {{ u.year or 'Year N/A' }}</div>
+                    </td>
+
+                    <!-- Role -->
+                    <td>
+                        {% if u.is_admin %}
+                        <span class="admin-badge admin-badge-gold">
+                            <i data-lucide="shield-check" style="width: 11px; height: 11px;"></i>
+                            <span>Admin</span>
+                        </span>
+                        {% else %}
+                        <span class="admin-badge admin-badge-blue">Student</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Status -->
+                    <td>
+                        {% if u.is_banned %}
+                        <span class="admin-badge admin-badge-red" title="{{ u.ban_reason or 'Suspended by admin' }}">
+                            <i data-lucide="slash" style="width: 11px; height: 11px;"></i>
+                            <span>Suspended</span>
+                        </span>
+                        {% else %}
+                        <span class="admin-badge admin-badge-green">
+                            <i data-lucide="check-circle-2" style="width: 11px; height: 11px;"></i>
+                            <span>Active</span>
+                        </span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Auth Type -->
+                    <td>
+                        <div style="font-size: 0.74rem; display: flex; flex-direction: column; gap: 2px;">
+                            {% if item.has_google %}
+                            <span style="color: #60A5FA;">✓ Google OAuth</span>
+                            {% endif %}
+                            {% if item.has_local_password %}
+                            <span style="color: #34D399;">✓ Local Password</span>
+                            {% else %}
+                            <span style="color: #9CA3AF;">No Local Password</span>
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <!-- XP -->
+                    <td style="font-weight: 700; color: #F59E0B;">
+                        {{ u.xp }} XP
+                    </td>
+
+                    <!-- Connections -->
+                    <td style="font-weight: 600;">
+                        {{ item.connections_count }} connections
+                    </td>
+
+                    <!-- Actions -->
+                    <td style="text-align: right;">
+                        <div style="display: inline-flex; align-items: center; gap: 8px;">
+                            <!-- Full Inspect & Edit -->
+                            <a href="{{ url_for('admin.user_detail', user_id=u.id) }}" class="admin-btn admin-btn-secondary" style="padding: 6px 10px;" title="Inspect & Edit Full Profile">
+                                <i data-lucide="sliders" style="width: 14px; height: 14px;"></i>
+                                <span>Inspect</span>
+                            </a>
+
+                            <!-- Quick Delete (Protect Super Admin) -->
+                            {% if u.email.lower() != 'palt51419@gmail.com' %}
+                            <form method="POST" action="{{ url_for('admin.user_delete', user_id=u.id) }}" onsubmit="return confirm('CRITICAL WARNING: Are you completely sure you want to permanently delete profile {{ u.name }} ({{ u.email }}) and all their associated connections, messages, and requests?');" style="margin: 0;">
+                                <button type="submit" class="admin-btn admin-btn-danger" style="padding: 6px 8px;" title="Permanently Delete Profile">
+                                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" style="text-align: center; color: var(--admin-text-muted); padding: 40px;">
+                        No users match the search or filter criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

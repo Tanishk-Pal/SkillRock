@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal Login — Skill Rock</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+            background: #090D16;
+            color: #F3F4F6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 50% 10%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.08) 0%, transparent 45%);
+        }
+
+        .admin-login-card {
+            width: 100%;
+            max-width: 440px;
+            background: #111827;
+            border: 1px solid #1F293D;
+            border-radius: 16px;
+            padding: 36px 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .admin-login-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .admin-login-icon {
+            width: 54px;
+            height: 54px;
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            box-shadow: 0 6px 18px rgba(245, 158, 11, 0.25);
+            margin-bottom: 16px;
+        }
+
+        .admin-login-title {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            letter-spacing: -0.02em;
+        }
+
+        .admin-login-sub {
+            font-size: 0.85rem;
+            color: #9CA3AF;
+            margin-top: 6px;
+        }
+
+        .admin-alert {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        .admin-alert-danger {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #F87171;
+        }
+
+        .admin-alert-warning {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #FBBF24;
+        }
+
+        .admin-alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34D399;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #9CA3AF;
+            margin-bottom: 6px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+            pointer-events: none;
+        }
+
+        .form-control {
+            width: 100%;
+            background: #090D16;
+            border: 1px solid #1F293D;
+            border-radius: 10px;
+            color: #FFFFFF;
+            padding: 12px 14px 12px 42px;
+            font-size: 0.92rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+
+        .form-control:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #2563EB, #1D4ED8);
+            color: #FFFFFF;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.94rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+            transition: all 0.15s ease;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-submit:hover {
+            background: #1D4ED8;
+            transform: translateY(-1px);
+        }
+
+        .admin-login-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #6B7280;
+        }
+
+        .admin-login-footer a {
+            color: #9CA3AF;
+            text-decoration: none;
+        }
+
+        .admin-login-footer a:hover {
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-login-card">
+        <div class="admin-login-header">
+            <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="SkillRock Logo" style="width: 52px; height: 52px; border-radius: 12px; object-fit: cover; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);">
+            <h1 class="admin-login-title">Master Admin Portal</h1>
+            <p class="admin-login-sub">Authorized Personnel Only • Skill Rock HQ</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="admin-alert admin-alert-{{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('admin.admin_login', next=request.args.get('next')) }}">
+            <div class="form-group">
+                <label class="form-label">Admin Email</label>
+                <div class="input-wrapper">
+                    <i data-lucide="mail" class="input-icon" style="width: 18px; height: 18px;"></i>
+                    <input type="email" name="email" class="form-control" placeholder="Palt51419@gmail.com" value="{{ email or 'Palt51419@gmail.com' }}" required autofocus>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Master Password</label>
+                <div class="input-wrapper">
+                    <i data-lucide="lock" class="input-icon" style="width: 18px; height: 18px;"></i>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••••••" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i data-lucide="key" style="width: 18px; height: 18px;"></i>
+                <span>Authenticate & Access Console</span>
+            </button>
+        </form>
+
+        <div class="admin-login-footer">
+            <a href="{{ url_for('index') }}">← Return to Skill Rock Public Site</a>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

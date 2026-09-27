@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Master Admin Console{% endblock %} — Skill Rock</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --admin-bg: #090D16;
+            --admin-surface: #111827;
+            --admin-surface-card: #162032;
+            --admin-border: #1F293D;
+            --admin-border-light: #2D3A54;
+            --admin-text-main: #F3F4F6;
+            --admin-text-muted: #9CA3AF;
+            --admin-accent: #3B82F6;
+            --admin-accent-glow: rgba(59, 130, 246, 0.25);
+            --admin-gold: #F59E0B;
+            --admin-gold-glow: rgba(245, 158, 11, 0.2);
+            --admin-danger: #EF4444;
+            --admin-success: #10B981;
+            --admin-radius: 12px;
+            --admin-radius-sm: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+            background-color: var(--admin-bg);
+            color: var(--admin-text-main);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Navigation */
+        .admin-sidebar {
+            width: 260px;
+            background: var(--admin-surface);
+            border-right: 1px solid var(--admin-border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            transition: transform 0.2s ease;
+        }
+
+        .admin-brand {
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--admin-border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px var(--admin-gold-glow);
+        }
+
+        .admin-brand-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #FFFFFF;
+            line-height: 1.2;
+        }
+
+        .admin-brand-sub {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #F59E0B;
+        }
+
+        .admin-nav {
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .admin-nav-heading {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #6B7280;
+            padding: 12px 10px 4px;
+        }
+
+        .admin-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: var(--admin-radius-sm);
+            color: var(--admin-text-muted);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .admin-nav-item i {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .admin-nav-item:hover {
+            color: #FFFFFF;
+            background: var(--admin-surface-card);
+        }
+
+        .admin-nav-item.active {
+            color: #FFFFFF;
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.18), rgba(59, 130, 246, 0.06));
+            border-left: 3px solid var(--admin-accent);
+            padding-left: 11px;
+        }
+
+        .admin-nav-item.active i {
+            color: var(--admin-accent);
+        }
+
+        .admin-sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--admin-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .admin-user-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .admin-avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #F59E0B;
+            border: 2px solid #D97706;
+            flex-shrink: 0;
+        }
+
+        .admin-user-meta {
+            overflow: hidden;
+        }
+
+        .admin-user-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #FFFFFF;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .admin-user-role {
+            font-size: 0.7rem;
+            color: #F59E0B;
+            font-weight: 600;
+        }
+
+        /* Main Workspace */
+        .admin-main {
+            margin-left: 260px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: var(--admin-bg);
+        }
+
+        /* Topbar */
+        .admin-topbar {
+            height: 64px;
+            background: var(--admin-surface);
+            border-bottom: 1px solid var(--admin-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+
+        .admin-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .admin-mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--admin-text-main);
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .admin-breadcrumb {
+            font-size: 0.86rem;
+            font-weight: 600;
+            color: var(--admin-text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-breadcrumb span.current {
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+
+        .admin-topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .admin-telemetry-badge {
+            background: rgba(16, 185, 129, 0.12);
+            color: #10B981;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: "JetBrains Mono", monospace;
+        }
+
+        .admin-telemetry-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10B981;
+            box-shadow: 0 0 6px #10B981;
+        }
+
+        .admin-view-app-btn {
+            background: var(--admin-surface-card);
+            border: 1px solid var(--admin-border);
+            color: var(--admin-text-main);
+            padding: 6px 14px;
+            border-radius: var(--admin-radius-sm);
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .admin-view-app-btn:hover {
+            border-color: var(--admin-border-light);
+            background: #1E293B;
+            color: #FFFFFF;
+        }
+
+        /* Content Area */
+        .admin-content {
+            padding: 28px;
+            flex: 1;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Flash Messages */
+        .admin-flash-container {
+            margin-bottom: 24px;
+        }
+
+        .admin-alert {
+            padding: 12px 18px;
+            border-radius: var(--admin-radius-sm);
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .admin-alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34D399;
+        }
+
+        .admin-alert-danger {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #F87171;
+        }
+
+        .admin-alert-warning {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #FBBF24;
+        }
+
+        .admin-alert-info {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60A5FA;
+        }
+
+        /* Cards & Grids */
+        .admin-card {
+            background: var(--admin-surface);
+            border: 1px solid var(--admin-border);
+            border-radius: var(--admin-radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        .admin-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--admin-border);
+        }
+
+        .admin-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-card-title i {
+            color: var(--admin-accent);
+        }
+
+        /* Metrics Grid */
+        .admin-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .admin-metric-card {
+            background: var(--admin-surface);
+            border: 1px solid var(--admin-border);
+            border-radius: var(--admin-radius);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .admin-metric-card:hover {
+            border-color: var(--admin-border-light);
+            transform: translateY(-2px);
+        }
+
+        .admin-metric-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 4px;
+        }
+
+        .admin-metric-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--admin-text-muted);
+        }
+
+        .admin-metric-val {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            line-height: 1.1;
+        }
+
+        .admin-metric-sub {
+            font-size: 0.75rem;
+            color: var(--admin-text-muted);
+            margin-top: 4px;
+        }
+
+        /* Data Tables */
+        .admin-table-wrapper {
+            overflow-x: auto;
+            border-radius: var(--admin-radius-sm);
+            border: 1px solid var(--admin-border);
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.86rem;
+            text-align: left;
+        }
+
+        .admin-table th {
+            background: #0D131F;
+            color: var(--admin-text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--admin-border);
+        }
+
+        .admin-table td {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--admin-border);
+            color: var(--admin-text-main);
+            vertical-align: middle;
+        }
+
+        .admin-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Buttons & Badges */
+        .admin-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: var(--admin-radius-sm);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .admin-btn-primary {
+            background: var(--admin-accent);
+            color: #FFFFFF;
+        }
+
+        .admin-btn-primary:hover {
+            background: #2563EB;
+        }
+
+        .admin-btn-danger {
+            background: rgba(239, 68, 68, 0.18);
+            color: #F87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .admin-btn-danger:hover {
+            background: #EF4444;
+            color: #FFFFFF;
+        }
+
+        .admin-btn-warning {
+            background: rgba(245, 158, 11, 0.18);
+            color: #FBBF24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .admin-btn-warning:hover {
+            background: #F59E0B;
+            color: #FFFFFF;
+        }
+
+        .admin-btn-secondary {
+            background: var(--admin-surface-card);
+            border: 1px solid var(--admin-border);
+            color: var(--admin-text-main);
+        }
+
+        .admin-btn-secondary:hover {
+            border-color: var(--admin-border-light);
+            color: #FFFFFF;
+        }
+
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .admin-badge-gold {
+            background: rgba(245, 158, 11, 0.15);
+            color: #F59E0B;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .admin-badge-blue {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60A5FA;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .admin-badge-green {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34D399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .admin-badge-red {
+            background: rgba(239, 68, 68, 0.15);
+            color: #F87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Form Inputs */
+        .admin-form-group {
+            margin-bottom: 18px;
+        }
+
+        .admin-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--admin-text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .admin-input, .admin-select, .admin-textarea {
+            width: 100%;
+            background: #090D16;
+            border: 1px solid var(--admin-border);
+            border-radius: var(--admin-radius-sm);
+            color: #FFFFFF;
+            padding: 10px 14px;
+            font-size: 0.88rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+
+        .admin-input:focus, .admin-select:focus, .admin-textarea:focus {
+            border-color: var(--admin-accent);
+            box-shadow: 0 0 0 3px var(--admin-accent-glow);
+        }
+
+        @media (max-width: 900px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+            }
+            .admin-sidebar.open {
+                transform: translateX(0);
+            }
+            .admin-main {
+                margin-left: 0;
+            }
+            .admin-mobile-toggle {
+                display: block;
+            }
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Executive Admin Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="admin-brand">
+            <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="SkillRock Logo" style="width: 34px; height: 34px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+            <div>
+                <div class="admin-brand-title">Skill<span style="color: #EA580C; background: linear-gradient(135deg, #F59E0B, #EA580C); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Rock</span></div>
+                <div class="admin-brand-sub">Master Admin Console</div>
+            </div>
+        </div>
+
+        <nav class="admin-nav">
+            <div class="admin-nav-heading">Platform Control</div>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="admin-nav-item {% if request.endpoint == 'admin.admin_dashboard' %}active{% endif %}">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Dashboard Overview</span>
+            </a>
+            <a href="{{ url_for('admin.users_list') }}" class="admin-nav-item {% if 'users' in request.endpoint %}active{% endif %}">
+                <i data-lucide="users"></i>
+                <span>User Management</span>
+            </a>
+            <a href="{{ url_for('admin.skills_list') }}" class="admin-nav-item {% if 'skills' in request.endpoint %}active{% endif %}">
+                <i data-lucide="award"></i>
+                <span>Skills Directory</span>
+            </a>
+
+            <div class="admin-nav-heading">Network & Safety</div>
+            <a href="{{ url_for('admin.connections_list') }}" class="admin-nav-item {% if 'connections' in request.endpoint %}active{% endif %}">
+                <i data-lucide="git-merge"></i>
+                <span>Student Connections</span>
+            </a>
+            <a href="{{ url_for('admin.messages_list') }}" class="admin-nav-item {% if 'messages' in request.endpoint %}active{% endif %}">
+                <i data-lucide="message-square"></i>
+                <span>Chat Moderation Log</span>
+            </a>
+
+            <div class="admin-nav-heading">Configuration</div>
+            <a href="{{ url_for('admin.settings_page') }}" class="admin-nav-item {% if 'settings' in request.endpoint %}active{% endif %}">
+                <i data-lucide="sliders"></i>
+                <span>Platform Settings</span>
+            </a>
+        </nav>
+
+        <div class="admin-sidebar-footer">
+            <div class="admin-user-pill">
+                <img src="{{ current_user.avatar_url }}" alt="avatar" class="admin-avatar-small">
+                <div class="admin-user-meta">
+                    <div class="admin-user-name">{{ current_user.name }}</div>
+                    <div class="admin-user-role">Super Admin</div>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" title="Sign out" style="color: var(--admin-text-muted); display: flex;">
+                <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Admin Workspace -->
+    <div class="admin-main">
+        <!-- Top Navigation Bar -->
+        <header class="admin-topbar">
+            <div class="admin-topbar-left">
+                <button class="admin-mobile-toggle" id="sidebarToggle" aria-label="Toggle Navigation">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div class="admin-breadcrumb">
+                    <span>Admin</span>
+                    <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                    <span class="current">{% block breadcrumb %}Console{% endblock %}</span>
+                </div>
+            </div>
+
+            <div class="admin-topbar-right">
+                <div class="admin-telemetry-badge" title="Live Database Status">
+                    <span class="admin-telemetry-dot"></span>
+                    <span>MongoDB Atlas: Active</span>
+                </div>
+
+                <a href="{{ url_for('dashboard.dashboard') }}" class="admin-view-app-btn" target="_blank" rel="noopener">
+                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                    <span>Open Main App</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Dynamic Content Body -->
+        <main class="admin-content">
+            <!-- Flash Message Alerts -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="admin-flash-container">
+                    {% for category, message in messages %}
+                    <div class="admin-alert admin-alert-{{ category }}">
+                        <span>{{ message }}</span>
+                        <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color:inherit; cursor:pointer; font-size:1.1rem;">&times;</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Responsive Sidebar Toggle
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('adminSidebar');
+        if (toggleBtn && sidebar) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

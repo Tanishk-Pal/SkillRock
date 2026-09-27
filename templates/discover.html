@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Find Your Skill Match — Skill Rock{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">Find Your Skill Match</h1>
+        <p class="page-subtitle">Find students who can teach what you want to learn. Follow students to connect and exchange knowledge.</p>
+    </div>
+
+    <!-- Simple Filter Bar -->
+    <div class="card" style="padding: 16px 20px; margin-bottom: 24px;">
+        <form action="{{ url_for('discover.discover') }}" method="GET">
+            <div class="discover-filter-grid" style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: flex-end;">
+                <div>
+                    <label class="form-label">Search skill or student</label>
+                    <input type="text" name="q" class="form-control" placeholder="e.g. Python, UI/UX, or name..." value="{{ query }}">
+                </div>
+
+                <div>
+                    <label class="form-label">College</label>
+                    <select name="college" class="form-select">
+                        <option value="">All Colleges</option>
+                        {% for col in colleges %}
+                            <option value="{{ col }}" {% if selected_college == col %}selected{% endif %}>{{ col }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="form-label">Branch</label>
+                    <select name="branch" class="form-select">
+                        <option value="">All Branches</option>
+                        {% for br in branches %}
+                            <option value="{{ br }}" {% if selected_branch == br %}selected{% endif %}>{{ br }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <button type="submit" class="btn btn-primary" style="height: 42px;">
+                        Find Matches
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Student Cards Grid -->
+    {% if student_cards %}
+        <div class="grid-3">
+            {% for item in student_cards %}
+                {% set student = item.user %}
+                <div class="card student-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <!-- Header with Avatar and Basic Info -->
+                        <div class="student-card-header">
+                            <img src="{{ student.avatar_url }}" alt="avatar" class="avatar-img">
+                            <div style="flex: 1; min-width: 0;">
+                                <h3 style="margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ student.name }}
+                                </h3>
+                                <div style="font-size: 0.82rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ student.branch }} • {{ student.year }}
+                                </div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ student.college }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Match Badge & Rating -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                            <span class="match-pill">{{ item.score }}% Match</span>
+                            <span style="font-size: 0.8rem; color: var(--text-secondary);">
+                                {{ student.rating_display }}
+                            </span>
+                        </div>
+
+                        <!-- Can Teach -->
+                        <div style="margin-bottom: 12px;">
+                            <div class="section-label">CAN TEACH</div>
+                            <div class="skills-wrap">
+                                {% for s in student.teaching_skills %}
+                                    <span class="skill-tag teach">{{ s.name }}</span>
+                                {% else %}
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">None listed</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Wants to Learn -->
+                        <div style="margin-bottom: 14px;">
+                            <div class="section-label">WANTS TO LEARN</div>
+                            <div class="skills-wrap">
+                                {% for s in student.learning_skills %}
+                                    <span class="skill-tag learn">{{ s.name }}</span>
+                                {% else %}
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">None listed</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Simple "Why this match?" section -->
+                        {% if item.reasons %}
+                            <details style="margin-bottom: 14px; font-size: 0.82rem; color: var(--primary-blue); cursor: pointer;">
+                                <summary style="font-weight: 600; outline: none; user-select: none;">Why this match?</summary>
+                                <ul class="match-reasons-box" style="margin-top: 6px;">
+                                    {% for r in item.reasons %}
+                                        <li><span>✓</span> <span>{{ r }}</span></li>
+                                    {% endfor %}
+                                </ul>
+                            </details>
+                        {% endif %}
+                    </div>
+
+                    <!-- Footer Buttons -->
+                    <div style="display: flex; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 8px;">
+                        <a href="{{ url_for('profile.view_user_profile', user_id=student.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;">
+                            View Profile
+                        </a>
+                        {% if current_user.is_authenticated %}
+                            {% if item.is_connected %}
+                                <a href="{{ url_for('chat.conversation', partner_id=student.id) }}" class="btn btn-secondary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: var(--primary-blue); font-weight: 600; border-color: #BFDBFE; background: #EFF6FF;">
+                                    <i data-lucide="send" style="width: 13px; height: 13px;"></i>
+                                    <span>Message</span>
+                                </a>
+                            {% elif item.is_pending %}
+                                <span class="btn btn-secondary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #F8FAFC; color: var(--text-secondary); cursor: default;">
+                                    <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
+                                    <span>Requested</span>
+                                </span>
+                            {% else %}
+                                <button type="button" class="btn btn-primary btn-sm btn-request-swap" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px;"
+                                        data-user-id="{{ student.id }}"
+                                        data-user-name="{{ student.name }}"
+                                        data-teaches='[{% for s in student.teaching_skills %}{"id": "{{ s.id }}", "name": "{{ s.name }}"}{% if not loop.last %},{% endif %}{% endfor %}]'>
+                                    <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+                                    <span>Follow</span>
+                                </button>
+                            {% endif %}
+                        {% else %}
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
+                                <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+                                <span>Follow</span>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card" style="text-align: center; padding: 48px 24px; color: var(--text-secondary);">
+            <div style="font-size: 1.1rem; font-weight: 600; color: var(--primary-navy); margin-bottom: 6px;">No students found matching your criteria</div>
+            <p style="font-size: 0.9rem; margin-bottom: 16px;">Try searching for a different skill, adjusting campus filters, or add more skills to your profile.</p>
+            <a href="{{ url_for('discover.discover') }}" class="btn btn-secondary btn-sm">Clear Filters</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

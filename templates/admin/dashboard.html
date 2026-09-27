@@ -1,0 +1,225 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Dashboard Overview{% endblock %}
+{% block breadcrumb %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<!-- Executive KPI Grid -->
+<div class="admin-metrics-grid">
+    <!-- Total Users -->
+    <div class="admin-metric-card">
+        <div class="admin-metric-icon" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">
+            <i data-lucide="users"></i>
+        </div>
+        <div class="admin-metric-label">Total Campus Users</div>
+        <div class="admin-metric-val">{{ total_users }}</div>
+        <div class="admin-metric-sub">
+            <span style="color: #10B981;">{{ total_students }} Students</span> • 
+            <span style="color: #F59E0B;">{{ total_admins }} Admin</span>
+            {% if banned_users > 0 %}
+            • <span style="color: #EF4444;">{{ banned_users }} Suspended</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Active Connections -->
+    <div class="admin-metric-card">
+        <div class="admin-metric-icon" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">
+            <i data-lucide="git-merge"></i>
+        </div>
+        <div class="admin-metric-label">Active Connections</div>
+        <div class="admin-metric-val">{{ total_connections }}</div>
+        <div class="admin-metric-sub">{{ total_requests }} follow requests processed</div>
+    </div>
+
+    <!-- Direct Messages -->
+    <div class="admin-metric-card">
+        <div class="admin-metric-icon" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">
+            <i data-lucide="message-square"></i>
+        </div>
+        <div class="admin-metric-label">Total Chat Messages</div>
+        <div class="admin-metric-val">{{ total_messages }}</div>
+        <div class="admin-metric-sub">Real-time student communications</div>
+    </div>
+
+    <!-- Global Skills -->
+    <div class="admin-metric-card">
+        <div class="admin-metric-icon" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">
+            <i data-lucide="award"></i>
+        </div>
+        <div class="admin-metric-label">Skills Catalog</div>
+        <div class="admin-metric-val">{{ total_skills }}</div>
+        <div class="admin-metric-sub">Active subjects available for exchange</div>
+    </div>
+</div>
+
+<!-- System Health & Platform Telemetry -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div class="admin-card-title">
+            <i data-lucide="activity"></i>
+            <span>System Architecture & Production Telemetry</span>
+        </div>
+        <a href="{{ url_for('admin.settings_page') }}" class="admin-btn admin-btn-secondary" style="font-size: 0.78rem;">
+            <i data-lucide="sliders" style="width: 14px; height: 14px;"></i>
+            <span>Modify Settings</span>
+        </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <div style="background: #090D16; border: 1px solid var(--admin-border); border-radius: 10px; padding: 14px;">
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--admin-text-muted); font-weight: 700;">Database Engine</div>
+            <div style="font-size: 0.96rem; font-weight: 700; color: #FFFFFF; margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+                <span class="admin-telemetry-dot"></span>
+                <span>MongoDB Atlas (Cloud)</span>
+            </div>
+            <div style="font-size: 0.75rem; color: #10B981; margin-top: 4px; font-family: monospace;">Ping Latency: {{ sys_info.ping_latency_ms }} ms</div>
+        </div>
+
+        <div style="background: #090D16; border: 1px solid var(--admin-border); border-radius: 10px; padding: 14px;">
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--admin-text-muted); font-weight: 700;">AI Chatbot Key Pool</div>
+            <div style="font-size: 0.96rem; font-weight: 700; color: #FFFFFF; margin-top: 4px;">
+                <span>{{ sys_info.gemini_keys_count }} / 10 Spaces Active</span>
+            </div>
+            <div style="font-size: 0.75rem; color: #3B82F6; margin-top: 4px;">Auto-Rotating Failover Ready</div>
+        </div>
+
+        <div style="background: #090D16; border: 1px solid var(--admin-border); border-radius: 10px; padding: 14px;">
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--admin-text-muted); font-weight: 700;">Google OAuth 2.0</div>
+            <div style="font-size: 0.96rem; font-weight: 700; color: #FFFFFF; margin-top: 4px;">
+                {% if sys_info.google_oauth %}
+                <span style="color: #10B981;">✓ Configured</span>
+                {% else %}
+                <span style="color: #F59E0B;">Pending Client ID</span>
+                {% endif %}
+            </div>
+            <div style="font-size: 0.75rem; color: var(--admin-text-muted); margin-top: 4px;">Calendar & Meet Integration</div>
+        </div>
+
+        <div style="background: #090D16; border: 1px solid var(--admin-border); border-radius: 10px; padding: 14px;">
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--admin-text-muted); font-weight: 700;">Server Platform</div>
+            <div style="font-size: 0.96rem; font-weight: 700; color: #FFFFFF; margin-top: 4px;">
+                <span>Python {{ sys_info.python_version }}</span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--admin-text-muted); margin-top: 4px;">Flask WSGI Architecture</div>
+        </div>
+    </div>
+</div>
+
+<!-- Two-Column Layout: Recent Signups & Quick Moderation Feed -->
+<div style="display: grid; grid-template-columns: 2fr 1.2fr; gap: 24px;">
+    <!-- Recent Users Table -->
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <div class="admin-card-title">
+                <i data-lucide="user-check"></i>
+                <span>Recent Campus Registrations</span>
+            </div>
+            <a href="{{ url_for('admin.users_list') }}" class="admin-btn admin-btn-secondary" style="font-size: 0.78rem;">
+                <span>View All Users</span>
+                <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+            </a>
+        </div>
+
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>College / Branch</th>
+                        <th>Role</th>
+                        <th>XP Points</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in recent_users %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img src="{{ u.avatar_url }}" alt="avatar" style="width: 32px; height: 32px; border-radius: 50%; background: #1F293D;">
+                                <div>
+                                    <div style="font-weight: 700; color: #FFFFFF;">{{ u.name }}</div>
+                                    <div style="font-size: 0.75rem; color: var(--admin-text-muted);">{{ u.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600;">{{ u.college or 'Campus Not Set' }}</div>
+                            <div style="font-size: 0.74rem; color: var(--admin-text-muted);">{{ u.branch or 'General' }}</div>
+                        </td>
+                        <td>
+                            {% if u.is_admin %}
+                            <span class="admin-badge admin-badge-gold">Admin</span>
+                            {% elif u.is_banned %}
+                            <span class="admin-badge admin-badge-red">Suspended</span>
+                            {% else %}
+                            <span class="admin-badge admin-badge-blue">Student</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-weight: 700; color: #F59E0B;">
+                            {{ u.xp }} XP
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin.user_detail', user_id=u.id) }}" class="admin-btn admin-btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;">
+                                <i data-lucide="sliders" style="width: 12px; height: 12px;"></i>
+                                <span>Manage</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--admin-text-muted); padding: 30px;">
+                            No registered users found in database yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Messages Moderation Feed -->
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <div class="admin-card-title">
+                <i data-lucide="message-circle"></i>
+                <span>Chat Activity Log</span>
+            </div>
+            <a href="{{ url_for('admin.messages_list') }}" class="admin-btn admin-btn-secondary" style="font-size: 0.78rem;">
+                <span>Full Log</span>
+            </a>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for m in recent_messages %}
+            <div style="background: #090D16; border: 1px solid var(--admin-border); border-radius: 10px; padding: 12px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <div style="font-size: 0.78rem; font-weight: 700; color: #FFFFFF;">
+                        <span style="color: #60A5FA;">{{ m.sender_name }}</span>
+                        <span style="color: var(--admin-text-muted); margin: 0 4px;">→</span>
+                        <span style="color: #34D399;">{{ m.receiver_name }}</span>
+                    </div>
+                    <form method="POST" action="{{ url_for('admin.message_delete', msg_id=m.id) }}" onsubmit="return confirm('Delete this message permanently?');" style="margin: 0;">
+                        <button type="submit" style="background:none; border:none; color: #EF4444; cursor: pointer; padding: 2px;" title="Delete message">
+                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                        </button>
+                    </form>
+                </div>
+                <div style="font-size: 0.82rem; color: #D1D5DB; word-break: break-word;">
+                    "{{ m.content }}"
+                </div>
+                <div style="font-size: 0.7rem; color: var(--admin-text-muted); margin-top: 6px;">
+                    {{ m.created_at.strftime('%b %d, %H:%M') if m.created_at else 'Just now' }}
+                </div>
+            </div>
+            {% else %}
+            <div style="text-align: center; color: var(--admin-text-muted); padding: 40px 20px;">
+                <i data-lucide="message-square" style="width: 28px; height: 28px; margin-bottom: 8px; opacity: 0.5;"></i>
+                <p>No chat messages exchanged yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

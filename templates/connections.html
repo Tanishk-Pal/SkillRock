@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Connections — Skill Rock{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="page-header">
+        <h1 class="page-title">Your Connections</h1>
+        <p class="page-subtitle">Students you are connected with on campus.</p>
+    </div>
+
+    {% if connections %}
+        <div class="grid-2">
+            {% for item in connections %}
+                {% set conn = item.connection %}
+                {% set partner = item.partner %}
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+                            <img src="{{ partner.avatar_url }}" alt="avatar" class="avatar-img" style="width: 44px; height: 44px;">
+                            <div>
+                                <h3 style="margin-bottom: 2px;">{{ partner.name }}</h3>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                                    {{ partner.branch }} • {{ partner.college }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- What You Teach & Learn -->
+                        <div style="margin-bottom: 10px;">
+                            <div class="section-label">You teach:</div>
+                            <div class="skills-wrap">
+                                {% for s in item.my_teaches %}
+                                    <span class="skill-tag teach">{{ s.name }}</span>
+                                {% else %}
+                                    <span style="font-size: 0.82rem; color: var(--text-muted);">Skills agreed</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <div class="section-label">You learn:</div>
+                            <div class="skills-wrap">
+                                {% for s in item.partner_teaches %}
+                                    <span class="skill-tag learn">{{ s.name }}</span>
+                                {% else %}
+                                    <span style="font-size: 0.82rem; color: var(--text-muted);">Skills agreed</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div style="display: flex; gap: 6px; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 8px;">
+                        <a href="{{ url_for('chat.conversation', partner_id=partner.id) }}" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 5px; padding: 0 12px;" title="Chat with {{ partner.name }}">
+                            <i data-lucide="message-circle" style="width: 15px; height: 15px; color: var(--primary-blue);"></i>
+                            <span>Message</span>
+                        </a>
+                        <button type="button" class="btn btn-primary btn-sm btn-schedule-session" style="flex: 1;"
+                                data-connection-id="{{ conn.id }}"
+                                data-partner-id="{{ partner.id }}"
+                                data-partner-name="{{ partner.name }}"
+                                data-partner-teaches='[{% for s in item.partner_teaches %}{"id": "{{ s.id }}", "name": "{{ s.name }}"}{% if not loop.last %},{% endif %}{% endfor %}]'
+                                data-my-teaches='[{% for s in item.my_teaches %}{"id": "{{ s.id }}", "name": "{{ s.name }}"}{% if not loop.last %},{% endif %}{% endfor %}]'>
+                            Schedule Session
+                        </button>
+                        <a href="{{ url_for('profile.view_user_profile', user_id=partner.id) }}" class="btn btn-secondary btn-sm" style="padding: 0 10px;">
+                            Profile
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card" style="text-align: center; padding: 48px 24px; color: var(--text-secondary);">
+            <div style="font-size: 1.1rem; font-weight: 600; color: var(--primary-navy); margin-bottom: 6px;">You don't have any connections yet</div>
+            <p style="font-size: 0.9rem; margin-bottom: 16px;">Discover students and follow them to connect and exchange knowledge on campus.</p>
+            <a href="{{ url_for('discover.discover') }}" class="btn btn-primary btn-sm">Discover Students</a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Simple Schedule Session Modal -->
+<div id="scheduleSessionModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div>
+                <h3 style="font-size: 1.15rem;">Schedule Session with <span id="sessionPartnerName">Student</span></h3>
+            </div>
+            <button type="button" class="modal-close">&times;</button>
+        </div>
+
+        {% if current_user.has_google_connected %}
+            <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#16A34A" d="M19 10.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-4.5l5 4.5V6l-5 4.5z"/></svg>
+                <div style="font-size: 0.82rem; color: #166534;">
+                    <strong>Google Meet Connected:</strong> A real Google Meet video room & calendar invite will be generated automatically upon scheduling.
+                </div>
+            </div>
+        {% else %}
+            <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#2563EB" d="M19 10.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-4.5l5 4.5V6l-5 4.5z"/></svg>
+                        <div>
+                            <strong style="color: #1E3A8A; font-size: 0.86rem; display: block;">Connect Google Meet</strong>
+                            <span style="font-size: 0.78rem; color: #3B82F6;">Link your Google account to auto-generate official Google Meet links.</span>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('auth.google_login', next=url_for('connections.connections_list')) }}" class="btn btn-primary btn-sm" style="padding: 5px 12px; font-size: 0.8rem; white-space: nowrap;">
+                        Connect Google
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+        <form action="{{ url_for('sessions.schedule_session') }}" method="POST">
+            <input type="hidden" name="connection_id" id="sessionConnectionId">
+            <input type="hidden" name="partner_id" id="sessionPartnerId">
+
+            <div class="form-group">
+                <label class="form-label">Who is teaching?</label>
+                <select name="role" id="sessionRoleSelect" class="form-select">
+                    <option value="learn" selected>Partner teaches me</option>
+                    <option value="teach">I will teach partner</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Skill</label>
+                <select name="skill_id" id="sessionSkillSelect" class="form-select" required>
+                    <option value="">-- Select Skill --</option>
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="date" id="sessionDateInput" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Time</label>
+                    <input type="time" name="time" value="19:00" class="form-control" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label class="form-label">Duration</label>
+                    <select name="duration" class="form-select">
+                        <option value="30">30 min</option>
+                        <option value="45">45 min</option>
+                        <option value="60" selected>60 min</option>
+                        <option value="90">90 min</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Meeting Link (Optional)</label>
+                    <input type="text" name="meeting_link" class="form-control" placeholder="Auto-generated if Google connected, or paste meet.google.com/xxx">
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+                <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+                <button type="submit" class="btn btn-primary">Schedule</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
