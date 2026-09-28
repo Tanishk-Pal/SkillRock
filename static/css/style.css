@@ -1395,3 +1395,193 @@ html {
     padding: 10px 14px;
   }
 }
+
+/* ==========================================================================
+   YOUTUBE-STYLE SKELETON LOADING TEMPLATE & SMALL DIAMETER WHEEL LOADER
+   ========================================================================== */
+
+/* 1. YouTube Iconic Shimmer Animation Wave */
+@keyframes ytShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Skeleton Container */
+.yt-skeleton-container {
+  width: 100%;
+  animation: fadeIn 0.15s ease;
+  transition: opacity 0.25s ease-out;
+}
+
+.yt-skeleton-container.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Shimmer Elements Base */
+.sk-line,
+.sk-circle,
+.sk-pill,
+.sk-btn,
+.sk-block,
+.sk-box {
+  background: #E2E8F0;
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.sk-line::after,
+.sk-circle::after,
+.sk-pill::after,
+.sk-btn::after,
+.sk-block::after,
+.sk-box::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.65) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: ytShimmer 1.35s infinite linear;
+}
+
+/* Skeleton Placeholder Variations */
+.sk-line {
+  height: 14px;
+  border-radius: 6px;
+}
+
+.sk-circle {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sk-pill {
+  height: 24px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.sk-btn {
+  height: 38px;
+  border-radius: 8px;
+  display: block;
+}
+
+.sk-block {
+  display: block;
+}
+
+/* Live Page Content Reveal Transition */
+.live-content-wrapper {
+  transition: opacity 0.28s ease, filter 0.28s ease;
+  opacity: 1;
+}
+
+.live-content-wrapper.is-loading {
+  opacity: 0;
+  pointer-events: none;
+  min-height: 280px;
+}
+
+.live-content-wrapper.is-redirecting {
+  opacity: 0.55;
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+/* 2. Top Navigation Progress Bar (YouTube-Style Glowing Line) */
+.page-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, #2563EB 0%, #06B6D4 50%, #3B82F6 100%);
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.7);
+  z-index: 1000000;
+  opacity: 0;
+  transition: width 0.3s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.page-progress-bar.active {
+  opacity: 1;
+}
+
+/* 3. Small Diameter Wheel Loader Floating Pill */
+.page-redirect-pill {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-28px);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 12px 28px -5px rgba(15, 23, 42, 0.16), 0 4px 8px -2px rgba(15, 23, 42, 0.06);
+  border-radius: 9999px;
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 999999;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.22s;
+}
+
+.page-redirect-pill.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+/* Small Diameter Circular Wheel Spinner (20px diameter) */
+.wheel-spinner {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(37, 99, 235, 0.18);
+  border-top-color: #2563EB;
+  border-right-color: #06B6D4;
+  animation: wheelSpin 0.72s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes wheelSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.wheel-loader-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0F172A;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+

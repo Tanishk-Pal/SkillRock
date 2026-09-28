@@ -67,6 +67,15 @@
     {% block head %}{% endblock %}
 </head>
 <body>
+    <!-- Global Page Navigation Top Progress Bar (YouTube-Style Glowing Line) -->
+    <div id="pageProgressBar" class="page-progress-bar" aria-hidden="true"></div>
+
+    <!-- Small Diameter Wheel Loader Floating Pill (Navigation & Redirection Feedback) -->
+    <div id="pageRedirectLoader" class="page-redirect-pill" role="status" aria-live="polite">
+        <div class="wheel-spinner"></div>
+        <span id="wheelLoaderText" class="wheel-loader-text">Loading...</span>
+    </div>
+
     {% if announcement_enabled and announcement_text %}
     <!-- System Announcement Ribbon -->
     <div style="background: linear-gradient(90deg, #0f172a, #1e293b); color: #f8fafc; font-size: 0.84rem; padding: 7px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -239,35 +248,272 @@
         </div>
     </nav>
 
-    <!-- Main Content Container -->
+    <!-- Main Content Container with YouTube-Style Skeleton Loading Screen -->
     <main class="main-wrapper">
         <div class="container">
-            <!-- Flash Message Alerts -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="flash-container">
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    {% if category == 'success' %}
-                                        <i data-lucide="check" style="width: 16px; height: 16px;"></i>
-                                    {% elif category == 'danger' %}
-                                        <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i>
-                                    {% else %}
-                                        <i data-lucide="info" style="width: 16px; height: 16px;"></i>
-                                    {% endif %}
-                                    <span>{{ message }}</span>
-                                </div>
-                                <button type="button" class="alert-dismiss" style="background:none; border:none; color:inherit; cursor:pointer;">
-                                    <i data-lucide="x" style="width: 14px; height: 14px;"></i>
-                                </button>
+            <!-- YouTube-Style Skeleton Loading Template -->
+            <div id="youtubeSkeleton" class="yt-skeleton-container" aria-hidden="true">
+                {% if request.endpoint == 'dashboard.dashboard' %}
+                    <!-- Dashboard Skeleton -->
+                    <div style="max-width: 960px; margin: 0 auto;">
+                        <div style="margin-bottom: 24px;">
+                            <div class="sk-line" style="width: 240px; height: 32px; border-radius: 8px; margin-bottom: 8px;"></div>
+                            <div class="sk-line" style="width: 170px; height: 16px; border-radius: 6px;"></div>
+                        </div>
+                        <div class="grid-4" style="margin-bottom: 32px;">
+                            {% for i in range(4) %}
+                            <div class="card" style="padding: 16px 20px;">
+                                <div class="sk-line" style="width: 50px; height: 12px; border-radius: 4px; margin-bottom: 8px;"></div>
+                                <div class="sk-line" style="width: 80px; height: 28px; border-radius: 6px;"></div>
                             </div>
+                            {% endfor %}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div class="sk-line" style="width: 180px; height: 24px; border-radius: 6px;"></div>
+                            <div class="sk-line" style="width: 70px; height: 14px; border-radius: 4px;"></div>
+                        </div>
+                        <div class="grid-3">
+                            {% for i in range(3) %}
+                            <div class="card" style="padding: 20px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 14px;">
+                                    <div>
+                                        <div class="sk-line" style="width: 130px; height: 18px; border-radius: 6px; margin-bottom: 6px;"></div>
+                                        <div class="sk-line" style="width: 160px; height: 12px; border-radius: 4px;"></div>
+                                    </div>
+                                    <div class="sk-pill" style="width: 48px; height: 24px; border-radius: 999px;"></div>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <div class="sk-line" style="width: 70px; height: 12px; border-radius: 4px; margin-bottom: 6px;"></div>
+                                    <div style="display: flex; gap: 6px;">
+                                        <div class="sk-pill" style="width: 60px; height: 22px; border-radius: 6px;"></div>
+                                        <div class="sk-pill" style="width: 75px; height: 22px; border-radius: 6px;"></div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                                    <div class="sk-btn" style="flex: 1; height: 34px; border-radius: 8px;"></div>
+                                    <div class="sk-btn" style="flex: 1; height: 34px; border-radius: 8px;"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                {% elif request.endpoint == 'discover.discover' %}
+                    <!-- Discover Skeleton -->
+                    <div class="page-header">
+                        <div class="sk-line" style="width: 260px; height: 32px; border-radius: 8px; margin-bottom: 8px;"></div>
+                        <div class="sk-line" style="width: 420px; height: 16px; border-radius: 6px;"></div>
+                    </div>
+                    <div class="card" style="padding: 16px 20px; margin-bottom: 24px;">
+                        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 120px; gap: 12px;">
+                            <div class="sk-btn" style="height: 42px; border-radius: 8px;"></div>
+                            <div class="sk-btn" style="height: 42px; border-radius: 8px;"></div>
+                            <div class="sk-btn" style="height: 42px; border-radius: 8px;"></div>
+                            <div class="sk-btn" style="height: 42px; border-radius: 8px;"></div>
+                        </div>
+                    </div>
+                    <div class="grid-3">
+                        {% for i in range(6) %}
+                        <div class="card" style="padding: 20px;">
+                            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px;">
+                                <div class="sk-circle" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+                                <div style="flex: 1;">
+                                    <div class="sk-line" style="width: 120px; height: 16px; border-radius: 6px; margin-bottom: 6px;"></div>
+                                    <div class="sk-line" style="width: 150px; height: 12px; border-radius: 4px;"></div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 6px; margin-bottom: 16px;">
+                                <div class="sk-pill" style="width: 65px; height: 22px; border-radius: 6px;"></div>
+                                <div class="sk-pill" style="width: 75px; height: 22px; border-radius: 6px;"></div>
+                                <div class="sk-pill" style="width: 55px; height: 22px; border-radius: 6px;"></div>
+                            </div>
+                            <div style="display: flex; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                                <div class="sk-btn" style="flex: 1; height: 34px; border-radius: 8px;"></div>
+                                <div class="sk-btn" style="flex: 1; height: 34px; border-radius: 8px;"></div>
+                            </div>
+                        </div>
                         {% endfor %}
                     </div>
-                {% endif %}
-            {% endwith %}
 
-            {% block content %}{% endblock %}
+                {% elif request.endpoint and 'chat.' in request.endpoint %}
+                    <!-- Chat Skeleton -->
+                    <div class="card" style="padding: 0; overflow: hidden; height: 600px; display: grid; grid-template-columns: 280px 1fr;">
+                        <div style="border-right: 1px solid var(--border-color); padding: 14px;">
+                            <div class="sk-line" style="width: 90px; height: 20px; border-radius: 6px; margin-bottom: 14px;"></div>
+                            <div class="sk-btn" style="height: 36px; border-radius: 8px; margin-bottom: 14px;"></div>
+                            {% for i in range(5) %}
+                            <div style="display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9;">
+                                <div class="sk-circle" style="width: 40px; height: 40px; border-radius: 50%;"></div>
+                                <div style="flex: 1;">
+                                    <div class="sk-line" style="width: 85px; height: 14px; border-radius: 4px; margin-bottom: 6px;"></div>
+                                    <div class="sk-line" style="width: 120px; height: 11px; border-radius: 4px;"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div style="display: flex; flex-direction: column; justify-content: space-between; padding: 16px; background: #fafafa;">
+                            <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                                <div class="sk-circle" style="width: 38px; height: 38px; border-radius: 50%;"></div>
+                                <div class="sk-line" style="width: 120px; height: 16px; border-radius: 4px;"></div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 14px; padding: 20px 0;">
+                                <div class="sk-block" style="width: 55%; height: 44px; border-radius: 18px 18px 18px 4px; align-self: flex-start;"></div>
+                                <div class="sk-block" style="width: 45%; height: 40px; border-radius: 18px 18px 4px 18px; align-self: flex-end;"></div>
+                                <div class="sk-block" style="width: 60%; height: 50px; border-radius: 18px 18px 18px 4px; align-self: flex-start;"></div>
+                                <div class="sk-block" style="width: 38%; height: 38px; border-radius: 18px 18px 4px 18px; align-self: flex-end;"></div>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <div class="sk-btn" style="flex: 1; height: 44px; border-radius: 999px;"></div>
+                                <div class="sk-circle" style="width: 44px; height: 44px; border-radius: 50%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                {% elif request.endpoint in ['swap.requests_list', 'connections.connections_list', 'sessions.sessions_list'] %}
+                    <!-- Requests / Connections / Sessions Skeleton -->
+                    <div style="max-width: 860px; margin: 0 auto;">
+                        <div class="page-header">
+                            <div class="sk-line" style="width: 220px; height: 30px; border-radius: 8px; margin-bottom: 8px;"></div>
+                            <div class="sk-line" style="width: 360px; height: 16px; border-radius: 6px;"></div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 14px;">
+                            {% for i in range(4) %}
+                            <div class="card" style="padding: 18px; display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; gap: 14px; align-items: center; flex: 1;">
+                                    <div class="sk-circle" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+                                    <div>
+                                        <div class="sk-line" style="width: 140px; height: 16px; border-radius: 6px; margin-bottom: 6px;"></div>
+                                        <div class="sk-line" style="width: 180px; height: 12px; border-radius: 4px;"></div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <div class="sk-btn" style="width: 90px; height: 36px; border-radius: 8px;"></div>
+                                    <div class="sk-btn" style="width: 90px; height: 36px; border-radius: 8px;"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                {% elif request.endpoint and 'profile.' in request.endpoint %}
+                    <!-- Profile Skeleton -->
+                    <div style="max-width: 860px; margin: 0 auto;">
+                        <div class="card" style="padding: 28px; margin-bottom: 24px;">
+                            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
+                                <div class="sk-circle" style="width: 76px; height: 76px; border-radius: 50%;"></div>
+                                <div style="flex: 1;">
+                                    <div class="sk-line" style="width: 160px; height: 24px; border-radius: 6px; margin-bottom: 8px;"></div>
+                                    <div class="sk-line" style="width: 220px; height: 14px; border-radius: 4px;"></div>
+                                </div>
+                            </div>
+                            <div class="sk-line" style="width: 90%; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
+                            <div class="sk-line" style="width: 70%; height: 14px; border-radius: 4px;"></div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="card" style="padding: 20px;">
+                                <div class="sk-line" style="width: 100px; height: 18px; border-radius: 6px; margin-bottom: 14px;"></div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <div class="sk-pill" style="width: 70px; height: 26px; border-radius: 6px;"></div>
+                                    <div class="sk-pill" style="width: 90px; height: 26px; border-radius: 6px;"></div>
+                                </div>
+                            </div>
+                            <div class="card" style="padding: 20px;">
+                                <div class="sk-line" style="width: 100px; height: 18px; border-radius: 6px; margin-bottom: 14px;"></div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <div class="sk-pill" style="width: 80px; height: 26px; border-radius: 6px;"></div>
+                                    <div class="sk-pill" style="width: 100px; height: 26px; border-radius: 6px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                {% elif request.endpoint == 'index' %}
+                    <!-- Landing Page Skeleton -->
+                    <div style="max-width: 820px; margin: 30px auto; text-align: center;">
+                        <div class="sk-circle" style="width: 76px; height: 76px; border-radius: 18px; margin: 0 auto 18px auto;"></div>
+                        <div class="sk-pill" style="width: 180px; height: 26px; margin: 0 auto 18px auto;"></div>
+                        <div class="sk-line" style="width: 65%; height: 42px; border-radius: 8px; margin: 0 auto 14px auto;"></div>
+                        <div class="sk-line" style="width: 50%; height: 20px; border-radius: 6px; margin: 0 auto 32px auto;"></div>
+                        <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 40px;">
+                            <div class="sk-btn" style="width: 190px; height: 48px; border-radius: 8px;"></div>
+                            <div class="sk-btn" style="width: 160px; height: 48px; border-radius: 8px;"></div>
+                        </div>
+                        <div class="grid-3" style="margin-top: 40px;">
+                            {% for i in range(3) %}
+                            <div class="card" style="padding: 22px;">
+                                <div class="sk-line" style="width: 30px; height: 18px; border-radius: 4px; margin-bottom: 12px;"></div>
+                                <div class="sk-line" style="width: 130px; height: 20px; border-radius: 6px; margin-bottom: 10px;"></div>
+                                <div class="sk-line" style="width: 90%; height: 14px; border-radius: 4px;"></div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                {% elif request.endpoint in ['auth.login', 'auth.register'] %}
+                    <!-- Auth Pages Skeleton -->
+                    <div style="max-width: 440px; margin: 40px auto;">
+                        <div class="card" style="padding: 32px;">
+                            <div class="sk-circle" style="width: 56px; height: 56px; border-radius: 14px; margin: 0 auto 16px auto;"></div>
+                            <div class="sk-line" style="width: 140px; height: 24px; border-radius: 6px; margin: 0 auto 8px auto;"></div>
+                            <div class="sk-line" style="width: 200px; height: 14px; border-radius: 4px; margin: 0 auto 24px auto;"></div>
+                            <div class="sk-btn" style="height: 44px; border-radius: 8px; margin-bottom: 18px;"></div>
+                            <div class="sk-line" style="width: 100%; height: 1px; margin-bottom: 18px;"></div>
+                            <div class="sk-btn" style="height: 42px; border-radius: 8px; margin-bottom: 14px;"></div>
+                            <div class="sk-btn" style="height: 42px; border-radius: 8px; margin-bottom: 18px;"></div>
+                            <div class="sk-btn" style="height: 44px; border-radius: 8px;"></div>
+                        </div>
+                    </div>
+
+                {% else %}
+                    <!-- Universal Fallback Skeleton -->
+                    <div style="max-width: 860px; margin: 0 auto;">
+                        <div style="margin-bottom: 24px;">
+                            <div class="sk-line" style="width: 220px; height: 30px; border-radius: 8px; margin-bottom: 8px;"></div>
+                            <div class="sk-line" style="width: 340px; height: 16px; border-radius: 6px;"></div>
+                        </div>
+                        <div class="grid-3" style="margin-top: 20px;">
+                            {% for i in range(3) %}
+                            <div class="card" style="padding: 22px;">
+                                <div class="sk-line" style="width: 120px; height: 18px; border-radius: 6px; margin-bottom: 12px;"></div>
+                                <div class="sk-line" style="width: 100%; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
+                                <div class="sk-line" style="width: 80%; height: 14px; border-radius: 4px; margin-bottom: 16px;"></div>
+                                <div class="sk-btn" style="height: 36px; border-radius: 8px;"></div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Live Page Content Wrapper -->
+            <div id="livePageContent" class="live-content-wrapper is-loading">
+                <!-- Flash Message Alerts -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-container">
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        {% if category == 'success' %}
+                                            <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+                                        {% elif category == 'danger' %}
+                                            <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i>
+                                        {% else %}
+                                            <i data-lucide="info" style="width: 16px; height: 16px;"></i>
+                                        {% endif %}
+                                        <span>{{ message }}</span>
+                                    </div>
+                                    <button type="button" class="alert-dismiss" style="background:none; border:none; color:inherit; cursor:pointer;">
+                                        <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
         </div>
     </main>
 
