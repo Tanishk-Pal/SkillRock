@@ -1106,6 +1106,7 @@ class Message:
         self.receiver_id = str(self._data.get("receiver_id", ""))
         self.text = self._data.get("text", "")
         self.is_read = bool(self._data.get("is_read", False))
+        self.is_edited = bool(self._data.get("is_edited", False))
         self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
 
     @property
@@ -1118,19 +1119,90 @@ class Message:
 
     def to_dict(self):
         created_str = ""
+        iso_str = ""
         if isinstance(self.created_at, datetime):
+            if self.created_at.tzinfo is None:
+                iso_str = self.created_at.replace(tzinfo=timezone.utc).isoformat()
+            else:
+                iso_str = self.created_at.isoformat()
             created_str = self.created_at.strftime("%I:%M %p")
         elif self.created_at:
             created_str = str(self.created_at)
+            iso_str = str(self.created_at)
         return {
             "id": str(self.id),
             "sender_id": str(self.sender_id),
             "receiver_id": str(self.receiver_id),
             "text": self.text,
             "is_read": self.is_read,
+            "is_edited": bool(self.is_edited),
             "created_at": created_str,
-            "timestamp": self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at)
+            "timestamp": iso_str
         }
+
+    @classmethod
+    def get_by_id(cls, message_id):
+        if not message_id:
+            return None
+        db = get_db()
+        doc = None
+        try:
+            from bson import ObjectId
+            doc = db[cls.collection_name].find_one({"_id": ObjectId(str(message_id))})
+        except Exception:
+            pass
+        if not doc:
+            doc = db[cls.collection_name].find_one({"_id": str(message_id)})
+        return cls(doc) if doc else None
+
+    @classmethod
+    def edit_message(cls, message_id, user_id, new_text):
+        clean_text = str(new_text or "").strip()
+        if not clean_text or not message_id or not user_id:
+            return None
+        db = get_db()
+        msg = cls.get_by_id(message_id)
+        if not msg:
+            return None
+        if str(msg.sender_id) != str(user_id):
+            return None
+        
+        update_data = {
+            "text": clean_text,
+            "is_edited": True,
+            "updated_at": datetime.now(timezone.utc)
+        }
+        try:
+            from bson import ObjectId
+            db[cls.collection_name].update_one(
+                {"_id": ObjectId(str(message_id))},
+                {"$set": update_data}
+            )
+        except Exception:
+            db[cls.collection_name].update_one(
+                {"_id": str(message_id)},
+                {"$set": update_data}
+            )
+        return cls.get_by_id(message_id)
+
+    @classmethod
+    def delete_message(cls, message_id, user_id):
+        if not message_id or not user_id:
+            return False
+        db = get_db()
+        msg = cls.get_by_id(message_id)
+        if not msg:
+            return False
+        if str(msg.sender_id) != str(user_id):
+            return False
+        
+        try:
+            from bson import ObjectId
+            res = db[cls.collection_name].delete_one({"_id": ObjectId(str(message_id))})
+            return res.deleted_count > 0
+        except Exception:
+            res = db[cls.collection_name].delete_one({"_id": str(message_id)})
+            return res.deleted_count > 0
 
     @classmethod
     def send(cls, sender_id, receiver_id, text):

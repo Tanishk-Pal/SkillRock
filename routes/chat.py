@@ -174,3 +174,37 @@ def api_send_message(partner_id):
         "success": True,
         "message": msg.to_dict()
     })
+
+
+@chat_bp.route("/api/chat/messages/<message_id>/edit", methods=["POST", "PUT", "PATCH"])
+@login_required
+def api_edit_message(message_id):
+    """API endpoint to edit a previously sent message."""
+    data = request.get_json(silent=True) or {}
+    new_text = data.get("text", "").strip() or request.form.get("text", "").strip()
+    if not new_text:
+        return jsonify({"error": "Message text cannot be empty."}), 400
+        
+    updated = Message.edit_message(message_id, current_user.id, new_text)
+    if not updated:
+        return jsonify({"error": "Could not edit message or permission denied."}), 403
+        
+    return jsonify({
+        "success": True,
+        "message": updated.to_dict()
+    })
+
+
+@chat_bp.route("/api/chat/messages/<message_id>/delete", methods=["POST", "DELETE"])
+@login_required
+def api_delete_message(message_id):
+    """API endpoint to delete / unsend a message for everyone."""
+    success = Message.delete_message(message_id, current_user.id)
+    if not success:
+        return jsonify({"error": "Could not delete message or permission denied."}), 403
+        
+    return jsonify({
+        "success": True,
+        "deleted_id": str(message_id)
+    })
+

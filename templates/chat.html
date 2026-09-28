@@ -231,8 +231,122 @@
 
     .msg-row.me .msg-bubble-wrapper {
         display: flex;
-        align-items: flex-end;
+        align-items: center;
         justify-content: flex-end;
+        gap: 6px;
+        position: relative;
+    }
+
+    /* Instagram-Style Message Action Buttons (Edit & Unsend/Delete) */
+    .msg-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        transform: scale(0.92);
+        order: -1;
+    }
+
+    .msg-row.me:hover .msg-actions,
+    .msg-row.me:focus-within .msg-actions,
+    .msg-row.me.active-actions .msg-actions {
+        opacity: 1;
+        visibility: visible;
+        transform: scale(1);
+    }
+
+    .msg-action-btn {
+        background: #F1F5F9;
+        border: 1px solid var(--border-color);
+        color: #64748B;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        padding: 0;
+    }
+
+    .msg-action-btn:hover {
+        background: #FFFFFF;
+        color: var(--primary-blue);
+        transform: scale(1.1);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .msg-action-btn.delete-btn:hover {
+        color: #EF4444;
+        border-color: #FECACA;
+        background: #FEF2F2;
+    }
+
+    @media (max-width: 768px) {
+        .msg-actions {
+            opacity: 0.85;
+            visibility: visible;
+        }
+    }
+
+    .edited-badge {
+        font-size: 0.70rem;
+        opacity: 0.82;
+        margin-left: 5px;
+        font-style: italic;
+    }
+
+    /* Inline Message Edit Container */
+    .inline-edit-box {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #FFFFFF;
+        padding: 4px 6px;
+        border-radius: 12px;
+        border: 1.5px solid var(--primary-blue);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+
+    .inline-edit-input {
+        border: none;
+        outline: none;
+        font-size: 0.88rem;
+        padding: 6px 10px;
+        min-width: 170px;
+        max-width: 260px;
+        color: #0F172A;
+        border-radius: 8px;
+        background: #F8FAFC;
+    }
+
+    .inline-edit-btn {
+        border: none;
+        background: var(--primary-blue);
+        color: #FFFFFF;
+        border-radius: 6px;
+        padding: 5px 10px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .inline-edit-btn:hover {
+        background: #1D4ED8;
+    }
+
+    .inline-edit-cancel {
+        border: none;
+        background: #E2E8F0;
+        color: #475569;
+        border-radius: 6px;
+        padding: 5px 8px;
+        font-size: 0.78rem;
+        cursor: pointer;
     }
 
     .msg-row.me .msg-bubble {
@@ -245,6 +359,7 @@
         font-size: 0.92rem;
         line-height: 1.45;
         word-break: break-word;
+        transition: transform 0.2s ease, opacity 0.2s ease;
     }
 
     .msg-row.me .msg-time {
@@ -439,12 +554,24 @@
                             <div class="msg-bubble-wrapper">
                                 {% if not is_me %}
                                 <img src="{{ active_partner.avatar_url }}" alt="{{ active_partner.name }}" class="msg-avatar" title="{{ active_partner.name }}">
+                                {% else %}
+                                <div class="msg-actions">
+                                    <button type="button" class="msg-action-btn edit-btn" title="Edit message" onclick="startEditMessage('{{ m.id }}')">
+                                        <i data-lucide="pencil" style="width: 13px; height: 13px;"></i>
+                                    </button>
+                                    <button type="button" class="msg-action-btn delete-btn" title="Unsend message" onclick="deleteMessage('{{ m.id }}')">
+                                        <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                                    </button>
+                                </div>
                                 {% endif %}
                                 <div class="msg-bubble">
-                                    {{ m.text }}
+                                    <span class="bubble-text">{{ m.text }}</span>
+                                    {% if m.is_edited %}
+                                        <span class="edited-badge">(edited)</span>
+                                    {% endif %}
                                 </div>
                             </div>
-                            <div class="msg-time">
+                            <div class="msg-time msg-time-display" data-timestamp="{{ m.created_at.isoformat() if m.created_at else '' }}">
                                 {% if m.created_at %}
                                     {{ m.created_at.strftime('%I:%M %p') }}
                                 {% endif %}
@@ -489,7 +616,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const sendBtn = document.getElementById("sendBtn");
     const partnerId = "{{ active_partner.id }}";
     const currentUserId = "{{ current_user.id }}";
-    
+    const partnerAvatarUrl = "{{ active_partner.avatar_url }}";
+
+    // Format any ISO or UTC date string into the user's exact device local time
+    const formatLocalTime = (timestamp) => {
+        if (!timestamp) {
+            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+        let cleanTime = String(timestamp).trim();
+        // If string lacks timezone information, treat as UTC
+        if (!cleanTime.endsWith('Z') && !cleanTime.includes('+') && !cleanTime.includes('T')) {
+            cleanTime = cleanTime.replace(' ', 'T') + 'Z';
+        } else if (!cleanTime.endsWith('Z') && !cleanTime.includes('+') && cleanTime.includes('T')) {
+            cleanTime = cleanTime + 'Z';
+        }
+        let d = new Date(cleanTime);
+        if (isNaN(d.getTime())) {
+            d = new Date(timestamp);
+        }
+        if (isNaN(d.getTime())) {
+            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    };
+
+    // Format all initially rendered timestamps into user's exact local time
+    document.querySelectorAll(".msg-time-display").forEach(el => {
+        const raw = el.getAttribute("data-timestamp");
+        if (raw) {
+            el.textContent = formatLocalTime(raw);
+        }
+    });
+
     // Auto scroll to bottom
     const scrollToBottom = (smooth = true) => {
         if (messagesContainer) {
@@ -505,7 +663,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     scrollToBottom(false);
 
-    // Set of rendered message IDs to avoid duplicate rendering
+    // Set of rendered message IDs
     const renderedMsgIds = new Set();
     document.querySelectorAll(".msg-row[data-msg-id]").forEach(el => {
         const id = el.getAttribute("data-msg-id");
@@ -527,7 +685,118 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    const partnerAvatarUrl = "{{ active_partner.avatar_url }}";
+    // Global: Edit Message Function
+    window.startEditMessage = (msgId) => {
+        const row = document.querySelector(`.msg-row[data-msg-id="${msgId}"]`);
+        if (!row) return;
+        const bubble = row.querySelector(".msg-bubble");
+        const textSpan = bubble.querySelector(".bubble-text");
+        const currentText = textSpan ? textSpan.textContent.trim() : bubble.textContent.trim();
+
+        if (bubble.querySelector(".inline-edit-box")) return;
+
+        const originalHTML = bubble.innerHTML;
+        bubble.innerHTML = `
+            <div class="inline-edit-box">
+                <input type="text" class="inline-edit-input" value="${currentText.replace(/"/g, '&quot;')}" maxlength="1000">
+                <button type="button" class="inline-edit-btn save-btn">Save</button>
+                <button type="button" class="inline-edit-cancel cancel-btn">✕</button>
+            </div>
+        `;
+
+        const input = bubble.querySelector(".inline-edit-input");
+        const saveBtn = bubble.querySelector(".save-btn");
+        const cancelBtn = bubble.querySelector(".cancel-btn");
+
+        input.focus();
+        input.select();
+
+        const doSave = async () => {
+            const newText = input.value.trim();
+            if (!newText || newText === currentText) {
+                bubble.innerHTML = originalHTML;
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = "...";
+
+            try {
+                const res = await fetch(`/api/chat/messages/${msgId}/edit`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: newText })
+                });
+                const data = await res.json();
+                if (data.success && data.message) {
+                    bubble.innerHTML = `<span class="bubble-text">${data.message.text}</span> <span class="edited-badge">(edited)</span>`;
+                    updateContactSnippet(data.message.text, true);
+                } else {
+                    alert(data.error || "Failed to edit message.");
+                    bubble.innerHTML = originalHTML;
+                }
+            } catch (err) {
+                console.error("Edit message error:", err);
+                bubble.innerHTML = originalHTML;
+            }
+        };
+
+        saveBtn.addEventListener("click", doSave);
+        cancelBtn.addEventListener("click", () => {
+            bubble.innerHTML = originalHTML;
+        });
+
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                doSave();
+            } else if (e.key === "Escape") {
+                bubble.innerHTML = originalHTML;
+            }
+        });
+    };
+
+    // Global: Delete / Unsend Message Function
+    window.deleteMessage = async (msgId) => {
+        if (!confirm("Unsend this message? It will be permanently removed for everyone.")) {
+            return;
+        }
+
+        const row = document.querySelector(`.msg-row[data-msg-id="${msgId}"]`);
+        if (row) {
+            row.style.transition = "all 0.25s ease";
+            row.style.opacity = "0.4";
+            row.style.transform = "scale(0.95)";
+        }
+
+        try {
+            const res = await fetch(`/api/chat/messages/${msgId}/delete`, {
+                method: "POST"
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (row) {
+                    row.style.opacity = "0";
+                    setTimeout(() => {
+                        row.remove();
+                        renderedMsgIds.delete(String(msgId));
+                    }, 200);
+                }
+            } else {
+                alert(data.error || "Could not unsend message.");
+                if (row) {
+                    row.style.opacity = "1";
+                    row.style.transform = "none";
+                }
+            }
+        } catch (err) {
+            console.error("Delete message error:", err);
+            if (row) {
+                row.style.opacity = "1";
+                row.style.transform = "none";
+            }
+        }
+    };
 
     // Helper: Append a message to the stream
     const appendMessage = (msg, isLive = false) => {
@@ -549,20 +818,40 @@ document.addEventListener("DOMContentLoaded", () => {
             avatar.alt = "";
             avatar.className = "msg-avatar";
             wrapper.appendChild(avatar);
+        } else {
+            // Instagram-Style action buttons for own messages
+            const actions = document.createElement("div");
+            actions.className = "msg-actions";
+            actions.innerHTML = `
+                <button type="button" class="msg-action-btn edit-btn" title="Edit message" onclick="startEditMessage('${msgId}')">
+                    <i data-lucide="pencil" style="width: 13px; height: 13px;"></i>
+                </button>
+                <button type="button" class="msg-action-btn delete-btn" title="Unsend message" onclick="deleteMessage('${msgId}')">
+                    <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                </button>
+            `;
+            wrapper.appendChild(actions);
         }
 
         const bubble = document.createElement("div");
         bubble.className = "msg-bubble";
-        bubble.textContent = msg.text;
+        bubble.innerHTML = `<span class="bubble-text">${msg.text}</span>` + (msg.is_edited ? ` <span class="edited-badge">(edited)</span>` : '');
         wrapper.appendChild(bubble);
 
         const time = document.createElement("div");
-        time.className = "msg-time";
-        time.textContent = msg.created_at || "Just now";
+        time.className = "msg-time msg-time-display";
+        const rawTime = msg.timestamp || msg.created_at;
+        time.setAttribute("data-timestamp", rawTime || "");
+        time.textContent = formatLocalTime(rawTime);
 
         row.appendChild(wrapper);
         row.appendChild(time);
         messagesContainer.appendChild(row);
+
+        if (window.lucide) {
+            window.lucide.createIcons({ root: row });
+        }
+
         scrollToBottom(true);
         updateContactSnippet(msg.text, isMe);
     };
@@ -589,7 +878,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const data = await response.json();
                 if (data.success && data.message) {
                     appendMessage(data.message, true);
-                    // Fast follow-up poll
                     setTimeout(pollMessages, 300);
                 } else if (data.error) {
                     alert(data.error);
@@ -603,7 +891,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Live real-time polling with cache-busting (every 1 second)
+    // Dynamic real-time polling (every 1 second)
     let isPolling = false;
     const pollMessages = async () => {
         if (isPolling) return;
@@ -622,13 +910,48 @@ document.addEventListener("DOMContentLoaded", () => {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && Array.isArray(data.messages)) {
-                    let hasNew = false;
-                    data.messages.forEach(msg => {
-                        if (!renderedMsgIds.has(String(msg.id))) {
-                            appendMessage(msg, true);
-                            hasNew = true;
+                    const serverIds = new Set(data.messages.map(m => String(m.id)));
+
+                    // 1. Dynamic Deletions: Remove messages that were unsent/deleted on server
+                    document.querySelectorAll(".msg-row[data-msg-id]").forEach(el => {
+                        const id = el.getAttribute("data-msg-id");
+                        if (id && !serverIds.has(id)) {
+                            el.style.transition = "all 0.25s ease";
+                            el.style.opacity = "0";
+                            el.style.transform = "scale(0.95)";
+                            setTimeout(() => {
+                                el.remove();
+                                renderedMsgIds.delete(id);
+                            }, 250);
                         }
                     });
+
+                    // 2. Dynamic Additions & Edits
+                    let hasNew = false;
+                    data.messages.forEach(msg => {
+                        const id = String(msg.id);
+                        if (!renderedMsgIds.has(id)) {
+                            appendMessage(msg, true);
+                            hasNew = true;
+                        } else {
+                            // Check if message was edited
+                            const existingRow = document.querySelector(`.msg-row[data-msg-id="${id}"]`);
+                            if (existingRow) {
+                                const textSpan = existingRow.querySelector(".bubble-text");
+                                if (textSpan && textSpan.textContent !== msg.text) {
+                                    textSpan.textContent = msg.text;
+                                    const bubble = existingRow.querySelector(".msg-bubble");
+                                    if (bubble && !bubble.querySelector(".edited-badge")) {
+                                        const badge = document.createElement("span");
+                                        badge.className = "edited-badge";
+                                        badge.textContent = " (edited)";
+                                        bubble.appendChild(badge);
+                                    }
+                                }
+                            }
+                        }
+                    });
+
                     if (hasNew) {
                         scrollToBottom(true);
                     }
@@ -641,7 +964,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    // Fast 1000ms (1 second) interval for true real-time chat
+    // Fast 1000ms polling for live real-time synchronization
     const pollInterval = setInterval(pollMessages, 1000);
 
     window.addEventListener("beforeunload", () => {
