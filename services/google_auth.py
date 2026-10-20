@@ -16,12 +16,11 @@ from google_auth_oauthlib.flow import Flow
 
 logger = logging.getLogger(__name__)
 
-# Required Google Scopes for Login & Calendar Scheduling
+# Non-Sensitive Google Scopes for Instant Verification-Free Login
 SCOPES = [
     "openid",
     "https://www.googleapis.com/auth/userinfo.email",
-    "https://www.googleapis.com/auth/userinfo.profile",
-    "https://www.googleapis.com/auth/calendar.events"
+    "https://www.googleapis.com/auth/userinfo.profile"
 ]
 
 def is_google_auth_configured():

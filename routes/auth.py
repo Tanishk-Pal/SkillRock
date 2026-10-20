@@ -172,65 +172,18 @@ def google_callback():
 
 
 # ==============================================================================
-# Standard Campus Email / Password Authentication
+# Unified Sign In Authentication (Handles Both Existing & New Users Seamlessly)
 # ==============================================================================
 
-@auth_bp.route("/register", methods=["GET", "POST"])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for("dashboard.dashboard"))
-
-    settings = PlatformSettings.get_settings()
-    if not settings.get("allow_registrations", True):
-        flash("New student registrations are currently paused by the platform administrator.", "warning")
-        return render_template("register.html")
-
-    if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
-        college = request.form.get("college", "").strip()
-        branch = request.form.get("branch", "").strip()
-        year = request.form.get("year", "").strip()
-
-        if not all([name, email, password, college, branch, year]):
-            flash("All fields are required to create your campus account.", "danger")
-            return render_template("register.html", name=name, email=email, college=college, branch=branch, year=year)
-
-        if len(password) < 6:
-            flash("Password must be at least 6 characters long.", "danger")
-            return render_template("register.html", name=name, email=email, college=college, branch=branch, year=year)
-
-        # Check duplicate user in MongoDB
-        existing_user = User.get_by_email(email)
-        if existing_user:
-            flash("An account with this email already exists. Please log in.", "warning")
-            return redirect(url_for("auth.login"))
-
-        welcome_xp = int(settings.get("welcome_xp", 50))
-        new_user = User.create(
-            name=name,
-            email=email,
-            college=college,
-            branch=branch,
-            year=year,
-            bio=f"Student at {college} studying {branch}.",
-            xp=welcome_xp,
-            rating=0.0,
-            rating_count=0
-        )
-        new_user.set_password(password)
-        new_user.save()
-
-        login_user(new_user, remember=True)
-        flash(f"Welcome to Skill Rock, {new_user.name}! Let's add your skills.", "success")
-        return redirect(url_for("profile.profile"))
-
-    return render_template("register.html")
-
-
+@auth_bp.route("/signin", methods=["GET", "POST"])
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    """
+    Unified Sign In endpoint.
+    - If user exists: checks password and logs them in immediately.
+    - If user is new: automatically creates account, logs in, and awards welcome XP.
+    One single button ("Sign In") handles both seamlessly.
+    """
     if current_user.is_authenticated:
         if getattr(current_user, "is_admin", False):
             return redirect(url_for("admin.admin_dashboard"))
@@ -239,34 +192,84 @@ def login():
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
+        name = request.form.get("name", "").strip()
 
         if not email or not password:
             flash("Please enter both email and password.", "danger")
-            return render_template("login.html", email=email)
+            return render_template("login.html", email=email, name=name)
 
         user = User.get_by_email(email)
-        if not user or not user.check_password(password):
-            flash("Invalid email or password. Please try again.", "danger")
-            return render_template("login.html", email=email)
+        if user:
+            # Existing user sign-in flow
+            if not user.check_password(password):
+                if not user.password_hash and user.google_id:
+                    flash("This email is registered via Google. Please click 'Continue with Google' above.", "info")
+                    return render_template("login.html", email=email, name=name)
+                flash("Incorrect password for this account. Please verify and try again.", "danger")
+                return render_template("login.html", email=email, name=name)
 
-        if getattr(user, "is_banned", False):
-            reason = getattr(user, "ban_reason", "") or "Terms violation or community guideline breach."
-            flash(f"Your account has been suspended: {reason}. Contact Palt51419@gmail.com for assistance.", "danger")
-            return render_template("login.html", email=email)
+            if getattr(user, "is_banned", False):
+                reason = getattr(user, "ban_reason", "") or "Terms violation or community guideline breach."
+                flash(f"Your account has been suspended: {reason}. Contact Palt51419@gmail.com for assistance.", "danger")
+                return render_template("login.html", email=email, name=name)
 
-        login_user(user, remember=True)
-        flash(f"Welcome back, {user.name}!", "success")
-        raw_next = request.args.get("next")
-        if not raw_next or any(x in str(raw_next).lower() for x in ["login", "register", "auth"]):
-            if getattr(user, "is_admin", False):
-                next_page = url_for("admin.admin_dashboard")
+            login_user(user, remember=True)
+            flash(f"Welcome back, {user.name}!", "success")
+            raw_next = request.args.get("next")
+            if not raw_next or any(x in str(raw_next).lower() for x in ["login", "register", "signin", "auth"]):
+                if getattr(user, "is_admin", False):
+                    next_page = url_for("admin.admin_dashboard")
+                else:
+                    next_page = url_for("dashboard.dashboard")
             else:
-                next_page = url_for("dashboard.dashboard")
+                next_page = raw_next
+            return redirect(next_page)
         else:
-            next_page = raw_next
-        return redirect(next_page)
+            # New user sign-in flow -> Automatically create account & log in!
+            settings = PlatformSettings.get_settings()
+            if not settings.get("allow_registrations", True):
+                flash("New student registrations are currently paused by the platform administrator.", "warning")
+                return render_template("login.html", email=email, name=name)
+
+            if len(password) < 6:
+                flash("New account password must be at least 6 characters long.", "danger")
+                return render_template("login.html", email=email, name=name)
+
+            # Auto-generate friendly display name if not provided
+            if not name:
+                prefix = email.split("@")[0].replace(".", " ").replace("_", " ").title()
+                name = prefix or "Student"
+
+            welcome_xp = int(settings.get("welcome_xp", 50))
+            new_user = User.create(
+                name=name,
+                email=email,
+                college="",
+                branch="",
+                year="1st Year",
+                bio="Student eager to exchange skills on Skill Rock.",
+                xp=welcome_xp,
+                rating=0.0,
+                rating_count=0
+            )
+            new_user.set_password(password)
+            new_user.save()
+
+            login_user(new_user, remember=True)
+            flash(f"Welcome to Skill Rock, {new_user.name}! Your account has been created (+{welcome_xp} Welcome XP). Let's set up your campus & skills.", "success")
+            return redirect(url_for("profile.edit_profile"))
 
     return render_template("login.html")
+
+
+@auth_bp.route("/register", methods=["GET", "POST"])
+def register():
+    """Redirects legacy registration links directly to the unified Sign In."""
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard.dashboard"))
+    if request.method == "POST":
+        return login()
+    return redirect(url_for("auth.login"))
 
 
 @auth_bp.route("/logout")
