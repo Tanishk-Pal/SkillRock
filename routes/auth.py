@@ -22,12 +22,33 @@ auth_bp = Blueprint("auth", __name__)
 # Google OAuth 2.0 Authentication
 # ==============================================================================
 
+def get_actual_redirect_uri():
+    """
+    Computes the correct Google OAuth callback URI dynamically.
+    Guarantees that on Render / live domains, it ALWAYS uses:
+    https://{request.host}/auth/google/callback
+    and NEVER defaults to 127.0.0.1 or localhost.
+    """
+    configured = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+    host = request.host.lower()
+    is_local = host.startswith("localhost") or host.startswith("127.0.0.1")
+
+    if not is_local:
+        # In production (e.g. skillrock.onrender.com), enforce HTTPS and live host
+        return f"https://{request.host}/auth/google/callback"
+    else:
+        # Local development
+        if configured and ("localhost" in configured or "127.0.0.1" in configured):
+            return configured
+        return f"http://{request.host}/auth/google/callback"
+
+
 @auth_bp.route("/auth/google")
 def google_login():
     """Initiates Google OAuth 2.0 login / sign up / account connection flow."""
     # Never redirect to login, register, or auth callback after authenticating
     raw_next = request.args.get("next") or request.referrer or ""
-    if not raw_next or any(x in str(raw_next).lower() for x in ["login", "register", "auth"]):
+    if not raw_next or any(x in str(raw_next).lower() for x in ["login", "register", "auth", "signin"]):
         next_url = url_for("dashboard.dashboard")
     else:
         next_url = raw_next
@@ -50,12 +71,8 @@ def google_login():
     else:
         session.pop("linking_user_id", None)
 
-    # Determine redirect URI (prefer explicitly configured or dynamically built)
-    configured_redirect = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
-    if configured_redirect and "YOUR_" not in configured_redirect:
-        redirect_uri = configured_redirect
-    else:
-        redirect_uri = url_for("auth.google_callback", _external=True)
+    # Determine dynamic redirect URI (always matches current live domain or localhost)
+    redirect_uri = get_actual_redirect_uri()
 
     try:
         flow = get_google_auth_flow(redirect_uri)
@@ -83,9 +100,9 @@ def google_callback():
         return redirect(url_for("auth.login"))
 
     stored_state = session.get("oauth_state") or request.args.get("state")
-    redirect_uri = session.get("oauth_redirect_uri") or os.getenv("GOOGLE_REDIRECT_URI", "").strip() or url_for("auth.google_callback", _external=True)
+    redirect_uri = session.get("oauth_redirect_uri") or get_actual_redirect_uri()
     next_url = session.pop("oauth_next", url_for("dashboard.dashboard"))
-    if not next_url or any(x in str(next_url).lower() for x in ["login", "register", "auth"]):
+    if not next_url or any(x in str(next_url).lower() for x in ["login", "register", "auth", "signin"]):
         next_url = url_for("dashboard.dashboard")
     linking_user_id = session.pop("linking_user_id", None)
 
