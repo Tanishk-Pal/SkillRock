@@ -257,13 +257,17 @@ def login():
                 prefix = email.split("@")[0].replace(".", " ").replace("_", " ").title()
                 name = prefix or "Student"
 
+            college = request.form.get("college", "").strip()
+            branch = request.form.get("branch", "").strip()
+            year = request.form.get("year", "1st Year").strip()
+
             welcome_xp = int(settings.get("welcome_xp", 50))
             new_user = User.create(
                 name=name,
                 email=email,
-                college="",
-                branch="",
-                year="1st Year",
+                college=college,
+                branch=branch,
+                year=year,
                 bio="Student eager to exchange skills on Skill Rock.",
                 xp=welcome_xp,
                 rating=0.0,

@@ -1,0 +1,164 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{% if course %}Edit Course: {{ course.title }}{% else %}Add New Course{% endif %}{% endblock %}
+{% block breadcrumb %}{% if course %}Edit Course{% else %}New Course{% endif %}{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('admin.courses_list') }}" class="admin-btn admin-btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+            <span>Back to Courses</span>
+        </a>
+    </div>
+
+    <form method="POST" action="{% if course %}{{ url_for('admin.course_edit', course_id=course.id) }}{% else %} {{ url_for('admin.course_new') }} {% endif %}">
+        <!-- Part 1: Course Core Details -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="admin-card-title">
+                    <i data-lucide="book-open"></i>
+                    <span>{% if course %}Edit Course Details{% else %}Create Course Details{% endif %}</span>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <div class="admin-form-group">
+                <label class="admin-label">Course Title *</label>
+                <input type="text" name="title" class="admin-input" placeholder="e.g. Python Programming: Beginner to Project Mastery" value="{{ course.title if course else '' }}" required>
+            </div>
+
+            <!-- 2 Column Row: Category & Difficulty -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+                <div class="admin-form-group">
+                    <label class="admin-label">Category *</label>
+                    <select name="category" class="admin-select" required>
+                        {% for cat in ['Programming', 'Web Development', 'Data Science', 'AI & Machine Learning', 'Mobile Development', 'Cloud & DevOps', 'Cybersecurity', 'Database Engineering'] %}
+                            <option value="{{ cat }}" {% if course and course.category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="admin-form-group">
+                    <label class="admin-label">Difficulty Level *</label>
+                    <select name="difficulty" class="admin-select" required>
+                        <option value="Beginner" {% if course and course.difficulty == 'Beginner' %}selected{% endif %}>Beginner</option>
+                        <option value="Intermediate" {% if course and course.difficulty == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+                        <option value="Advanced" {% if course and course.difficulty == 'Advanced' %}selected{% endif %}>Advanced</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 2 Column Row: Duration & Instructor -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+                <div class="admin-form-group">
+                    <label class="admin-label">Estimated Duration *</label>
+                    <input type="text" name="estimated_duration" class="admin-input" placeholder="e.g. 10 Hours or 4 Weeks" value="{{ course.estimated_duration if course else '10 Hours' }}" required>
+                </div>
+                <div class="admin-form-group">
+                    <label class="admin-label">Instructor / Channel Name *</label>
+                    <input type="text" name="instructor" class="admin-input" placeholder="e.g. CodeWithHarry, FreeCodeCamp" value="{{ course.instructor if course else '' }}" required>
+                </div>
+            </div>
+
+            <!-- YouTube Video URL -->
+            <div class="admin-form-group">
+                <label class="admin-label">Curated YouTube URL *</label>
+                <input type="url" name="youtube_url" class="admin-input" placeholder="https://www.youtube.com/watch?v=... or playlist URL" value="{{ course.youtube_url if course else '' }}" required>
+                <small style="color: var(--admin-text-muted); font-size: 0.75rem; display: block; margin-top: 4px;">
+                    Supports standard video links, shorts, playlists, or youtu.be shortlinks. Embedded with youtube-nocookie.
+                </small>
+            </div>
+
+            <!-- Thumbnail URL (Optional) -->
+            <div class="admin-form-group">
+                <label class="admin-label">Custom Thumbnail Image URL (Optional)</label>
+                <input type="url" name="thumbnail_url" class="admin-input" placeholder="Leave blank to automatically extract high-res YouTube thumbnail" value="{{ course.thumbnail_url if course else '' }}">
+            </div>
+
+            <!-- Description -->
+            <div class="admin-form-group">
+                <label class="admin-label">Course Description *</label>
+                <textarea name="description" class="admin-textarea" rows="4" placeholder="Comprehensive overview of what this course teaches and what students will achieve..." required>{{ course.description if course else '' }}</textarea>
+            </div>
+
+            <!-- Learning Objectives -->
+            <div class="admin-form-group">
+                <label class="admin-label">Key Learning Objectives (One per line)</label>
+                <textarea name="learning_objectives" class="admin-textarea" rows="4" placeholder="Master core syntax and data structures
+Build real-world automation scripts
+Understand error handling and debugging">{{ '\n'.join(course.learning_objectives) if course and course.learning_objectives else '' }}</textarea>
+            </div>
+
+            <!-- Published Switch -->
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                <input type="checkbox" name="is_published" id="is_published" {% if not course or course.is_published %}checked{% endif %} style="width: 18px; height: 18px;">
+                <label for="is_published" style="color: #FFFFFF; font-size: 0.88rem; font-weight: 600; cursor: pointer;">
+                    Publish Course Immediately (Visible to all students in catalogue)
+                </label>
+            </div>
+        </div>
+
+        <!-- Part 2: Practical Project Assignment -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="admin-card-title">
+                    <i data-lucide="code-2"></i>
+                    <span>Practical Project Assignment & Rubric</span>
+                </div>
+            </div>
+
+            <!-- Assignment Title -->
+            <div class="admin-form-group">
+                <label class="admin-label">Project Title *</label>
+                <input type="text" name="assignment_title" class="admin-input" placeholder="e.g. Automated Data & Task Manager" value="{{ assignment.title if assignment else '' }}" required>
+            </div>
+
+            <!-- Problem Statement -->
+            <div class="admin-form-group">
+                <label class="admin-label">Problem Statement / Project Goal *</label>
+                <textarea name="problem_statement" class="admin-textarea" rows="4" placeholder="Define the real-world scenario students must build to demonstrate mastery..." required>{{ assignment.problem_statement if assignment else '' }}</textarea>
+            </div>
+
+            <!-- Mandatory Features -->
+            <div class="admin-form-group">
+                <label class="admin-label">Mandatory Core Features (One per line) *</label>
+                <textarea name="required_features" class="admin-textarea" rows="4" placeholder="Working CRUD interface with data validation
+Proper error handling and input sanitization
+Clean GitHub repository with setup instructions" required>{{ '\n'.join(assignment.required_features) if assignment and assignment.required_features else '' }}</textarea>
+            </div>
+
+            <!-- Optional Features -->
+            <div class="admin-form-group">
+                <label class="admin-label">Bonus & Stretch Features (One per line)</label>
+                <textarea name="optional_features" class="admin-textarea" rows="3" placeholder="Automated unit tests
+Docker containerization or CI/CD workflow">{{ '\n'.join(assignment.optional_features) if assignment and assignment.optional_features else '' }}</textarea>
+            </div>
+
+            <!-- Tech Requirements -->
+            <div class="admin-form-group">
+                <label class="admin-label">Technical Specifications & Recommended Stack</label>
+                <input type="text" name="tech_requirements" class="admin-input" placeholder="e.g. Python 3.10+, Flask or FastAPI, SQLite / MongoDB" value="{{ assignment.tech_requirements if assignment else '' }}">
+            </div>
+
+            <!-- Deployment Required Switch -->
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                <input type="checkbox" name="is_deployment_required" id="is_deployment_required" {% if not assignment or assignment.is_deployment_required %}checked{% endif %} style="width: 18px; height: 18px;">
+                <label for="is_deployment_required" style="color: #FFFFFF; font-size: 0.88rem; font-weight: 600; cursor: pointer;">
+                    Mandatory Live Deployment URL (e.g. Render, Vercel, Netlify)
+                </label>
+            </div>
+        </div>
+
+        <!-- Submit Controls -->
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 40px;">
+            <a href="{{ url_for('admin.courses_list') }}" class="admin-btn admin-btn-secondary">
+                Cancel
+            </a>
+            <button type="submit" class="admin-btn admin-btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">
+                <i data-lucide="save"></i>
+                <span>Save Course & Project</span>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

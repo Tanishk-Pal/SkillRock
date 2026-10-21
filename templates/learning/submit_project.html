@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Project — {{ assignment.title }} — Skill Rock{% endblock %}
+
+{% block content %}
+<div class="submit-project-container" style="max-width: 800px; margin: 0 auto;">
+    <!-- Breadcrumbs -->
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
+        <a href="{{ url_for('learning.courses_list') }}" style="color: inherit; text-decoration: none;">Courses</a>
+        <span>/</span>
+        <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" style="color: inherit; text-decoration: none;">{{ course.title }}</a>
+        <span>/</span>
+        <span style="color: var(--text-primary); font-weight: 600;">Submit Project</span>
+    </div>
+
+    <!-- Header Card -->
+    <div class="card" style="padding: 24px 28px; margin-bottom: 24px; border-top: 4px solid #2563EB;">
+        <h1 style="font-size: 1.55rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">
+            Submit Project: {{ assignment.title }}
+        </h1>
+        <p style="font-size: 0.92rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">
+            Course: <strong>{{ course.title }}</strong> • Provide your GitHub repository and live deployment link for human evaluation.
+        </p>
+    </div>
+
+    <!-- Review Feedback Banner if Changes Requested or Rejected -->
+    {% if submission and submission.review_feedback and submission.status in ['changes_requested', 'rejected'] %}
+        <div class="card" style="padding: 20px 24px; margin-bottom: 24px; border-left: 4px solid #F59E0B; background: rgba(245, 158, 11, 0.05);">
+            <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #D97706; margin-bottom: 6px;">
+                <i data-lucide="alert-circle" style="width: 18px; height: 18px;"></i>
+                <span>Reviewer Feedback for Revision</span>
+            </div>
+            <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.55; white-space: pre-line; margin: 0;">
+                {{ submission.review_feedback }}
+            </p>
+            <div style="margin-top: 10px; font-size: 0.82rem; color: var(--text-muted);">
+                Address the reviewer's points above, push your changes to your repository, and submit the updated links below.
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Submission Form -->
+    <div class="card" style="padding: 28px; margin-bottom: 28px;">
+        <form action="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" method="POST">
+            <!-- Project Title -->
+            <div style="margin-bottom: 20px;">
+                <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
+                    Project Title <span style="color: #EF4444;">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    name="title" 
+                    class="form-control" 
+                    placeholder="e.g. Campus Task Manager with MongoDB & Flask" 
+                    value="{{ form_data.title if form_data else '' }}"
+                    required
+                >
+                <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
+                    Give your project a descriptive, professional name.
+                </small>
+            </div>
+
+            <!-- Tech Stack -->
+            <div style="margin-bottom: 20px;">
+                <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
+                    Technologies & Tools Used <span style="color: #EF4444;">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    name="tech_stack" 
+                    class="form-control" 
+                    placeholder="e.g. Python, Flask, Jinja2, MongoDB, Render" 
+                    value="{{ form_data.tech_stack if form_data else '' }}"
+                    required
+                >
+            </div>
+
+            <!-- GitHub Repository URL -->
+            <div style="margin-bottom: 20px;">
+                <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
+                    Public GitHub Repository URL <span style="color: #EF4444;">*</span>
+                </label>
+                <div style="position: relative;">
+                    <input 
+                        type="url" 
+                        name="github_url" 
+                        class="form-control" 
+                        placeholder="https://github.com/your-username/your-repository" 
+                        value="{{ form_data.github_url if form_data else '' }}"
+                        required
+                    >
+                </div>
+                <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
+                    Repository must be set to <strong>Public</strong> so our reviewers can inspect your code and commit history.
+                </small>
+            </div>
+
+            <!-- Live Deployment URL -->
+            <div style="margin-bottom: 20px;">
+                <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
+                    Live Deployment URL 
+                    {% if assignment.is_deployment_required %}
+                        <span style="color: #EF4444;">* (Required for this project)</span>
+                    {% else %}
+                        <span style="color: var(--text-muted);">(Optional but recommended)</span>
+                    {% endif %}
+                </label>
+                <input 
+                    type="url" 
+                    name="deployment_url" 
+                    class="form-control" 
+                    placeholder="https://your-project.onrender.com or https://your-project.vercel.app" 
+                    value="{{ form_data.deployment_url if form_data else '' }}"
+                    {% if assignment.is_deployment_required %}required{% endif %}
+                >
+                <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
+                    Host on free platforms such as Render, Vercel, Netlify, or GitHub Pages.
+                </small>
+            </div>
+
+            <!-- Project Description & Testing Notes -->
+            <div style="margin-bottom: 24px;">
+                <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
+                    Project Description & Testing Instructions <span style="color: #EF4444;">*</span>
+                </label>
+                <textarea 
+                    name="description" 
+                    class="form-control" 
+                    rows="6" 
+                    placeholder="Explain what you built, how you implemented key requirements, test user credentials if needed, and what makes your solution unique..."
+                    required
+                >{{ form_data.description if form_data else '' }}</textarea>
+                <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
+                    Minimum 30 characters. Clearly detail how you fulfilled the assignment requirements.
+                </small>
+            </div>
+
+            <!-- Academic Integrity & Checklist -->
+            <div style="background: rgba(15, 23, 42, 0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px; margin-bottom: 24px; font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6;">
+                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
+                    Submission Checklist:
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <div>✓ My GitHub repository is public and includes a readable README.</div>
+                    <div>✓ The live deployment (if applicable) is functional and accessible.</div>
+                    <div>✓ I wrote this code myself and credit any libraries or tutorial foundations.</div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" class="btn btn-secondary">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-weight: 700; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px;">
+                    <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+                    <span>{% if submission %}Update & Resubmit Project{% else %}Submit Project for Review{% endif %}</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

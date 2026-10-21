@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Certificate of Achievement — {{ certificate.user_name }} — {{ certificate.course_title }}{% endblock %}
+
+{% block head %}
+<style>
+    /* Certificate Presentation Canvas */
+    .cert-wrapper {
+        max-width: 960px;
+        margin: 20px auto 40px auto;
+    }
+
+    .cert-frame {
+        background: #FFFFFF;
+        border: 12px solid #0F172A;
+        outline: 3px solid #D97706;
+        outline-offset: -8px;
+        padding: 50px 60px;
+        position: relative;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+        color: #0F172A;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        overflow: hidden;
+    }
+
+    /* Watermark background */
+    .cert-watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0.03;
+        pointer-events: none;
+        width: 440px;
+        height: 440px;
+    }
+
+    .cert-header {
+        text-align: center;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .cert-brand-logo {
+        width: 54px;
+        height: 54px;
+        border-radius: 12px;
+        margin: 0 auto 12px auto;
+        display: block;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .cert-org-title {
+        font-size: 0.88rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #2563EB;
+        margin-bottom: 6px;
+    }
+
+    .cert-main-title {
+        font-size: 2.3rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        color: #0F172A;
+        text-transform: uppercase;
+        margin: 0;
+        line-height: 1.15;
+    }
+
+    .cert-subtitle {
+        font-size: 0.95rem;
+        color: #64748B;
+        font-weight: 500;
+        margin-top: 6px;
+        letter-spacing: 0.05em;
+    }
+
+    .cert-body {
+        text-align: center;
+        margin: 30px 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .cert-recipient-intro {
+        font-size: 1rem;
+        color: #475569;
+        font-style: italic;
+        margin-bottom: 8px;
+    }
+
+    .cert-recipient-name {
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: #0F172A;
+        border-bottom: 2px solid #CBD5E1;
+        display: inline-block;
+        padding: 0 40px 6px 40px;
+        margin-bottom: 16px;
+        letter-spacing: -0.01em;
+    }
+
+    .cert-statement {
+        font-size: 1rem;
+        color: #334155;
+        max-width: 720px;
+        margin: 0 auto 18px auto;
+        line-height: 1.6;
+    }
+
+    .cert-course-name {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #1D4ED8;
+        margin-bottom: 14px;
+    }
+
+    .cert-project-box {
+        background: #F8FAFC;
+        border: 1px dashed #CBD5E1;
+        border-radius: 8px;
+        padding: 12px 20px;
+        max-width: 620px;
+        margin: 0 auto 24px auto;
+        font-size: 0.88rem;
+        color: #475569;
+    }
+
+    .cert-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #E2E8F0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .cert-signature-block {
+        text-align: center;
+        width: 220px;
+    }
+
+    .cert-sig-line {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Brush Script MT', 'Dancing Script', cursive;
+        font-size: 1.6rem;
+        color: #1E293B;
+        border-bottom: 1px solid #94A3B8;
+        margin-bottom: 6px;
+    }
+
+    .cert-sig-name {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #0F172A;
+    }
+
+    .cert-sig-title {
+        font-size: 0.72rem;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .cert-seal {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #F59E0B, #D97706);
+        color: #FFFFFF;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
+        border: 3px double #FFFFFF;
+        text-align: center;
+        padding: 6px;
+    }
+
+    .cert-meta-tag {
+        font-size: 0.75rem;
+        color: #64748B;
+        text-align: left;
+    }
+
+    /* Print styles */
+    @media print {
+        body {
+            background: #FFFFFF !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .navbar, .nav-content, .cert-action-bar, footer, #pageProgressBar, #pageRedirectLoader {
+            display: none !important;
+        }
+        .main-wrapper, .container {
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .cert-wrapper {
+            max-width: 100% !important;
+            margin: 0 !important;
+            page-break-after: avoid;
+        }
+        .cert-frame {
+            box-shadow: none !important;
+            border-width: 8px !important;
+            padding: 30px 40px !important;
+        }
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cert-wrapper">
+    <!-- Non-Printable Action Controls -->
+    <div class="card cert-action-bar" style="padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <a href="{{ url_for('learning.my_learning') }}" class="btn btn-secondary btn-sm" style="font-weight: 600;">
+                <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+                <span>My Learning</span>
+            </a>
+            <span style="font-size: 0.84rem; color: var(--text-muted);">Official Verified Credential</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button onclick="window.print()" class="btn btn-primary btn-sm" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                <i data-lucide="printer" style="width: 15px; height: 15px;"></i>
+                <span>Print / Save as PDF</span>
+            </button>
+            <button onclick="copyVerifyLink()" class="btn btn-secondary btn-sm" id="copyBtn" style="font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <i data-lucide="share-2" style="width: 14px; height: 14px;"></i>
+                <span>Copy Verification Link</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Official Certificate Frame -->
+    <div class="cert-frame" id="printableCertificate">
+        <!-- Watermark -->
+        <div class="cert-watermark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.5">
+                <path d="M12 2L15 8L22 9L17 14L18 21L12 17.5L6 21L7 14L2 9L9 8L12 2Z"></path>
+            </svg>
+        </div>
+
+        <!-- Header -->
+        <div class="cert-header">
+            <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="SkillRock" class="cert-brand-logo">
+            <div class="cert-org-title">Skill Rock Student Academy</div>
+            <h1 class="cert-main-title">Certificate of Achievement</h1>
+            <div class="cert-subtitle">Project Verification & Competency Credential</div>
+        </div>
+
+        <!-- Recipient & Course Body -->
+        <div class="cert-body">
+            <div class="cert-recipient-intro">This is proudly awarded to</div>
+            <div class="cert-recipient-name">{{ certificate.user_name }}</div>
+
+            <div class="cert-statement">
+                for successfully completing the rigorous curriculum, building and deploying a functional application, and passing thorough human review for
+            </div>
+
+            <div class="cert-course-name">{{ certificate.course_title }}</div>
+
+            <!-- Project Deliverable Info -->
+            {% if submission %}
+                <div class="cert-project-box">
+                    <strong style="color: #0F172A;">Verified Project:</strong> {{ submission.title }}
+                    {% if submission.tech_stack %}
+                        • Built with {{ submission.tech_stack }}
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Footer with Verification Details and Signatures -->
+        <div class="cert-footer">
+            <!-- Left: Metadata & Verification -->
+            <div class="cert-meta-tag">
+                <div><strong>Certificate ID:</strong> {{ certificate.certificate_id }}</div>
+                <div><strong>Issued Date:</strong> {{ certificate.formatted_date }}</div>
+                <div style="font-family: monospace; font-size: 0.7rem; color: #94A3B8; margin-top: 2px;">
+                    Verification Hash: {{ certificate.verification_hash }}
+                </div>
+                <div style="margin-top: 6px;">
+                    <a href="{{ url_for('learning.verify_certificate', cert_id=certificate.certificate_id, _external=True) }}" style="color: #2563EB; text-decoration: none; font-size: 0.72rem; font-weight: 600;">
+                        Verify Authenticity Online →
+                    </a>
+                </div>
+            </div>
+
+            <!-- Center: Gold Official Seal -->
+            <div class="cert-seal">
+                <i data-lucide="shield-check" style="width: 26px; height: 26px; margin-bottom: 2px;"></i>
+                <span style="font-size: 0.58rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;">VERIFIED</span>
+                <span style="font-size: 0.5rem; font-weight: 700;">ACADEMY</span>
+            </div>
+
+            <!-- Right: Signature -->
+            <div class="cert-signature-block">
+                <div class="cert-sig-line">Tanishk Pal</div>
+                <div class="cert-sig-name">Skill Rock Directorate</div>
+                <div class="cert-sig-title">Academic & Project Review</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyVerifyLink() {
+        const verifyUrl = "{{ url_for('learning.verify_certificate', cert_id=certificate.certificate_id, _external=True) }}";
+        navigator.clipboard.writeText(verifyUrl).then(() => {
+            const btn = document.getElementById('copyBtn');
+            btn.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i> <span>Copied!</span>';
+            lucide.createIcons();
+            setTimeout(() => {
+                btn.innerHTML = '<i data-lucide="share-2" style="width: 14px; height: 14px;"></i> <span>Copy Verification Link</span>';
+                lucide.createIcons();
+            }, 3000);
+        });
+    }
+</script>
+{% endblock %}

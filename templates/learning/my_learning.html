@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}My Learning & Projects — Skill Rock{% endblock %}
+
+{% block content %}
+<div class="my-learning-container">
+    <!-- Page Header -->
+    <div class="page-header" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <h1 class="page-title">My Learning & Projects</h1>
+            <p class="page-subtitle">Track your enrolled courses, monitor project review feedback, and access your verified certificates.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('learning.courses_list') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">
+                <i data-lucide="compass" style="width: 16px; height: 16px;"></i>
+                <span>Explore More Courses</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="grid-4" style="margin-bottom: 30px;">
+        <div class="card" style="padding: 18px 20px;">
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">Enrolled Courses</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #2563EB;">{{ total_enrolled }}</div>
+        </div>
+        <div class="card" style="padding: 18px 20px;">
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">Completed & Certified</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #10B981;">{{ total_completed }}</div>
+        </div>
+        <div class="card" style="padding: 18px 20px;">
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">Under Review</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #F59E0B;">{{ pending_submissions }}</div>
+        </div>
+        <div class="card" style="padding: 18px 20px;">
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">Official Certificates</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #7C3AED;">{{ total_certificates }}</div>
+        </div>
+    </div>
+
+    <!-- Section 1: Enrolled Courses -->
+    <div style="margin-bottom: 36px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="book-open" style="width: 20px; height: 20px; color: #2563EB;"></i>
+                <span>Enrolled Courses</span>
+            </h2>
+        </div>
+
+        {% if enrolled_items %}
+            <div class="grid-3" style="gap: 20px;">
+                {% for item in enrolled_items %}
+                    {% set course = item.course %}
+                    {% set enrollment = item.enrollment %}
+                    {% set submission = item.submission %}
+                    {% set cert = item.certificate %}
+                    
+                    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; padding: 0; overflow: hidden; border: 1px solid var(--border-color);">
+                        <div>
+                            <!-- Course Thumbnail -->
+                            <div style="height: 140px; position: relative; background: #0F172A; overflow: hidden;">
+                                <img src="{{ course.fallback_thumbnail }}" alt="{{ course.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                <div style="position: absolute; top: 10px; right: 10px;">
+                                    {% if cert %}
+                                        <span class="badge" style="background: rgba(16, 185, 129, 0.9); color: white; font-weight: 700;">Certified</span>
+                                    {% elif submission %}
+                                        <span class="badge {{ submission.status_badge_class }}">{{ submission.status_label }}</span>
+                                    {% else %}
+                                        <span class="badge" style="background: rgba(37, 99, 235, 0.9); color: white;">Enrolled</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div style="padding: 18px;">
+                                <div style="font-size: 0.76rem; color: #2563EB; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">{{ course.category }}</div>
+                                <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; line-height: 1.3;">
+                                    <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" style="color: inherit; text-decoration: none;">
+                                        {{ course.title }}
+                                    </a>
+                                </h3>
+
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+                                    Instructor: {{ course.instructor }} • {{ course.estimated_duration }}
+                                </div>
+
+                                {% if course.assignment %}
+                                    <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px; font-size: 0.8rem; margin-bottom: 14px;">
+                                        <span style="font-weight: 600; color: var(--text-secondary);">Project:</span> {{ course.assignment.title }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Card Action Buttons -->
+                        <div style="padding: 12px 18px; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.01); display: flex; gap: 8px; justify-content: flex-end;">
+                            <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" class="btn btn-secondary btn-sm" style="font-weight: 600;">
+                                Course
+                            </a>
+
+                            {% if cert %}
+                                <a href="{{ url_for('learning.view_certificate', cert_id=cert.certificate_id) }}" class="btn btn-primary btn-sm" style="font-weight: 700; background: #059669; border-color: #059669;">
+                                    <i data-lucide="award" style="width: 14px; height: 14px;"></i> Certificate
+                                </a>
+                            {% elif item.assignment %}
+                                <a href="{{ url_for('learning.submit_project', assignment_id=item.assignment.id) }}" class="btn btn-primary btn-sm" style="font-weight: 600;">
+                                    {% if submission %}Manage Submission{% else %}Submit Project{% endif %}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card" style="text-align: center; padding: 40px 20px;">
+                <p style="color: var(--text-secondary); margin-bottom: 14px;">You have not enrolled in any courses yet.</p>
+                <a href="{{ url_for('learning.courses_list') }}" class="btn btn-primary">
+                    Browse Free Courses
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Section 2: Project Submissions & Feedback -->
+    <div style="margin-bottom: 36px;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="send" style="width: 20px; height: 20px; color: #10B981;"></i>
+            <span>Project Submissions & Review Feedback</span>
+        </h2>
+
+        {% if submissions %}
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                {% for sub in submissions %}
+                    <div class="card" style="padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+                            <div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">
+                                    {{ sub.course.title if sub.course else 'Course Project' }}
+                                </div>
+                                <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--text-primary);">
+                                    {{ sub.title }}
+                                </h3>
+                            </div>
+                            <span class="badge {{ sub.status_badge_class }}" style="font-size: 0.82rem; padding: 6px 12px;">
+                                {{ sub.status_label }}
+                            </span>
+                        </div>
+
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">
+                            {{ sub.description }}
+                        </p>
+
+                        <!-- Links & Tech Stack -->
+                        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; font-size: 0.84rem; margin-bottom: 16px;">
+                            <a href="{{ sub.github_url }}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; color: var(--text-primary); font-weight: 600; text-decoration: none;">
+                                <i data-lucide="github" style="width: 16px; height: 16px;"></i>
+                                <span>GitHub Repository</span>
+                                <i data-lucide="external-link" style="width: 12px; height: 12px; color: var(--text-muted);"></i>
+                            </a>
+
+                            {% if sub.deployment_url %}
+                                <a href="{{ sub.deployment_url }}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; color: #2563EB; font-weight: 600; text-decoration: none;">
+                                    <i data-lucide="globe" style="width: 16px; height: 16px;"></i>
+                                    <span>Live Working Application</span>
+                                    <i data-lucide="external-link" style="width: 12px; height: 12px;"></i>
+                                </a>
+                            {% endif %}
+
+                            {% if sub.tech_stack %}
+                                <span style="color: var(--text-muted);">Tech: <strong style="color: var(--text-secondary);">{{ sub.tech_stack }}</strong></span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Reviewer Feedback Box -->
+                        {% if sub.review_feedback %}
+                            <div style="background: rgba(15, 23, 42, 0.04); border-left: 4px solid {% if sub.status == 'approved' %}#10B981{% elif sub.status == 'changes_requested' %}#3B82F6{% else %}#EF4444{% endif %}; border-radius: 4px; padding: 14px 16px; margin-bottom: 16px;">
+                                <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="message-square" style="width: 14px; height: 14px;"></i>
+                                    <span>Reviewer Feedback</span>
+                                </div>
+                                <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-line;">
+                                    {{ sub.review_feedback }}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Actions for resubmission or certificate viewing -->
+                        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                            {% if sub.status in ['changes_requested', 'rejected'] and sub.assignment_id %}
+                                <a href="{{ url_for('learning.submit_project', assignment_id=sub.assignment_id) }}" class="btn btn-primary btn-sm" style="font-weight: 700;">
+                                    <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                                    <span>Update & Resubmit Project</span>
+                                </a>
+                            {% elif sub.status == 'approved' %}
+                                {% set cert = Certificate.get_by_user_course(current_user.id, sub.course_id) %}
+                                {% if cert %}
+                                    <a href="{{ url_for('learning.view_certificate', cert_id=cert.certificate_id) }}" class="btn btn-secondary btn-sm" style="color: #059669; font-weight: 700;">
+                                        <i data-lucide="award" style="width: 14px; height: 14px;"></i>
+                                        <span>View Verified Certificate</span>
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card" style="text-align: center; padding: 32px 20px; color: var(--text-secondary);">
+                <p style="margin: 0;">You haven't submitted any projects yet. Complete a course assignment to submit your project here.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Section 3: Earned Certificates Showcase -->
+    {% if certificates %}
+        <div style="margin-bottom: 36px;">
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="award" style="width: 20px; height: 20px; color: #F59E0B;"></i>
+                <span>Your Verified Certificates</span>
+            </h2>
+
+            <div class="grid-3" style="gap: 20px;">
+                {% for cert in certificates %}
+                    <div class="card" style="padding: 24px; border: 2px solid rgba(245, 158, 11, 0.3); background: linear-gradient(135deg, rgba(254, 243, 199, 0.2) 0%, rgba(255, 255, 255, 1) 100%); position: relative; overflow: hidden;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: #F59E0B; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);">
+                                <i data-lucide="award" style="width: 22px; height: 22px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.72rem; font-weight: 800; color: #D97706; text-transform: uppercase; letter-spacing: 0.06em;">Verified Credential</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); font-family: monospace;">ID: {{ cert.certificate_id }}</div>
+                            </div>
+                        </div>
+
+                        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; line-height: 1.3;">
+                            {{ cert.course_title }}
+                        </h3>
+
+                        <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 18px;">
+                            Issued to <strong>{{ cert.user_name }}</strong> on {{ cert.formatted_date }}
+                        </div>
+
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <a href="{{ url_for('learning.view_certificate', cert_id=cert.certificate_id) }}" class="btn btn-primary btn-sm" style="flex: 1; justify-content: center; font-weight: 700;">
+                                View / Print
+                            </a>
+                            <a href="{{ url_for('learning.verify_certificate', cert_id=cert.certificate_id) }}" target="_blank" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #10B981;"></i>
+                                <span>Verify</span>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

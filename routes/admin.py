@@ -29,7 +29,15 @@ from models import (
     SwapRequest,
     Session,
     Message,
-    PlatformSettings
+    PlatformSettings,
+    Course,
+    Assignment,
+    Enrollment,
+    Submission,
+    Review,
+    Certificate,
+    slugify,
+    extract_youtube_id
 )
 from config import Config
 
@@ -594,3 +602,282 @@ def settings_page():
 
     current_settings = PlatformSettings.get_settings()
     return render_template("admin/settings.html", settings=current_settings)
+
+
+# ==============================================================================
+# 7. Course Management & Curriculum Administration
+# ==============================================================================
+
+@admin_bp.route("/courses")
+def courses_list():
+    """Admin Course Directory: Manage, edit, publish/draft courses and assignments."""
+    db = get_db()
+    courses = Course.find_all(sort=[("created_at", -1)])
+    total_courses = len(courses)
+    published_count = len([c for c in courses if c.is_published])
+    total_enrollments = db.enrollments.count_documents({})
+    total_certificates = db.certificates.count_documents({})
+
+    return render_template(
+        "admin/courses.html",
+        courses=courses,
+        total_courses=total_courses,
+        published_count=published_count,
+        total_enrollments=total_enrollments,
+        total_certificates=total_certificates
+    )
+
+
+@admin_bp.route("/courses/new", methods=["GET", "POST"])
+def course_new():
+    """Create a new course with an accompanying practical project assignment."""
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        category = request.form.get("category", "Programming").strip()
+        difficulty = request.form.get("difficulty", "Beginner").strip()
+        duration = request.form.get("estimated_duration", "10 Hours").strip()
+        instructor = request.form.get("instructor", "").strip()
+        youtube_url = request.form.get("youtube_url", "").strip()
+        thumbnail_url = request.form.get("thumbnail_url", "").strip()
+        description = request.form.get("description", "").strip()
+        raw_objectives = request.form.get("learning_objectives", "").strip()
+        is_published = request.form.get("is_published") == "on"
+
+        # Assignment details
+        assignment_title = request.form.get("assignment_title", f"{title} — Final Project").strip()
+        problem_statement = request.form.get("problem_statement", "").strip()
+        raw_required = request.form.get("required_features", "").strip()
+        raw_optional = request.form.get("optional_features", "").strip()
+        tech_requirements = request.form.get("tech_requirements", "").strip()
+        is_deployment_required = request.form.get("is_deployment_required") == "on"
+
+        if not title or not youtube_url:
+            flash("Please provide at least a course title and YouTube URL.", "danger")
+            return render_template("admin/course_edit.html", course=None, assignment=None)
+
+        objectives = [line.strip() for line in raw_objectives.splitlines() if line.strip()]
+        required_features = [line.strip() for line in raw_required.splitlines() if line.strip()]
+        optional_features = [line.strip() for line in raw_optional.splitlines() if line.strip()]
+
+        course = Course({
+            "title": title,
+            "category": category,
+            "difficulty": difficulty,
+            "estimated_duration": duration,
+            "instructor": instructor or "Curated Instructor",
+            "youtube_url": youtube_url,
+            "thumbnail_url": thumbnail_url,
+            "description": description,
+            "learning_objectives": objectives,
+            "is_published": is_published,
+            "created_at": datetime.now(timezone.utc)
+        })
+        course.save()
+
+        assignment = Assignment({
+            "course_id": str(course.id),
+            "title": assignment_title,
+            "short_description": f"Build and submit a functional project for {title}.",
+            "problem_statement": problem_statement or f"Demonstrate practical competence in {title} by building a complete working application.",
+            "required_features": required_features or ["Working application implementing core concepts", "Clean, documented repository on GitHub"],
+            "optional_features": optional_features,
+            "tech_requirements": tech_requirements,
+            "is_deployment_required": is_deployment_required,
+            "is_published": True,
+            "created_at": datetime.now(timezone.utc)
+        })
+        assignment.save()
+
+        flash(f"Course '{course.title}' and assignment created successfully!", "success")
+        return redirect(url_for("admin.courses_list"))
+
+    return render_template("admin/course_edit.html", course=None, assignment=None)
+
+
+@admin_bp.route("/courses/<course_id>/edit", methods=["GET", "POST"])
+def course_edit(course_id):
+    """Edit an existing course and its project assignment."""
+    course = Course.get_by_id(course_id)
+    if not course:
+        flash("Course not found.", "danger")
+        return redirect(url_for("admin.courses_list"))
+
+    assignment = course.assignment
+
+    if request.method == "POST":
+        course.title = request.form.get("title", "").strip()
+        course.category = request.form.get("category", "Programming").strip()
+        course.difficulty = request.form.get("difficulty", "Beginner").strip()
+        course.estimated_duration = request.form.get("estimated_duration", "10 Hours").strip()
+        course.instructor = request.form.get("instructor", "").strip()
+        course.youtube_url = request.form.get("youtube_url", "").strip()
+        course.thumbnail_url = request.form.get("thumbnail_url", "").strip()
+        course.description = request.form.get("description", "").strip()
+        raw_objectives = request.form.get("learning_objectives", "").strip()
+        course.learning_objectives = [line.strip() for line in raw_objectives.splitlines() if line.strip()]
+        course.is_published = request.form.get("is_published") == "on"
+        course.save()
+
+        # Update assignment
+        if not assignment:
+            assignment = Assignment({"course_id": str(course.id)})
+
+        assignment.title = request.form.get("assignment_title", f"{course.title} — Final Project").strip()
+        assignment.problem_statement = request.form.get("problem_statement", "").strip()
+        raw_required = request.form.get("required_features", "").strip()
+        assignment.required_features = [line.strip() for line in raw_required.splitlines() if line.strip()]
+        raw_optional = request.form.get("optional_features", "").strip()
+        assignment.optional_features = [line.strip() for line in raw_optional.splitlines() if line.strip()]
+        assignment.tech_requirements = request.form.get("tech_requirements", "").strip()
+        assignment.is_deployment_required = request.form.get("is_deployment_required") == "on"
+        assignment.save()
+
+        flash(f"Course '{course.title}' updated successfully!", "success")
+        return redirect(url_for("admin.courses_list"))
+
+    return render_template("admin/course_edit.html", course=course, assignment=assignment)
+
+
+@admin_bp.route("/courses/<course_id>/toggle", methods=["POST"])
+def course_toggle(course_id):
+    """Quickly toggle course published / draft status."""
+    course = Course.get_by_id(course_id)
+    if not course:
+        flash("Course not found.", "danger")
+        return redirect(url_for("admin.courses_list"))
+
+    course.is_published = not course.is_published
+    course.save()
+    status_str = "Published" if course.is_published else "Drafted"
+    flash(f"Course '{course.title}' is now {status_str}.", "success")
+    return redirect(url_for("admin.courses_list"))
+
+
+@admin_bp.route("/courses/<course_id>/delete", methods=["POST"])
+def course_delete(course_id):
+    """Delete a course and associated records."""
+    course = Course.get_by_id(course_id)
+    if course:
+        title = course.title
+        course.delete()
+        flash(f"Course '{title}' was deleted successfully.", "success")
+    return redirect(url_for("admin.courses_list"))
+
+
+# ==============================================================================
+# 8. Project Submissions & Review Queue
+# ==============================================================================
+
+@admin_bp.route("/submissions")
+def submissions_list():
+    """Admin Review Queue: Filter, inspect, and evaluate student project submissions."""
+    db = get_db()
+    status_filter = request.args.get("status", "all").strip()
+
+    query = {}
+    if status_filter != "all":
+        query["status"] = status_filter
+
+    submissions = Submission.find_all(query=query, sort=[("created_at", -1)])
+
+    # Collect stats for filter tabs
+    total_submissions = db.submissions.count_documents({})
+    pending_count = db.submissions.count_documents({"status": Submission.STATUS_PENDING})
+    changes_count = db.submissions.count_documents({"status": Submission.STATUS_CHANGES})
+    rejected_count = db.submissions.count_documents({"status": Submission.STATUS_REJECTED})
+    approved_count = db.submissions.count_documents({"status": Submission.STATUS_APPROVED})
+
+    return render_template(
+        "admin/submissions.html",
+        submissions=submissions,
+        status_filter=status_filter,
+        total_submissions=total_submissions,
+        pending_count=pending_count,
+        changes_count=changes_count,
+        rejected_count=rejected_count,
+        approved_count=approved_count
+    )
+
+
+@admin_bp.route("/submissions/<submission_id>/review", methods=["GET", "POST"])
+def submission_review(submission_id):
+    """Detailed grading interface with rubric scorecard, feedback, and certificate issuance."""
+    submission = Submission.get_by_id(submission_id)
+    if not submission:
+        flash("Submission not found.", "danger")
+        return redirect(url_for("admin.submissions_list"))
+
+    student = submission.user
+    course = submission.course
+    assignment = submission.assignment
+    previous_review = submission.review
+
+    if request.method == "POST":
+        decision = request.form.get("decision", "").strip().lower()
+        feedback = request.form.get("feedback", "").strip()
+
+        if decision not in ["approved", "changes_requested", "rejected"]:
+            flash("Invalid decision. Please select Approved, Changes Requested, or Rejected.", "danger")
+            return redirect(url_for("admin.submission_review", submission_id=submission.id))
+
+        if not feedback:
+            flash("Please provide constructive feedback explaining your decision.", "danger")
+            return redirect(url_for("admin.submission_review", submission_id=submission.id))
+
+        # Collect rubric scores
+        rubric = assignment.rubric if assignment else Assignment.DEFAULT_RUBRIC
+        scores = {}
+        total_score = 0
+        max_score = 0
+        for i, item in enumerate(rubric):
+            criterion = item.get("criterion", f"Criterion {i+1}")
+            max_pts = int(item.get("max_points", 25))
+            max_score += max_pts
+            try:
+                pts = int(request.form.get(f"score_{i}", max_pts))
+                pts = max(0, min(max_pts, pts))
+            except (ValueError, TypeError):
+                pts = max_pts
+            scores[criterion] = pts
+            total_score += pts
+
+        # Save review
+        review = Review({
+            "submission_id": str(submission.id),
+            "reviewer_id": str(current_user.id),
+            "decision": decision,
+            "scores": scores,
+            "total_score": total_score,
+            "max_score": max_score,
+            "feedback": feedback,
+            "created_at": datetime.now(timezone.utc)
+        })
+        review.save()
+
+        # Update submission
+        submission.status = decision
+        submission.reviewer_id = str(current_user.id)
+        submission.review_feedback = feedback
+        submission.reviewed_at = datetime.now(timezone.utc)
+        submission.save()
+
+        if decision == "approved":
+            # Issue verified certificate
+            cert = Certificate.issue(student, course, assignment, submission)
+            flash(f"🎉 Submission Approved! Certificate #{cert.certificate_id} has been officially issued to {student.name}.", "success")
+        elif decision == "changes_requested":
+            flash(f"Changes requested for {student.name}'s submission. Student notified on their dashboard.", "info")
+        else:
+            flash(f"Submission rejected with feedback.", "warning")
+
+        return redirect(url_for("admin.submissions_list"))
+
+    return render_template(
+        "admin/submission_review.html",
+        submission=submission,
+        student=student,
+        course=course,
+        assignment=assignment,
+        previous_review=previous_review
+    )
+

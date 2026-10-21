@@ -1,0 +1,468 @@
+"""
+Skill Rock — Learn & Build Blueprint
+Core Learning Platform: Free curated video courses, real-world project assignments,
+student submission workflow, project review tracking, and tamper-proof certificate generation.
+"""
+
+import re
+import logging
+from datetime import datetime, timezone
+from flask import (
+    Blueprint,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash,
+    jsonify,
+    abort
+)
+from flask_login import login_required, current_user
+from models import (
+    get_db,
+    User,
+    Course,
+    Assignment,
+    Enrollment,
+    Submission,
+    Review,
+    Certificate,
+    extract_youtube_id,
+    slugify
+)
+
+logger = logging.getLogger(__name__)
+
+learning_bp = Blueprint("learning", __name__, url_prefix="/learning")
+
+
+# ==============================================================================
+# Helper Functions & URL Validation
+# ==============================================================================
+
+def is_valid_url(url):
+    """Validates if a URL is well-formed with http/https scheme."""
+    if not url:
+        return False
+    url = url.strip()
+    return url.startswith("http://") or url.startswith("https://")
+
+
+def is_valid_github_url(url):
+    """Validates that a URL is a legitimate GitHub repository link."""
+    if not is_valid_url(url):
+        return False
+    pattern = r"^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+(\/.*)?$"
+    return bool(re.match(pattern, url.strip()))
+
+
+# ==============================================================================
+# 1. Course Catalogue (Browse & Discover Free Courses)
+# ==============================================================================
+
+@learning_bp.route("/")
+@learning_bp.route("/courses")
+def courses_list():
+    """
+    Public Course Catalogue.
+    Allows students to browse curated free learning courses with category,
+    difficulty, and search filtering.
+    """
+    category = request.args.get("category", "").strip()
+    difficulty = request.args.get("difficulty", "").strip()
+    search = request.args.get("q", "").strip()
+
+    query = {"is_published": True}
+    if category and category != "All":
+        query["category"] = category
+    if difficulty and difficulty != "All":
+        query["difficulty"] = difficulty
+    if search:
+        query["$or"] = [
+            {"title": {"$regex": search, "$options": "i"}},
+            {"description": {"$regex": search, "$options": "i"}},
+            {"category": {"$regex": search, "$options": "i"}},
+            {"instructor": {"$regex": search, "$options": "i"}}
+        ]
+
+    courses = Course.find_all(query=query, sort=[("created_at", -1)])
+
+    # Collect enrolled course IDs and certified course IDs for the logged-in user
+    enrolled_course_ids = set()
+    completed_course_ids = set()
+    if current_user.is_authenticated:
+        user_enrollments = Enrollment.find_by_user(current_user.id)
+        for e in user_enrollments:
+            enrolled_course_ids.add(e.course_id)
+            if e.status == "completed":
+                completed_course_ids.add(e.course_id)
+
+    # Distinct categories for filter pills
+    db = get_db()
+    available_categories = db.courses.distinct("category", {"is_published": True})
+
+    return render_template(
+        "learning/courses.html",
+        courses=courses,
+        selected_category=category,
+        selected_difficulty=difficulty,
+        search_query=search,
+        available_categories=available_categories,
+        enrolled_course_ids=enrolled_course_ids,
+        completed_course_ids=completed_course_ids,
+        total_courses=len(courses)
+    )
+
+
+# ==============================================================================
+# 2. Course Details & Learning Player Page
+# ==============================================================================
+
+@learning_bp.route("/courses/<slug>")
+def course_detail(slug):
+    """
+    Dedicated Course Page.
+    Features YouTube video embed, course objectives, syllabus,
+    practical project assignment briefing, and enrolment trigger.
+    """
+    course = Course.get_by_slug(slug)
+    if not course:
+        # Fallback check by MongoDB ObjectId
+        course = Course.get_by_id(slug)
+    if not course or (not course.is_published and not getattr(current_user, "is_admin", False)):
+        flash("The requested course could not be found or is not yet published.", "warning")
+        return redirect(url_for("learning.courses_list"))
+
+    assignment = course.assignment
+    enrollment = None
+    submission = None
+    certificate = None
+
+    if current_user.is_authenticated:
+        enrollment = Enrollment.get_by_user_course(current_user.id, course.id)
+        if assignment:
+            submission = Submission.get_latest(current_user.id, assignment.id)
+        certificate = Certificate.get_by_user_course(current_user.id, course.id)
+
+    return render_template(
+        "learning/course_detail.html",
+        course=course,
+        assignment=assignment,
+        enrollment=enrollment,
+        submission=submission,
+        certificate=certificate
+    )
+
+
+# ==============================================================================
+# 3. Free Course Enrolment
+# ==============================================================================
+
+@learning_bp.route("/enrol/<course_id>", methods=["POST"])
+@login_required
+def enrol_course(course_id):
+    """
+    Free Enrolment Endpoint.
+    Guarantees idempotency via unique compound index (user_id, course_id).
+    """
+    course = Course.get_by_id(course_id)
+    if not course:
+        flash("Course not found.", "danger")
+        return redirect(url_for("learning.courses_list"))
+
+    existing = Enrollment.get_by_user_course(current_user.id, course.id)
+    if existing:
+        flash(f"You are already enrolled in {course.title}.", "info")
+        return redirect(url_for("learning.course_detail", slug=course.slug))
+
+    enrollment = Enrollment({
+        "user_id": str(current_user.id),
+        "course_id": str(course.id),
+        "status": "enrolled",
+        "created_at": datetime.now(timezone.utc)
+    })
+    enrollment.save()
+
+    flash(f"🎉 Enrolment successful! Welcome to '{course.title}'. Watch the course and build your project to earn your certificate.", "success")
+    return redirect(url_for("learning.course_detail", slug=course.slug))
+
+
+# ==============================================================================
+# 4. Student Hub: My Learning Dashboard
+# ==============================================================================
+
+@learning_bp.route("/my-learning")
+@login_required
+def my_learning():
+    """
+    Student's Personal Learning Command Center.
+    Tracks enrolled courses, active project submissions, review feedback,
+    and verified earned certificates.
+    """
+    enrollments = Enrollment.find_by_user(current_user.id)
+    submissions = Submission.find_by_user(current_user.id)
+    certificates = Certificate.find_by_user(current_user.id)
+
+    # Attach courses and assignments to enrollments
+    enrolled_items = []
+    for enr in enrollments:
+        crs = enr.course
+        if crs:
+            asg = crs.assignment
+            sub = Submission.get_latest(current_user.id, asg.id) if asg else None
+            cert = Certificate.get_by_user_course(current_user.id, crs.id)
+            enrolled_items.append({
+                "enrollment": enr,
+                "course": crs,
+                "assignment": asg,
+                "submission": sub,
+                "certificate": cert
+            })
+
+    # Summary metrics
+    total_enrolled = len(enrolled_items)
+    total_completed = len([item for item in enrolled_items if item["enrollment"].status == "completed"])
+    pending_submissions = len([s for s in submissions if s.status == Submission.STATUS_PENDING])
+    total_certificates = len(certificates)
+
+    return render_template(
+        "learning/my_learning.html",
+        enrolled_items=enrolled_items,
+        submissions=submissions,
+        certificates=certificates,
+        total_enrolled=total_enrolled,
+        total_completed=total_completed,
+        pending_submissions=pending_submissions,
+        total_certificates=total_certificates
+    )
+
+
+# ==============================================================================
+# 5. Assignment Briefing Page
+# ==============================================================================
+
+@learning_bp.route("/assignment/<assignment_id>")
+def assignment_detail(assignment_id):
+    """
+    Dedicated Assignment Briefing.
+    Displays problem statement, mandatory & bonus features,
+    tech requirements, and the transparent grading rubric.
+    """
+    assignment = Assignment.get_by_id(assignment_id)
+    if not assignment:
+        flash("Project assignment not found.", "warning")
+        return redirect(url_for("learning.courses_list"))
+
+    course = assignment.course
+    enrollment = None
+    submission = None
+    certificate = None
+
+    if current_user.is_authenticated and course:
+        enrollment = Enrollment.get_by_user_course(current_user.id, course.id)
+        submission = Submission.get_latest(current_user.id, assignment.id)
+        certificate = Certificate.get_by_user_course(current_user.id, course.id)
+
+    return render_template(
+        "learning/assignment_detail.html",
+        assignment=assignment,
+        course=course,
+        enrollment=enrollment,
+        submission=submission,
+        certificate=certificate
+    )
+
+
+# ==============================================================================
+# 6. Project Submission & Revision Workflow
+# ==============================================================================
+
+@learning_bp.route("/submit/<assignment_id>", methods=["GET", "POST"])
+@login_required
+def submit_project(assignment_id):
+    """
+    Project Submission Portal.
+    Validates GitHub repo URL, live deployment URL, technical overview,
+    and supports resubmission upon reviewer revision requests.
+    """
+    assignment = Assignment.get_by_id(assignment_id)
+    if not assignment:
+        flash("Assignment not found.", "danger")
+        return redirect(url_for("learning.courses_list"))
+
+    course = assignment.course
+    if not course:
+        flash("Associated course not found.", "danger")
+        return redirect(url_for("learning.courses_list"))
+
+    # Auto-enrol student if they haven't enrolled yet
+    enrollment = Enrollment.get_by_user_course(current_user.id, course.id)
+    if not enrollment:
+        enrollment = Enrollment({
+            "user_id": str(current_user.id),
+            "course_id": str(course.id),
+            "status": "in_progress",
+            "created_at": datetime.now(timezone.utc)
+        })
+        enrollment.save()
+
+    # Check for existing submission
+    existing_sub = Submission.get_latest(current_user.id, assignment.id)
+
+    # If already approved and certified, prevent duplicate submissions
+    if existing_sub and existing_sub.status == Submission.STATUS_APPROVED:
+        flash("You have already earned your verified certificate for this project! Great job.", "success")
+        return redirect(url_for("learning.my_learning"))
+
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        description = request.form.get("description", "").strip()
+        github_url = request.form.get("github_url", "").strip()
+        deployment_url = request.form.get("deployment_url", "").strip()
+        tech_stack = request.form.get("tech_stack", "").strip()
+
+        # Validation
+        errors = []
+        if not title:
+            errors.append("Please enter a clear project title.")
+        if not github_url:
+            errors.append("GitHub repository URL is required.")
+        elif not is_valid_github_url(github_url):
+            errors.append("Please provide a valid GitHub repository URL (e.g., https://github.com/username/project-repo).")
+
+        if assignment.is_deployment_required:
+            if not deployment_url:
+                errors.append("A live deployment URL (e.g. Render, Vercel, Netlify) is required for this project.")
+            elif not is_valid_url(deployment_url):
+                errors.append("Please provide a valid live deployment URL starting with http:// or https://")
+        elif deployment_url and not is_valid_url(deployment_url):
+            errors.append("Deployment URL must start with http:// or https://")
+
+        if not description or len(description) < 30:
+            errors.append("Please provide a meaningful description of your project (at least 30 characters) explaining what you built.")
+
+        if errors:
+            for err in errors:
+                flash(err, "danger")
+            return render_template(
+                "learning/submit_project.html",
+                assignment=assignment,
+                course=course,
+                submission=existing_sub,
+                form_data={
+                    "title": title,
+                    "description": description,
+                    "github_url": github_url,
+                    "deployment_url": deployment_url,
+                    "tech_stack": tech_stack
+                }
+            )
+
+        # Create or update submission
+        if existing_sub and existing_sub.status in [Submission.STATUS_PENDING, Submission.STATUS_CHANGES, Submission.STATUS_REJECTED]:
+            sub = existing_sub
+            sub.title = title
+            sub.description = description
+            sub.github_url = github_url
+            sub.deployment_url = deployment_url
+            sub.tech_stack = tech_stack
+            sub.status = Submission.STATUS_PENDING
+            sub.reviewed_at = None
+            sub.save()
+            flash("🚀 Project resubmission received! Our reviewers will inspect your updated code and deployment.", "success")
+        else:
+            sub = Submission({
+                "assignment_id": str(assignment.id),
+                "course_id": str(course.id),
+                "user_id": str(current_user.id),
+                "title": title,
+                "description": description,
+                "github_url": github_url,
+                "deployment_url": deployment_url,
+                "tech_stack": tech_stack,
+                "status": Submission.STATUS_PENDING,
+                "created_at": datetime.now(timezone.utc)
+            })
+            sub.save()
+            flash("🚀 Project submitted successfully! It is now in the review queue. You will be notified once evaluated.", "success")
+
+        # Update enrollment state to in_progress
+        if enrollment.status == "enrolled":
+            enrollment.status = "in_progress"
+            enrollment.save()
+
+        return redirect(url_for("learning.my_learning"))
+
+    # GET request
+    form_data = {}
+    if existing_sub:
+        form_data = {
+            "title": existing_sub.title,
+            "description": existing_sub.description,
+            "github_url": existing_sub.github_url,
+            "deployment_url": existing_sub.deployment_url,
+            "tech_stack": existing_sub.tech_stack
+        }
+
+    return render_template(
+        "learning/submit_project.html",
+        assignment=assignment,
+        course=course,
+        submission=existing_sub,
+        form_data=form_data
+    )
+
+
+# ==============================================================================
+# 7. Official Certificate Presentation View
+# ==============================================================================
+
+@learning_bp.route("/certificate/<cert_id>")
+def view_certificate(cert_id):
+    """
+    Official Certificate Presentation View.
+    Renders high-resolution printable award with digital verification QR/hash,
+    signatures, and verified student credentials.
+    """
+    certificate = Certificate.get_by_cert_id(cert_id)
+    if not certificate:
+        certificate = Certificate.get_by_id(cert_id)
+    if not certificate:
+        flash("Certificate record not found.", "warning")
+        return redirect(url_for("learning.courses_list"))
+
+    student = certificate.user
+    course = certificate.course
+    submission = certificate.submission
+
+    return render_template(
+        "learning/certificate.html",
+        certificate=certificate,
+        student=student,
+        course=course,
+        submission=submission
+    )
+
+
+# ==============================================================================
+# 8. Public Certificate Verification Endpoint
+# ==============================================================================
+
+@learning_bp.route("/verify/<cert_id>")
+def verify_certificate(cert_id):
+    """
+    Public Certificate Verification Portal.
+    Allows recruiters, colleges, and peers to verify authenticity
+    without exposing confidential student credentials.
+    """
+    certificate = Certificate.get_by_cert_id(cert_id)
+    if not certificate:
+        certificate = Certificate.get_by_id(cert_id)
+
+    is_valid = certificate is not None
+    return render_template(
+        "verify_certificate.html",
+        certificate=certificate,
+        is_valid=is_valid,
+        cert_id=cert_id
+    )

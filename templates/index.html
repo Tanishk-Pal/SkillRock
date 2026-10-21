@@ -38,6 +38,10 @@
         <a href="{{ url_for('discover.discover') }}" class="btn btn-secondary btn-lg">
             Discover Students
         </a>
+        <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-lg" style="display: inline-flex; align-items: center; gap: 8px;">
+            <i data-lucide="book-open" style="width: 18px; height: 18px; color: #2563EB;"></i>
+            <span>Browse Courses</span>
+        </a>
     </div>
 
     <!-- Live Real Platform Stats -->
@@ -77,6 +81,23 @@
                 </p>
             </div>
         </div>
+    </div>
+
+    <!-- Learn & Build Philosophy -->
+    <div class="card" style="padding: 32px 28px; margin-bottom: 40px; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: white; border: 1px solid rgba(255,255,255,0.08); text-align: left;">
+        <div style="display: inline-block; padding: 4px 12px; background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 9999px; font-size: 0.78rem; font-weight: 700; color: #93C5FD; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
+            Structured Learning & Project Certification
+        </div>
+        <h2 style="font-size: 1.6rem; font-weight: 800; color: #FFFFFF; margin-bottom: 8px;">
+            Learn &rarr; Build &rarr; Deploy &rarr; Submit &rarr; Get Certified
+        </h2>
+        <p style="color: #94A3B8; font-size: 0.95rem; line-height: 1.6; max-width: 680px; margin-bottom: 20px;">
+            Move beyond passively watching tutorials. Follow curated video courses, build practical projects from scratch, deploy them live, receive feedback from reviewers, and earn tamper-proof certificates.
+        </p>
+        <a href="{{ url_for('learning.courses_list') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">
+            <span>Explore Learn & Build Courses</span>
+            <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+        </a>
     </div>
 
     <!-- Core Principle Quote Box -->

@@ -33,6 +33,32 @@
         </div>
     </div>
 
+    <!-- Learn & Build Promotion Card -->
+    <div class="card" style="padding: 20px 24px; margin-bottom: 32px; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: white; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border: 1px solid rgba(255,255,255,0.08);">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); display: flex; align-items: center; justify-content: center; color: #60A5FA; flex-shrink: 0;">
+                <i data-lucide="award" style="width: 26px; height: 26px;"></i>
+            </div>
+            <div>
+                <div style="font-size: 1.05rem; font-weight: 700; color: #FFFFFF; margin-bottom: 2px;">
+                    Learn, Build & Earn Verified Certificates
+                </div>
+                <div style="font-size: 0.85rem; color: #94A3B8;">
+                    Follow curated courses, build real GitHub projects, deploy live, and earn authenticated student credentials.
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="{{ url_for('learning.courses_list') }}" class="btn btn-primary btn-sm" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                <i data-lucide="book-open" style="width: 14px; height: 14px;"></i>
+                <span>Browse Courses</span>
+            </a>
+            <a href="{{ url_for('learning.my_learning') }}" class="btn btn-secondary btn-sm" style="font-weight: 600; background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.2);">
+                <span>My Projects</span>
+            </a>
+        </div>
+    </div>
+
     <!-- Your Best Matches Section (Top 3) -->
     <div style="margin-bottom: 36px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">

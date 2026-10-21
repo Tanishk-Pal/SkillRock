@@ -1,5 +1,5 @@
 """
-SkillSwap Campus — Models Package
+Skill Rock — Models Package
 Exports MongoDB models and database connection helpers.
 """
 
@@ -16,7 +16,16 @@ from models.mongo import (
     Badge,
     Message,
     PlatformSettings,
-    ensure_admin_user
+    Course,
+    Assignment,
+    Enrollment,
+    Submission,
+    Review,
+    Certificate,
+    extract_youtube_id,
+    slugify,
+    ensure_admin_user,
+    ensure_default_courses
 )
 
 # Aliases for backward compatibility
@@ -38,5 +47,14 @@ __all__ = [
     "UserBadge",
     "Message",
     "PlatformSettings",
+    "Course",
+    "Assignment",
+    "Enrollment",
+    "Submission",
+    "Review",
+    "Certificate",
+    "extract_youtube_id",
+    "slugify",
     "ensure_admin_user",
+    "ensure_default_courses",
 ]

@@ -8,6 +8,7 @@ from routes.sessions import sessions_bp
 from routes.ai import ai_bp
 from routes.chat import chat_bp
 from routes.admin import admin_bp
+from routes.learning import learning_bp
 
 __all__ = [
     "auth_bp",
@@ -20,4 +21,5 @@ __all__ = [
     "ai_bp",
     "chat_bp",
     "admin_bp",
+    "learning_bp",
 ]

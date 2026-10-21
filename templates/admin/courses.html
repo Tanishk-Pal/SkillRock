@@ -1,0 +1,141 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Manage Courses & Curriculum{% endblock %}
+{% block breadcrumb %}Courses Management{% endblock %}
+
+{% block content %}
+<!-- Metrics Summary -->
+<div class="admin-metrics-grid">
+    <div class="admin-metric-card">
+        <div class="admin-metric-icon" style="background: rgba(59, 130, 246, 0.15); color: #60A5FA;">
+            <i data-lucide="book-open"></i>
+        </div>
+        <div class="admin-metric-label">Total Courses</div>
+        <div class="admin-metric-value">{{ total_courses }}</div>
+    </div>
+    <div class="admin-metric-card">
+        <div class="admin-metric-icon" style="background: rgba(16, 185, 129, 0.15); color: #34D399;">
+            <i data-lucide="check-circle-2"></i>
+        </div>
+        <div class="admin-metric-label">Published Live</div>
+        <div class="admin-metric-value">{{ published_count }}</div>
+    </div>
+    <div class="admin-metric-card">
+        <div class="admin-metric-icon" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24;">
+            <i data-lucide="users"></i>
+        </div>
+        <div class="admin-metric-label">Course Enrollments</div>
+        <div class="admin-metric-value">{{ total_enrollments }}</div>
+    </div>
+    <div class="admin-metric-card">
+        <div class="admin-metric-icon" style="background: rgba(139, 92, 246, 0.15); color: #A78BFA;">
+            <i data-lucide="award"></i>
+        </div>
+        <div class="admin-metric-label">Certificates Issued</div>
+        <div class="admin-metric-value">{{ total_certificates }}</div>
+    </div>
+</div>
+
+<!-- Courses Directory Card -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div>
+            <div class="admin-card-title">
+                <i data-lucide="layers"></i>
+                <span>Curated Courses & Practical Projects</span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
+                Manage free student courses, video resources, and attached project assignment rubrics.
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.course_new') }}" class="admin-btn admin-btn-primary">
+                <i data-lucide="plus"></i>
+                <span>Add New Course</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Course Title & Instructor</th>
+                    <th>Category</th>
+                    <th>Difficulty</th>
+                    <th>Duration</th>
+                    <th>Enrolled</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in courses %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <img src="{{ course.fallback_thumbnail }}" alt="thumbnail" style="width: 50px; height: 32px; object-fit: cover; border-radius: 4px; border: 1px solid var(--admin-border);">
+                            <div>
+                                <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" target="_blank" style="color: #FFFFFF; font-weight: 700; text-decoration: none;">
+                                    {{ course.title }}
+                                </a>
+                                <div style="font-size: 0.76rem; color: var(--admin-text-muted);">
+                                    {{ course.instructor }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="admin-badge admin-badge-blue">{{ course.category }}</span>
+                    </td>
+                    <td>
+                        <span class="admin-badge admin-badge-gold">{{ course.difficulty }}</span>
+                    </td>
+                    <td style="color: var(--admin-text-muted); font-size: 0.82rem;">
+                        {{ course.estimated_duration }}
+                    </td>
+                    <td style="color: #34D399; font-weight: 700;">
+                        {{ course.enrolled_count }}
+                    </td>
+                    <td>
+                        {% if course.is_published %}
+                            <span class="admin-badge admin-badge-green">Published</span>
+                        {% else %}
+                            <span class="admin-badge" style="background: rgba(148, 163, 184, 0.15); color: #94A3B8;">Draft</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                            <!-- Toggle Publish -->
+                            <form method="POST" action="{{ url_for('admin.course_toggle', course_id=course.id) }}" style="display: inline; margin: 0;">
+                                <button type="submit" class="admin-btn admin-btn-secondary" style="padding: 5px 9px;" title="{% if course.is_published %}Unpublish{% else %}Publish{% endif %}">
+                                    <i data-lucide="{% if course.is_published %}eye-off{% else %}eye{% endif %}" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            </form>
+
+                            <!-- Edit -->
+                            <a href="{{ url_for('admin.course_edit', course_id=course.id) }}" class="admin-btn admin-btn-secondary" style="padding: 5px 9px;" title="Edit Course & Assignment">
+                                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                            </a>
+
+                            <!-- Delete -->
+                            <form method="POST" action="{{ url_for('admin.course_delete', course_id=course.id) }}" onsubmit="return confirm('Are you sure you want to delete this course and all associated enrollments and assignments?');" style="display: inline; margin: 0;">
+                                <button type="submit" class="admin-btn admin-btn-danger" style="padding: 5px 9px;" title="Delete Course">
+                                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--admin-text-muted); padding: 40px;">
+                        No courses added yet. Click "Add New Course" above to create your first course.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}{{ course.title }} — Learn & Build — Skill Rock{% endblock %}
+
+{% block content %}
+<div class="course-detail-container" style="max-width: 1100px; margin: 0 auto;">
+    <!-- Breadcrumb -->
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
+        <a href="{{ url_for('learning.courses_list') }}" style="color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+            <span>All Courses</span>
+        </a>
+        <span>/</span>
+        <span style="color: var(--text-primary); font-weight: 600;">{{ course.title }}</span>
+    </div>
+
+    <!-- Main Layout: 2 Columns on desktop -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 28px; margin-bottom: 32px;" class="course-layout-grid">
+        <!-- Left: Video Embed & Course Content -->
+        <div>
+            <!-- Video Player -->
+            <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 24px; border: 1px solid var(--border-color); background: #000000;">
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+                    {% if course.embed_url %}
+                        <iframe 
+                            src="{{ course.embed_url }}" 
+                            title="{{ course.title }}"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen>
+                        </iframe>
+                    {% else %}
+                        <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0F172A; color: white; padding: 20px; text-align: center;">
+                            <i data-lucide="video" style="width: 48px; height: 48px; color: #60A5FA; margin-bottom: 12px;"></i>
+                            <h4 style="margin-bottom: 8px;">Direct YouTube Course Resource</h4>
+                            <a href="{{ course.youtube_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="margin-top: 10px;">
+                                Watch on YouTube <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                <div style="padding: 12px 18px; background: #0F172A; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #94A3B8; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;">
+                        <i data-lucide="info" style="width: 14px; height: 14px; color: #3B82F6;"></i>
+                        Watch full tutorial, build the assignment below, and submit for certification.
+                    </span>
+                    <a href="{{ course.youtube_url }}" target="_blank" rel="noopener noreferrer" style="color: #60A5FA; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                        <span>Open in YouTube</span>
+                        <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Course Header Info -->
+            <div class="card" style="padding: 24px; margin-bottom: 24px;">
+                <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+                    <span class="badge" style="background: rgba(37, 99, 235, 0.1); color: #2563EB; font-weight: 700;">
+                        {{ course.category }}
+                    </span>
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10B981; font-weight: 700;">
+                        {{ course.difficulty }}
+                    </span>
+                    <span class="badge" style="background: rgba(100, 116, 139, 0.1); color: var(--text-secondary); font-weight: 600;">
+                        <i data-lucide="clock" style="width: 12px; height: 12px; display: inline;"></i> {{ course.estimated_duration }}
+                    </span>
+                </div>
+
+                <h1 style="font-size: 1.65rem; font-weight: 800; line-height: 1.3; margin-bottom: 14px; color: var(--text-primary);">
+                    {{ course.title }}
+                </h1>
+
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; font-size: 0.88rem; color: var(--text-secondary);">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="user" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+                        <span>Instructor: <strong style="color: var(--text-primary);">{{ course.instructor }}</strong></span>
+                    </div>
+                    <span>•</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+                        <span>{{ course.enrolled_count }} students enrolled</span>
+                    </div>
+                </div>
+
+                <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 8px;">About This Course</h3>
+                <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.65; white-space: pre-line; margin-bottom: 24px;">
+                    {{ course.description }}
+                </p>
+
+                <!-- Learning Objectives -->
+                {% if course.learning_objectives %}
+                    <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 12px;">What You Will Learn</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 10px;">
+                        {% for obj in course.learning_objectives %}
+                            <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.9rem; color: var(--text-secondary);">
+                                <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
+                                <span>{{ obj }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Practical Project Assignment Briefing -->
+            {% if assignment %}
+                <div class="card" id="project-assignment" style="padding: 24px; border: 2px solid rgba(37, 99, 235, 0.25); background: linear-gradient(180deg, rgba(37, 99, 235, 0.02) 0%, rgba(255, 255, 255, 1) 100%);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: inline-flex; align-items: center; gap: 8px;">
+                            <div style="width: 36px; height: 36px; border-radius: 8px; background: #2563EB; color: white; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="code-2" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.76rem; font-weight: 700; color: #2563EB; text-transform: uppercase; letter-spacing: 0.05em;">Mandatory Project</div>
+                                <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0;">{{ assignment.title }}</h2>
+                            </div>
+                        </div>
+
+                        {% if assignment.is_deployment_required %}
+                            <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #D97706; font-weight: 700; padding: 6px 12px;">
+                                <i data-lucide="globe" style="width: 13px; height: 13px; display: inline;"></i> Live Deployment Required
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">
+                        {{ assignment.problem_statement }}
+                    </p>
+
+                    <!-- Required Features List -->
+                    {% if assignment.required_features %}
+                        <div style="margin-bottom: 18px;">
+                            <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Mandatory Features To Build:</h4>
+                            <ul style="padding-left: 20px; margin: 0; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6;">
+                                {% for feat in assignment.required_features %}
+                                    <li style="margin-bottom: 4px;">{{ feat }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- Optional / Bonus Features -->
+                    {% if assignment.optional_features %}
+                        <div style="margin-bottom: 18px;">
+                            <h4 style="font-size: 0.92rem; font-weight: 700; color: #2563EB; margin-bottom: 8px;">Bonus Features (Stand Out):</h4>
+                            <ul style="padding-left: 20px; margin: 0; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6;">
+                                {% for feat in assignment.optional_features %}
+                                    <li style="margin-bottom: 4px;">{{ feat }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- Deliverables & Tech Specs -->
+                    <div style="background: rgba(15, 23, 42, 0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; margin-bottom: 22px;">
+                        <h4 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 8px;">Submission Requirements</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 0.85rem; color: var(--text-secondary);">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="github" style="width: 15px; height: 15px; color: var(--text-primary);"></i>
+                                <span>Public GitHub Repo + README</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="link" style="width: 15px; height: 15px; color: #2563EB;"></i>
+                                <span>{% if assignment.is_deployment_required %}Live Working URL (Mandatory){% else %}Live URL (Optional){% endif %}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Call to action button -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                        <a href="{{ url_for('learning.assignment_detail', assignment_id=assignment.id) }}" style="font-size: 0.86rem; color: #2563EB; font-weight: 600; text-decoration: none;">
+                            View Detailed Rubric & Specifications →
+                        </a>
+
+                        {% if current_user.is_authenticated %}
+                            {% if certificate %}
+                                <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-secondary" style="background: rgba(16, 185, 129, 0.15); color: #059669; border-color: rgba(16, 185, 129, 0.3); font-weight: 700;">
+                                    <i data-lucide="award" style="width: 16px; height: 16px;"></i> View Earned Certificate
+                                </a>
+                            {% elif submission %}
+                                <a href="{{ url_for('learning.my_learning') }}" class="btn btn-secondary" style="font-weight: 600;">
+                                    View Submission Status ({{ submission.status_label }})
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 22px; display: inline-flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
+                                    <span>Submit Your Project</span>
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 20px;">
+                                Sign In to Submit Project
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right: Status / Enrolment Sticky Sidebar -->
+        <div>
+            <div class="card" style="padding: 24px; position: sticky; top: 80px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 1.8rem; font-weight: 800; color: #10B981; margin-bottom: 4px;">
+                        FREE
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--text-muted);">
+                        Curated Learning & Project Certification
+                    </div>
+                </div>
+
+                <!-- Enrolment Status Box -->
+                <div style="border-top: 1px solid var(--border-color); padding-top: 18px; margin-bottom: 20px;">
+                    {% if current_user.is_authenticated %}
+                        {% if certificate %}
+                            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 14px; text-align: center; margin-bottom: 16px;">
+                                <i data-lucide="award" style="width: 32px; height: 32px; color: #10B981; margin-bottom: 6px;"></i>
+                                <div style="font-weight: 700; color: #065F46; font-size: 0.95rem;">You Are Certified!</div>
+                                <div style="font-size: 0.78rem; color: #047857; margin-top: 2px;">ID: {{ certificate.certificate_id }}</div>
+                            </div>
+                            <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; margin-bottom: 8px;">
+                                <i data-lucide="award" style="width: 16px; height: 16px;"></i>
+                                <span>View Certificate</span>
+                            </a>
+                        {% elif enrollment %}
+                            <div style="background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                                <i data-lucide="check-circle" style="width: 20px; height: 20px; color: #2563EB;"></i>
+                                <div style="font-size: 0.85rem;">
+                                    <div style="font-weight: 700; color: var(--text-primary);">You are enrolled!</div>
+                                    <div style="color: var(--text-muted); font-size: 0.78rem;">Status: {{ enrollment.status_label }}</div>
+                                </div>
+                            </div>
+
+                            {% if submission %}
+                                <div style="padding: 12px; border-radius: 8px; margin-bottom: 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Submission Status:</div>
+                                    <span class="badge {{ submission.status_badge_class }}">
+                                        {{ submission.status_label }}
+                                    </span>
+                                </div>
+                                <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-secondary" style="width: 100%; justify-content: center; font-weight: 600; margin-bottom: 8px;">
+                                    Update Submission
+                                </a>
+                            {% else %}
+                                {% if assignment %}
+                                    <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; margin-bottom: 8px;">
+                                        Submit Project
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        {% else %}
+                            <!-- Not Enrolled Yet -->
+                            <form action="{{ url_for('learning.enrol_course', course_id=course.id) }}" method="POST">
+                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem;">
+                                    Enrol Free Now
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <!-- Unauthenticated User -->
+                        <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem;">
+                            Sign In to Enrol Free
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Course Features Checklist -->
+                <div style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.8;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="check" style="width: 15px; height: 15px; color: #10B981;"></i>
+                        <span>Self-paced video learning</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="check" style="width: 15px; height: 15px; color: #10B981;"></i>
+                        <span>Practical real-world project</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="check" style="width: 15px; height: 15px; color: #10B981;"></i>
+                        <span>Expert code & deployment review</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="check" style="width: 15px; height: 15px; color: #10B981;"></i>
+                        <span>Official verifiable certificate</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="check" style="width: 15px; height: 15px; color: #10B981;"></i>
+                        <span>Earn 200 SkillRock XP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

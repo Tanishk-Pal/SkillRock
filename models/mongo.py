@@ -13,6 +13,8 @@ and duplicate prevention for:
 
 import os
 import re
+import uuid
+import hashlib
 import logging
 from datetime import datetime, timezone
 from bson import ObjectId
@@ -102,6 +104,30 @@ def init_indexes(db):
         # Messages (direct chat)
         db.messages.create_index([("sender_id", 1), ("receiver_id", 1), ("created_at", 1)])
         db.messages.create_index([("receiver_id", 1), ("is_read", 1)])
+
+        # Courses & Learning Platform
+        db.courses.create_index("slug", unique=True)
+        db.courses.create_index("category")
+        db.courses.create_index("is_published")
+
+        # Assignments
+        db.assignments.create_index("course_id")
+
+        # Enrollments (unique student per course)
+        db.enrollments.create_index([("user_id", 1), ("course_id", 1)], unique=True)
+        db.enrollments.create_index("user_id")
+
+        # Submissions
+        db.submissions.create_index([("user_id", 1), ("assignment_id", 1)])
+        db.submissions.create_index("status")
+        db.submissions.create_index("created_at")
+
+        # Reviews
+        db.reviews.create_index("submission_id")
+
+        # Certificates (tamper-proof uniqueness)
+        db.certificates.create_index("certificate_id", unique=True)
+        db.certificates.create_index([("user_id", 1), ("course_id", 1)], unique=True)
     except Exception as e:
         logger.debug(f"Index creation note: {e}")
 
@@ -1272,7 +1298,662 @@ class Message:
 
 
 # ==============================================================================
-# 9. PlatformSettings & System Administration Helper
+# 9. Learn & Build — Courses, Assignments, Submissions & Certificates
+# ==============================================================================
+
+def extract_youtube_id(url):
+    """Extracts YouTube 11-char video ID or playlist ID from diverse YouTube URL formats."""
+    if not url:
+        return ""
+    url = str(url).strip()
+    if "list=" in url:
+        match = re.search(r"list=([a-zA-Z0-9_-]+)", url)
+        if match:
+            return "playlist:" + match.group(1)
+    patterns = [
+        r"(?:v=|\/embed\/|\/v\/|youtu\.be\/|\/shorts\/)([0-9A-Za-z_-]{11})(?:\&|\?|$)",
+        r"^([0-9A-Za-z_-]{11})$"
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, url)
+        if m:
+            return m.group(1)
+    return ""
+
+
+def slugify(text):
+    """Converts a title or string into a clean, URL-friendly slug."""
+    if not text:
+        return "course"
+    text = str(text).lower().strip()
+    text = re.sub(r'[^\w\s-]', '', text)
+    text = re.sub(r'[\s_-]+', '-', text)
+    return text.strip('-') or "course"
+
+
+class Course:
+    collection_name = "courses"
+
+    def __init__(self, data=None):
+        self._data = data or {}
+        self._id = self._data.get("_id")
+        self.id = str(self._id) if self._id else ""
+        self.title = self._data.get("title", "")
+        self.slug = self._data.get("slug", "") or slugify(self.title)
+        self.thumbnail_url = self._data.get("thumbnail_url", "")
+        self.category = self._data.get("category", "Programming")
+        self.description = self._data.get("description", "")
+        self.learning_objectives = self._data.get("learning_objectives", [])
+        self.difficulty = self._data.get("difficulty", "Beginner")  # Beginner, Intermediate, Advanced
+        self.estimated_duration = self._data.get("estimated_duration", "10 Hours")
+        self.instructor = self._data.get("instructor", "Curated Instructor")
+        self.youtube_url = self._data.get("youtube_url", "")
+        self.youtube_video_id = self._data.get("youtube_video_id", "") or extract_youtube_id(self.youtube_url)
+        self.is_published = bool(self._data.get("is_published", True))
+        self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
+        self.updated_at = self._data.get("updated_at") or datetime.now(timezone.utc)
+
+    @property
+    def embed_url(self):
+        yt_id = self.youtube_video_id or extract_youtube_id(self.youtube_url)
+        if not yt_id:
+            return ""
+        if yt_id.startswith("playlist:"):
+            playlist_id = yt_id.split(":", 1)[1]
+            return f"https://www.youtube-nocookie.com/embed/videoseries?list={playlist_id}"
+        return f"https://www.youtube-nocookie.com/embed/{yt_id}"
+
+    @property
+    def fallback_thumbnail(self):
+        if self.thumbnail_url:
+            return self.thumbnail_url
+        yt_id = self.youtube_video_id or extract_youtube_id(self.youtube_url)
+        if yt_id and not yt_id.startswith("playlist:"):
+            return f"https://img.youtube.com/vi/{yt_id}/hqdefault.jpg"
+        return "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80"
+
+    @property
+    def assignment(self):
+        return Assignment.get_by_course(self.id)
+
+    @property
+    def enrolled_count(self):
+        db = get_db()
+        return db.enrollments.count_documents({"course_id": str(self.id)})
+
+    def save(self):
+        db = get_db()
+        if not self.slug:
+            self.slug = slugify(self.title)
+        if not self.youtube_video_id and self.youtube_url:
+            self.youtube_video_id = extract_youtube_id(self.youtube_url)
+
+        self._data["title"] = self.title
+        self._data["slug"] = self.slug
+        self._data["thumbnail_url"] = self.thumbnail_url
+        self._data["category"] = self.category
+        self._data["description"] = self.description
+        self._data["learning_objectives"] = self.learning_objectives if isinstance(self.learning_objectives, list) else [self.learning_objectives]
+        self._data["difficulty"] = self.difficulty
+        self._data["estimated_duration"] = self.estimated_duration
+        self._data["instructor"] = self.instructor
+        self._data["youtube_url"] = self.youtube_url
+        self._data["youtube_video_id"] = self.youtube_video_id
+        self._data["is_published"] = bool(self.is_published)
+        self._data["updated_at"] = datetime.now(timezone.utc)
+
+        if self._id:
+            db[self.collection_name].update_one({"_id": self._id}, {"$set": self._data})
+        else:
+            self._data["created_at"] = datetime.now(timezone.utc)
+            res = db[self.collection_name].insert_one(self._data)
+            self._id = res.inserted_id
+            self.id = str(self._id)
+        return self
+
+    def delete(self):
+        if self._id:
+            db = get_db()
+            db.assignments.delete_many({"course_id": str(self.id)})
+            db.enrollments.delete_many({"course_id": str(self.id)})
+            db.submissions.delete_many({"course_id": str(self.id)})
+            db.certificates.delete_many({"course_id": str(self.id)})
+            db[self.collection_name].delete_one({"_id": self._id})
+
+    @classmethod
+    def get_by_id(cls, course_id):
+        if not course_id:
+            return None
+        db = get_db()
+        doc = db[cls.collection_name].find_one({"_id": _to_obj_id(course_id)})
+        return cls(doc) if doc else None
+
+    @classmethod
+    def get_by_slug(cls, slug):
+        if not slug:
+            return None
+        db = get_db()
+        doc = db[cls.collection_name].find_one({"slug": slug.strip()})
+        return cls(doc) if doc else None
+
+    @classmethod
+    def find_all(cls, query=None, limit=None, skip=0, sort=None):
+        db = get_db()
+        cursor = db[cls.collection_name].find(query or {})
+        if sort:
+            cursor = cursor.sort(sort)
+        else:
+            cursor = cursor.sort("created_at", -1)
+        if skip:
+            cursor = cursor.skip(skip)
+        if limit:
+            cursor = cursor.limit(limit)
+        return [cls(d) for d in cursor]
+
+    @classmethod
+    def count(cls, query=None):
+        db = get_db()
+        return db[cls.collection_name].count_documents(query or {})
+
+
+class Assignment:
+    collection_name = "assignments"
+
+    DEFAULT_RUBRIC = [
+        {"criterion": "Core Functionality & Requirements", "max_points": 40, "description": "All specified mandatory features implemented and functional."},
+        {"criterion": "Code Quality, Architecture & Structure", "max_points": 30, "description": "Clean, organized, readable code with sensible design patterns."},
+        {"criterion": "Live Deployment & Practical Testing", "max_points": 20, "description": "Application successfully deployed, responsive, and working smoothly online."},
+        {"criterion": "Documentation & Repository Quality", "max_points": 10, "description": "Clear README with project overview, setup instructions, and tech stack details."}
+    ]
+
+    def __init__(self, data=None):
+        self._data = data or {}
+        self._id = self._data.get("_id")
+        self.id = str(self._id) if self._id else ""
+        self.course_id = str(self._data.get("course_id", ""))
+        self.title = self._data.get("title", "")
+        self.short_description = self._data.get("short_description", "")
+        self.problem_statement = self._data.get("problem_statement", "")
+        self.required_features = self._data.get("required_features", [])
+        self.optional_features = self._data.get("optional_features", [])
+        self.tech_requirements = self._data.get("tech_requirements", "")
+        self.is_deployment_required = bool(self._data.get("is_deployment_required", True))
+        self.rubric = self._data.get("rubric") or self.DEFAULT_RUBRIC
+        self.is_published = bool(self._data.get("is_published", True))
+        self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
+        self.updated_at = self._data.get("updated_at") or datetime.now(timezone.utc)
+
+    @property
+    def course(self):
+        return Course.get_by_id(self.course_id)
+
+    def save(self):
+        db = get_db()
+        self._data["course_id"] = str(self.course_id)
+        self._data["title"] = self.title
+        self._data["short_description"] = self.short_description
+        self._data["problem_statement"] = self.problem_statement
+        self._data["required_features"] = self.required_features if isinstance(self.required_features, list) else [self.required_features]
+        self._data["optional_features"] = self.optional_features if isinstance(self.optional_features, list) else [self.optional_features]
+        self._data["tech_requirements"] = self.tech_requirements
+        self._data["is_deployment_required"] = bool(self.is_deployment_required)
+        self._data["rubric"] = self.rubric if isinstance(self.rubric, list) else self.DEFAULT_RUBRIC
+        self._data["is_published"] = bool(self.is_published)
+        self._data["updated_at"] = datetime.now(timezone.utc)
+
+        if self._id:
+            db[self.collection_name].update_one({"_id": self._id}, {"$set": self._data})
+        else:
+            self._data["created_at"] = datetime.now(timezone.utc)
+            res = db[self.collection_name].insert_one(self._data)
+            self._id = res.inserted_id
+            self.id = str(self._id)
+        return self
+
+    def delete(self):
+        if self._id:
+            db = get_db()
+            db[self.collection_name].delete_one({"_id": self._id})
+
+    @classmethod
+    def get_by_id(cls, assignment_id):
+        if not assignment_id:
+            return None
+        db = get_db()
+        doc = db[cls.collection_name].find_one({"_id": _to_obj_id(assignment_id)})
+        return cls(doc) if doc else None
+
+    @classmethod
+    def get_by_course(cls, course_id):
+        if not course_id:
+            return None
+        db = get_db()
+        doc = db[cls.collection_name].find_one({"course_id": str(course_id)})
+        return cls(doc) if doc else None
+
+
+class Enrollment:
+    collection_name = "enrollments"
+
+    def __init__(self, data=None):
+        self._data = data or {}
+        self._id = self._data.get("_id")
+        self.id = str(self._id) if self._id else ""
+        self.user_id = str(self._data.get("user_id", ""))
+        self.course_id = str(self._data.get("course_id", ""))
+        self.status = self._data.get("status", "enrolled")  # enrolled, in_progress, completed
+        self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
+        self.updated_at = self._data.get("updated_at") or datetime.now(timezone.utc)
+
+    @property
+    def user(self):
+        return User.get_by_id(self.user_id)
+
+    @property
+    def course(self):
+        return Course.get_by_id(self.course_id)
+
+    @property
+    def submission(self):
+        course = self.course
+        if course and course.assignment:
+            return Submission.get_latest(self.user_id, course.assignment.id)
+        return None
+
+    @property
+    def certificate(self):
+        return Certificate.get_by_user_course(self.user_id, self.course_id)
+
+    @property
+    def status_label(self):
+        labels = {
+            "enrolled": "Enrolled",
+            "in_progress": "In Progress",
+            "completed": "Completed & Certified"
+        }
+        return labels.get(self.status, self.status.capitalize())
+
+    def save(self):
+        db = get_db()
+        self._data["user_id"] = str(self.user_id)
+        self._data["course_id"] = str(self.course_id)
+        self._data["status"] = self.status
+        self._data["updated_at"] = datetime.now(timezone.utc)
+
+        if self._id:
+            db[self.collection_name].update_one({"_id": self._id}, {"$set": self._data})
+        else:
+            self._data["created_at"] = datetime.now(timezone.utc)
+            res = db[self.collection_name].insert_one(self._data)
+            self._id = res.inserted_id
+            self.id = str(self._id)
+        return self
+
+    def delete(self):
+        if self._id:
+            db = get_db()
+            db[self.collection_name].delete_one({"_id": self._id})
+
+    @classmethod
+    def get_by_user_course(cls, user_id, course_id):
+        if not user_id or not course_id:
+            return None
+        db = get_db()
+        doc = db[cls.collection_name].find_one({"user_id": str(user_id), "course_id": str(course_id)})
+        return cls(doc) if doc else None
+
+    @classmethod
+    def find_by_user(cls, user_id):
+        if not user_id:
+            return []
+        db = get_db()
+        docs = db[cls.collection_name].find({"user_id": str(user_id)}).sort("created_at", -1)
+        return [cls(d) for d in docs]
+
+    @classmethod
+    def count(cls, query=None):
+        db = get_db()
+        return db[cls.collection_name].count_documents(query or {})
+
+
+class Submission:
+    collection_name = "submissions"
+
+    STATUS_PENDING = "pending_review"
+    STATUS_CHANGES = "changes_requested"
+    STATUS_REJECTED = "rejected"
+    STATUS_APPROVED = "approved"
+
+    def __init__(self, data=None):
+        self._data = data or {}
+        self._id = self._data.get("_id")
+        self.id = str(self._id) if self._id else ""
+        self.assignment_id = str(self._data.get("assignment_id", ""))
+        self.course_id = str(self._data.get("course_id", ""))
+        self.user_id = str(self._data.get("user_id", ""))
+        self.title = self._data.get("title", "")
+        self.description = self._data.get("description", "")
+        self.github_url = self._data.get("github_url", "")
+        self.deployment_url = self._data.get("deployment_url", "")
+        self.tech_stack = self._data.get("tech_stack", "")
+        self.status = self._data.get("status", self.STATUS_PENDING)
+        self.reviewer_id = str(self._data.get("reviewer_id", ""))
+        self.review_feedback = self._data.get("review_feedback", "")
+        self.reviewed_at = self._data.get("reviewed_at")
+        self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
+        self.updated_at = self._data.get("updated_at") or datetime.now(timezone.utc)
+
+    @property
+    def user(self):
+        return User.get_by_id(self.user_id)
+
+    @property
+    def course(self):
+        return Course.get_by_id(self.course_id)
+
+    @property
+    def assignment(self):
+        return Assignment.get_by_id(self.assignment_id)
+
+    @property
+    def reviewer(self):
+        return User.get_by_id(self.reviewer_id) if self.reviewer_id else None
+
+    @property
+    def review(self):
+        return Review.get_by_submission(self.id)
+
+    @property
+    def status_label(self):
+        labels = {
+            self.STATUS_PENDING: "Pending Review",
+            self.STATUS_CHANGES: "Changes Requested",
+            self.STATUS_REJECTED: "Needs Revision / Rejected",
+            self.STATUS_APPROVED: "Approved & Certified"
+        }
+        return labels.get(self.status, self.status.replace("_", " ").title())
+
+    @property
+    def status_badge_class(self):
+        classes = {
+            self.STATUS_PENDING: "badge-warning",
+            self.STATUS_CHANGES: "badge-info",
+            self.STATUS_REJECTED: "badge-danger",
+            self.STATUS_APPROVED: "badge-success"
+        }
+        return classes.get(self.status, "badge-secondary")
+
+    def save(self):
+        db = get_db()
+        self._data["assignment_id"] = str(self.assignment_id)
+        self._data["course_id"] = str(self.course_id)
+        self._data["user_id"] = str(self.user_id)
+        self._data["title"] = self.title
+        self._data["description"] = self.description
+        self._data["github_url"] = self.github_url
+        self._data["deployment_url"] = self.deployment_url
+        self._data["tech_stack"] = self.tech_stack
+        self._data["status"] = self.status
+        self._data["reviewer_id"] = str(self.reviewer_id) if self.reviewer_id else ""
+        self._data["review_feedback"] = self.review_feedback
+        self._data["reviewed_at"] = self.reviewed_at
+        self._data["updated_at"] = datetime.now(timezone.utc)
+
+        if self._id:
+            db[self.collection_name].update_one({"_id": self._id}, {"$set": self._data})
+        else:
+            self._data["created_at"] = datetime.now(timezone.utc)
+            res = db[self.collection_name].insert_one(self._data)
+            self._id = res.inserted_id
+            self.id = str(self._id)
+        return self
+
+    def delete(self):
+        if self._id:
+            db = get_db()
+            db.reviews.delete_many({"submission_id": str(self.id)})
+            db[self.collection_name].delete_one({"_id": self._id})
+
+    @classmethod
+    def get_by_id(cls, submission_id):
+        if not submission_id:
+            return None
+        db = get_db()
+        doc = db[cls.collection_name].find_one({"_id": _to_obj_id(submission_id)})
+        return cls(doc) if doc else None
+
+    @classmethod
+    def get_latest(cls, user_id, assignment_id):
+        if not user_id or not assignment_id:
+            return None
+        db = get_db()
+        doc = db[cls.collection_name].find_one(
+            {"user_id": str(user_id), "assignment_id": str(assignment_id)},
+            sort=[("created_at", -1)]
+        )
+        return cls(doc) if doc else None
+
+    @classmethod
+    def find_by_user(cls, user_id):
+        if not user_id:
+            return []
+        db = get_db()
+        docs = db[cls.collection_name].find({"user_id": str(user_id)}).sort("created_at", -1)
+        return [cls(d) for d in docs]
+
+    @classmethod
+    def find_all(cls, query=None, limit=None, skip=0, sort=None):
+        db = get_db()
+        cursor = db[cls.collection_name].find(query or {})
+        if sort:
+            cursor = cursor.sort(sort)
+        else:
+            cursor = cursor.sort("created_at", -1)
+        if skip:
+            cursor = cursor.skip(skip)
+        if limit:
+            cursor = cursor.limit(limit)
+        return [cls(d) for d in cursor]
+
+    @classmethod
+    def count(cls, query=None):
+        db = get_db()
+        return db[cls.collection_name].count_documents(query or {})
+
+
+class Review:
+    collection_name = "reviews"
+
+    def __init__(self, data=None):
+        self._data = data or {}
+        self._id = self._data.get("_id")
+        self.id = str(self._id) if self._id else ""
+        self.submission_id = str(self._data.get("submission_id", ""))
+        self.reviewer_id = str(self._data.get("reviewer_id", ""))
+        self.decision = self._data.get("decision", "pending")  # approved, changes_requested, rejected
+        self.scores = self._data.get("scores", {})  # { "Criterion": score }
+        self.total_score = self._data.get("total_score", 0)
+        self.max_score = self._data.get("max_score", 100)
+        self.feedback = self._data.get("feedback", "")
+        self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
+
+    @property
+    def reviewer(self):
+        return User.get_by_id(self.reviewer_id)
+
+    @property
+    def submission(self):
+        return Submission.get_by_id(self.submission_id)
+
+    def save(self):
+        db = get_db()
+        self._data["submission_id"] = str(self.submission_id)
+        self._data["reviewer_id"] = str(self.reviewer_id)
+        self._data["decision"] = self.decision
+        self._data["scores"] = self.scores
+        self._data["total_score"] = self.total_score
+        self._data["max_score"] = self.max_score
+        self._data["feedback"] = self.feedback
+        self._data["created_at"] = self.created_at
+
+        if self._id:
+            db[self.collection_name].update_one({"_id": self._id}, {"$set": self._data})
+        else:
+            res = db[self.collection_name].insert_one(self._data)
+            self._id = res.inserted_id
+            self.id = str(self._id)
+        return self
+
+    @classmethod
+    def get_by_submission(cls, submission_id):
+        if not submission_id:
+            return None
+        db = get_db()
+        doc = db[cls.collection_name].find_one({"submission_id": str(submission_id)}, sort=[("created_at", -1)])
+        return cls(doc) if doc else None
+
+
+class Certificate:
+    collection_name = "certificates"
+
+    def __init__(self, data=None):
+        self._data = data or {}
+        self._id = self._data.get("_id")
+        self.id = str(self._id) if self._id else ""
+        self.certificate_id = self._data.get("certificate_id", "")
+        self.user_id = str(self._data.get("user_id", ""))
+        self.user_name = self._data.get("user_name", "")
+        self.user_email = self._data.get("user_email", "")
+        self.course_id = str(self._data.get("course_id", ""))
+        self.course_title = self._data.get("course_title", "")
+        self.assignment_id = str(self._data.get("assignment_id", ""))
+        self.submission_id = str(self._data.get("submission_id", ""))
+        self.issued_at = self._data.get("issued_at") or datetime.now(timezone.utc)
+        self.verification_hash = self._data.get("verification_hash", "")
+
+    @property
+    def user(self):
+        return User.get_by_id(self.user_id)
+
+    @property
+    def course(self):
+        return Course.get_by_id(self.course_id)
+
+    @property
+    def submission(self):
+        return Submission.get_by_id(self.submission_id)
+
+    @property
+    def formatted_date(self):
+        if isinstance(self.issued_at, datetime):
+            return self.issued_at.strftime("%B %d, %Y")
+        return str(self.issued_at)
+
+    def save(self):
+        db = get_db()
+        self._data["certificate_id"] = self.certificate_id
+        self._data["user_id"] = str(self.user_id)
+        self._data["user_name"] = self.user_name
+        self._data["user_email"] = self.user_email
+        self._data["course_id"] = str(self.course_id)
+        self._data["course_title"] = self.course_title
+        self._data["assignment_id"] = str(self.assignment_id)
+        self._data["submission_id"] = str(self.submission_id)
+        self._data["issued_at"] = self.issued_at
+        self._data["verification_hash"] = self.verification_hash
+
+        if self._id:
+            db[self.collection_name].update_one({"_id": self._id}, {"$set": self._data})
+        else:
+            res = db[self.collection_name].insert_one(self._data)
+            self._id = res.inserted_id
+            self.id = str(self._id)
+        return self
+
+    @classmethod
+    def generate_cert_id(cls):
+        year = datetime.now().year
+        token = uuid.uuid4().hex[:8].upper()
+        return f"SR-{year}-{token}"
+
+    @classmethod
+    def get_by_id(cls, cert_id):
+        if not cert_id:
+            return None
+        db = get_db()
+        doc = db[cls.collection_name].find_one({"_id": _to_obj_id(cert_id)})
+        return cls(doc) if doc else None
+
+    @classmethod
+    def get_by_cert_id(cls, cert_id):
+        if not cert_id:
+            return None
+        db = get_db()
+        doc = db[cls.collection_name].find_one({"certificate_id": cert_id.strip().upper()})
+        if not doc:
+            doc = db[cls.collection_name].find_one({"certificate_id": cert_id.strip()})
+        return cls(doc) if doc else None
+
+    @classmethod
+    def get_by_user_course(cls, user_id, course_id):
+        if not user_id or not course_id:
+            return None
+        db = get_db()
+        doc = db[cls.collection_name].find_one({"user_id": str(user_id), "course_id": str(course_id)})
+        return cls(doc) if doc else None
+
+    @classmethod
+    def find_by_user(cls, user_id):
+        if not user_id:
+            return []
+        db = get_db()
+        docs = db[cls.collection_name].find({"user_id": str(user_id)}).sort("issued_at", -1)
+        return [cls(d) for d in docs]
+
+    @classmethod
+    def issue(cls, user, course, assignment=None, submission=None):
+        """Atomically checks and issues a verified certificate for a course completion."""
+        existing = cls.get_by_user_course(user.id, course.id)
+        if existing:
+            return existing
+
+        cert_id = cls.generate_cert_id()
+        issued_at = datetime.now(timezone.utc)
+        raw_hash_data = f"{cert_id}:{user.id}:{course.id}:{issued_at.isoformat()}"
+        verification_hash = hashlib.sha256(raw_hash_data.encode("utf-8")).hexdigest()[:24]
+
+        cert = cls({
+            "certificate_id": cert_id,
+            "user_id": str(user.id),
+            "user_name": user.name,
+            "user_email": user.email,
+            "course_id": str(course.id),
+            "course_title": course.title,
+            "assignment_id": str(assignment.id if assignment else ""),
+            "submission_id": str(submission.id if submission else ""),
+            "issued_at": issued_at,
+            "verification_hash": verification_hash
+        })
+        cert.save()
+
+        # Update enrollment status to completed
+        enrollment = Enrollment.get_by_user_course(user.id, course.id)
+        if enrollment:
+            enrollment.status = "completed"
+            enrollment.save()
+
+        # Award student 200 XP for completing a verified project course
+        try:
+            user.xp = getattr(user, "xp", 0) + 200
+            user.save()
+        except Exception:
+            pass
+
+        return cert
+
+
+# ==============================================================================
+# 10. PlatformSettings & System Administration Helper
 # ==============================================================================
 
 class PlatformSettings:
@@ -1361,6 +2042,138 @@ def ensure_admin_user():
         logger.warning(f"[ADMIN INITIALIZATION WARNING] Could not ensure admin user: {e}")
 
 
+def ensure_default_courses():
+    """
+    Guarantees foundational curated courses and project assignments exist in MongoDB.
+    Idempotent: if courses exist, leaves them intact without overwriting administrator edits.
+    """
+    try:
+        db = get_db()
+        if db.courses.count_documents({}) > 0:
+            return
+
+        default_courses = [
+            {
+                "title": "Python Programming: Beginner to Real-World Automation",
+                "slug": "python-programming-automation",
+                "category": "Programming",
+                "difficulty": "Beginner",
+                "estimated_duration": "12 Hours",
+                "instructor": "CodeWithHarry",
+                "youtube_url": "https://www.youtube.com/watch?v=gfDE2a7MKjA",
+                "thumbnail_url": "",
+                "description": "Master Python from fundamental variables and data structures up through object-oriented design and real-world scripting. Learn how to write clean, reusable code, process files, and build automated command-line utilities.",
+                "learning_objectives": [
+                    "Master Python syntax, variables, conditionals, loops, and data structures (lists, dicts, sets)",
+                    "Write modular functions with parameters, return types, and clean variable scoping",
+                    "Handle file I/O operations and exception handling (try/except) safely",
+                    "Understand object-oriented programming (OOP) principles and class design in Python"
+                ],
+                "is_published": True,
+                "assignment": {
+                    "title": "Automated Student Task & Data Manager",
+                    "short_description": "Build a modular Python application to manage student tasks with persistent storage.",
+                    "problem_statement": "Build a robust Python application that allows students to create, prioritize, filter, and track tasks. The application must persist data between runs using JSON, CSV, or SQLite, validate user inputs, and handle file corruption or unexpected input gracefully.",
+                    "required_features": [
+                        "Interactive CLI or lightweight GUI/web interface supporting full CRUD operations for tasks",
+                        "File persistence (JSON, CSV, or SQLite) that automatically loads and saves task states",
+                        "Comprehensive input validation and error handling for missing files, invalid dates, or bad inputs",
+                        "Modular code architecture split cleanly into logical files or classes",
+                        "Public GitHub repository with comprehensive README.md including installation and run instructions"
+                    ],
+                    "optional_features": [
+                        "Export task summary reports to CSV or printable format",
+                        "Automated unit tests written with unittest or pytest"
+                    ],
+                    "tech_requirements": "Python 3.10+, SQLite or JSON file storage, Git",
+                    "is_deployment_required": False
+                }
+            },
+            {
+                "title": "Full-Stack Web Development: Modern Frontend & Backend with Cloud Deployment",
+                "slug": "fullstack-web-development",
+                "category": "Web Development",
+                "difficulty": "Intermediate",
+                "estimated_duration": "8 Weeks",
+                "instructor": "FreeCodeCamp",
+                "youtube_url": "https://www.youtube.com/watch?v=nu_pCVPKzTk",
+                "thumbnail_url": "",
+                "description": "Comprehensive full-stack engineering bootcamp covering modern HTML5, CSS3, JavaScript ES6+, backend REST APIs, database persistence, and production cloud deployment on Render or Vercel.",
+                "learning_objectives": [
+                    "Design and structure responsive web layouts using modern CSS and semantic HTML",
+                    "Build server-side REST API endpoints with input validation and HTTP status codes",
+                    "Connect backend applications to persistent databases (MongoDB, PostgreSQL, or SQLite)",
+                    "Deploy production web applications with live SSL/HTTPS domains on Render or Vercel"
+                ],
+                "assignment": {
+                    "title": "Campus Resource Sharing & Project Showcase Web App",
+                    "short_description": "Build and deploy a full-stack web application with persistent database storage.",
+                    "problem_statement": "Design, build, and deploy an end-to-end full-stack web application that allows students to publish, browse, search, and manage campus study resources or project portfolios. The application must feature responsive design, persistent database storage, and a live working URL.",
+                    "required_features": [
+                        "Complete CRUD operations for resources with a clean web interface",
+                        "Fully responsive UI that works smoothly across mobile, tablet, and desktop viewports",
+                        "Persistent database integration (MongoDB, PostgreSQL, or SQLite) for data storage",
+                        "Live deployment accessible on a public HTTPS URL (e.g. Render, Vercel, Netlify)",
+                        "Public GitHub repository containing architecture notes, environment setup guide, and screenshots"
+                    ],
+                    "optional_features": [
+                        "Search, tag filtering, and pagination for resources",
+                        "User authentication and authorization controls"
+                    ],
+                    "tech_requirements": "Frontend (HTML/CSS/JS or React), Backend (Python/Flask, Node.js/Express, or Django), Database, Hosted on Render/Vercel",
+                    "is_deployment_required": True
+                }
+            },
+            {
+                "title": "JavaScript Mastery: DOM Manipulation, Async APIs & Modern Web Apps",
+                "slug": "javascript-mastery-apis",
+                "category": "Web Development",
+                "difficulty": "Beginner",
+                "estimated_duration": "10 Hours",
+                "instructor": "Traversy Media / FreeCodeCamp",
+                "youtube_url": "https://www.youtube.com/watch?v=PkZNo7MFNFg",
+                "thumbnail_url": "",
+                "description": "Deep dive into modern JavaScript (ES6+). Master variables, arrow functions, DOM manipulation, async/await, fetch API, and state management in the browser.",
+                "learning_objectives": [
+                    "Master modern ES6+ features: destructuring, arrow functions, template literals, and array methods",
+                    "Dynamically manipulate the browser DOM and bind interactive event listeners",
+                    "Fetch real-time data asynchronously from external REST APIs using async/await and Fetch API",
+                    "Deploy client-side web applications on GitHub Pages or Vercel"
+                ],
+                "assignment": {
+                    "title": "Interactive Real-Time Weather & Location Intelligence Dashboard",
+                    "short_description": "Build an interactive API-driven dashboard handling live queries and loading states.",
+                    "problem_statement": "Build an interactive single-page web application that communicates with a public REST API (e.g. OpenWeatherMap, Open-Meteo, or GitHub Users API) to display live data, handle loading and network error states gracefully, and adapt responsively across devices.",
+                    "required_features": [
+                        "Real-time search interface querying a live external REST API",
+                        "Visual feedback for network requests: loading spinner and error messages for invalid queries",
+                        "Responsive card layout with clean modern CSS styling",
+                        "Live public deployment hosted on GitHub Pages, Vercel, or Netlify",
+                        "Public GitHub repository with comprehensive README and live demo link"
+                    ],
+                    "optional_features": [
+                        "Recent search history saved in browser localStorage",
+                        "Automatic geolocation detection"
+                    ],
+                    "tech_requirements": "JavaScript (ES6+), Fetch API, CSS3, Deployed on GitHub Pages / Vercel",
+                    "is_deployment_required": True
+                }
+            }
+        ]
+
+        for item in default_courses:
+            asg_data = item.pop("assignment")
+            course = Course(item)
+            course.save()
+            asg_data["course_id"] = str(course.id)
+            asg = Assignment(asg_data)
+            asg.save()
+
+        logger.info(f"[COURSES] Successfully seeded {len(default_courses)} default courses and project assignments.")
+    except Exception as e:
+        logger.warning(f"[COURSES INITIALIZATION WARNING] Could not seed default courses: {e}")
+
+
 # Legacy compatibility exports
 class _DummyDB:
     """Mock Flask-SQLAlchemy extension API for seamless route compatibility."""
@@ -1370,7 +2183,7 @@ class _DummyDB:
         get_db()
     def drop_all(self):
         db = get_db()
-        for col in ["users", "skills", "swap_requests", "connections", "sessions", "ratings", "badges"]:
+        for col in ["users", "skills", "swap_requests", "connections", "sessions", "ratings", "badges", "courses", "assignments", "enrollments", "submissions", "reviews", "certificates"]:
             try:
                 db[col].drop()
             except Exception:

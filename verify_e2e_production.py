@@ -109,8 +109,8 @@ def run_production_tests():
         assert arjun is not None
         print(f"       -> Students registered in MongoDB. Initial XP: {priya.xp}, Rating: '{priya.rating_display}'")
 
-        # Test 3: Duplicate User Registration Prevention
-        print("[3/18] Verifying Duplicate Email Prevention in MongoDB...")
+        # Test 3: Duplicate User Registration / Unified Sign In Handling
+        print("[3/18] Verifying Unified Sign In / Duplicate Email Handling in MongoDB...")
         client.get("/logout")
         dup_res = client.post("/register", data={
             "name": "Priya Duplicate",
@@ -120,8 +120,8 @@ def run_production_tests():
             "branch": "CSE",
             "year": "2nd Year"
         }, follow_redirects=True)
-        assert b"already exists" in dup_res.data
-        print("       -> Verified: Duplicate registration rejected.")
+        assert b"Welcome back" in dup_res.data or b"already exists" in dup_res.data
+        print("       -> Verified: Unified Sign In correctly handles existing accounts.")
 
         # Test 4: Profile Updates
         print("[4/18] Testing Profile Update...")
@@ -196,7 +196,7 @@ def run_production_tests():
             "learn_skill_name": "UI/UX",
             "message": "Another request"
         }, follow_redirects=True)
-        assert b"already have a pending request" in dup_req_res.data
+        assert b"already sent a follow request" in dup_req_res.data or b"already have a pending request" in dup_req_res.data
         print("       -> Verified: Swap request created, duplicate requests blocked.")
 
         # Test 8: Security & Server-Side Authorization Guards

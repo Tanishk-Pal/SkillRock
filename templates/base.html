@@ -163,8 +163,34 @@
                     <span class="mobile-nav-label">Sessions</span>
                 </a>
 
+                <!-- 7. Learn & Build Courses -->
+                <a href="{{ url_for('learning.courses_list') }}" 
+                   class="nav-icon-link {% if request.endpoint and 'learning.course' in request.endpoint %}active{% endif %}" 
+                   data-tooltip="Learn & Build" 
+                   aria-label="Learn & Build">
+                    <i data-lucide="book-open"></i>
+                    <span class="mobile-nav-label">Learn</span>
+                </a>
+
+                <!-- 8. My Learning Hub & Certificates -->
+                <a href="{{ url_for('learning.my_learning') }}" 
+                   class="nav-icon-link {% if request.endpoint == 'learning.my_learning' or (request.endpoint and 'certificate' in request.endpoint) %}active{% endif %}" 
+                   data-tooltip="My Learning" 
+                   aria-label="My Learning">
+                    <i data-lucide="award"></i>
+                    <span class="mobile-nav-label">My Learning</span>
+                </a>
+
                 <!-- Mobile Only Menu Options -->
                 <div class="mobile-only-section">
+                    <a href="{{ url_for('learning.courses_list') }}" class="mobile-nav-item">
+                        <i data-lucide="book-open"></i>
+                        <span>Learn & Build Courses</span>
+                    </a>
+                    <a href="{{ url_for('learning.my_learning') }}" class="mobile-nav-item">
+                        <i data-lucide="award"></i>
+                        <span>My Learning & Certificates</span>
+                    </a>
                     <a href="{{ url_for('profile.profile') }}" class="mobile-nav-item">
                         <img src="{{ current_user.avatar_url }}" alt="avatar" class="mobile-nav-avatar">
                         <span>Profile ({{ current_user.name.split()[0] }})</span>
@@ -229,6 +255,10 @@
             {% else %}
             <!-- Unauthenticated Visitor -->
             <div class="nav-right" style="display: flex; align-items: center; gap: 8px;">
+                <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 7px 14px; border-radius: 9999px;">
+                    <i data-lucide="book-open" style="width: 14px; height: 14px;"></i>
+                    <span>Courses</span>
+                </a>
                 <a href="{{ url_for('ai.assistant_page') }}" class="nav-skillbot-btn">
                     <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>
                     <span>SkillBot</span>

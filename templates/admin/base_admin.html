@@ -642,6 +642,16 @@
                 <span>Skills Directory</span>
             </a>
 
+            <div class="admin-nav-heading">Learn & Certificates</div>
+            <a href="{{ url_for('admin.courses_list') }}" class="admin-nav-item {% if 'courses' in request.endpoint %}active{% endif %}">
+                <i data-lucide="book-open"></i>
+                <span>Manage Courses</span>
+            </a>
+            <a href="{{ url_for('admin.submissions_list') }}" class="admin-nav-item {% if 'submissions' in request.endpoint %}active{% endif %}">
+                <i data-lucide="check-square"></i>
+                <span>Project Submissions</span>
+            </a>
+
             <div class="admin-nav-heading">Network & Safety</div>
             <a href="{{ url_for('admin.connections_list') }}" class="admin-nav-item {% if 'connections' in request.endpoint %}active{% endif %}">
                 <i data-lucide="git-merge"></i>

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Certificate Authenticity — Skill Rock{% endblock %}
+
+{% block content %}
+<div class="verify-container" style="max-width: 680px; margin: 40px auto;">
+    {% if is_valid and certificate %}
+        <!-- Verified State -->
+        <div class="card" style="padding: 36px 32px; border-top: 6px solid #10B981; text-align: center;">
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10B981; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px auto; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);">
+                <i data-lucide="shield-check" style="width: 40px; height: 40px;"></i>
+            </div>
+
+            <div style="display: inline-block; padding: 4px 12px; background: rgba(16, 185, 129, 0.15); color: #065F46; border-radius: 9999px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">
+                Verified Authentic Credential
+            </div>
+
+            <h1 style="font-size: 1.65rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">
+                Skill Rock Certificate Validated
+            </h1>
+            <p style="font-size: 0.92rem; color: var(--text-secondary); margin-bottom: 24px;">
+                This certificate was officially issued by Skill Rock after successful project completion and rigorous reviewer evaluation.
+            </p>
+
+            <!-- Credential Specifications Table -->
+            <div style="background: rgba(15, 23, 42, 0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; text-align: left; margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; font-size: 0.88rem;">
+                    <div style="color: var(--text-muted); font-weight: 600;">Certificate ID:</div>
+                    <div style="font-family: monospace; font-weight: 700; color: var(--text-primary);">{{ certificate.certificate_id }}</div>
+
+                    <div style="color: var(--text-muted); font-weight: 600;">Awarded To:</div>
+                    <div style="font-weight: 700; color: var(--text-primary);">{{ certificate.user_name }}</div>
+
+                    <div style="color: var(--text-muted); font-weight: 600;">Course Mastery:</div>
+                    <div style="font-weight: 700; color: #2563EB;">{{ certificate.course_title }}</div>
+
+                    <div style="color: var(--text-muted); font-weight: 600;">Issue Date:</div>
+                    <div style="color: var(--text-secondary);">{{ certificate.formatted_date }}</div>
+
+                    {% if certificate.submission %}
+                        <div style="color: var(--text-muted); font-weight: 600;">Evaluated Project:</div>
+                        <div style="color: var(--text-primary);">{{ certificate.submission.title }}</div>
+                    {% endif %}
+
+                    <div style="color: var(--text-muted); font-weight: 600;">Verification Hash:</div>
+                    <div style="font-family: monospace; font-size: 0.78rem; color: #64748B; word-break: break-all;">
+                        {{ certificate.verification_hash }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <div style="display: flex; justify-content: center; gap: 12px;">
+                <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 24px;">
+                    <i data-lucide="award" style="width: 16px; height: 16px;"></i>
+                    <span>View Official Certificate</span>
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <!-- Invalid / Not Found State -->
+        <div class="card" style="padding: 36px 32px; border-top: 6px solid #EF4444; text-align: center;">
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #EF4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px auto;">
+                <i data-lucide="shield-alert" style="width: 40px; height: 40px;"></i>
+            </div>
+
+            <div style="display: inline-block; padding: 4px 12px; background: rgba(239, 68, 68, 0.15); color: #991B1B; border-radius: 9999px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">
+                Certificate Not Found
+            </div>
+
+            <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">
+                Invalid or Unverified Credential
+            </h1>
+            <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px;">
+                We could not locate an official certificate matching ID <strong>{{ cert_id }}</strong> in our verification ledger. Please verify that the URL was typed correctly.
+            </p>
+
+            <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary" style="font-weight: 600;">
+                Explore Skill Rock Courses
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

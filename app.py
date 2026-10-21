@@ -8,7 +8,7 @@ import os
 from flask import Flask, render_template, redirect, url_for, session, request, Response
 from flask_login import LoginManager, current_user
 from config import Config
-from models import get_db, User, Skill, Session, Connection, SwapRequest, Message, PlatformSettings, ensure_admin_user
+from models import get_db, User, Skill, Session, Connection, SwapRequest, Message, PlatformSettings, ensure_admin_user, ensure_default_courses
 from routes import (
     auth_bp,
     dashboard_bp,
@@ -19,17 +19,19 @@ from routes import (
     sessions_bp,
     ai_bp,
     chat_bp,
-    admin_bp
+    admin_bp,
+    learning_bp
 )
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Initialize MongoDB connection, collections, and seed Super Admin
+    # Initialize MongoDB connection, collections, and seed Super Admin & Default Courses
     with app.app_context():
         get_db()
         ensure_admin_user()
+        ensure_default_courses()
 
     # Initialize Flask-Login
     login_manager = LoginManager()
@@ -53,6 +55,7 @@ def create_app(config_class=Config):
     app.register_blueprint(ai_bp)
     app.register_blueprint(chat_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(learning_bp)
 
     # Provide str globally in Jinja templates
     app.jinja_env.globals['str'] = str
@@ -106,6 +109,16 @@ def create_app(config_class=Config):
             total_swaps=total_swaps,
             popular_skills=popular_skills
         )
+
+    # Dynamic Certificate Verification Root Alias
+    @app.route("/verify/<cert_id>")
+    def root_verify_cert(cert_id):
+        return redirect(url_for("learning.verify_certificate", cert_id=cert_id))
+
+    # Course Catalogue Root Alias
+    @app.route("/courses")
+    def root_courses():
+        return redirect(url_for("learning.courses_list"))
 
     # SEO: Robots.txt for Search Engines
     @app.route("/robots.txt")

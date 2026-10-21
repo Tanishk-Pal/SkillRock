@@ -1,0 +1,194 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Evaluate Submission — {{ submission.title }}{% endblock %}
+{% block breadcrumb %}Submission Evaluation{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('admin.submissions_list') }}" class="admin-btn admin-btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+            <span>Back to Review Queue</span>
+        </a>
+    </div>
+
+    <!-- Student & Project Summary Card -->
+    <div class="admin-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+            <div>
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--admin-accent); text-transform: uppercase;">
+                    {{ course.title if course else 'Course' }}
+                </div>
+                <h1 style="font-size: 1.45rem; font-weight: 800; color: #FFFFFF; margin: 4px 0 0 0;">
+                    {{ submission.title }}
+                </h1>
+            </div>
+            <div>
+                {% if submission.status == 'approved' %}
+                    <span class="admin-badge admin-badge-green">Approved & Certified</span>
+                {% elif submission.status == 'pending_review' %}
+                    <span class="admin-badge admin-badge-gold">Pending Review</span>
+                {% elif submission.status == 'changes_requested' %}
+                    <span class="admin-badge admin-badge-blue">Changes Requested</span>
+                {% else %}
+                    <span class="admin-badge admin-badge-red">{{ submission.status_label }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Student Meta -->
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--admin-surface-card); border-radius: 8px; margin-bottom: 20px;">
+            <img src="{{ student.avatar_url if student else 'https://api.dicebear.com/7.x/notionists/svg?seed=student' }}" alt="avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+            <div>
+                <div style="font-weight: 700; color: #FFFFFF; font-size: 0.95rem;">
+                    {{ student.name if student else 'Unknown Student' }}
+                </div>
+                <div style="font-size: 0.78rem; color: var(--admin-text-muted);">
+                    {{ student.email }} • {{ student.college }} • {{ student.branch }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Links to Code & Live Demo -->
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
+            <a href="{{ submission.github_url }}" target="_blank" rel="noopener noreferrer" class="admin-btn admin-btn-secondary" style="padding: 10px 16px; font-size: 0.88rem; color: #FFFFFF;">
+                <i data-lucide="github" style="width: 18px; height: 18px;"></i>
+                <span>Inspect GitHub Repository</span>
+                <i data-lucide="external-link" style="width: 13px; height: 13px; color: var(--admin-text-muted);"></i>
+            </a>
+
+            {% if submission.deployment_url %}
+                <a href="{{ submission.deployment_url }}" target="_blank" rel="noopener noreferrer" class="admin-btn admin-btn-primary" style="padding: 10px 16px; font-size: 0.88rem;">
+                    <i data-lucide="globe" style="width: 18px; height: 18px;"></i>
+                    <span>Test Live Working Application</span>
+                    <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Tech Stack -->
+        {% if submission.tech_stack %}
+            <div style="font-size: 0.85rem; margin-bottom: 16px; color: var(--admin-text-muted);">
+                Technologies: <strong style="color: #FFFFFF;">{{ submission.tech_stack }}</strong>
+            </div>
+        {% endif %}
+
+        <!-- Student Notes -->
+        <div>
+            <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--admin-text-muted); margin-bottom: 6px;">
+                Student Implementation Description:
+            </div>
+            <div style="background: #090D16; border: 1px solid var(--admin-border); border-radius: 8px; padding: 14px 16px; font-size: 0.88rem; color: #E2E8F0; line-height: 1.6; white-space: pre-line;">
+                {{ submission.description }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Criteria Checklist Reference -->
+    {% if assignment %}
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="admin-card-title">
+                    <i data-lucide="clipboard-list"></i>
+                    <span>Project Requirements Reference</span>
+                </div>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--admin-text-muted); margin-bottom: 12px;">
+                <strong>Problem Statement:</strong> {{ assignment.problem_statement }}
+            </div>
+            {% if assignment.required_features %}
+                <div style="font-size: 0.82rem; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">Mandatory Features:</div>
+                <ul style="padding-left: 18px; margin: 0; font-size: 0.82rem; color: var(--admin-text-muted); line-height: 1.6;">
+                    {% for feat in assignment.required_features %}
+                        <li>{{ feat }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Evaluation & Grading Form -->
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <div class="admin-card-title">
+                <i data-lucide="award"></i>
+                <span>Evaluation Scorecard & Decision</span>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin.submission_review', submission_id=submission.id) }}">
+            <!-- Rubric Scores -->
+            {% set rubric = assignment.rubric if assignment and assignment.rubric else [] %}
+            {% if rubric %}
+                <div style="margin-bottom: 24px;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: #FFFFFF; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.04em;">
+                        Rubric Criteria Scoring
+                    </div>
+                    {% for item in rubric %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--admin-surface-card); border-radius: 8px; margin-bottom: 10px;">
+                            <div>
+                                <div style="font-weight: 700; color: #FFFFFF; font-size: 0.88rem;">{{ item.criterion }}</div>
+                                <div style="font-size: 0.78rem; color: var(--admin-text-muted);">{{ item.description }}</div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <input type="number" name="score_{{ loop.index0 }}" class="admin-input" style="width: 70px; text-align: center;" min="0" max="{{ item.max_points }}" value="{{ previous_review.scores.get(item.criterion, item.max_points) if previous_review and previous_review.scores else item.max_points }}" required>
+                                <span style="font-size: 0.82rem; color: var(--admin-text-muted);">/ {{ item.max_points }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Decision Radio Buttons -->
+            <div class="admin-form-group">
+                <label class="admin-label">Evaluation Decision *</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 8px;">
+                    <label style="display: flex; align-items: flex-start; gap: 10px; padding: 14px; border: 1px solid var(--admin-border); border-radius: 8px; cursor: pointer; background: var(--admin-surface-card);">
+                        <input type="radio" name="decision" value="approved" {% if submission.status == 'approved' or not previous_review %}checked{% endif %} style="margin-top: 3px;">
+                        <div>
+                            <div style="font-weight: 700; color: #34D399; font-size: 0.9rem;">Approve & Certify</div>
+                            <div style="font-size: 0.74rem; color: var(--admin-text-muted); margin-top: 2px;">Issues official certificate + 200 XP</div>
+                        </div>
+                    </label>
+
+                    <label style="display: flex; align-items: flex-start; gap: 10px; padding: 14px; border: 1px solid var(--admin-border); border-radius: 8px; cursor: pointer; background: var(--admin-surface-card);">
+                        <input type="radio" name="decision" value="changes_requested" {% if submission.status == 'changes_requested' %}checked{% endif %} style="margin-top: 3px;">
+                        <div>
+                            <div style="font-weight: 700; color: #60A5FA; font-size: 0.9rem;">Request Changes</div>
+                            <div style="font-size: 0.74rem; color: var(--admin-text-muted); margin-top: 2px;">Student revises code and resubmits</div>
+                        </div>
+                    </label>
+
+                    <label style="display: flex; align-items: flex-start; gap: 10px; padding: 14px; border: 1px solid var(--admin-border); border-radius: 8px; cursor: pointer; background: var(--admin-surface-card);">
+                        <input type="radio" name="decision" value="rejected" {% if submission.status == 'rejected' %}checked{% endif %} style="margin-top: 3px;">
+                        <div>
+                            <div style="font-weight: 700; color: #F87171; font-size: 0.9rem;">Reject</div>
+                            <div style="font-size: 0.74rem; color: var(--admin-text-muted); margin-top: 2px;">Fails fundamental requirements</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Constructive Feedback -->
+            <div class="admin-form-group">
+                <label class="admin-label">Reviewer Feedback & Guidance *</label>
+                <textarea name="feedback" class="admin-textarea" rows="5" placeholder="Highlight strengths, point out specific areas of improvement, verify code cleanliness and live deployment quality..." required>{{ submission.review_feedback or (previous_review.feedback if previous_review else 'Great work! The project demonstrates clean architecture, properly satisfies all mandatory criteria, and is accessible live on deployment.') }}</textarea>
+                <small style="color: var(--admin-text-muted); font-size: 0.75rem; display: block; margin-top: 4px;">
+                    This feedback will be displayed directly on the student's My Learning dashboard.
+                </small>
+            </div>
+
+            <!-- Submit Button -->
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                <a href="{{ url_for('admin.submissions_list') }}" class="admin-btn admin-btn-secondary">
+                    Cancel
+                </a>
+                <button type="submit" class="admin-btn admin-btn-primary" style="padding: 10px 24px; font-size: 0.92rem;">
+                    <i data-lucide="check"></i>
+                    <span>Submit Official Evaluation</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
