@@ -482,6 +482,37 @@ class User(UserMixin):
     def has_google_connected(self):
         return bool(self.google_access_token)
 
+    # Student Study Interests (Max 3 topics for personalized e-learning recommendations)
+    @property
+    def interests(self):
+        raw = self._data.get("interests", [])
+        if isinstance(raw, list):
+            return [str(x).strip() for x in raw if str(x).strip()][:3]
+        elif isinstance(raw, str):
+            return [s.strip() for s in raw.split(",") if s.strip()][:3]
+        return []
+
+    @interests.setter
+    def interests(self, value):
+        if isinstance(value, list):
+            self._data["interests"] = [str(x).strip() for x in value if str(x).strip()][:3]
+        elif isinstance(value, str):
+            self._data["interests"] = [s.strip() for s in value.split(",") if s.strip()][:3]
+        else:
+            self._data["interests"] = []
+
+    @property
+    def has_interests(self):
+        return len(self.interests) > 0
+
+    def set_interests(self, interest_list):
+        if not isinstance(interest_list, (list, tuple)):
+            interest_list = [interest_list]
+        clean = [str(x).strip() for x in interest_list if str(x).strip()][:3]
+        self._data["interests"] = clean
+        self.save()
+        return clean
+
     # Skills accessors
     @property
     def teaching_skills(self):
@@ -592,6 +623,7 @@ class User(UserMixin):
         self._data["role"] = getattr(self, "role", "student")
         self._data["is_banned"] = bool(getattr(self, "is_banned", False))
         self._data["ban_reason"] = getattr(self, "ban_reason", "")
+        self._data["interests"] = self.interests
         if self.password_hash:
             self._data["password_hash"] = self.password_hash
 
@@ -2049,9 +2081,6 @@ def ensure_default_courses():
     """
     try:
         db = get_db()
-        if db.courses.count_documents({}) > 0:
-            return
-
         default_courses = [
             {
                 "title": "Python Programming: Beginner to Real-World Automation",
@@ -2158,18 +2187,88 @@ def ensure_default_courses():
                     "tech_requirements": "JavaScript (ES6+), Fetch API, CSS3, Deployed on GitHub Pages / Vercel",
                     "is_deployment_required": True
                 }
+            },
+            {
+                "title": "Machine Learning & AI with Python: Practical Neural Networks & Model Deployment",
+                "slug": "machine-learning-ai-python",
+                "category": "AI & Machine Learning",
+                "difficulty": "Intermediate",
+                "estimated_duration": "14 Hours",
+                "instructor": "FreeCodeCamp / Curated",
+                "youtube_url": "https://www.youtube.com/watch?v=i_LwzRVP7bg",
+                "thumbnail_url": "",
+                "description": "Master machine learning algorithms, dataset preprocessing, supervised learning, neural networks, and model deployment using Scikit-Learn, Pandas, and Flask/FastAPI.",
+                "learning_objectives": [
+                    "Clean, preprocess, and normalize real-world datasets using Pandas and NumPy",
+                    "Train and evaluate classification and regression models with cross-validation",
+                    "Understand confusion matrices, precision, recall, and ROC curves",
+                    "Deploy a trained model as a functional web application with live predictions"
+                ],
+                "assignment": {
+                    "title": "End-to-End Machine Learning Predictive Application",
+                    "short_description": "Train, evaluate, and deploy a machine learning model with a web UI or REST API.",
+                    "problem_statement": "Build an end-to-end machine learning project on a real dataset (e.g. house price prediction, student performance predictor, or sentiment analysis). The project must feature clean data preprocessing, model evaluation with metrics, and an interactive prediction interface.",
+                    "required_features": [
+                        "Data cleaning and exploratory analysis documented in Python scripts or notebook",
+                        "Trained model with measurable accuracy/F1 score and evaluation metrics",
+                        "Interactive web UI or API endpoint where users can input features and get real-time predictions",
+                        "Public GitHub repository with comprehensive README explaining dataset, model, and instructions"
+                    ],
+                    "optional_features": [
+                        "Live deployment on Render, Streamlit Cloud, or HuggingFace Spaces",
+                        "Model artifact persistence using Joblib or Pickle"
+                    ],
+                    "tech_requirements": "Python 3.10+, Scikit-Learn, Pandas, Flask / FastAPI / Streamlit",
+                    "is_deployment_required": False
+                }
+            },
+            {
+                "title": "Data Science & Analytics: Real-World SQL, Pandas & Executive Dashboards",
+                "slug": "data-science-analytics-dashboards",
+                "category": "Data Science",
+                "difficulty": "Beginner",
+                "estimated_duration": "10 Hours",
+                "instructor": "Keith Galli / FreeCodeCamp",
+                "youtube_url": "https://www.youtube.com/watch?v=vmEHCJofslg",
+                "thumbnail_url": "",
+                "description": "Learn how data analysts extract business insights from millions of records using Python, Pandas, Matplotlib, and SQL queries to solve complex business questions.",
+                "learning_objectives": [
+                    "Filter, aggregate, and reshape large tabular datasets with Pandas",
+                    "Write SQL queries with JOINs, GROUP BY, and window functions",
+                    "Create clear, publication-quality visualizations and executive summaries",
+                    "Deliver actionable findings and project documentation for stakeholders"
+                ],
+                "assignment": {
+                    "title": "Campus or E-Commerce Sales & Analytics Intelligence Report",
+                    "short_description": "Analyze a complex multi-month dataset, discover key drivers, and visualize findings.",
+                    "problem_statement": "Perform a thorough exploratory data analysis on a real-world multi-table dataset. Identify top trends, customer segments, bottlenecks, and anomalies. Present findings with interactive charts and an executive summary.",
+                    "required_features": [
+                        "Data transformation and cleaning pipeline handling missing values and date parsing",
+                        "At least 4 distinct analytical insights backed by charts and metrics",
+                        "Clean modular Python codebase or well-structured analytical report",
+                        "Public GitHub repository with findings, methodology, and visualizations"
+                    ],
+                    "optional_features": [
+                        "Interactive dashboard built with Dash or Streamlit",
+                        "Automated monthly report generator"
+                    ],
+                    "tech_requirements": "Python, Pandas, Matplotlib / Seaborn, SQL, Git",
+                    "is_deployment_required": False
+                }
             }
         ]
 
         for item in default_courses:
-            asg_data = item.pop("assignment")
-            course = Course(item)
-            course.save()
-            asg_data["course_id"] = str(course.id)
-            asg = Assignment(asg_data)
-            asg.save()
+            existing = db.courses.find_one({"slug": item["slug"]})
+            if not existing:
+                asg_data = item.pop("assignment")
+                course = Course(item)
+                course.save()
+                asg_data["course_id"] = str(course.id)
+                asg = Assignment(asg_data)
+                asg.save()
 
-        logger.info(f"[COURSES] Successfully seeded {len(default_courses)} default courses and project assignments.")
+        logger.info(f"[COURSES] Ensured default curated courses are registered.")
     except Exception as e:
         logger.warning(f"[COURSES INITIALIZATION WARNING] Could not seed default courses: {e}")
 

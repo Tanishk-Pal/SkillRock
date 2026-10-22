@@ -89,7 +89,8 @@ class TestLearnAndBuildPlatform(unittest.TestCase):
         course = Course.find_all()[0]
         res_detail = self.client.get(f"/learning/courses/{course.slug}")
         self.assertEqual(res_detail.status_code, 200)
-        self.assertIn(course.title.encode("utf-8")[:20], res_detail.data)
+        import html
+        self.assertIn(html.escape(course.title[:20]).encode("utf-8"), res_detail.data)
 
     def test_04_student_enrolment(self):
         """Verify student enrolment is free, idempotent, and tracked."""

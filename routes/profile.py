@@ -123,6 +123,53 @@ def edit_profile():
     return render_template("edit_profile.html", user=current_user)
 
 
+@profile_bp.route("/skills/quick-setup", methods=["POST"])
+@login_required
+def quick_setup_skills():
+    """
+    On-demand interactive Skill Swap setup.
+    Allows students to quickly configure skills they can teach and want to learn
+    when they first enter the Campus Skill Swap section.
+    """
+    if request.is_json:
+        data = request.get_json() or {}
+        teach_list = data.get("teaching_skills", [])
+        learn_list = data.get("learning_skills", [])
+    else:
+        teach_list = request.form.getlist("teaching_skills")
+        if not teach_list and request.form.get("teaching_skills"):
+            teach_list = [s.strip() for s in request.form.get("teaching_skills").split(",") if s.strip()]
+        learn_list = request.form.getlist("learning_skills")
+        if not learn_list and request.form.get("learning_skills"):
+            learn_list = [s.strip() for s in request.form.get("learning_skills").split(",") if s.strip()]
+
+    added_teach = 0
+    added_learn = 0
+
+    for s in teach_list:
+        s_norm = normalize_skill(s) or s.strip().title()
+        if s_norm:
+            if current_user.add_skill(s_norm, skill_type="teach", proficiency="Intermediate"):
+                added_teach += 1
+
+    for s in learn_list:
+        s_norm = normalize_skill(s) or s.strip().title()
+        if s_norm:
+            if current_user.add_skill(s_norm, skill_type="learn", proficiency="Beginner"):
+                added_learn += 1
+
+    if request.is_json:
+        return {
+            "success": True,
+            "message": f"Saved! Added {added_teach} teaching and {added_learn} learning skills.",
+            "teaching_count": len(current_user.teaching_skills),
+            "learning_count": len(current_user.learning_skills)
+        }
+
+    flash("Your Skill Swap profile has been updated! You can now connect and exchange knowledge with campus peers.", "success")
+    return redirect(request.referrer or url_for("discover.discover"))
+
+
 @profile_bp.route("/skills/add", methods=["POST"])
 @login_required
 def add_skill():

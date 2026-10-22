@@ -180,11 +180,13 @@ def google_callback():
     # Log in user with persistent remember cookie
     login_user(user, remember=True)
 
-    if is_new_user or not user.college:
-        flash(f"Welcome to Skill Rock, {user.name}! Please set your campus and skills to get started.", "success")
-        return redirect(url_for("profile.edit_profile"))
+    if not user.has_interests:
+        flash(f"Welcome to Skill Rock, {user.name}! Pick your study interests to customize your learning feed.", "success")
+        return redirect(url_for("learning.onboarding_interests"))
 
     flash(f"Signed in as {user.name} via Google.", "success")
+    if not next_url or any(x in str(next_url).lower() for x in ["login", "register", "signin", "auth", "dashboard"]):
+        return redirect(url_for("learning.courses_list"))
     return redirect(next_url)
 
 
@@ -204,7 +206,9 @@ def login():
     if current_user.is_authenticated:
         if getattr(current_user, "is_admin", False):
             return redirect(url_for("admin.admin_dashboard"))
-        return redirect(url_for("dashboard.dashboard"))
+        if not current_user.has_interests:
+            return redirect(url_for("learning.onboarding_interests"))
+        return redirect(url_for("learning.courses_list"))
 
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
@@ -233,11 +237,13 @@ def login():
             login_user(user, remember=True)
             flash(f"Welcome back, {user.name}!", "success")
             raw_next = request.args.get("next")
-            if not raw_next or any(x in str(raw_next).lower() for x in ["login", "register", "signin", "auth"]):
+            if not raw_next or any(x in str(raw_next).lower() for x in ["login", "register", "signin", "auth", "dashboard"]):
                 if getattr(user, "is_admin", False):
                     next_page = url_for("admin.admin_dashboard")
+                elif not user.has_interests:
+                    next_page = url_for("learning.onboarding_interests")
                 else:
-                    next_page = url_for("dashboard.dashboard")
+                    next_page = url_for("learning.courses_list")
             else:
                 next_page = raw_next
             return redirect(next_page)
@@ -268,7 +274,7 @@ def login():
                 college=college,
                 branch=branch,
                 year=year,
-                bio="Student eager to exchange skills on Skill Rock.",
+                bio="Student passionate about learning, building projects, and exchanging skills.",
                 xp=welcome_xp,
                 rating=0.0,
                 rating_count=0
@@ -277,8 +283,8 @@ def login():
             new_user.save()
 
             login_user(new_user, remember=True)
-            flash(f"Welcome to Skill Rock, {new_user.name}! Your account has been created (+{welcome_xp} Welcome XP). Let's set up your campus & skills.", "success")
-            return redirect(url_for("profile.edit_profile"))
+            flash(f"Welcome to Skill Rock, {new_user.name}! Your account has been created (+{welcome_xp} Welcome XP). Let's pick what you're excited to learn.", "success")
+            return redirect(url_for("learning.onboarding_interests"))
 
     return render_template("login.html")
 
@@ -287,7 +293,9 @@ def login():
 def register():
     """Redirects legacy registration links directly to the unified Sign In."""
     if current_user.is_authenticated:
-        return redirect(url_for("dashboard.dashboard"))
+        if not current_user.has_interests:
+            return redirect(url_for("learning.onboarding_interests"))
+        return redirect(url_for("learning.courses_list"))
     if request.method == "POST":
         return login()
     return redirect(url_for("auth.login"))

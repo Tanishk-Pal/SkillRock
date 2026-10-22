@@ -1,0 +1,223 @@
+{% if current_user.is_authenticated and (not current_user.teaching_skills or not current_user.learning_skills) %}
+<div class="card skill-swap-setup-card" id="skillSwapSetupCard" style="background: #FFFFFF; border: 2px solid #5B46F6; border-radius: 18px; padding: 24px 28px; margin-bottom: 28px; box-shadow: 0 10px 25px -5px rgba(91, 70, 246, 0.12);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+        <div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #EDE9FE; color: #5B46F6; font-size: 0.76rem; font-weight: 700; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+                <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
+                <span>One-Click Campus Skill Swap Setup</span>
+            </div>
+            <h2 style="font-size: 1.35rem; font-weight: 800; color: #0F172A; margin-bottom: 4px;">
+                Activate Your Campus Peer Exchange Profile
+            </h2>
+            <p style="font-size: 0.9rem; color: #64748B; margin: 0;">
+                Click chips or type below to choose at least 1 skill you can teach and 1 you want to learn.
+            </p>
+        </div>
+        <button type="button" onclick="document.getElementById('skillSwapSetupCard').style.display='none'" style="background: none; border: none; color: #94A3B8; cursor: pointer; padding: 4px;" title="Dismiss">
+            <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+    </div>
+
+    <form id="quickSkillSetupForm" action="{{ url_for('profile.quick_setup_skills') }}" method="POST">
+        <!-- 1. What you can teach -->
+        <div style="margin-bottom: 18px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <label style="font-weight: 700; font-size: 0.86rem; color: #16A34A; display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-lucide="award" style="width: 15px; height: 15px;"></i>
+                    <span>Skills You Can Teach (Select 1 or more)</span>
+                </label>
+                <span style="font-size: 0.78rem; color: #64748B;" id="teachSelectedCount">0 selected</span>
+            </div>
+            <div class="skill-chips-group" id="teachChipsGroup" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                {% set teach_defaults = ["Python", "JavaScript", "C++", "Web Development", "React", "Graphic Design", "Data Structures", "Java", "Public Speaking", "Git & GitHub"] %}
+                {% for skill_name in teach_defaults %}
+                <button type="button" class="skill-chip-toggle teach-chip" data-type="teach" data-skill="{{ skill_name }}">
+                    <span>+ {{ skill_name }}</span>
+                </button>
+                {% endfor %}
+            </div>
+            <div style="display: flex; gap: 8px; max-width: 380px;">
+                <input type="text" id="customTeachInput" class="form-control form-control-sm" placeholder="Add custom teaching skill..." style="font-size: 0.85rem;">
+                <button type="button" id="btnAddCustomTeach" class="btn btn-secondary btn-sm" style="font-size: 0.82rem; white-space: nowrap;">
+                    Add
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. What you want to learn -->
+        <div style="margin-bottom: 22px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <label style="font-weight: 700; font-size: 0.86rem; color: #5B46F6; display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-lucide="book-open" style="width: 15px; height: 15px;"></i>
+                    <span>Skills You Want to Learn (Select 1 or more)</span>
+                </label>
+                <span style="font-size: 0.78rem; color: #64748B;" id="learnSelectedCount">0 selected</span>
+            </div>
+            <div class="skill-chips-group" id="learnChipsGroup" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                {% set learn_defaults = ["Machine Learning", "Flutter", "Cloud & DevOps", "Cybersecurity", "UI/UX Design", "System Design", "Data Science", "Backend APIs", "Docker", "Figma"] %}
+                {% for skill_name in learn_defaults %}
+                <button type="button" class="skill-chip-toggle learn-chip" data-type="learn" data-skill="{{ skill_name }}">
+                    <span>+ {{ skill_name }}</span>
+                </button>
+                {% endfor %}
+            </div>
+            <div style="display: flex; gap: 8px; max-width: 380px;">
+                <input type="text" id="customLearnInput" class="form-control form-control-sm" placeholder="Add custom learning skill..." style="font-size: 0.85rem;">
+                <button type="button" id="btnAddCustomLearn" class="btn btn-secondary btn-sm" style="font-size: 0.82rem; white-space: nowrap;">
+                    Add
+                </button>
+            </div>
+        </div>
+
+        <!-- Hidden inputs container for form submission -->
+        <div id="hiddenInputsContainer"></div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; align-items: center; border-top: 1px solid #E2E8F0; padding-top: 16px;">
+            <span style="font-size: 0.82rem; color: #64748B;" id="setupValidationMsg">
+                Select at least 1 teaching and 1 learning skill.
+            </span>
+            <button type="submit" id="btnSaveSkillSetup" class="btn btn-primary" style="background: #5B46F6; border-radius: 10px; font-weight: 700; padding: 9px 22px;" disabled>
+                <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                <span>Save & Start Swapping</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .skill-chip-toggle {
+        padding: 6px 14px;
+        border-radius: 9999px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        background: #F8FAFC;
+        border: 1.5px solid #E2E8F0;
+        color: #475569;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        outline: none;
+    }
+    .skill-chip-toggle:hover {
+        background: #F1F5F9;
+        border-color: #CBD5E1;
+        color: #0F172A;
+    }
+    .skill-chip-toggle.teach-chip.active {
+        background: #DCFCE7;
+        border-color: #16A34A;
+        color: #15803D;
+        font-weight: 700;
+    }
+    .skill-chip-toggle.learn-chip.active {
+        background: #EDE9FE;
+        border-color: #5B46F6;
+        color: #5B46F6;
+        font-weight: 700;
+    }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const teachChipsGroup = document.getElementById("teachChipsGroup");
+    const learnChipsGroup = document.getElementById("learnChipsGroup");
+    const teachCount = document.getElementById("teachSelectedCount");
+    const learnCount = document.getElementById("learnSelectedCount");
+    const saveBtn = document.getElementById("btnSaveSkillSetup");
+    const validationMsg = document.getElementById("setupValidationMsg");
+    const hiddenContainer = document.getElementById("hiddenInputsContainer");
+
+    function syncHiddenInputs() {
+        if (!hiddenContainer) return;
+        hiddenContainer.innerHTML = "";
+        const activeTeach = document.querySelectorAll(".teach-chip.active");
+        const activeLearn = document.querySelectorAll(".learn-chip.active");
+
+        activeTeach.forEach(btn => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "teaching_skills";
+            input.value = btn.getAttribute("data-skill");
+            hiddenContainer.appendChild(input);
+        });
+
+        activeLearn.forEach(btn => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "learning_skills";
+            input.value = btn.getAttribute("data-skill");
+            hiddenContainer.appendChild(input);
+        });
+
+        teachCount.textContent = `${activeTeach.length} selected`;
+        learnCount.textContent = `${activeLearn.length} selected`;
+
+        if (activeTeach.length >= 1 && activeLearn.length >= 1) {
+            saveBtn.disabled = false;
+            validationMsg.textContent = "Ready to activate!";
+            validationMsg.style.color = "#16A34A";
+        } else {
+            saveBtn.disabled = true;
+            validationMsg.textContent = "Please pick at least 1 teaching and 1 learning skill.";
+            validationMsg.style.color = "#64748B";
+        }
+    }
+
+    document.querySelectorAll(".skill-chip-toggle").forEach(btn => {
+        btn.addEventListener("click", function(e) {
+            e.preventDefault();
+            this.classList.toggle("active");
+            const skill = this.getAttribute("data-skill");
+            if (this.classList.contains("active")) {
+                this.innerHTML = `✓ ${skill}`;
+            } else {
+                this.innerHTML = `+ ${skill}`;
+            }
+            syncHiddenInputs();
+        });
+    });
+
+    // Custom skill add handlers
+    const addCustomSkill = (inputEl, groupEl, type) => {
+        const val = inputEl.value.trim();
+        if (!val) return;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `skill-chip-toggle ${type}-chip active`;
+        btn.setAttribute("data-type", type);
+        btn.setAttribute("data-skill", val);
+        btn.innerHTML = `✓ ${val}`;
+        btn.addEventListener("click", function(e) {
+            e.preventDefault();
+            this.classList.toggle("active");
+            if (this.classList.contains("active")) {
+                this.innerHTML = `✓ ${val}`;
+            } else {
+                this.innerHTML = `+ ${val}`;
+            }
+            syncHiddenInputs();
+        });
+        groupEl.appendChild(btn);
+        inputEl.value = "";
+        syncHiddenInputs();
+    };
+
+    const btnAddTeach = document.getElementById("btnAddCustomTeach");
+    const inputTeach = document.getElementById("customTeachInput");
+    if (btnAddTeach && inputTeach) {
+        btnAddTeach.addEventListener("click", () => addCustomSkill(inputTeach, teachChipsGroup, "teach"));
+        inputTeach.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); btnAddTeach.click(); }
+        });
+    }
+
+    const btnAddLearn = document.getElementById("btnAddCustomLearn");
+    const inputLearn = document.getElementById("customLearnInput");
+    if (btnAddLearn && inputLearn) {
+        btnAddLearn.addEventListener("click", () => addCustomSkill(inputLearn, learnChipsGroup, "learn"));
+        inputLearn.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); btnAddLearn.click(); }
+        });
+    }
+});
+</script>
+{% endif %}

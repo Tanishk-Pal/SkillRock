@@ -84,196 +84,182 @@
     </div>
     {% endif %}
 
-    <!-- Top Navigation Bar (Instagram-Style Clean Iconic SaaS Nav) -->
-    <nav class="navbar">
-        <div class="container nav-content">
+    <!-- Top Navigation Bar (Physics Wallah Dark SaaS Nav) -->
+    <header class="navbar-pw">
+        <div class="navbar-pw-content">
             <!-- Brand Logo & Author Credit -->
-            <div class="nav-left">
-                <a href="{{ url_for('index') if not current_user.is_authenticated else url_for('dashboard.dashboard') }}" class="brand-logo" aria-label="SkillRock Home">
-                    <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="SkillRock" class="brand-logo-img">
-                    <span class="brand-name">Skill<span class="brand-name-highlight">Rock</span></span>
-                    <span class="brand-dev-tag">by TanxPal</span>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                {% if current_user.is_authenticated %}
+                <button type="button" class="pw-mobile-toggle-btn" id="mobileSidebarToggleBtn" aria-label="Toggle Navigation Menu">
+                    <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
+                </button>
+                {% endif %}
+                <a href="{{ url_for('index') if not current_user.is_authenticated else url_for('learning.courses_list') }}" class="pw-brand" aria-label="SkillRock Home">
+                    <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="SkillRock" class="pw-brand-img">
+                    <span class="pw-brand-text">Skill<span class="pw-brand-highlight">Rock</span></span>
+                    <span class="pw-brand-author">by TanxPal</span>
                 </a>
             </div>
 
-            {% if current_user.is_authenticated %}
-            <!-- Center: Instagram-Style Iconic Navigation Links -->
-            <div class="nav-center" id="navLinks">
-                <!-- 1. Dashboard / Home -->
-                <a href="{{ url_for('dashboard.dashboard') }}" 
-                   class="nav-icon-link {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}" 
-                   data-tooltip="Dashboard" 
-                   aria-label="Dashboard">
-                    <i data-lucide="home"></i>
-                    <span class="mobile-nav-label">Dashboard</span>
-                </a>
+            <!-- Right Controls: Profile Dropdown (PW Style with Logout merged inside) -->
+            <div class="pw-nav-right">
+                {% if current_user.is_authenticated %}
+                    <!-- User XP Badge -->
+                    <span class="pw-xp-badge" data-tooltip="Learning Experience Points">
+                        <i data-lucide="zap" style="width: 14px; height: 14px; fill: #FBBF24;"></i>
+                        <span>{{ current_user.xp }} XP</span>
+                    </span>
 
-                <!-- 2. Discover Students / Explore -->
-                <a href="{{ url_for('discover.discover') }}" 
-                   class="nav-icon-link {% if request.endpoint == 'discover.discover' %}active{% endif %}" 
-                   data-tooltip="Discover Students" 
-                   aria-label="Discover">
-                    <i data-lucide="compass"></i>
-                    <span class="mobile-nav-label">Discover</span>
-                </a>
+                    <!-- Hi, User Greeting -->
+                    <span class="pw-user-greeting">Hi, {{ current_user.name.split()[0] }}</span>
 
-                <!-- 3. Follow Requests (Heart / Network) -->
-                <a href="{{ url_for('swap.requests_list') }}" 
-                   class="nav-icon-link {% if request.endpoint == 'swap.requests_list' %}active{% endif %}" 
-                   data-tooltip="Follow Requests" 
-                   aria-label="Follow Requests">
-                    <div class="nav-icon-wrapper">
-                        <i data-lucide="heart"></i>
-                        {% if pending_requests_count > 0 %}
-                            <span class="nav-icon-badge">{{ pending_requests_count }}</span>
-                        {% endif %}
+                    <!-- Profile Dropdown Menu Trigger (PW Style) -->
+                    <div class="pw-profile-dropdown-wrap" id="profileDropdownWrap">
+                        <button type="button" class="pw-avatar-trigger" id="avatarDropdownBtn" aria-expanded="false" aria-haspopup="true" aria-label="Open User Menu">
+                            <img src="{{ current_user.avatar_url }}" alt="avatar" class="pw-avatar-img">
+                            <i data-lucide="chevron-down" class="pw-chevron-icon"></i>
+                        </button>
+                        <!-- PW Dropdown Menu with Merged Logout -->
+                        <div class="pw-dropdown-menu" id="profileDropdownMenu" role="menu">
+                            <div class="pw-dropdown-header">
+                                <div class="pw-dropdown-name">{{ current_user.name }}</div>
+                                <div class="pw-dropdown-email">{{ current_user.email }}</div>
+                            </div>
+                            <a href="{{ url_for('profile.profile') }}" class="pw-dropdown-item" role="menuitem">
+                                <i data-lucide="user"></i>
+                                <span>My Profile</span>
+                            </a>
+                            <a href="{{ url_for('learning.my_learning') }}" class="pw-dropdown-item" role="menuitem">
+                                <i data-lucide="layout-dashboard"></i>
+                                <span>My Learning & Projects</span>
+                            </a>
+                            <a href="{{ url_for('learning.onboarding_interests') }}" class="pw-dropdown-item" role="menuitem">
+                                <i data-lucide="compass"></i>
+                                <span>Study Interests</span>
+                            </a>
+                            {% if current_user.is_admin %}
+                            <a href="{{ url_for('admin.admin_dashboard') }}" class="pw-dropdown-item pw-admin-item" role="menuitem">
+                                <i data-lucide="shield-check"></i>
+                                <span>Admin Console</span>
+                            </a>
+                            {% endif %}
+                            <div class="pw-dropdown-divider"></div>
+                            <!-- Clean Merged Logout with Exit Icon -->
+                            <a href="{{ url_for('auth.logout') }}" class="pw-dropdown-item pw-logout-item" role="menuitem">
+                                <i data-lucide="power"></i>
+                                <span>Logout</span>
+                            </a>
+                        </div>
                     </div>
-                    <span class="mobile-nav-label">Follow Requests</span>
-                </a>
+                {% else %}
+                    <!-- Unauthenticated Visitor -->
+                    <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #FFFFFF; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
+                        <i data-lucide="book-open" style="width: 14px; height: 14px;"></i>
+                        <span>Courses</span>
+                    </a>
+                    <a href="{{ url_for('ai.assistant_page') }}" class="btn btn-secondary btn-sm" style="background: rgba(91, 70, 246, 0.25); border-color: rgba(139, 92, 246, 0.4); color: #C4B5FD; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
+                        <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+                        <span>SkillBot</span>
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm" style="background: #5B46F6; border: none; padding: 7px 18px; border-radius: 9999px; font-weight: 700;">
+                        <i data-lucide="log-in" style="width: 14px; height: 14px;"></i>
+                        <span>Sign In</span>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
 
-                <!-- 4. Connections Network -->
-                <a href="{{ url_for('connections.connections_list') }}" 
-                   class="nav-icon-link {% if request.endpoint == 'connections.connections_list' %}active{% endif %}" 
-                   data-tooltip="Connections" 
-                   aria-label="Connections">
-                    <i data-lucide="users"></i>
-                    <span class="mobile-nav-label">Connections</span>
-                </a>
-
-                <!-- 5. Direct Messages (Paper Plane like Instagram Direct) -->
-                <a href="{{ url_for('chat.chat_inbox') }}" 
-                   class="nav-icon-link {% if request.endpoint and 'chat.' in request.endpoint %}active{% endif %}" 
-                   data-tooltip="Direct Messages" 
-                   aria-label="Messages">
-                    <div class="nav-icon-wrapper">
-                        <i data-lucide="send"></i>
-                        {% if unread_messages_count and unread_messages_count > 0 %}
-                            <span class="nav-icon-badge">{{ unread_messages_count }}</span>
-                        {% endif %}
-                    </div>
-                    <span class="mobile-nav-label">Messages</span>
-                </a>
-
-                <!-- 6. Scheduled Sessions -->
-                <a href="{{ url_for('sessions.sessions_list') }}" 
-                   class="nav-icon-link {% if request.endpoint == 'sessions.sessions_list' %}active{% endif %}" 
-                   data-tooltip="Sessions" 
-                   aria-label="Sessions">
-                    <i data-lucide="calendar"></i>
-                    <span class="mobile-nav-label">Sessions</span>
-                </a>
-
-                <!-- 7. Learn & Build Courses -->
+    {% if current_user.is_authenticated %}
+    <!-- Physics Wallah Left Sidebar Navigation -->
+    <aside class="pw-sidebar" id="appSidebar" aria-label="Main Navigation">
+        <div class="pw-sidebar-inner">
+            <!-- 1. LEARN ONLINE -->
+            <div class="pw-sidebar-group">
+                <div class="pw-group-title">LEARN ONLINE</div>
                 <a href="{{ url_for('learning.courses_list') }}" 
-                   class="nav-icon-link {% if request.endpoint and 'learning.course' in request.endpoint %}active{% endif %}" 
-                   data-tooltip="Learn & Build" 
-                   aria-label="Learn & Build">
+                   class="pw-nav-item {% if request.endpoint and 'learning.course' in request.endpoint %}active{% endif %}">
                     <i data-lucide="book-open"></i>
-                    <span class="mobile-nav-label">Learn</span>
+                    <span>Learn & Build</span>
                 </a>
-
-                <!-- 8. My Learning Hub & Certificates -->
-                <a href="{{ url_for('learning.my_learning') }}" 
-                   class="nav-icon-link {% if request.endpoint == 'learning.my_learning' or (request.endpoint and 'certificate' in request.endpoint) %}active{% endif %}" 
-                   data-tooltip="My Learning" 
-                   aria-label="My Learning">
-                    <i data-lucide="award"></i>
-                    <span class="mobile-nav-label">My Learning</span>
+                <a href="{{ url_for('ai.assistant_page') }}" 
+                   class="pw-nav-item {% if request.endpoint == 'ai.assistant_page' %}active{% endif %}">
+                    <i data-lucide="sparkles"></i>
+                    <span>SkillBot AI</span>
+                    <span class="pw-nav-badge">NEW</span>
                 </a>
-
-                <!-- Mobile Only Menu Options -->
-                <div class="mobile-only-section">
-                    <a href="{{ url_for('learning.courses_list') }}" class="mobile-nav-item">
-                        <i data-lucide="book-open"></i>
-                        <span>Learn & Build Courses</span>
-                    </a>
-                    <a href="{{ url_for('learning.my_learning') }}" class="mobile-nav-item">
-                        <i data-lucide="award"></i>
-                        <span>My Learning & Certificates</span>
-                    </a>
-                    <a href="{{ url_for('profile.profile') }}" class="mobile-nav-item">
-                        <img src="{{ current_user.avatar_url }}" alt="avatar" class="mobile-nav-avatar">
-                        <span>Profile ({{ current_user.name.split()[0] }})</span>
-                    </a>
-                    {% if current_user.is_admin %}
-                    <a href="{{ url_for('admin.admin_dashboard') }}" class="mobile-nav-item" style="color: #d97706; font-weight: 600;">
-                        <i data-lucide="shield-check"></i>
-                        <span>Admin Panel</span>
-                    </a>
-                    {% endif %}
-                    <a href="{{ url_for('auth.logout') }}" class="mobile-nav-item mobile-logout">
-                        <i data-lucide="log-out"></i>
-                        <span>Log Out</span>
-                    </a>
-                </div>
             </div>
 
-            <!-- Right: SkillBot AI Pill + Profile Avatar + Logout Button -->
-            <div class="nav-right">
+            <!-- 2. STUDY & PROJECTS -->
+            <div class="pw-sidebar-group">
+                <div class="pw-group-title">STUDY & PROJECTS</div>
+                <a href="{{ url_for('learning.my_learning') }}" 
+                   class="pw-nav-item {% if request.endpoint == 'learning.my_learning' %}active{% endif %}">
+                    <i data-lucide="layers"></i>
+                    <span>My Learning</span>
+                </a>
+                <a href="{{ url_for('learning.onboarding_interests') }}" 
+                   class="pw-nav-item {% if request.endpoint == 'learning.onboarding_interests' %}active{% endif %}">
+                    <i data-lucide="compass"></i>
+                    <span>Study Interests</span>
+                </a>
+            </div>
+
+            <!-- 3. CAMPUS EXCHANGE (Skill Swapping) -->
+            <div class="pw-sidebar-group">
+                <div class="pw-group-title">CAMPUS EXCHANGE</div>
+                <a href="{{ url_for('swap.requests_list') }}" 
+                   class="pw-nav-item {% if request.endpoint == 'swap.requests_list' %}active{% endif %}">
+                    <i data-lucide="repeat"></i>
+                    <span>Skill Exchange</span>
+                    {% if pending_requests_count > 0 %}
+                    <span class="pw-count-badge">{{ pending_requests_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('discover.discover') }}" 
+                   class="pw-nav-item {% if request.endpoint == 'discover.discover' %}active{% endif %}">
+                    <i data-lucide="search"></i>
+                    <span>Discover Peers</span>
+                </a>
+                <a href="{{ url_for('chat.chat_inbox') }}" 
+                   class="pw-nav-item {% if request.endpoint and 'chat.' in request.endpoint %}active{% endif %}">
+                    <i data-lucide="send"></i>
+                    <span>Messages</span>
+                    {% if unread_messages_count and unread_messages_count > 0 %}
+                    <span class="pw-count-badge">{{ unread_messages_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('sessions.sessions_list') }}" 
+                   class="pw-nav-item {% if request.endpoint == 'sessions.sessions_list' %}active{% endif %}">
+                    <i data-lucide="calendar"></i>
+                    <span>Sessions</span>
+                </a>
+            </div>
+
+            <!-- 4. ACCOUNT -->
+            <div class="pw-sidebar-group">
+                <div class="pw-group-title">ACCOUNT</div>
+                <a href="{{ url_for('profile.profile') }}" 
+                   class="pw-nav-item {% if request.endpoint == 'profile.profile' %}active{% endif %}">
+                    <i data-lucide="user"></i>
+                    <span>My Profile</span>
+                </a>
                 {% if current_user.is_admin %}
-                <!-- Master Admin Portal Button -->
                 <a href="{{ url_for('admin.admin_dashboard') }}" 
-                   class="nav-admin-btn" 
-                   data-tooltip="Master Admin Panel"
-                   style="background: linear-gradient(135deg, #d97706, #b45309); color: white; padding: 6px 13px; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35); letter-spacing: 0.03em;">
-                    <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
-                    <span>ADMIN</span>
+                   class="pw-nav-item {% if request.endpoint and 'admin.' in request.endpoint %}active{% endif %}"
+                   style="color: #D97706;">
+                    <i data-lucide="shield-check"></i>
+                    <span>Admin Console</span>
                 </a>
                 {% endif %}
-
-                <!-- SkillBot AI Button -->
-                <a href="{{ url_for('ai.assistant_page') }}" 
-                   class="nav-skillbot-btn {% if request.endpoint == 'ai.assistant_page' %}active{% endif %}" 
-                   data-tooltip="SkillBot AI Assistant">
-                    <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>
-                    <span>SkillBot</span>
-                </a>
-
-                <div class="nav-divider"></div>
-
-                <!-- User Profile Avatar Button -->
-                <a href="{{ url_for('profile.profile') }}" 
-                   class="nav-avatar-btn {% if request.endpoint == 'profile.profile' %}active{% endif %}" 
-                   data-tooltip="Profile ({{ current_user.name.split()[0] }})" 
-                   aria-label="Profile">
-                    <img src="{{ current_user.avatar_url }}" alt="avatar" class="nav-avatar-img">
-                </a>
-
-                <!-- Always-Visible Clean Log Out Button -->
-                <a href="{{ url_for('auth.logout') }}" 
-                   class="nav-logout-btn" 
-                   data-tooltip="Log Out" 
-                   aria-label="Log Out">
-                    <i data-lucide="log-out"></i>
-                </a>
-
-                <!-- Mobile Menu Button -->
-                <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation">
-                    <i data-lucide="menu"></i>
-                </button>
             </div>
-            {% else %}
-            <!-- Unauthenticated Visitor -->
-            <div class="nav-right" style="display: flex; align-items: center; gap: 8px;">
-                <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 7px 14px; border-radius: 9999px;">
-                    <i data-lucide="book-open" style="width: 14px; height: 14px;"></i>
-                    <span>Courses</span>
-                </a>
-                <a href="{{ url_for('ai.assistant_page') }}" class="nav-skillbot-btn">
-                    <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>
-                    <span>SkillBot</span>
-                </a>
-                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; padding: 7px 16px; border-radius: 9999px;">
-                    <i data-lucide="log-in" style="width: 14px; height: 14px;"></i>
-                    <span>Sign In</span>
-                </a>
-            </div>
-            {% endif %}
         </div>
-    </nav>
+    </aside>
+    <div class="pw-sidebar-backdrop" id="sidebarBackdrop"></div>
+    {% endif %}
 
     <!-- Main Content Container with YouTube-Style Skeleton Loading Screen -->
-    <main class="main-wrapper">
+    <main class="main-wrapper-pw {% if current_user.is_authenticated %}with-sidebar{% endif %}">
         <div class="container">
             <!-- YouTube-Style Skeleton Loading Template -->
             <div id="youtubeSkeleton" class="yt-skeleton-container" aria-hidden="true">
@@ -594,7 +580,7 @@
     </div>
 
     <!-- Clean Footer -->
-    <footer class="footer">
+    <footer class="footer {% if current_user.is_authenticated %}with-sidebar{% endif %}">
         <div class="container footer-content">
             <div>
                 <strong>Skill Rock</strong> — Developed by <strong>TanxPal</strong>
@@ -616,9 +602,9 @@
     {% if current_user.is_authenticated %}
     <!-- Mobile App-Style Bottom Tab Bar (Fixed at bottom on phones) -->
     <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
-        <a href="{{ url_for('dashboard.dashboard') }}" class="mobile-bottom-item {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}" aria-label="Dashboard">
-            <i data-lucide="home"></i>
-            <span>Home</span>
+        <a href="{{ url_for('learning.courses_list') }}" class="mobile-bottom-item {% if request.endpoint and 'learning.' in request.endpoint %}active{% endif %}" aria-label="Learn">
+            <i data-lucide="book-open"></i>
+            <span>Learn</span>
         </a>
         <a href="{{ url_for('discover.discover') }}" class="mobile-bottom-item {% if request.endpoint == 'discover.discover' %}active{% endif %}" aria-label="Discover">
             <i data-lucide="compass"></i>
@@ -626,12 +612,12 @@
         </a>
         <a href="{{ url_for('swap.requests_list') }}" class="mobile-bottom-item {% if request.endpoint == 'swap.requests_list' %}active{% endif %}" aria-label="Requests">
             <div class="nav-icon-wrapper">
-                <i data-lucide="heart"></i>
+                <i data-lucide="repeat"></i>
                 {% if pending_requests_count > 0 %}
                 <span class="nav-icon-badge">{{ pending_requests_count }}</span>
                 {% endif %}
             </div>
-            <span>Requests</span>
+            <span>Swap</span>
         </a>
         <a href="{{ url_for('chat.chat_inbox') }}" class="mobile-bottom-item {% if request.endpoint and 'chat.' in request.endpoint %}active{% endif %}" aria-label="Messages">
             <div class="nav-icon-wrapper">
@@ -654,6 +640,55 @@
         lucide.createIcons();
     </script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Physics Wallah Profile Dropdown Interactive Handler
+        (function initPWProfileDropdown() {
+            const avatarDropdownBtn = document.getElementById("avatarDropdownBtn");
+            const profileDropdownMenu = document.getElementById("profileDropdownMenu");
+            if (avatarDropdownBtn && profileDropdownMenu) {
+                avatarDropdownBtn.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    const isOpen = profileDropdownMenu.classList.contains("show");
+                    profileDropdownMenu.classList.toggle("show");
+                    avatarDropdownBtn.classList.toggle("open", !isOpen);
+                    avatarDropdownBtn.setAttribute("aria-expanded", !isOpen ? "true" : "false");
+                });
+
+                document.addEventListener("click", function(e) {
+                    if (!profileDropdownMenu.contains(e.target) && !avatarDropdownBtn.contains(e.target)) {
+                        profileDropdownMenu.classList.remove("show");
+                        avatarDropdownBtn.classList.remove("open");
+                        avatarDropdownBtn.setAttribute("aria-expanded", "false");
+                    }
+                });
+
+                document.addEventListener("keydown", function(e) {
+                    if (e.key === "Escape") {
+                        profileDropdownMenu.classList.remove("show");
+                        avatarDropdownBtn.classList.remove("open");
+                        avatarDropdownBtn.setAttribute("aria-expanded", "false");
+                    }
+                });
+            }
+
+            // Mobile Left Sidebar Drawer Toggle
+            const mobileToggle = document.getElementById("mobileSidebarToggleBtn");
+            const sidebar = document.getElementById("appSidebar");
+            const backdrop = document.getElementById("sidebarBackdrop");
+            if (mobileToggle && sidebar) {
+                mobileToggle.addEventListener("click", function() {
+                    sidebar.classList.toggle("mobile-open");
+                    if (backdrop) backdrop.classList.toggle("active");
+                });
+                if (backdrop) {
+                    backdrop.addEventListener("click", function() {
+                        sidebar.classList.remove("mobile-open");
+                        backdrop.classList.remove("active");
+                    });
+                }
+            }
+        })();
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

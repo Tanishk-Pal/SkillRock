@@ -57,6 +57,133 @@ def is_valid_github_url(url):
 
 
 # ==============================================================================
+# Curated Study Interests (Bubble Selection for Students)
+# ==============================================================================
+
+AVAILABLE_INTERESTS = [
+    {
+        "id": "Programming",
+        "name": "Programming",
+        "icon": "code",
+        "emoji": "💻",
+        "description": "Python, C++, Java, Object-Oriented Design & Scripting"
+    },
+    {
+        "id": "Web Development",
+        "name": "Web Development",
+        "icon": "globe",
+        "emoji": "🌐",
+        "description": "HTML5, CSS3, JavaScript ES6+, React & Full-Stack Apps"
+    },
+    {
+        "id": "AI & Machine Learning",
+        "name": "AI & Machine Learning",
+        "icon": "cpu",
+        "emoji": "🤖",
+        "description": "Data Modeling, Neural Networks, Computer Vision & LLMs"
+    },
+    {
+        "id": "Data Science",
+        "name": "Data Science",
+        "icon": "bar-chart-2",
+        "emoji": "📊",
+        "description": "SQL, Pandas, NumPy, Data Cleaning & Analytics Dashboards"
+    },
+    {
+        "id": "Mobile App Development",
+        "name": "Mobile Apps",
+        "icon": "smartphone",
+        "emoji": "📱",
+        "description": "Flutter, Dart, Android & Cross-Platform Mobile Applications"
+    },
+    {
+        "id": "Cloud & DevOps",
+        "name": "Cloud & DevOps",
+        "icon": "cloud",
+        "emoji": "☁️",
+        "description": "Docker, Linux, Production Deployments, CI/CD & Cloud APIs"
+    },
+    {
+        "id": "Cybersecurity",
+        "name": "Cybersecurity",
+        "icon": "shield-check",
+        "emoji": "🛡️",
+        "description": "Network Security, Web Pentesting, Safe Auth & Defense"
+    },
+    {
+        "id": "UI/UX Design",
+        "name": "UI/UX Design",
+        "icon": "layout",
+        "emoji": "🎨",
+        "description": "Figma, User Research, Wireframes, Responsive Design Systems"
+    },
+    {
+        "id": "Database Engineering",
+        "name": "Databases",
+        "icon": "database",
+        "emoji": "🗄️",
+        "description": "PostgreSQL, MongoDB, Redis, Schema Design & Performance"
+    },
+    {
+        "id": "Tech Fundamentals & DSA",
+        "name": "Tech & DSA",
+        "icon": "terminal",
+        "emoji": "⚡",
+        "description": "Data Structures, Algorithms, Problem Solving & System Design"
+    }
+]
+
+
+# ==============================================================================
+# 0. Student Study Interests Onboarding (Interactive Bubble Form)
+# ==============================================================================
+
+@learning_bp.route("/onboarding", methods=["GET", "POST"])
+@learning_bp.route("/interests", methods=["GET", "POST"])
+@login_required
+def onboarding_interests():
+    """
+    Interactive bubble selection onboarding for student interests.
+    Allows students to pick up to 3 topics (Programming, Web Dev, AI, etc.)
+    that automatically personalize their course feed and project recommendations.
+    """
+    if request.method == "POST":
+        if request.is_json:
+            data = request.get_json() or {}
+            selected = data.get("interests", [])
+        else:
+            selected = request.form.getlist("interests")
+            if not selected and request.form.get("interests"):
+                selected = [s.strip() for s in request.form.get("interests").split(",") if s.strip()]
+
+        clean = [str(x).strip() for x in selected if str(x).strip()][:3]
+        if not clean:
+            if request.is_json:
+                return jsonify({"success": False, "error": "Please select at least 1 study interest."}), 400
+            flash("Please choose at least 1 topic to customize your learning journey.", "warning")
+            return redirect(url_for("learning.onboarding_interests"))
+
+        current_user.set_interests(clean)
+        logger.info(f"Student {current_user.email} updated study interests: {clean}")
+
+        if request.is_json:
+            return jsonify({
+                "success": True,
+                "interests": clean,
+                "redirect": url_for("learning.courses_list")
+            })
+
+        flash(f"Your learning journey is customized for: {', '.join(clean)}! Explore curated courses below.", "success")
+        return redirect(url_for("learning.courses_list"))
+
+    return render_template(
+        "learning/onboarding_interests.html",
+        available_interests=AVAILABLE_INTERESTS,
+        user_interests=current_user.interests
+    )
+
+
+# ==============================================================================
 # 1. Course Catalogue (Browse & Discover Free Courses)
 # ==============================================================================
 
@@ -66,7 +193,8 @@ def courses_list():
     """
     Public Course Catalogue.
     Allows students to browse curated free learning courses with category,
-    difficulty, and search filtering.
+    difficulty, and search filtering. Personalizes ranking based on student's
+    selected interest bubbles.
     """
     category = request.args.get("category", "").strip()
     difficulty = request.args.get("difficulty", "").strip()
@@ -90,12 +218,37 @@ def courses_list():
     # Collect enrolled course IDs and certified course IDs for the logged-in user
     enrolled_course_ids = set()
     completed_course_ids = set()
+    user_interests = []
+    recommended_courses = []
+    other_courses = []
+
     if current_user.is_authenticated:
         user_enrollments = Enrollment.find_by_user(current_user.id)
         for e in user_enrollments:
             enrolled_course_ids.add(e.course_id)
             if e.status == "completed":
                 completed_course_ids.add(e.course_id)
+        user_interests = current_user.interests
+
+    # Personalized Recommendation Algorithm:
+    # If the user has selected interests and hasn't explicitly applied a narrow category filter,
+    # partition courses into recommended (matching chosen interests) and others.
+    if user_interests and (not category or category == "All") and not search:
+        norm_interests = [i.lower() for i in user_interests]
+        for c in courses:
+            c_cat = (c.category or "").lower()
+            c_title = (c.title or "").lower()
+            # Check match against user's interest bubbles
+            matched = any(
+                interest in c_cat or c_cat in interest or interest in c_title
+                for interest in norm_interests
+            )
+            if matched:
+                recommended_courses.append(c)
+            else:
+                other_courses.append(c)
+    else:
+        other_courses = list(courses)
 
     # Distinct categories for filter pills
     db = get_db()
@@ -104,6 +257,10 @@ def courses_list():
     return render_template(
         "learning/courses.html",
         courses=courses,
+        recommended_courses=recommended_courses,
+        other_courses=other_courses,
+        user_interests=user_interests,
+        available_interests=AVAILABLE_INTERESTS,
         selected_category=category,
         selected_difficulty=difficulty,
         search_query=search,
