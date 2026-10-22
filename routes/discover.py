@@ -17,6 +17,7 @@ def discover():
     query = request.args.get("q", "").strip().lower()
     selected_college = request.args.get("college", "").strip()
     selected_branch = request.args.get("branch", "").strip()
+    active_tab = request.args.get("tab", "discover").strip()
 
     # Query all students except current user from MongoDB
     mongo_query = {}
@@ -28,6 +29,15 @@ def discover():
     # Pre-fetch distinct filter values for the UI dropdowns
     colleges = sorted(list({u.college for u in all_users if u.college}))
     branches = sorted(list({u.branch for u in all_users if u.branch}))
+
+    # Exchange requests & connections for the merged experience
+    received_requests = []
+    sent_requests = []
+    connections = []
+    if current_user.is_authenticated and current_user.id:
+        received_requests = SwapRequest.find_by_receiver(current_user.id)
+        sent_requests = SwapRequest.find_by_sender(current_user.id)
+        connections = Connection.find_by_user(current_user.id)
 
     # Calculate match scores and filter
     student_cards = []
@@ -92,5 +102,9 @@ def discover():
         branches=branches,
         query=query,
         selected_college=selected_college,
-        selected_branch=selected_branch
+        selected_branch=selected_branch,
+        active_tab=active_tab,
+        received_requests=received_requests,
+        sent_requests=sent_requests,
+        connections=connections
     )

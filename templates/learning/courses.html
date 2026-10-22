@@ -208,18 +208,29 @@
         {% endfor %}
     </div>
 
-    <!-- Search & Level Bar -->
+    <!-- Search, Difficulty & Language Filter Bar -->
     <div class="card" style="padding: 16px 20px; margin-bottom: 28px; border-radius: 14px;">
         <form action="{{ url_for('learning.courses_list') }}" method="GET" id="courseFilterForm">
             <input type="hidden" name="category" id="hiddenCategory" value="{{ selected_category or '' }}">
-            <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 12px; align-items: flex-end;">
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: flex-end;" class="course-filter-grid">
                 <div>
                     <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">Search Courses</label>
-                    <input type="text" name="q" id="courseSearchInput" class="form-control" placeholder="Search by topic, keyword, or instructor..." value="{{ search_query }}">
+                    <div style="position: relative;">
+                        <input type="text" name="q" id="courseSearchInput" class="form-control" placeholder="Search DSA, Python, Web Dev, Love Babbar, etc..." value="{{ search_query }}" style="padding-left: 36px;">
+                        <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94A3B8;"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">Language</label>
+                    <select name="language" id="courseLanguageSelect" class="form-select">
+                        <option value="All">All Languages</option>
+                        <option value="Hindi" {% if selected_language == 'Hindi' %}selected{% endif %}>🇮🇳 Hindi (हिंदी)</option>
+                        <option value="English" {% if selected_language == 'English' %}selected{% endif %}>🌐 English</option>
+                    </select>
                 </div>
                 <div>
                     <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">Difficulty</label>
-                    <select name="difficulty" class="form-select" onchange="this.form.submit()">
+                    <select name="difficulty" id="courseDifficultySelect" class="form-select">
                         <option value="All">All Levels</option>
                         <option value="Beginner" {% if selected_difficulty == 'Beginner' %}selected{% endif %}>Beginner</option>
                         <option value="Intermediate" {% if selected_difficulty == 'Intermediate' %}selected{% endif %}>Intermediate</option>
@@ -228,17 +239,30 @@
                 </div>
                 <div>
                     <button type="submit" class="btn btn-primary" style="height: 42px; padding: 0 20px; border-radius: 10px; background: #5B46F6;">
-                        <i data-lucide="search" style="width: 16px; height: 16px;"></i>
-                        <span>Search</span>
+                        <span>Filter</span>
                     </button>
                 </div>
             </div>
         </form>
     </div>
 
+    <!-- Live Client-Side No Results Card (Dynamic) -->
+    <div id="liveNoResultsCard" class="card" style="display: none; text-align: center; padding: 50px 20px; border-radius: 16px; margin-bottom: 24px;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: #EDE9FE; color: #5B46F6; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+            <i data-lucide="search-x" style="width: 28px; height: 28px;"></i>
+        </div>
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 6px;">No Matching Courses</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 440px; margin: 0 auto 16px;">
+            No courses matched your query. Try searching for a different topic, keyword, or language.
+        </p>
+        <button type="button" id="btnResetLiveFilters" class="btn btn-secondary btn-sm">
+            Clear Search & Filters
+        </button>
+    </div>
+
     <!-- Recommended Section (If user has interests and matches are found) -->
     {% if recommended_courses %}
-    <div style="margin-bottom: 36px;">
+    <div id="recommendedSection" style="margin-bottom: 36px;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 1.3rem;">🎯</span>
@@ -246,12 +270,12 @@
                     Recommended for Your Interests
                 </h2>
             </div>
-            <span style="font-size: 0.84rem; color: #5B46F6; font-weight: 700;">
+            <span style="font-size: 0.84rem; color: #5B46F6; font-weight: 700;" id="recommendedCountBadge">
                 {{ recommended_courses|length }} Course{{ 's' if recommended_courses|length > 1 else '' }} Matched
             </span>
         </div>
 
-        <div class="grid-3" style="gap: 24px;">
+        <div class="grid-3" id="recommendedGrid" style="gap: 24px;">
             {% for course in recommended_courses %}
                 {% include "learning/_course_card.html" %}
             {% endfor %}
@@ -260,7 +284,7 @@
     {% endif %}
 
     <!-- All / Other Courses Section -->
-    <div>
+    <div id="allCoursesSection">
         {% if recommended_courses %}
         <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
             <i data-lucide="book-open" style="width: 20px; height: 20px; color: #5B46F6;"></i>
@@ -298,31 +322,89 @@
 {% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Instant client-side quick filter logic for bubble chips
-    const bubbleChips = document.querySelectorAll(".bubble-chip");
     const courseCards = document.querySelectorAll(".course-card-custom");
-
-    // Live search input filtering
     const searchInput = document.getElementById("courseSearchInput");
-    if (searchInput) {
-        searchInput.addEventListener("input", function(e) {
-            const query = e.target.value.toLowerCase().trim();
-            if (!query) {
-                courseCards.forEach(c => c.style.display = "");
-                return;
-            }
-            courseCards.forEach(c => {
-                const title = (c.getAttribute("data-title") || "").toLowerCase();
-                const category = (c.getAttribute("data-category") || "").toLowerCase();
-                const desc = (c.getAttribute("data-desc") || "").toLowerCase();
-                if (title.includes(query) || category.includes(query) || desc.includes(query)) {
-                    c.style.display = "";
-                } else {
-                    c.style.display = "none";
+    const languageSelect = document.getElementById("courseLanguageSelect");
+    const difficultySelect = document.getElementById("courseDifficultySelect");
+    const liveNoResults = document.getElementById("liveNoResultsCard");
+    const recommendedSection = document.getElementById("recommendedSection");
+    const btnReset = document.getElementById("btnResetLiveFilters");
+
+    function applyFilters() {
+        const query = (searchInput ? searchInput.value : "").toLowerCase().trim();
+        const selectedLang = (languageSelect ? languageSelect.value : "All").toLowerCase();
+        const selectedDiff = (difficultySelect ? difficultySelect.value : "All").toLowerCase();
+
+        let visibleTotal = 0;
+        let visibleRecommended = 0;
+
+        courseCards.forEach(card => {
+            const title = (card.getAttribute("data-title") || "").toLowerCase();
+            const category = (card.getAttribute("data-category") || "").toLowerCase();
+            const desc = (card.getAttribute("data-desc") || "").toLowerCase();
+            const instructor = (card.getAttribute("data-instructor") || "").toLowerCase();
+            const lang = (card.getAttribute("data-language") || "english").toLowerCase();
+            const diff = (card.getAttribute("data-difficulty") || "").toLowerCase();
+
+            // Match text
+            const matchesText = !query || 
+                title.includes(query) || 
+                category.includes(query) || 
+                desc.includes(query) || 
+                instructor.includes(query) || 
+                lang.includes(query);
+
+            // Match language
+            const matchesLang = (selectedLang === "all") || (lang === selectedLang);
+
+            // Match difficulty
+            const matchesDiff = (selectedDiff === "all") || (diff === selectedDiff);
+
+            const isMatch = matchesText && matchesLang && matchesDiff;
+
+            if (isMatch) {
+                card.style.display = "";
+                visibleTotal++;
+                if (card.closest("#recommendedGrid")) {
+                    visibleRecommended++;
                 }
-            });
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        // Hide/Show recommended section header if no recommended cards match
+        if (recommendedSection) {
+            recommendedSection.style.display = visibleRecommended > 0 ? "" : "none";
+        }
+
+        // Show live empty state if 0 cards match
+        if (liveNoResults) {
+            liveNoResults.style.display = visibleTotal === 0 ? "block" : "none";
+        }
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", applyFilters);
+    }
+    if (languageSelect) {
+        languageSelect.addEventListener("change", applyFilters);
+    }
+    if (difficultySelect) {
+        difficultySelect.addEventListener("change", applyFilters);
+    }
+
+    if (btnReset) {
+        btnReset.addEventListener("click", function() {
+            if (searchInput) searchInput.value = "";
+            if (languageSelect) languageSelect.value = "All";
+            if (difficultySelect) difficultySelect.value = "All";
+            applyFilters();
         });
     }
+
+    // Run initial filter check
+    applyFilters();
 });
 </script>
 {% endblock %}

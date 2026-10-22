@@ -1,164 +1,568 @@
 {% extends "base.html" %}
 
-{% block title %}Find Your Skill Match — Skill Rock{% endblock %}
+{% block title %}Skill Exchange & Discover Peers — Skill Rock{% endblock %}
+
+{% block head %}
+<style>
+    .exchange-tabs-bar {
+        display: flex;
+        gap: 8px;
+        border-bottom: 2px solid #E2E8F0;
+        margin-bottom: 24px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+
+    .exchange-tab-btn {
+        padding: 10px 18px;
+        border: none;
+        background: none;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #64748B;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.15s ease;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .exchange-tab-btn:hover {
+        color: #5B46F6;
+    }
+
+    .exchange-tab-btn.active {
+        color: #5B46F6;
+        border-bottom-color: #5B46F6;
+    }
+
+    .exchange-tab-badge {
+        background: #EDE9FE;
+        color: #5B46F6;
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 9999px;
+    }
+
+    .exchange-tab-badge.highlight {
+        background: #EF4444;
+        color: #FFFFFF;
+    }
+
+    .exchange-pane {
+        display: none;
+    }
+
+    .exchange-pane.active {
+        display: block;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div>
+<div class="discover-container">
+    <!-- 1. Interactive Skill Setup Banner (Ask what to teach & learn right at top) -->
     {% include "_skill_swap_onboarding_banner.html" %}
 
-    <!-- Page Header -->
-    <div class="page-header">
-        <h1 class="page-title">Find Your Skill Match</h1>
-        <p class="page-subtitle">Find students who can teach what you want to learn. Follow students to connect and exchange knowledge.</p>
-    </div>
-
-    <!-- Simple Filter Bar -->
-    <div class="card" style="padding: 16px 20px; margin-bottom: 24px;">
-        <form action="{{ url_for('discover.discover') }}" method="GET">
-            <div class="discover-filter-grid" style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: flex-end;">
-                <div>
-                    <label class="form-label">Search skill or student</label>
-                    <input type="text" name="q" class="form-control" placeholder="e.g. Python, UI/UX, or name..." value="{{ query }}">
-                </div>
-
-                <div>
-                    <label class="form-label">College</label>
-                    <select name="college" class="form-select">
-                        <option value="">All Colleges</option>
-                        {% for col in colleges %}
-                            <option value="{{ col }}" {% if selected_college == col %}selected{% endif %}>{{ col }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div>
-                    <label class="form-label">Branch</label>
-                    <select name="branch" class="form-select">
-                        <option value="">All Branches</option>
-                        {% for br in branches %}
-                            <option value="{{ br }}" {% if selected_branch == br %}selected{% endif %}>{{ br }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div>
-                    <button type="submit" class="btn btn-primary" style="height: 42px;">
-                        Find Matches
-                    </button>
-                </div>
+    <!-- Page Title & Tagline -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+        <div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #EDE9FE; color: #5B46F6; font-size: 0.78rem; font-weight: 700; padding: 4px 12px; border-radius: 9999px; margin-bottom: 8px;">
+                <i data-lucide="users" style="width: 14px; height: 14px;"></i>
+                <span>Campus Peer Hub</span>
             </div>
-        </form>
+            <h1 style="font-size: 1.85rem; font-weight: 800; color: #0F172A; letter-spacing: -0.02em; margin-bottom: 4px;">
+                Skill Exchange & Discover Peers
+            </h1>
+            <p style="font-size: 0.94rem; color: #64748B; margin: 0;">
+                Tell what you teach, choose what you learn, and connect directly with campus learning partners.
+            </p>
+        </div>
     </div>
 
-    <!-- Student Cards Grid -->
-    {% if student_cards %}
-        <div class="grid-3">
-            {% for item in student_cards %}
-                {% set student = item.user %}
-                <div class="card student-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+    <!-- 2. Unified Navigation Tabs Bar -->
+    <div class="exchange-tabs-bar" id="exchangeTabsBar" role="tablist">
+        <a href="#discoverPane" class="exchange-tab-btn {% if active_tab != 'requests' and active_tab != 'connections' %}active{% endif %}" data-tab="discoverPane" role="tab">
+            <i data-lucide="compass" style="width: 17px; height: 17px;"></i>
+            <span>Discover Peers</span>
+            <span class="exchange-tab-badge" id="studentTotalBadge">{{ student_cards|length }}</span>
+        </a>
+
+        {% if current_user.is_authenticated %}
+        <a href="#requestsPane" class="exchange-tab-btn {% if active_tab == 'requests' %}active{% endif %}" data-tab="requestsPane" role="tab">
+            <i data-lucide="repeat" style="width: 17px; height: 17px;"></i>
+            <span>Swap Requests</span>
+            {% if received_requests %}
+            <span class="exchange-tab-badge highlight">{{ received_requests|length }}</span>
+            {% elif sent_requests %}
+            <span class="exchange-tab-badge">{{ sent_requests|length }}</span>
+            {% endif %}
+        </a>
+
+        <a href="#connectionsPane" class="exchange-tab-btn {% if active_tab == 'connections' %}active{% endif %}" data-tab="connectionsPane" role="tab">
+            <i data-lucide="user-check" style="width: 17px; height: 17px;"></i>
+            <span>My Connections</span>
+            {% if connections %}
+            <span class="exchange-tab-badge">{{ connections|length }}</span>
+            {% endif %}
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- PANE 1: Discover Students -->
+    <div id="discoverPane" class="exchange-pane {% if active_tab != 'requests' and active_tab != 'connections' %}active{% endif %}" role="tabpanel">
+        <!-- Live Instant Search & Filter Bar -->
+        <div class="card" style="padding: 16px 20px; margin-bottom: 24px; border-radius: 14px;">
+            <form action="{{ url_for('discover.discover') }}" method="GET" id="liveDiscoverForm">
+                <div class="discover-filter-grid" style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: flex-end;">
                     <div>
-                        <!-- Header with Avatar and Basic Info -->
-                        <div class="student-card-header">
-                            <img src="{{ student.avatar_url }}" alt="avatar" class="avatar-img">
-                            <div style="flex: 1; min-width: 0;">
-                                <h3 style="margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    {{ student.name }}
-                                </h3>
-                                <div style="font-size: 0.82rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    {{ student.branch }} • {{ student.year }}
-                                </div>
-                                <div style="font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    {{ student.college }}
-                                </div>
-                            </div>
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">Search Skill or Student</label>
+                        <div style="position: relative;">
+                            <input type="text" name="q" id="studentSearchInput" class="form-control" placeholder="Search Python, UI/UX, DSA, student name..." value="{{ query }}" style="padding-left: 36px;">
+                            <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94A3B8;"></i>
                         </div>
-
-                        <!-- Match Badge & Rating -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                            <span class="match-pill">{{ item.score }}% Match</span>
-                            <span style="font-size: 0.8rem; color: var(--text-secondary);">
-                                {{ student.rating_display }}
-                            </span>
-                        </div>
-
-                        <!-- Can Teach -->
-                        <div style="margin-bottom: 12px;">
-                            <div class="section-label">CAN TEACH</div>
-                            <div class="skills-wrap">
-                                {% for s in student.teaching_skills %}
-                                    <span class="skill-tag teach">{{ s.name }}</span>
-                                {% else %}
-                                    <span style="font-size: 0.8rem; color: var(--text-muted);">None listed</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Wants to Learn -->
-                        <div style="margin-bottom: 14px;">
-                            <div class="section-label">WANTS TO LEARN</div>
-                            <div class="skills-wrap">
-                                {% for s in student.learning_skills %}
-                                    <span class="skill-tag learn">{{ s.name }}</span>
-                                {% else %}
-                                    <span style="font-size: 0.8rem; color: var(--text-muted);">None listed</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Simple "Why this match?" section -->
-                        {% if item.reasons %}
-                            <details style="margin-bottom: 14px; font-size: 0.82rem; color: var(--primary-blue); cursor: pointer;">
-                                <summary style="font-weight: 600; outline: none; user-select: none;">Why this match?</summary>
-                                <ul class="match-reasons-box" style="margin-top: 6px;">
-                                    {% for r in item.reasons %}
-                                        <li><span>✓</span> <span>{{ r }}</span></li>
-                                    {% endfor %}
-                                </ul>
-                            </details>
-                        {% endif %}
                     </div>
 
-                    <!-- Footer Buttons -->
-                    <div style="display: flex; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 8px;">
-                        <a href="{{ url_for('profile.view_user_profile', user_id=student.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;">
-                            View Profile
-                        </a>
-                        {% if current_user.is_authenticated %}
-                            {% if item.is_connected %}
-                                <a href="{{ url_for('chat.conversation', partner_id=student.id) }}" class="btn btn-secondary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: var(--primary-blue); font-weight: 600; border-color: #BFDBFE; background: #EFF6FF;">
-                                    <i data-lucide="send" style="width: 13px; height: 13px;"></i>
-                                    <span>Message</span>
-                                </a>
-                            {% elif item.is_pending %}
-                                <span class="btn btn-secondary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #F8FAFC; color: var(--text-secondary); cursor: default;">
-                                    <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
-                                    <span>Requested</span>
-                                </span>
-                            {% else %}
-                                <button type="button" class="btn btn-primary btn-sm btn-request-swap" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px;"
-                                        data-user-id="{{ student.id }}"
-                                        data-user-name="{{ student.name }}"
-                                        data-teaches='[{% for s in student.teaching_skills %}{"id": "{{ s.id }}", "name": "{{ s.name }}"}{% if not loop.last %},{% endif %}{% endfor %}]'>
-                                    <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
-                                    <span>Follow</span>
-                                </button>
-                            {% endif %}
-                        {% else %}
-                            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
-                                <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
-                                <span>Follow</span>
-                            </a>
-                        {% endif %}
+                    <div>
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">College</label>
+                        <select name="college" id="studentCollegeSelect" class="form-select">
+                            <option value="">All Colleges</option>
+                            {% for col in colleges %}
+                                <option value="{{ col }}" {% if selected_college == col %}selected{% endif %}>{{ col }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">Branch</label>
+                        <select name="branch" id="studentBranchSelect" class="form-select">
+                            <option value="">All Branches</option>
+                            {% for br in branches %}
+                                <option value="{{ br }}" {% if selected_branch == br %}selected{% endif %}>{{ br }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <button type="button" id="btnResetStudentFilters" class="btn btn-secondary" style="height: 42px; padding: 0 16px;">
+                            <span>Reset</span>
+                        </button>
                     </div>
                 </div>
-            {% endfor %}
+            </form>
         </div>
-    {% else %}
-        <div class="card" style="text-align: center; padding: 48px 24px; color: var(--text-secondary);">
-            <div style="font-size: 1.1rem; font-weight: 600; color: var(--primary-navy); margin-bottom: 6px;">No students found matching your criteria</div>
-            <p style="font-size: 0.9rem; margin-bottom: 16px;">Try searching for a different skill, adjusting campus filters, or add more skills to your profile.</p>
-            <a href="{{ url_for('discover.discover') }}" class="btn btn-secondary btn-sm">Clear Filters</a>
+
+        <!-- Dynamic Live Empty State -->
+        <div id="liveStudentEmptyState" class="card" style="display: none; text-align: center; padding: 50px 20px; border-radius: 16px; margin-bottom: 24px;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: #EDE9FE; color: #5B46F6; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+                <i data-lucide="user-x" style="width: 28px; height: 28px;"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 6px;">No Students Matched</h3>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 440px; margin: 0 auto 16px;">
+                No peers found with those criteria. Try searching for a different skill or campus branch.
+            </p>
         </div>
+
+        <!-- Student Cards Grid -->
+        {% if student_cards %}
+            <div class="grid-3" id="studentsGrid" style="gap: 20px;">
+                {% for item in student_cards %}
+                    {% set student = item.user %}
+                    <div class="card student-card peer-student-card" 
+                         data-name="{{ student.name|lower }}"
+                         data-college="{{ student.college|lower }}"
+                         data-branch="{{ student.branch|lower }}"
+                         data-teach="{{ (' '.join(item.teach_skills))|lower }}"
+                         data-learn="{{ (' '.join(item.learn_skills))|lower }}"
+                         style="display: flex; flex-direction: column; justify-content: space-between; border-radius: 14px;">
+                        <div>
+                            <!-- Header with Avatar and Basic Info -->
+                            <div class="student-card-header">
+                                <img src="{{ student.avatar_url }}" alt="avatar" class="avatar-img">
+                                <div style="flex: 1; min-width: 0;">
+                                    <h3 style="margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1.05rem;">
+                                        {{ student.name }}
+                                    </h3>
+                                    <div style="font-size: 0.82rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ student.branch }} • {{ student.year }}
+                                    </div>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ student.college }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Match Badge & Rating -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                                <span class="match-pill">{{ item.score }}% Match</span>
+                                <span style="font-size: 0.8rem; color: var(--text-secondary);">
+                                    {{ student.rating_display }}
+                                </span>
+                            </div>
+
+                            <!-- Can Teach -->
+                            <div style="margin-bottom: 12px;">
+                                <div class="section-label" style="font-size: 0.74rem; font-weight: 700; color: #16A34A; margin-bottom: 6px;">CAN TEACH</div>
+                                <div class="skills-wrap">
+                                    {% for s in student.teaching_skills %}
+                                        <span class="skill-tag teach">{{ s.name }}</span>
+                                    {% else %}
+                                        <span style="font-size: 0.8rem; color: var(--text-muted);">None listed</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Wants to Learn -->
+                            <div style="margin-bottom: 14px;">
+                                <div class="section-label" style="font-size: 0.74rem; font-weight: 700; color: #5B46F6; margin-bottom: 6px;">WANTS TO LEARN</div>
+                                <div class="skills-wrap">
+                                    {% for s in student.learning_skills %}
+                                        <span class="skill-tag learn">{{ s.name }}</span>
+                                    {% else %}
+                                        <span style="font-size: 0.8rem; color: var(--text-muted);">None listed</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Match Reasons -->
+                            {% if item.reasons %}
+                                <details style="margin-bottom: 14px; font-size: 0.82rem; color: var(--primary-blue); cursor: pointer;">
+                                    <summary style="font-weight: 600; outline: none; user-select: none;">Why this match?</summary>
+                                    <ul class="match-reasons-box" style="margin-top: 6px;">
+                                        {% for r in item.reasons %}
+                                            <li><span>✓</span> <span>{{ r }}</span></li>
+                                        {% endfor %}
+                                    </ul>
+                                </details>
+                            {% endif %}
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div style="display: flex; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 8px;">
+                            <a href="{{ url_for('profile.view_user_profile', user_id=student.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;">
+                                View Profile
+                            </a>
+                            {% if current_user.is_authenticated %}
+                                {% if item.is_connected %}
+                                    <a href="{{ url_for('chat.conversation', partner_id=student.id) }}" class="btn btn-secondary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: var(--primary-blue); font-weight: 600; border-color: #BFDBFE; background: #EFF6FF;">
+                                        <i data-lucide="send" style="width: 13px; height: 13px;"></i>
+                                        <span>Message</span>
+                                    </a>
+                                {% elif item.is_pending %}
+                                    <span class="btn btn-secondary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #F8FAFC; color: var(--text-secondary); cursor: default;">
+                                        <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
+                                        <span>Requested</span>
+                                    </span>
+                                {% else %}
+                                    <button type="button" class="btn btn-primary btn-sm btn-request-swap" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #5B46F6;"
+                                            data-user-id="{{ student.id }}"
+                                            data-user-name="{{ student.name }}"
+                                            data-teaches='[{% for s in student.teaching_skills %}{"id": "{{ s.id }}", "name": "{{ s.name }}"}{% if not loop.last %},{% endif %}{% endfor %}]'>
+                                        <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+                                        <span>Connect & Swap</span>
+                                    </button>
+                                {% endif %}
+                            {% else %}
+                                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #5B46F6;">
+                                    <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+                                    <span>Connect</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card" style="text-align: center; padding: 48px 24px; color: var(--text-secondary); border-radius: 16px;">
+                <div style="font-size: 1.1rem; font-weight: 600; color: var(--primary-navy); margin-bottom: 6px;">No students found matching your criteria</div>
+                <p style="font-size: 0.9rem; margin-bottom: 16px;">Try adjusting search keywords or adding more skills you can teach and want to learn.</p>
+                <a href="{{ url_for('discover.discover') }}" class="btn btn-secondary btn-sm">Clear Filters</a>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if current_user.is_authenticated %}
+    <!-- PANE 2: Swap Requests (Incoming & Outgoing) -->
+    <div id="requestsPane" class="exchange-pane {% if active_tab == 'requests' %}active{% endif %}" role="tabpanel">
+        <!-- Incoming Requests Section -->
+        <div style="margin-bottom: 32px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+                <i data-lucide="inbox" style="width: 20px; height: 20px; color: #5B46F6;"></i>
+                <h2 style="font-size: 1.3rem; font-weight: 800; color: #0F172A; margin: 0;">
+                    Incoming Swap Requests
+                </h2>
+                <span class="badge" style="background: #EDE9FE; color: #5B46F6; font-weight: 700;">{{ received_requests|length }}</span>
+            </div>
+
+            {% if received_requests %}
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    {% for req in received_requests %}
+                    <div class="card" style="padding: 18px 22px; border-radius: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+                            <div style="display: flex; gap: 14px; align-items: center;">
+                                <img src="{{ req.sender.avatar_url }}" alt="avatar" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
+                                <div>
+                                    <div style="font-size: 1.05rem; font-weight: 700; color: #0F172A;">
+                                        {{ req.sender.name }}
+                                    </div>
+                                    <div style="font-size: 0.82rem; color: #64748B;">
+                                        {{ req.sender.branch }} • {{ req.sender.college }}
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="badge" style="background: #EFF6FF; color: #2563EB; font-weight: 600;">{{ req.status_label }}</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; background: #F8FAFC; padding: 12px 16px; border-radius: 10px;">
+                            <div>
+                                <div style="font-size: 0.74rem; font-weight: 700; color: #16A34A; text-transform: uppercase;">They Can Teach You</div>
+                                <div style="font-size: 0.92rem; font-weight: 600; color: #0F172A;">{{ req.teach_skill_name }}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.74rem; font-weight: 700; color: #5B46F6; text-transform: uppercase;">They Want To Learn</div>
+                                <div style="font-size: 0.92rem; font-weight: 600; color: #0F172A;">{{ req.learn_skill_name }}</div>
+                            </div>
+                        </div>
+
+                        {% if req.message %}
+                        <div style="font-size: 0.88rem; color: #475569; margin-bottom: 14px; font-style: italic; background: #FFFFFF; border-left: 3px solid #5B46F6; padding: 6px 12px;">
+                            "{{ req.message }}"
+                        </div>
+                        {% endif %}
+
+                        {% if req.status == 'pending' %}
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <form action="{{ url_for('swap.reject_request', request_id=req.id) }}" method="POST">
+                                <button type="submit" class="btn btn-secondary btn-sm">Decline</button>
+                            </form>
+                            <form action="{{ url_for('swap.accept_request', request_id=req.id) }}" method="POST">
+                                <button type="submit" class="btn btn-primary btn-sm" style="background: #16A34A; border-color: #16A34A;">
+                                    <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                                    <span>Accept Swap (+20 XP)</span>
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card" style="text-align: center; padding: 36px 20px; color: #64748B; border-radius: 14px;">
+                    <i data-lucide="inbox" style="width: 32px; height: 32px; color: #94A3B8; margin: 0 auto 10px;"></i>
+                    <div style="font-weight: 600; color: #1E293B;">No Incoming Requests</div>
+                    <p style="font-size: 0.86rem; margin: 4px 0 0;">When other students want to swap skills with you, requests will show up here.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sent Requests Section -->
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+                <i data-lucide="send" style="width: 20px; height: 20px; color: #5B46F6;"></i>
+                <h2 style="font-size: 1.3rem; font-weight: 800; color: #0F172A; margin: 0;">
+                    Outgoing Requests Sent by You
+                </h2>
+                <span class="badge" style="background: #EDE9FE; color: #5B46F6; font-weight: 700;">{{ sent_requests|length }}</span>
+            </div>
+
+            {% if sent_requests %}
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    {% for req in sent_requests %}
+                    <div class="card" style="padding: 16px 20px; border-radius: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                <img src="{{ req.receiver.avatar_url }}" alt="avatar" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover;">
+                                <div>
+                                    <div style="font-size: 0.98rem; font-weight: 700; color: #0F172A;">
+                                        {{ req.receiver.name }}
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: #64748B;">
+                                        Requested: Learn {{ req.learn_skill_name }} • Teach {{ req.teach_skill_name }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="badge" style="background: #F1F5F9; color: #475569; font-weight: 600;">{{ req.status_label }}</span>
+                                {% if req.status == 'pending' %}
+                                <form action="{{ url_for('swap.cancel_request', request_id=req.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 4px 10px;">Cancel</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card" style="text-align: center; padding: 36px 20px; color: #64748B; border-radius: 14px;">
+                    <i data-lucide="send" style="width: 32px; height: 32px; color: #94A3B8; margin: 0 auto 10px;"></i>
+                    <div style="font-weight: 600; color: #1E293B;">No Outgoing Requests</div>
+                    <p style="font-size: 0.86rem; margin: 4px 0 0;">Explore the Discover Peers tab above to find and connect with students.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- PANE 3: Active Connections -->
+    <div id="connectionsPane" class="exchange-pane {% if active_tab == 'connections' %}active{% endif %}" role="tabpanel">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+            <i data-lucide="user-check" style="width: 20px; height: 20px; color: #5B46F6;"></i>
+            <h2 style="font-size: 1.3rem; font-weight: 800; color: #0F172A; margin: 0;">
+                Your Connected Learning Partners
+            </h2>
+            <span class="badge" style="background: #EDE9FE; color: #5B46F6; font-weight: 700;">{{ connections|length }}</span>
+        </div>
+
+        {% if connections %}
+            <div class="grid-3" style="gap: 20px;">
+                {% for conn in connections %}
+                    {% set partner = conn.get_partner(current_user.id) %}
+                    {% if partner %}
+                    <div class="card" style="padding: 18px; border-radius: 14px; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+                                <img src="{{ partner.avatar_url }}" alt="avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
+                                <div style="min-width: 0;">
+                                    <h3 style="font-size: 1rem; font-weight: 700; color: #0F172A; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ partner.name }}
+                                    </h3>
+                                    <div style="font-size: 0.8rem; color: #64748B;">
+                                        {{ partner.branch }} • {{ partner.college }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="font-size: 0.82rem; color: #16A34A; background: #DCFCE7; padding: 4px 10px; border-radius: 6px; display: inline-block; font-weight: 600; margin-bottom: 12px;">
+                                ✓ Connected Peer
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; border-top: 1px solid #E2E8F0; padding-top: 12px;">
+                            <a href="{{ url_for('chat.conversation', partner_id=partner.id) }}" class="btn btn-secondary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                                <i data-lucide="message-square" style="width: 14px; height: 14px;"></i>
+                                <span>Message</span>
+                            </a>
+                            <a href="{{ url_for('sessions.schedule_page', partner_id=partner.id) }}" class="btn btn-primary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px; background: #5B46F6;">
+                                <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
+                                <span>Schedule</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card" style="text-align: center; padding: 48px 24px; color: #64748B; border-radius: 16px;">
+                <i data-lucide="users" style="width: 36px; height: 36px; color: #94A3B8; margin: 0 auto 12px;"></i>
+                <div style="font-size: 1.1rem; font-weight: 700; color: #0F172A;">No Active Connections Yet</div>
+                <p style="font-size: 0.88rem; margin: 6px 0 16px;">Connect with other students by browsing the Discover Peers tab.</p>
+            </div>
+        {% endif %}
+    </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Tab switching logic
+    const tabButtons = document.querySelectorAll(".exchange-tab-btn");
+    const tabPanes = document.querySelectorAll(".exchange-pane");
+
+    tabButtons.forEach(btn => {
+        btn.addEventListener("click", function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute("data-tab");
+
+            tabButtons.forEach(b => b.classList.remove("active"));
+            tabPanes.forEach(p => p.classList.remove("active"));
+
+            this.classList.add("active");
+            const targetPane = document.getElementById(targetId);
+            if (targetPane) {
+                targetPane.classList.add("active");
+            }
+        });
+    });
+
+    // 2. Real-time live filtering for peer students
+    const searchInput = document.getElementById("studentSearchInput");
+    const collegeSelect = document.getElementById("studentCollegeSelect");
+    const branchSelect = document.getElementById("studentBranchSelect");
+    const studentCards = document.querySelectorAll(".peer-student-card");
+    const emptyState = document.getElementById("liveStudentEmptyState");
+    const countBadge = document.getElementById("studentTotalBadge");
+    const btnReset = document.getElementById("btnResetStudentFilters");
+
+    function applyStudentFilters() {
+        const query = (searchInput ? searchInput.value : "").toLowerCase().trim();
+        const selectedCollege = (collegeSelect ? collegeSelect.value : "").toLowerCase().trim();
+        const selectedBranch = (branchSelect ? branchSelect.value : "").toLowerCase().trim();
+
+        let visibleCount = 0;
+
+        studentCards.forEach(card => {
+            const name = (card.getAttribute("data-name") || "").toLowerCase();
+            const college = (card.getAttribute("data-college") || "").toLowerCase();
+            const branch = (card.getAttribute("data-branch") || "").toLowerCase();
+            const teach = (card.getAttribute("data-teach") || "").toLowerCase();
+            const learn = (card.getAttribute("data-learn") || "").toLowerCase();
+
+            const matchesText = !query || 
+                name.includes(query) || 
+                college.includes(query) || 
+                branch.includes(query) || 
+                teach.includes(query) || 
+                learn.includes(query);
+
+            const matchesCollege = !selectedCollege || college === selectedCollege;
+            const matchesBranch = !selectedBranch || branch === selectedBranch;
+
+            if (matchesText && matchesCollege && matchesBranch) {
+                card.style.display = "";
+                visibleCount++;
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        if (countBadge) {
+            countBadge.textContent = visibleCount;
+        }
+
+        if (emptyState) {
+            emptyState.style.display = visibleCount === 0 ? "block" : "none";
+        }
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", applyStudentFilters);
+    }
+    if (collegeSelect) {
+        collegeSelect.addEventListener("change", applyStudentFilters);
+    }
+    if (branchSelect) {
+        branchSelect.addEventListener("change", applyStudentFilters);
+    }
+
+    if (btnReset) {
+        btnReset.addEventListener("click", function() {
+            if (searchInput) searchInput.value = "";
+            if (collegeSelect) collegeSelect.value = "";
+            if (branchSelect) branchSelect.value = "";
+            applyStudentFilters();
+        });
+    }
+
+    // Initialize icons in newly rendered elements
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+});
+</script>
 {% endblock %}

@@ -1374,6 +1374,7 @@ class Course:
         self.slug = self._data.get("slug", "") or slugify(self.title)
         self.thumbnail_url = self._data.get("thumbnail_url", "")
         self.category = self._data.get("category", "Programming")
+        self.language = self._data.get("language", "English")
         self.description = self._data.get("description", "")
         self.learning_objectives = self._data.get("learning_objectives", [])
         self.difficulty = self._data.get("difficulty", "Beginner")  # Beginner, Intermediate, Advanced
@@ -1424,6 +1425,7 @@ class Course:
         self._data["slug"] = self.slug
         self._data["thumbnail_url"] = self.thumbnail_url
         self._data["category"] = self.category
+        self._data["language"] = self.language
         self._data["description"] = self.description
         self._data["learning_objectives"] = self.learning_objectives if isinstance(self.learning_objectives, list) else [self.learning_objectives]
         self._data["difficulty"] = self.difficulty
@@ -2086,10 +2088,11 @@ def ensure_default_courses():
                 "title": "Python Programming: Beginner to Real-World Automation",
                 "slug": "python-programming-automation",
                 "category": "Programming",
+                "language": "English",
                 "difficulty": "Beginner",
                 "estimated_duration": "12 Hours",
-                "instructor": "CodeWithHarry",
-                "youtube_url": "https://www.youtube.com/watch?v=gfDE2a7MKjA",
+                "instructor": "Programming with Mosh / Curated",
+                "youtube_url": "https://www.youtube.com/watch?v=_uQrJ0TkZlc",
                 "thumbnail_url": "",
                 "description": "Master Python from fundamental variables and data structures up through object-oriented design and real-world scripting. Learn how to write clean, reusable code, process files, and build automated command-line utilities.",
                 "learning_objectives": [
@@ -2119,9 +2122,155 @@ def ensure_default_courses():
                 }
             },
             {
+                "title": "Python Complete Mastercourse (Hindi) — 100 Days of Code Automation",
+                "slug": "python-mastercourse-hindi",
+                "category": "Programming",
+                "language": "Hindi",
+                "difficulty": "Beginner",
+                "estimated_duration": "15 Hours",
+                "instructor": "CodeWithHarry",
+                "youtube_url": "https://www.youtube.com/watch?v=7wnove7K-ZQ",
+                "thumbnail_url": "",
+                "description": "Comprehensive Python programming course in Hindi. Variables, loops, object-oriented design, modules, file automation, and building real-world software tools.",
+                "learning_objectives": [
+                    "Master Python syntax, conditional statements, loops, and collection types in Hindi",
+                    "Build reusable functions and understand object-oriented programming in Python",
+                    "Read, write, and safely parse external JSON and CSV files",
+                    "Build and package command-line software utilities for student workflows"
+                ],
+                "is_published": True,
+                "assignment": {
+                    "title": "Student Productivity CLI & File Automation Tool",
+                    "short_description": "Build a CLI productivity utility that automates file organization and student tasks.",
+                    "problem_statement": "Create a Python utility that organizes study notes, automates file backups, and tracks student study schedules with persistent JSON/SQLite storage.",
+                    "required_features": [
+                        "Command-line menu or interactive prompts for task and file management",
+                        "File persistence to store student data between program executions",
+                        "Input validation and clean exception handling",
+                        "Public GitHub repository with descriptive README documentation"
+                    ],
+                    "optional_features": [
+                        "Color-coded terminal output using colorama or rich",
+                        "Export summaries to CSV format"
+                    ],
+                    "tech_requirements": "Python 3.10+, JSON/SQLite, Git",
+                    "is_deployment_required": False
+                }
+            },
+            {
+                "title": "Data Structures & Algorithms in C++ (Hindi) — Complete Placement Roadmap",
+                "slug": "dsa-cpp-hindi-roadmap",
+                "category": "Data Structures & Algorithms",
+                "language": "Hindi",
+                "difficulty": "Intermediate",
+                "estimated_duration": "24 Hours",
+                "instructor": "Love Babbar (CodeHelp)",
+                "youtube_url": "https://www.youtube.com/watch?v=WQoB2z67hvY",
+                "thumbnail_url": "",
+                "description": "Master Data Structures and Algorithms in C++ from fundamentals to advanced. Arrays, Recursion, Linked Lists, Stacks, Queues, Binary Trees, BSTs, Dynamic Programming, and Graph algorithms with LeetCode solutions.",
+                "learning_objectives": [
+                    "Master pointers, memory management, and OOP in modern C++",
+                    "Implement fundamental data structures from scratch (Linked Lists, Stacks, Queues, Trees)",
+                    "Solve medium to hard algorithmic problems on LeetCode with optimal time & space complexity",
+                    "Master recursion, divide-and-conquer, dynamic programming, and graph traversals (BFS/DFS)"
+                ],
+                "is_published": True,
+                "assignment": {
+                    "title": "Competitive DSA Problem Solver & Algorithm Benchmarking Suite",
+                    "short_description": "Implement custom data structures and benchmark algorithm performance in C++.",
+                    "problem_statement": "Build a comprehensive C++ library implementing custom data structures (such as a dynamic Vector, Linked List, and Trie) alongside sorting and graph algorithms. The suite must include execution time benchmarking and test cases.",
+                    "required_features": [
+                        "Custom implementations of at least 2 core data structures without standard library shortcuts",
+                        "Search and sorting algorithms with Big-O complexity documentation",
+                        "Benchmarking script measuring runtime for small vs large input sizes",
+                        "Public GitHub repository with comprehensive README explaining algorithm complexities"
+                    ],
+                    "optional_features": [
+                        "Automated test harness with assertion checks",
+                        "Visual ASCII output representing tree or graph structures"
+                    ],
+                    "tech_requirements": "C++17 / C++20, GCC/Clang, Git",
+                    "is_deployment_required": False
+                }
+            },
+            {
+                "title": "Data Structures & Algorithms Masterclass (English) — Real-World Problem Solving",
+                "slug": "dsa-masterclass-english",
+                "category": "Data Structures & Algorithms",
+                "language": "English",
+                "difficulty": "Intermediate",
+                "estimated_duration": "18 Hours",
+                "instructor": "freeCodeCamp / William Fiset",
+                "youtube_url": "https://www.youtube.com/watch?v=RBSGKlAnoiM",
+                "thumbnail_url": "",
+                "description": "Deep dive into modern algorithms and memory-efficient data structures: Dynamic Arrays, Hash Tables, Balanced Trees, Graphs, Sorting, and Big-O Space/Time analysis.",
+                "learning_objectives": [
+                    "Analyze asymptotic complexity (Big-O, Big-Omega, Big-Theta) of algorithms",
+                    "Implement dynamic arrays, hash tables with collision handling, and binary heaps",
+                    "Master tree traversal, graph algorithms (Dijkstra, Topological Sort), and dynamic programming",
+                    "Write robust unit tests verifying algorithmic edge cases"
+                ],
+                "is_published": True,
+                "assignment": {
+                    "title": "High-Performance In-Memory LRU Cache & Graph Search Engine",
+                    "short_description": "Build an in-memory caching engine with LRU eviction and graph path-finding.",
+                    "problem_statement": "Design and build an in-memory key-value cache with an O(1) Least-Recently-Used (LRU) eviction policy and a graph pathfinder (such as finding the shortest path between campus locations).",
+                    "required_features": [
+                        "Custom LRU Cache using Hash Map and Doubly-Linked List with O(1) get/put operations",
+                        "Graph data structure supporting shortest path algorithms (BFS or Dijkstra)",
+                        "Comprehensive unit test suite verifying eviction policies and edge cases",
+                        "Public GitHub repository with README documenting architectural choices and complexity"
+                    ],
+                    "optional_features": [
+                        "TTL (Time-To-Live) expiration for cache entries",
+                        "Interactive CLI demonstrating cache operations and pathfinding"
+                    ],
+                    "tech_requirements": "Python, Java, or C++, Git, Unit Testing Framework",
+                    "is_deployment_required": False
+                }
+            },
+            {
+                "title": "Sigma Web Development Bootcamp (Hindi) — HTML to Full MERN Stack",
+                "slug": "web-development-bootcamp-hindi",
+                "category": "Web Development",
+                "language": "Hindi",
+                "difficulty": "Beginner",
+                "estimated_duration": "28 Hours",
+                "instructor": "CodeWithHarry (Sigma Batch)",
+                "youtube_url": "https://www.youtube.com/watch?v=tVzUXW6siu0",
+                "thumbnail_url": "",
+                "description": "Complete web development course in Hindi. Master HTML5 semantic layout, modern CSS Grid/Flexbox, JavaScript ES6+, React single page apps, backend Node.js APIs, and database integration.",
+                "learning_objectives": [
+                    "Build responsive web pages with semantic HTML5 and modern CSS Flexbox and Grid",
+                    "Write clean, modern JavaScript ES6+ with DOM manipulation and asynchronous promises",
+                    "Build server-side REST APIs with Node.js and Express",
+                    "Connect frontend interfaces to backend databases and deploy live on the web"
+                ],
+                "is_published": True,
+                "assignment": {
+                    "title": "Full-Stack Campus Project Showcase & Collaboration Hub",
+                    "short_description": "Build and deploy a full-stack web application with responsive UI and live database.",
+                    "problem_statement": "Develop and deploy an interactive web portal where students can submit project portfolios, comment on ideas, and filter projects by category. The web app must be live and responsive on mobile.",
+                    "required_features": [
+                        "Responsive frontend supporting mobile and desktop viewports",
+                        "Backend REST API handling data retrieval and submissions",
+                        "Persistent database integration (MongoDB or SQLite)",
+                        "Live public deployment URL (Render, Vercel, or Netlify)",
+                        "Public GitHub repository with setup instructions and live demo link"
+                    ],
+                    "optional_features": [
+                        "Search and tag filtering for student projects",
+                        "Dark mode UI toggle"
+                    ],
+                    "tech_requirements": "HTML5, CSS3, JavaScript / React, Node.js or Python, Deployed online",
+                    "is_deployment_required": True
+                }
+            },
+            {
                 "title": "Full-Stack Web Development: Modern Frontend & Backend with Cloud Deployment",
                 "slug": "fullstack-web-development",
                 "category": "Web Development",
+                "language": "English",
                 "difficulty": "Intermediate",
                 "estimated_duration": "8 Weeks",
                 "instructor": "FreeCodeCamp",
@@ -2151,6 +2300,114 @@ def ensure_default_courses():
                     ],
                     "tech_requirements": "Frontend (HTML/CSS/JS or React), Backend (Python/Flask, Node.js/Express, or Django), Database, Hosted on Render/Vercel",
                     "is_deployment_required": True
+                }
+            },
+            {
+                "title": "Java & Object-Oriented Programming with DSA (Hindi)",
+                "slug": "java-dsa-hindi-course",
+                "category": "Programming",
+                "language": "Hindi",
+                "difficulty": "Beginner",
+                "estimated_duration": "14 Hours",
+                "instructor": "Apna College",
+                "youtube_url": "https://www.youtube.com/watch?v=yRpLlJmRo2w",
+                "thumbnail_url": "",
+                "description": "Learn Java programming from scratch in Hindi. Master core syntax, Object-Oriented Programming (Encapsulation, Inheritance, Polymorphism, Abstraction), and foundational DSA.",
+                "learning_objectives": [
+                    "Understand JVM architecture, JDK/JRE, and primitive vs reference data types in Java",
+                    "Master OOP principles: Classes, Constructors, Polymorphism, and Interfaces",
+                    "Use Java Collections Framework (ArrayList, HashMap, HashSet, LinkedList)",
+                    "Build structured, modular Java applications with clean error handling"
+                ],
+                "is_published": True,
+                "assignment": {
+                    "title": "Campus Student Records & Library Management System",
+                    "short_description": "Build an object-oriented Java application managing student records and library books.",
+                    "problem_statement": "Create a modular Java application that tracks library books, student checkouts, and overdue fines using OOP principles and file persistence.",
+                    "required_features": [
+                        "Class hierarchy utilizing inheritance, interfaces, and encapsulation",
+                        "CRUD operations for books and students with interactive CLI",
+                        "File storage (JSON, CSV, or serialization) to maintain state between runs",
+                        "Public GitHub repository with README and execution instructions"
+                    ],
+                    "optional_features": [
+                        "Search books by title, author, or ISBN",
+                        "Generics for collections management"
+                    ],
+                    "tech_requirements": "Java 17+, Maven/Gradle or vanilla javac, Git",
+                    "is_deployment_required": False
+                }
+            },
+            {
+                "title": "Java Programming & Spring Boot Backend Masterclass (English)",
+                "slug": "java-springboot-english-course",
+                "category": "Programming",
+                "language": "English",
+                "difficulty": "Intermediate",
+                "estimated_duration": "16 Hours",
+                "instructor": "FreeCodeCamp / Amigoscode",
+                "youtube_url": "https://www.youtube.com/watch?v=A74TOX803D0",
+                "thumbnail_url": "",
+                "description": "Master modern Java and Spring Boot. Build production RESTful microservices, connect JPA/Hibernate databases, write unit tests, and deploy backend microservices.",
+                "learning_objectives": [
+                    "Build robust RESTful API endpoints using Spring Boot annotations and controllers",
+                    "Persist data with Spring Data JPA and relational databases (PostgreSQL or H2)",
+                    "Write automated service and controller tests using JUnit and Mockito",
+                    "Containerize and deploy Java backend microservices"
+                ],
+                "is_published": True,
+                "assignment": {
+                    "title": "Student Enrollment & Course Management REST API Service",
+                    "short_description": "Build a production-ready Spring Boot REST API with database persistence.",
+                    "problem_statement": "Design and build a RESTful web service that handles student course registrations, grade assignments, and course listings with relational database mapping and input validation.",
+                    "required_features": [
+                        "RESTful CRUD endpoints with appropriate HTTP status codes and error responses",
+                        "Spring Data JPA entity mapping with validation constraints",
+                        "Automated unit or integration tests verifying service logic",
+                        "Public GitHub repository with comprehensive API documentation"
+                    ],
+                    "optional_features": [
+                        "Swagger / OpenAPI interactive documentation",
+                        "Docker container configuration"
+                    ],
+                    "tech_requirements": "Java 17+, Spring Boot, H2 / PostgreSQL, Maven, Git",
+                    "is_deployment_required": False
+                }
+            },
+            {
+                "title": "Complete Machine Learning & Data Science Bootcamp (Hindi)",
+                "slug": "machine-learning-bootcamp-hindi",
+                "category": "AI & Machine Learning",
+                "language": "Hindi",
+                "difficulty": "Intermediate",
+                "estimated_duration": "16 Hours",
+                "instructor": "Krish Naik",
+                "youtube_url": "https://www.youtube.com/watch?v=b1I9rffpkyk",
+                "thumbnail_url": "",
+                "description": "End-to-end Machine Learning course in Hindi. Feature engineering, EDA, regression, classification, random forests, XGBoost, and model deployment.",
+                "learning_objectives": [
+                    "Perform exploratory data analysis and feature engineering on raw datasets",
+                    "Train, evaluate, and tune regression and classification models in Python",
+                    "Understand hyperparameter tuning and model performance metrics",
+                    "Deploy machine learning prediction models as interactive web apps"
+                ],
+                "is_published": True,
+                "assignment": {
+                    "title": "Real-Estate Price Predictor & Model Deployment App",
+                    "short_description": "Train and deploy a machine learning regression model with an interactive UI.",
+                    "problem_statement": "Build an end-to-end regression model to predict housing prices. Clean data, engineer features, train models, and deploy an interactive web interface for real-time predictions.",
+                    "required_features": [
+                        "Documented data cleaning and feature engineering in Python",
+                        "Model evaluation metrics (RMSE, R2-score) comparing multiple algorithms",
+                        "Interactive UI or API endpoint for real-time inference",
+                        "Public GitHub repository with complete project documentation"
+                    ],
+                    "optional_features": [
+                        "Live deployment on Streamlit Cloud, Render, or HuggingFace",
+                        "Feature importance visualization"
+                    ],
+                    "tech_requirements": "Python 3.10+, Scikit-Learn, Pandas, Streamlit / Flask, Git",
+                    "is_deployment_required": False
                 }
             },
             {
@@ -2267,6 +2524,11 @@ def ensure_default_courses():
                 asg_data["course_id"] = str(course.id)
                 asg = Assignment(asg_data)
                 asg.save()
+            else:
+                db.courses.update_one(
+                    {"_id": existing["_id"]},
+                    {"$set": {"language": item.get("language", "English")}}
+                )
 
         logger.info(f"[COURSES] Ensured default curated courses are registered.")
     except Exception as e:

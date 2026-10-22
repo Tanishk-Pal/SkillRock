@@ -14,14 +14,8 @@ swap_bp = Blueprint("swap", __name__)
 @swap_bp.route("/requests")
 @login_required
 def requests_list():
-    received_requests = SwapRequest.find_by_receiver(current_user.id)
-    sent_requests = SwapRequest.find_by_sender(current_user.id)
-
-    return render_template(
-        "requests.html",
-        received_requests=received_requests,
-        sent_requests=sent_requests
-    )
+    # Merged into unified Campus Exchange & Peers Hub
+    return redirect(url_for("discover.discover", tab="requests"))
 
 
 @swap_bp.route("/requests/send", methods=["POST"])

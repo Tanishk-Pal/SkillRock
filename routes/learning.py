@@ -198,6 +198,7 @@ def courses_list():
     """
     category = request.args.get("category", "").strip()
     difficulty = request.args.get("difficulty", "").strip()
+    language = request.args.get("language", "").strip()
     search = request.args.get("q", "").strip()
 
     query = {"is_published": True}
@@ -205,12 +206,16 @@ def courses_list():
         query["category"] = category
     if difficulty and difficulty != "All":
         query["difficulty"] = difficulty
+    if language and language != "All":
+        query["language"] = {"$regex": f"^{re.escape(language)}$", "$options": "i"}
     if search:
+        safe_search = re.escape(search)
         query["$or"] = [
-            {"title": {"$regex": search, "$options": "i"}},
-            {"description": {"$regex": search, "$options": "i"}},
-            {"category": {"$regex": search, "$options": "i"}},
-            {"instructor": {"$regex": search, "$options": "i"}}
+            {"title": {"$regex": safe_search, "$options": "i"}},
+            {"description": {"$regex": safe_search, "$options": "i"}},
+            {"category": {"$regex": safe_search, "$options": "i"}},
+            {"instructor": {"$regex": safe_search, "$options": "i"}},
+            {"language": {"$regex": safe_search, "$options": "i"}}
         ]
 
     courses = Course.find_all(query=query, sort=[("created_at", -1)])
@@ -263,6 +268,7 @@ def courses_list():
         available_interests=AVAILABLE_INTERESTS,
         selected_category=category,
         selected_difficulty=difficulty,
+        selected_language=language,
         search_query=search,
         available_categories=available_categories,
         enrolled_course_ids=enrolled_course_ids,
