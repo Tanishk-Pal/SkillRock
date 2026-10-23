@@ -108,8 +108,14 @@ def google_callback():
 
     try:
         flow = get_google_auth_flow(redirect_uri, state=stored_state)
+        # Ensure authorization response URL has https if request was forwarded via https
+        auth_response_url = request.url
+        host = request.host.lower()
+        is_local = host.startswith("localhost") or host.startswith("127.0.0.1")
+        if not is_local and auth_response_url.startswith("http://"):
+            auth_response_url = "https://" + auth_response_url[len("http://"):]
         # Fetch tokens using the full authorization response URL
-        flow.fetch_token(authorization_response=request.url)
+        flow.fetch_token(authorization_response=auth_response_url)
         credentials = flow.credentials
     except Exception as e:
         logger.error(f"Google OAuth token exchange failed: {e}")
