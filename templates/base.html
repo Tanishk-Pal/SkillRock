@@ -64,6 +64,13 @@
     <!-- Custom SaaS Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
+    <noscript>
+        <style>
+            #youtubeSkeleton { display: none !important; }
+            #livePageContent { display: block !important; opacity: 1 !important; }
+        </style>
+    </noscript>
+    
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -209,7 +216,7 @@
                 <a href="{{ url_for('discover.discover') }}" 
                    class="pw-nav-item {% if request.endpoint in ['discover.discover', 'swap.requests_list'] %}active{% endif %}">
                     <i data-lucide="users"></i>
-                    <span>Skill Exchange & Peers</span>
+                    <span>Skill Exchange</span>
                     {% if pending_requests_count > 0 %}
                     <span class="pw-count-badge">{{ pending_requests_count }}</span>
                     {% endif %}
@@ -256,7 +263,136 @@
         <div class="container">
             <!-- YouTube-Style Skeleton Loading Template -->
             <div id="youtubeSkeleton" class="yt-skeleton-container" aria-hidden="true">
-                {% if request.endpoint == 'dashboard.dashboard' %}
+                {% if request.endpoint in ['learning.courses_list', 'learning.courses', 'learning.index'] %}
+                    <!-- Complete Full-Page Learn & Build Skeleton -->
+                    <div class="learning-container" id="learnBuildSkeleton">
+                        <!-- 1. Hero Banner Skeleton (Matches .learning-hero-card dark gradient & structure) -->
+                        <div class="learning-hero-card" style="margin-bottom: 24px; position: relative; overflow: hidden; pointer-events: none;">
+                            <div style="max-width: 740px;">
+                                <!-- Badge -->
+                                <div class="sk-pill sk-dark" style="width: 240px; height: 28px; border-radius: 9999px; margin-bottom: 16px; background: rgba(91, 70, 246, 0.28); border: 1px solid rgba(139, 92, 246, 0.4);"></div>
+                                <!-- Title: 2 lines -->
+                                <div class="sk-line sk-dark" style="width: 82%; height: 38px; border-radius: 8px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.12);"></div>
+                                <div class="sk-line sk-dark" style="width: 58%; height: 38px; border-radius: 8px; margin-bottom: 16px; background: rgba(255, 255, 255, 0.12);"></div>
+                                <!-- Description: 2 lines -->
+                                <div class="sk-line sk-dark" style="width: 96%; height: 16px; border-radius: 6px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.08);"></div>
+                                <div class="sk-line sk-dark" style="width: 75%; height: 16px; border-radius: 6px; margin-bottom: 24px; background: rgba(255, 255, 255, 0.08);"></div>
+                                <!-- 3 Feature items -->
+                                <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div class="sk-circle sk-dark" style="width: 18px; height: 18px; background: rgba(16, 185, 129, 0.3);"></div>
+                                        <div class="sk-line sk-dark" style="width: 140px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.09);"></div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div class="sk-circle sk-dark" style="width: 18px; height: 18px; background: rgba(129, 140, 248, 0.3);"></div>
+                                        <div class="sk-line sk-dark" style="width: 190px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.09);"></div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div class="sk-circle sk-dark" style="width: 18px; height: 18px; background: rgba(245, 158, 11, 0.3);"></div>
+                                        <div class="sk-line sk-dark" style="width: 150px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.09);"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Focus Topics Banner Skeleton (Matches .personalized-banner) -->
+                        <div class="personalized-banner" style="margin-bottom: 24px; pointer-events: none;">
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <div class="sk-pill" style="width: 130px; height: 26px; border-radius: 9999px; background: #DDD6FE;"></div>
+                                <div class="sk-pill" style="width: 90px; height: 26px; border-radius: 9999px; background: #FFFFFF;"></div>
+                                <div class="sk-pill" style="width: 110px; height: 26px; border-radius: 9999px; background: #FFFFFF;"></div>
+                                <div class="sk-pill" style="width: 100px; height: 26px; border-radius: 9999px; background: #FFFFFF;"></div>
+                            </div>
+                            <div class="sk-line" style="width: 120px; height: 16px; border-radius: 6px;"></div>
+                        </div>
+
+                        <!-- 3. Category Filter Chips (Bubbles) Skeleton (Matches .bubble-filter-scroll) -->
+                        <div class="bubble-filter-scroll" style="margin-bottom: 22px; pointer-events: none;">
+                            <div class="sk-pill" style="width: 110px; height: 38px; border-radius: 9999px; background: #EDE9FE;"></div>
+                            <div class="sk-pill" style="width: 100px; height: 38px; border-radius: 9999px;"></div>
+                            <div class="sk-pill" style="width: 130px; height: 38px; border-radius: 9999px;"></div>
+                            <div class="sk-pill" style="width: 115px; height: 38px; border-radius: 9999px;"></div>
+                            <div class="sk-pill" style="width: 95px; height: 38px; border-radius: 9999px;"></div>
+                            <div class="sk-pill" style="width: 125px; height: 38px; border-radius: 9999px;"></div>
+                        </div>
+
+                        <!-- 4. Search, Language & Difficulty Filter Bar Skeleton -->
+                        <div class="card" style="padding: 16px 20px; margin-bottom: 28px; border-radius: 14px; pointer-events: none;">
+                            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: flex-end;" class="course-filter-grid">
+                                <div>
+                                    <div class="sk-line" style="width: 110px; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
+                                    <div class="sk-box" style="width: 100%; height: 42px; border-radius: 10px;"></div>
+                                </div>
+                                <div>
+                                    <div class="sk-line" style="width: 80px; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
+                                    <div class="sk-box" style="width: 100%; height: 42px; border-radius: 10px;"></div>
+                                </div>
+                                <div>
+                                    <div class="sk-line" style="width: 80px; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
+                                    <div class="sk-box" style="width: 100%; height: 42px; border-radius: 10px;"></div>
+                                </div>
+                                <div>
+                                    <div class="sk-box" style="width: 90px; height: 42px; border-radius: 10px;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. Section Header Skeleton -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="sk-circle" style="width: 24px; height: 24px;"></div>
+                                <div class="sk-line" style="width: 200px; height: 24px; border-radius: 6px;"></div>
+                            </div>
+                            <div class="sk-line" style="width: 90px; height: 14px; border-radius: 4px;"></div>
+                        </div>
+
+                        <!-- 6. Course Cards Grid Skeleton (Matches .grid-3 with 6 cards) -->
+                        <div class="grid-3" style="gap: 24px;">
+                            {% for i in range(6) %}
+                            <div class="card course-card-custom" style="padding: 0; border-radius: 16px; overflow: hidden; pointer-events: none;">
+                                <!-- Thumbnail Placeholder -->
+                                <div style="position: relative; height: 180px; width: 100%; background: #0F172A; overflow: hidden;">
+                                    <div class="sk-box sk-dark" style="width: 100%; height: 100%; background: rgba(255, 255, 255, 0.06);"></div>
+                                    <div style="position: absolute; top: 12px; left: 12px; display: flex; gap: 6px;">
+                                        <div class="sk-pill sk-dark" style="width: 85px; height: 22px; border-radius: 9999px; background: rgba(196, 181, 253, 0.25);"></div>
+                                        <div class="sk-pill sk-dark" style="width: 65px; height: 22px; border-radius: 9999px; background: rgba(59, 130, 246, 0.35);"></div>
+                                    </div>
+                                    <div style="position: absolute; bottom: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between;">
+                                        <div class="sk-line sk-dark" style="width: 70px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.15);"></div>
+                                        <div class="sk-line sk-dark" style="width: 60px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.15);"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Card Body Placeholder -->
+                                <div style="padding: 20px;">
+                                    <!-- Instructor -->
+                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px;">
+                                        <div class="sk-circle" style="width: 14px; height: 14px;"></div>
+                                        <div class="sk-line" style="width: 100px; height: 12px; border-radius: 4px;"></div>
+                                    </div>
+                                    <!-- Title -->
+                                    <div class="sk-line" style="width: 95%; height: 20px; border-radius: 6px; margin-bottom: 6px;"></div>
+                                    <div class="sk-line" style="width: 70%; height: 20px; border-radius: 6px; margin-bottom: 14px;"></div>
+                                    <!-- Description -->
+                                    <div class="sk-line" style="width: 100%; height: 13px; border-radius: 4px; margin-bottom: 6px;"></div>
+                                    <div class="sk-line" style="width: 85%; height: 13px; border-radius: 4px; margin-bottom: 18px;"></div>
+                                    <!-- Project Teaser Box -->
+                                    <div style="background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px; padding: 12px; margin-bottom: 18px;">
+                                        <div class="sk-line" style="width: 50%; height: 12px; border-radius: 4px; margin-bottom: 6px;"></div>
+                                        <div class="sk-line" style="width: 85%; height: 14px; border-radius: 4px;"></div>
+                                    </div>
+                                    <!-- Action Button Footer -->
+                                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F1F5F9; padding-top: 14px;">
+                                        <div class="sk-line" style="width: 80px; height: 16px; border-radius: 4px;"></div>
+                                        <div class="sk-btn" style="width: 110px; height: 36px; border-radius: 8px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                {% elif request.endpoint == 'dashboard.dashboard' %}
                     <!-- Dashboard Skeleton -->
                     <div style="max-width: 960px; margin: 0 auto;">
                         <div style="margin-bottom: 24px;">
@@ -682,6 +818,28 @@
                         backdrop.classList.remove("active");
                     });
                 }
+            }
+        })();
+    </script>
+    <script>
+        // Fail-safe immediate reveal once DOM content is parsed
+        (function() {
+            function reveal() {
+                var sk = document.getElementById("youtubeSkeleton") || document.getElementById("pageSkeletonWrapper");
+                var lc = document.getElementById("livePageContent");
+                if (sk) {
+                    sk.classList.add("fade-out");
+                    sk.style.display = "none";
+                }
+                if (lc) {
+                    lc.classList.remove("is-loading");
+                    lc.style.display = "";
+                }
+            }
+            if (document.readyState === "interactive" || document.readyState === "complete") {
+                reveal();
+            } else {
+                document.addEventListener("DOMContentLoaded", reveal);
             }
         })();
     </script>

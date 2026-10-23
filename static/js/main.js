@@ -10,23 +10,20 @@
     const getActionElements = () => ({
         loader: document.getElementById("actionWheelLoader"),
         text: document.getElementById("actionWheelText"),
-        skeleton: document.getElementById("pageSkeletonWrapper"),
+        skeleton: document.getElementById("youtubeSkeleton") || document.getElementById("pageSkeletonWrapper"),
         liveContent: document.getElementById("livePageContent")
     });
 
-    // Gracefully fade in page content on load if skeleton present
+    // Immediately reveal page content when data/DOM is ready (no artificial delays)
     const revealPageContent = () => {
         const { skeleton, liveContent } = getActionElements();
-        if (skeleton && liveContent) {
-            setTimeout(() => {
-                skeleton.classList.add("fade-out");
-                liveContent.classList.remove("is-loading");
-                setTimeout(() => {
-                    skeleton.style.display = "none";
-                }, 200);
-            }, 120);
-        } else if (liveContent) {
+        if (skeleton) {
+            skeleton.classList.add("fade-out");
+            skeleton.style.display = "none";
+        }
+        if (liveContent) {
             liveContent.classList.remove("is-loading");
+            liveContent.style.display = "";
         }
     };
 

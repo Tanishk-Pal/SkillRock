@@ -1488,22 +1488,36 @@ html {
   display: block;
 }
 
+.sk-dark {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.sk-dark::after {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.16) 50%,
+    rgba(255, 255, 255, 0) 100%
+  ) !important;
+}
+
 /* Live Page Content Reveal Transition */
 .live-content-wrapper {
-  transition: opacity 0.28s ease, filter 0.28s ease;
+  transition: opacity 0.2s ease-in-out;
   opacity: 1;
 }
 
 .live-content-wrapper.is-loading {
-  opacity: 0;
-  pointer-events: none;
-  min-height: 280px;
+  display: none !important;
 }
 
-.live-content-wrapper.is-redirecting {
-  opacity: 0.55;
-  filter: blur(1px);
-  pointer-events: none;
+.yt-skeleton-container {
+  display: block;
+  width: 100%;
+}
+
+.yt-skeleton-container.fade-out {
+  display: none !important;
 }
 
 /* 2. Top Navigation Progress Bar (YouTube-Style Glowing Line) */
