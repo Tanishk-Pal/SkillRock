@@ -187,6 +187,7 @@ def onboarding_interests():
 # 1. Course Catalogue (Browse & Discover Free Courses)
 # ==============================================================================
 
+@learning_bp.route("")
 @learning_bp.route("/")
 @learning_bp.route("/courses")
 def courses_list():
@@ -196,85 +197,119 @@ def courses_list():
     difficulty, and search filtering. Personalizes ranking based on student's
     selected interest bubbles.
     """
-    category = request.args.get("category", "").strip()
-    difficulty = request.args.get("difficulty", "").strip()
-    language = request.args.get("language", "").strip()
-    search = request.args.get("q", "").strip()
+    try:
+        category = request.args.get("category", "").strip()
+        difficulty = request.args.get("difficulty", "").strip()
+        language = request.args.get("language", "").strip()
+        search = request.args.get("q", "").strip()
 
-    query = {"is_published": True}
-    if category and category != "All":
-        query["category"] = category
-    if difficulty and difficulty != "All":
-        query["difficulty"] = difficulty
-    if language and language != "All":
-        query["language"] = {"$regex": f"^{re.escape(language)}$", "$options": "i"}
-    if search:
-        safe_search = re.escape(search)
-        query["$or"] = [
-            {"title": {"$regex": safe_search, "$options": "i"}},
-            {"description": {"$regex": safe_search, "$options": "i"}},
-            {"category": {"$regex": safe_search, "$options": "i"}},
-            {"instructor": {"$regex": safe_search, "$options": "i"}},
-            {"language": {"$regex": safe_search, "$options": "i"}}
-        ]
+        query = {"is_published": True}
+        if category and category != "All":
+            query["category"] = category
+        if difficulty and difficulty != "All":
+            query["difficulty"] = difficulty
+        if language and language != "All":
+            query["language"] = {"$regex": f"^{re.escape(language)}$", "$options": "i"}
+        if search:
+            safe_search = re.escape(search)
+            query["$or"] = [
+                {"title": {"$regex": safe_search, "$options": "i"}},
+                {"description": {"$regex": safe_search, "$options": "i"}},
+                {"category": {"$regex": safe_search, "$options": "i"}},
+                {"instructor": {"$regex": safe_search, "$options": "i"}},
+                {"language": {"$regex": safe_search, "$options": "i"}}
+            ]
 
-    courses = Course.find_all(query=query, sort=[("created_at", -1)])
+        courses = Course.find_all(query=query, sort=[("created_at", -1)]) or []
 
-    # Collect enrolled course IDs and certified course IDs for the logged-in user
-    enrolled_course_ids = set()
-    completed_course_ids = set()
-    user_interests = []
-    recommended_courses = []
-    other_courses = []
+        # Collect enrolled course IDs and certified course IDs for the logged-in user
+        enrolled_course_ids = set()
+        completed_course_ids = set()
+        user_interests = []
+        recommended_courses = []
+        other_courses = []
 
-    if current_user.is_authenticated:
-        user_enrollments = Enrollment.find_by_user(current_user.id)
-        for e in user_enrollments:
-            enrolled_course_ids.add(e.course_id)
-            if e.status == "completed":
-                completed_course_ids.add(e.course_id)
-        user_interests = current_user.interests
+        if current_user.is_authenticated:
+            try:
+                user_enrollments = Enrollment.find_by_user(current_user.id) or []
+                for e in user_enrollments:
+                    enrolled_course_ids.add(str(getattr(e, "course_id", "")))
+                    if getattr(e, "status", "") == "completed":
+                        completed_course_ids.add(str(getattr(e, "course_id", "")))
+            except Exception as e_enr:
+                logger.warning(f"Could not load enrollments for user {current_user.id}: {e_enr}")
 
-    # Personalized Recommendation Algorithm:
-    # If the user has selected interests and hasn't explicitly applied a narrow category filter,
-    # partition courses into recommended (matching chosen interests) and others.
-    if user_interests and (not category or category == "All") and not search:
-        norm_interests = [i.lower() for i in user_interests]
-        for c in courses:
-            c_cat = (c.category or "").lower()
-            c_title = (c.title or "").lower()
-            # Check match against user's interest bubbles
-            matched = any(
-                interest in c_cat or c_cat in interest or interest in c_title
-                for interest in norm_interests
-            )
-            if matched:
-                recommended_courses.append(c)
-            else:
-                other_courses.append(c)
-    else:
-        other_courses = list(courses)
+            try:
+                user_interests = [str(i).strip() for i in (current_user.interests or []) if str(i).strip()]
+            except Exception as e_int:
+                logger.warning(f"Could not read user interests: {e_int}")
+                user_interests = []
 
-    # Distinct categories for filter pills
-    db = get_db()
-    available_categories = db.courses.distinct("category", {"is_published": True})
+        # Personalized Recommendation Algorithm:
+        # If the user has selected interests and hasn't explicitly applied a narrow category filter,
+        # partition courses into recommended (matching chosen interests) and others.
+        if user_interests and (not category or category == "All") and not search:
+            norm_interests = [str(i).lower() for i in user_interests if i]
+            for c in courses:
+                c_cat = str(getattr(c, "category", "") or "").lower()
+                c_title = str(getattr(c, "title", "") or "").lower()
+                # Check match against user's interest bubbles
+                matched = any(
+                    interest in c_cat or c_cat in interest or interest in c_title
+                    for interest in norm_interests
+                )
+                if matched:
+                    recommended_courses.append(c)
+                else:
+                    other_courses.append(c)
+        else:
+            other_courses = list(courses)
 
-    return render_template(
-        "learning/courses.html",
-        courses=courses,
-        recommended_courses=recommended_courses,
-        other_courses=other_courses,
-        user_interests=user_interests,
-        available_interests=AVAILABLE_INTERESTS,
-        selected_category=category,
-        selected_difficulty=difficulty,
-        selected_language=language,
-        search_query=search,
-        available_categories=available_categories,
-        enrolled_course_ids=enrolled_course_ids,
-        completed_course_ids=completed_course_ids,
-        total_courses=len(courses)
-    )
+        # Distinct categories for filter pills
+        available_categories = []
+        try:
+            db = get_db()
+            raw_cats = db.courses.distinct("category", {"is_published": True}) or []
+            available_categories = [str(c).strip() for c in raw_cats if c and str(c).strip()]
+        except Exception as e_cat:
+            logger.warning(f"Could not fetch distinct categories: {e_cat}")
+            available_categories = ["Programming", "Web Development", "AI & Machine Learning", "Data Science", "Mobile Apps"]
+
+        return render_template(
+            "learning/courses.html",
+            courses=courses,
+            recommended_courses=recommended_courses,
+            other_courses=other_courses,
+            user_interests=user_interests,
+            available_interests=AVAILABLE_INTERESTS,
+            selected_category=category,
+            selected_difficulty=difficulty,
+            selected_language=language,
+            search_query=search,
+            available_categories=available_categories,
+            enrolled_course_ids=enrolled_course_ids,
+            completed_course_ids=completed_course_ids,
+            total_courses=len(courses)
+        )
+    except Exception as e:
+        logger.exception(f"Unhandled error in courses_list: {e}")
+        flash("An error occurred while loading the courses catalogue. Please refresh or try again.", "danger")
+        return render_template(
+            "learning/courses.html",
+            courses=[],
+            recommended_courses=[],
+            other_courses=[],
+            user_interests=[],
+            available_interests=AVAILABLE_INTERESTS,
+            selected_category="",
+            selected_difficulty="",
+            selected_language="",
+            search_query="",
+            available_categories=["Programming", "Web Development", "AI & Machine Learning", "Data Science"],
+            enrolled_course_ids=set(),
+            completed_course_ids=set(),
+            total_courses=0
+        )
 
 
 # ==============================================================================
@@ -362,42 +397,58 @@ def my_learning():
     Tracks enrolled courses, active project submissions, review feedback,
     and verified earned certificates.
     """
-    enrollments = Enrollment.find_by_user(current_user.id)
-    submissions = Submission.find_by_user(current_user.id)
-    certificates = Certificate.find_by_user(current_user.id)
+    try:
+        enrollments = Enrollment.find_by_user(current_user.id) or []
+        submissions = Submission.find_by_user(current_user.id) or []
+        certificates = Certificate.find_by_user(current_user.id) or []
 
-    # Attach courses and assignments to enrollments
-    enrolled_items = []
-    for enr in enrollments:
-        crs = enr.course
-        if crs:
-            asg = crs.assignment
-            sub = Submission.get_latest(current_user.id, asg.id) if asg else None
-            cert = Certificate.get_by_user_course(current_user.id, crs.id)
-            enrolled_items.append({
-                "enrollment": enr,
-                "course": crs,
-                "assignment": asg,
-                "submission": sub,
-                "certificate": cert
-            })
+        # Attach courses and assignments to enrollments
+        enrolled_items = []
+        for enr in enrollments:
+            try:
+                crs = getattr(enr, "course", None)
+                if crs:
+                    asg = getattr(crs, "assignment", None)
+                    sub = Submission.get_latest(current_user.id, asg.id) if asg else None
+                    cert = Certificate.get_by_user_course(current_user.id, crs.id)
+                    enrolled_items.append({
+                        "enrollment": enr,
+                        "course": crs,
+                        "assignment": asg,
+                        "submission": sub,
+                        "certificate": cert
+                    })
+            except Exception as e_item:
+                logger.warning(f"Error parsing enrollment item: {e_item}")
 
-    # Summary metrics
-    total_enrolled = len(enrolled_items)
-    total_completed = len([item for item in enrolled_items if item["enrollment"].status == "completed"])
-    pending_submissions = len([s for s in submissions if s.status == Submission.STATUS_PENDING])
-    total_certificates = len(certificates)
+        # Attach certificate to submissions for safe template display
+        for sub in submissions:
+            try:
+                sub.certificate = Certificate.get_by_user_course(current_user.id, getattr(sub, "course_id", None))
+            except Exception:
+                sub.certificate = None
 
-    return render_template(
-        "learning/my_learning.html",
-        enrolled_items=enrolled_items,
-        submissions=submissions,
-        certificates=certificates,
-        total_enrolled=total_enrolled,
-        total_completed=total_completed,
-        pending_submissions=pending_submissions,
-        total_certificates=total_certificates
-    )
+        # Summary metrics
+        total_enrolled = len(enrolled_items)
+        total_completed = len([item for item in enrolled_items if getattr(item.get("enrollment"), "status", "") == "completed"])
+        pending_submissions = len([s for s in submissions if getattr(s, "status", "") == Submission.STATUS_PENDING])
+        total_certificates = len(certificates)
+
+        return render_template(
+            "learning/my_learning.html",
+            enrolled_items=enrolled_items,
+            submissions=submissions,
+            certificates=certificates,
+            Certificate=Certificate,
+            total_enrolled=total_enrolled,
+            total_completed=total_completed,
+            pending_submissions=pending_submissions,
+            total_certificates=total_certificates
+        )
+    except Exception as e:
+        logger.exception(f"Unhandled error in my_learning: {e}")
+        flash("Could not load your learning dashboard. Please browse available courses below.", "warning")
+        return redirect(url_for("learning.courses_list"))
 
 
 # ==============================================================================

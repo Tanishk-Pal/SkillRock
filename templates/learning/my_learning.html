@@ -74,7 +74,7 @@
                             <div style="padding: 18px;">
                                 <div style="font-size: 0.76rem; color: #2563EB; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">{{ course.category }}</div>
                                 <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; line-height: 1.3;">
-                                    <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" style="color: inherit; text-decoration: none;">
+                                    <a href="{{ url_for('learning.course_detail', slug=course.slug or course.id) }}" style="color: inherit; text-decoration: none;">
                                         {{ course.title }}
                                     </a>
                                 </h3>
@@ -93,11 +93,11 @@
 
                         <!-- Card Action Buttons -->
                         <div style="padding: 12px 18px; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.01); display: flex; gap: 8px; justify-content: flex-end;">
-                            <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" class="btn btn-secondary btn-sm" style="font-weight: 600;">
+                            <a href="{{ url_for('learning.course_detail', slug=course.slug or course.id) }}" class="btn btn-secondary btn-sm" style="font-weight: 600;">
                                 Course
                             </a>
 
-                            {% if cert %}
+                            {% if cert and cert.certificate_id %}
                                 <a href="{{ url_for('learning.view_certificate', cert_id=cert.certificate_id) }}" class="btn btn-primary btn-sm" style="font-weight: 700; background: #059669; border-color: #059669;">
                                     <i data-lucide="award" style="width: 14px; height: 14px;"></i> Certificate
                                 </a>
@@ -191,8 +191,8 @@
                                     <span>Update & Resubmit Project</span>
                                 </a>
                             {% elif sub.status == 'approved' %}
-                                {% set cert = Certificate.get_by_user_course(current_user.id, sub.course_id) %}
-                                {% if cert %}
+                                {% set cert = sub.certificate if sub.certificate else (Certificate.get_by_user_course(current_user.id, sub.course_id) if Certificate else None) %}
+                                {% if cert and cert.certificate_id %}
                                     <a href="{{ url_for('learning.view_certificate', cert_id=cert.certificate_id) }}" class="btn btn-secondary btn-sm" style="color: #059669; font-weight: 700;">
                                         <i data-lucide="award" style="width: 14px; height: 14px;"></i>
                                         <span>View Verified Certificate</span>

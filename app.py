@@ -9,7 +9,22 @@ from flask import Flask, render_template, redirect, url_for, session, request, R
 from flask_login import LoginManager, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 from config import Config
-from models import get_db, User, Skill, Session, Connection, SwapRequest, Message, PlatformSettings, ensure_admin_user, ensure_default_courses
+from models import (
+    get_db,
+    User,
+    Skill,
+    Session,
+    Connection,
+    SwapRequest,
+    Message,
+    PlatformSettings,
+    Course,
+    Assignment,
+    Submission,
+    Certificate,
+    ensure_admin_user,
+    ensure_default_courses
+)
 from routes import (
     auth_bp,
     dashboard_bp,
@@ -29,7 +44,7 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     # Configure ProxyFix for reverse proxy deployments (Render, Heroku, Nginx)
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     # Initialize MongoDB connection, collections, and seed Super Admin & Default Courses
     with app.app_context():
@@ -61,8 +76,26 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp)
     app.register_blueprint(learning_bp)
 
-    # Provide str globally in Jinja templates
-    app.jinja_env.globals['str'] = str
+    # Provide global utilities & model classes safely in Jinja templates
+    app.jinja_env.globals.update(
+        str=str,
+        len=len,
+        Certificate=Certificate,
+        Course=Course,
+        Assignment=Assignment,
+        Submission=Submission
+    )
+
+    # Global Error Handlers (Prevents unhandled crashes and logs detailed tracebacks)
+    @app.errorhandler(500)
+    def handle_500(e):
+        import logging
+        logging.getLogger(__name__).error(f"Global 500 Server Error: {e}", exc_info=True)
+        return render_template("errors/500.html", error=str(e)), 500
+
+    @app.errorhandler(404)
+    def handle_404(e):
+        return render_template("errors/404.html"), 404
 
     # Ensure user sessions are persistent across browser closes and computer restarts (60 days)
     @app.before_request
