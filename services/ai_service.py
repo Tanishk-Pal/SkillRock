@@ -162,7 +162,7 @@ def chat_with_skillbot(message, user_context=None):
         context_str = f"Student Name: {name}. Skills they can teach: {', '.join(teaching)}. Skills they want to learn: {', '.join(learning)}."
 
     system_instruction = (
-        "You are SkillBot, a helpful AI guide for SkillSwap Campus (a student peer-to-peer skill exchange platform). "
+        "You are SkillBot, a helpful AI guide for SkillRock (a student learning and project evaluation platform combining curated courses, project certifications, and student skill sharing). "
         "Help students with skill learning roadmaps, peer matching strategies, study tips, and tech career advice. "
         "Keep responses clear, concise, motivating, structured with bullet points where appropriate, and formatted in clean markdown. "
         "Do NOT write excessively long essays."

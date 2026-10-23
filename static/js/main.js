@@ -27,11 +27,14 @@
         }
     };
 
-    // Show Small Centered Blue Wheel Loader for Functions / Actions
-    window.showActionLoader = (message = "Processing...") => {
+    // Show Small Centered Blue Wheel Loader for Functions / Actions (Icon only, no text words)
+    window.showActionLoader = () => {
         const { loader, text } = getActionElements();
         if (loader) {
-            if (text) text.textContent = message;
+            if (text) {
+                text.textContent = "";
+                text.style.display = "none";
+            }
             loader.style.display = "flex";
         }
         clearTimeout(safetyTimeout);
@@ -74,30 +77,16 @@
     document.addEventListener("submit", (e) => {
         const form = e.target;
         if (!form) return;
-        // Don't intercept live chat or search inputs
-        if (form.id === "chatForm" || form.id === "courseFilterForm" || form.id === "liveDiscoverForm") return;
+        // Don't intercept live AI chat, study interests auto-save, live chat, or search inputs
+        if (
+            form.id === "chatForm" ||
+            form.id === "aiChatForm" ||
+            form.id === "interestsForm" ||
+            form.id === "courseFilterForm" ||
+            form.id === "liveDiscoverForm"
+        ) return;
 
-        let msg = "Processing...";
-        const action = (form.getAttribute("action") || "").toLowerCase();
-        const formId = (form.id || "").toLowerCase();
-
-        if (formId.includes("skill") || action.includes("skill")) {
-            msg = "Updating skills...";
-        } else if (formId.includes("enroll") || action.includes("enroll")) {
-            msg = "Enrolling in course...";
-        } else if (formId.includes("submit") || action.includes("submit")) {
-            msg = "Submitting project...";
-        } else if (action.includes("request")) {
-            msg = "Sending exchange request...";
-        } else if (action.includes("profile")) {
-            msg = "Saving profile...";
-        } else if (action.includes("rate")) {
-            msg = "Submitting rating...";
-        } else if (action.includes("login") || action.includes("auth")) {
-            msg = "Signing in...";
-        }
-
-        window.showActionLoader(msg);
+        window.showActionLoader();
     });
 })();
 

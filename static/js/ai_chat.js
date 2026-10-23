@@ -1,92 +1,192 @@
-// SkillBot AI Assistant Client-side Script
+// SkillBot AI Assistant — ChatGPT Experience Client Script
 
 document.addEventListener("DOMContentLoaded", () => {
     const chatForm = document.getElementById("aiChatForm");
     const chatInput = document.getElementById("aiChatInput");
-    const messagesContainer = document.getElementById("aiChatMessages");
+    const sendBtn = document.getElementById("aiSendBtn");
+    const streamContainer = document.getElementById("aiChatMessages");
+    const emptyWelcome = document.getElementById("emptyWelcomeState");
     const promptChips = document.querySelectorAll(".prompt-chip");
+    const btnNewChat = document.getElementById("btnNewChat");
 
-    // Helper: append message bubble
-    function appendMessage(sender, text, isMarkdown = false) {
-        if (!messagesContainer) return;
+    // Markdown Formatter for clean ChatGPT-style rendering
+    function formatMarkdown(text) {
+        if (!text) return "";
+        let escaped = text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
 
-        const bubble = document.createElement("div");
-        bubble.className = `chat-bubble ${sender === "user" ? "user" : "bot"}`;
-        
-        const avatar = document.createElement("div");
-        avatar.className = "bubble-avatar";
-        avatar.innerHTML = sender === "user" ? "👤" : "🤖";
+        // Code blocks: ```language ... ```
+        escaped = escaped.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
+            return `<pre><code>${code.trim()}</code></pre>`;
+        });
 
-        const content = document.createElement("div");
-        content.className = "bubble-body";
-        
-        if (sender === "bot") {
-            // Simple markdown parser for bullets, headers, bold
-            let formatted = text
-                .replace(/^### (.*$)/gim, '<h4 style="margin: 6px 0; font-size: 0.95rem; font-weight: 600; color: #0F172A;">$1</h4>')
-                .replace(/^## (.*$)/gim, '<h3 style="margin: 8px 0; font-size: 1rem; font-weight: 600; color: #0F172A;">$1</h3>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/^\* (.*$)/gim, '<li style="margin-left: 18px; margin-bottom: 2px;">$1</li>')
-                .replace(/\n/g, '<br>');
-            content.innerHTML = formatted;
+        // Inline code: `code`
+        escaped = escaped.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+        // Headers
+        escaped = escaped.replace(/^### (.*$)/gim, '<h4>$1</h4>');
+        escaped = escaped.replace(/^## (.*$)/gim, '<h3>$1</h3>');
+        escaped = escaped.replace(/^# (.*$)/gim, '<h2>$1</h2>');
+
+        // Bold and Italic
+        escaped = escaped.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
+        escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        escaped = escaped.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+        // Bullet points
+        escaped = escaped.replace(/^\s*[\-\*]\s+(.*$)/gim, '<li>$1</li>');
+        escaped = escaped.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
+        // Clean multiple nested ul tags
+        escaped = escaped.replace(/<\/ul>\s*<ul>/g, '');
+
+        // Line breaks (convert newlines that aren't inside pre blocks)
+        escaped = escaped.replace(/\n\n/g, '<p></p>');
+        escaped = escaped.replace(/\n/g, '<br>');
+
+        return escaped;
+    }
+
+    // Scroll to bottom smoothly
+    function scrollToBottom() {
+        if (streamContainer) {
+            streamContainer.scrollTop = streamContainer.scrollHeight;
+        }
+    }
+
+    // Hide welcome state once chatting starts
+    function hideEmptyWelcome() {
+        if (emptyWelcome) {
+            emptyWelcome.style.display = "none";
+        }
+    }
+
+    // Append Message Row
+    function appendMessageRow(sender, contentHtml) {
+        hideEmptyWelcome();
+        if (!streamContainer) return null;
+
+        const row = document.createElement("div");
+        row.className = `chatgpt-row ${sender}`;
+
+        if (sender === "user") {
+            const bubble = document.createElement("div");
+            bubble.className = "chatgpt-bubble";
+            bubble.textContent = contentHtml; // text content for safety
+            row.appendChild(bubble);
         } else {
-            content.textContent = text;
+            const avatar = document.createElement("div");
+            avatar.className = "chatgpt-row-avatar";
+            avatar.innerHTML = "🤖";
+
+            const bubble = document.createElement("div");
+            bubble.className = "chatgpt-bubble";
+            bubble.innerHTML = contentHtml;
+
+            row.appendChild(avatar);
+            row.appendChild(bubble);
         }
 
-        bubble.appendChild(avatar);
-        bubble.appendChild(content);
-        messagesContainer.appendChild(bubble);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        streamContainer.appendChild(row);
+        scrollToBottom();
+        return row;
     }
 
-    // Helper: show typing indicator
-    function showTypingIndicator() {
-        const ind = document.createElement("div");
-        ind.id = "typingIndicator";
-        ind.className = "chat-bubble bot";
-        ind.innerHTML = `
-            <div class="bubble-avatar">🤖</div>
-            <div class="bubble-body" style="color: #64748B; font-style: italic;">
-                SkillBot is thinking...
+    // Show ChatGPT 3-Dots Animated Thinking Indicator (Zero Blur, Zero Overlay)
+    function showThinkingIndicator() {
+        hideEmptyWelcome();
+        if (!streamContainer) return null;
+
+        const row = document.createElement("div");
+        row.id = "chatgptThinkingRow";
+        row.className = "chatgpt-row bot";
+        row.innerHTML = `
+            <div class="chatgpt-row-avatar">🤖</div>
+            <div class="chatgpt-bubble">
+                <div class="chatgpt-dots-indicator" aria-label="SkillBot is thinking...">
+                    <span class="chatgpt-dot"></span>
+                    <span class="chatgpt-dot"></span>
+                    <span class="chatgpt-dot"></span>
+                </div>
             </div>
         `;
-        messagesContainer.appendChild(ind);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        return ind;
+        streamContainer.appendChild(row);
+        scrollToBottom();
+        return row;
     }
 
-    // Handle form submit
-    async function sendMessage(msgText) {
-        const text = msgText || (chatInput ? chatInput.value.trim() : "");
+    // Auto-resize input textarea like ChatGPT
+    function autoResizeInput() {
+        if (!chatInput) return;
+        chatInput.style.height = "auto";
+        chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + "px";
+
+        if (sendBtn) {
+            sendBtn.disabled = !chatInput.value.trim();
+        }
+    }
+
+    if (chatInput) {
+        chatInput.addEventListener("input", autoResizeInput);
+
+        // Submit on Enter, newline on Shift+Enter
+        chatInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (chatInput.value.trim()) {
+                    sendMessage();
+                }
+            }
+        });
+    }
+
+    // Send Message
+    async function sendMessage(presetText) {
+        const text = presetText || (chatInput ? chatInput.value.trim() : "");
         if (!text) return;
 
-        if (chatInput) chatInput.value = "";
-        appendMessage("user", text);
+        // Reset input box
+        if (chatInput) {
+            chatInput.value = "";
+            chatInput.style.height = "auto";
+            if (sendBtn) sendBtn.disabled = true;
+        }
 
-        const typingElem = showTypingIndicator();
+        // 1. Append User Bubble
+        appendMessageRow("user", text);
+
+        // 2. Append Thinking Indicator
+        const thinkingElem = showThinkingIndicator();
 
         try {
             const res = await fetch("/api/ai/chat", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
                 body: JSON.stringify({ message: text })
             });
 
             const data = await res.json();
-            if (typingElem) typingElem.remove();
+            if (thinkingElem) thinkingElem.remove();
 
             if (data.reply) {
-                appendMessage("bot", data.reply);
+                const formattedHtml = formatMarkdown(data.reply);
+                appendMessageRow("bot", formattedHtml);
             } else {
-                appendMessage("bot", "I am having trouble retrieving that skill advice. Please try again.");
+                appendMessageRow("bot", "<p>I could not process that request right now. Please try again or rephrase your question.</p>");
             }
         } catch (err) {
-            if (typingElem) typingElem.remove();
-            appendMessage("bot", "Network error. Please make sure the server is reachable.");
+            if (thinkingElem) thinkingElem.remove();
+            appendMessageRow("bot", "<p style='color: #EF4444;'>Network connection interrupted. Please verify your connection and try again.</p>");
         }
+
+        scrollToBottom();
     }
 
+    // Form submit listener
     if (chatForm) {
         chatForm.addEventListener("submit", (e) => {
             e.preventDefault();
@@ -94,49 +194,41 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Suggested prompt cards click listener
     promptChips.forEach(chip => {
         chip.addEventListener("click", () => {
             const query = chip.getAttribute("data-prompt") || chip.textContent.trim();
-            sendMessage(query);
+            if (query) {
+                sendMessage(query);
+            }
         });
     });
 
-    // Roadmap Generation in Assistant Tab
-    const roadmapBtn = document.getElementById("btnGenerateRoadmap");
-    const roadmapSkillInput = document.getElementById("roadmapSkillSelect");
-    const roadmapOutput = document.getElementById("roadmapResultContainer");
-
-    if (roadmapBtn && roadmapSkillInput && roadmapOutput) {
-        roadmapBtn.addEventListener("click", async () => {
-            const skill = roadmapSkillInput.value.trim();
-            if (!skill) return;
-
-            roadmapOutput.innerHTML = '<div style="color: #94a3b8; padding: 20px; text-align: center;">Curating beginner roadmap...</div>';
-
-            try {
-                const res = await fetch(`/api/ai/roadmap?skill=${encodeURIComponent(skill)}`);
-                const data = await res.json();
-
-                let stepsHtml = "";
-                if (data.steps && data.steps.length) {
-                    data.steps.forEach(step => {
-                        stepsHtml += `<div style="padding: 10px 14px; background: rgba(255,255,255,0.04); border-left: 3px solid #06b6d4; border-radius: 6px; margin-bottom: 8px;">${step}</div>`;
-                    });
+    // New Chat button to reset stream
+    if (btnNewChat) {
+        btnNewChat.addEventListener("click", () => {
+            if (streamContainer) {
+                streamContainer.innerHTML = "";
+                if (emptyWelcome) {
+                    emptyWelcome.style.display = "block";
+                    streamContainer.appendChild(emptyWelcome);
                 }
-
-                roadmapOutput.innerHTML = `
-                    <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <h3 style="color: #38bdf8;">${data.title}</h3>
-                            <span class="skill-tag">${data.estimated_time || "4 Weeks"}</span>
-                        </div>
-                        <p style="color: #94a3b8; font-size: 0.92rem; margin-bottom: 16px;">${data.description}</p>
-                        <div>${stepsHtml}</div>
-                    </div>
-                `;
-            } catch (err) {
-                roadmapOutput.innerHTML = '<div style="color: #ef4444; padding: 10px;">Failed to generate roadmap.</div>';
             }
+            if (chatInput) {
+                chatInput.value = "";
+                chatInput.style.height = "auto";
+                chatInput.focus();
+            }
+            if (sendBtn) sendBtn.disabled = true;
         });
+    }
+
+    // Initial focus on input
+    if (chatInput) {
+        chatInput.focus();
+    }
+
+    if (window.lucide) {
+        lucide.createIcons();
     }
 });

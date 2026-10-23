@@ -1561,22 +1561,22 @@ html {
 .action-wheel-box {
   background: #FFFFFF;
   color: #0F172A;
-  padding: 14px 22px;
-  border-radius: 12px;
+  padding: 16px;
+  border-radius: 50%;
   box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.25), 0 4px 10px rgba(15, 23, 42, 0.08);
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   border: 1px solid #E2E8F0;
 }
 
 .small-blue-wheel-spinner {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
   border-radius: 50%;
-  border: 2.5px solid #DBEAFE;
+  border: 3px solid #DBEAFE;
   border-top-color: #2563EB;
   border-right-color: #3B82F6;
   animation: actionWheelSpin 0.7s linear infinite;
@@ -1589,10 +1589,7 @@ html {
 }
 
 .action-wheel-text {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #1E293B;
-  white-space: nowrap;
+  display: none !important;
 }
 
 /* YouTube / Modern Skeleton Pulse Loading System */

@@ -385,6 +385,70 @@ def enrol_course(course_id):
     return redirect(url_for("learning.course_detail", slug=course.slug))
 
 
+@learning_bp.route("/progress/save", methods=["POST"])
+@login_required
+def save_course_progress():
+    """
+    Saves student lecture watch progress for resume capability
+    and validates the 80% course completion gate for project certification.
+    """
+    data = request.get_json(silent=True) or {}
+    course_id = data.get("course_id")
+    if not course_id:
+        return jsonify({"success": False, "error": "course_id is required"}), 400
+
+    course = Course.get_by_id(course_id)
+    if not course:
+        return jsonify({"success": False, "error": "Course not found"}), 404
+
+    enrollment = Enrollment.get_by_user_course(current_user.id, course.id)
+    if not enrollment:
+        enrollment = Enrollment({
+            "user_id": str(current_user.id),
+            "course_id": str(course.id),
+            "status": "in_progress",
+            "created_at": datetime.now(timezone.utc)
+        })
+
+    try:
+        watch_seconds = int(float(data.get("watch_seconds", 0)))
+    except (ValueError, TypeError):
+        watch_seconds = 0
+
+    try:
+        video_duration = int(float(data.get("video_duration", 0)))
+    except (ValueError, TypeError):
+        video_duration = 0
+
+    if watch_seconds > 0:
+        enrollment.watch_seconds = watch_seconds
+        enrollment.max_watch_seconds = max(getattr(enrollment, "max_watch_seconds", 0), watch_seconds)
+
+    if video_duration > 0:
+        enrollment.video_duration = video_duration
+
+    if enrollment.video_duration > 0:
+        pct = min(100, int(round((enrollment.max_watch_seconds / enrollment.video_duration) * 100)))
+        enrollment.watch_percent = pct
+        if pct >= 80:
+            enrollment.video_completed = True
+
+    if enrollment.status == "enrolled":
+        enrollment.status = "in_progress"
+
+    enrollment.save()
+
+    return jsonify({
+        "success": True,
+        "watch_seconds": enrollment.watch_seconds,
+        "max_watch_seconds": enrollment.max_watch_seconds,
+        "video_duration": enrollment.video_duration,
+        "watch_percent": enrollment.watch_percent,
+        "video_completed": enrollment.video_completed,
+        "formatted_resume_time": enrollment.formatted_resume_time
+    })
+
+
 # ==============================================================================
 # 4. Student Hub: My Learning Dashboard
 # ==============================================================================
@@ -528,6 +592,13 @@ def submit_project(assignment_id):
         flash("You have already earned your verified certificate for this project! Great job.", "success")
         return redirect(url_for("learning.my_learning"))
 
+    # 80% Lecture Completion Gate: Students must watch at least 80% of the course video lecture before project submission
+    watch_pct = getattr(enrollment, "watch_percent", 0)
+    video_completed = getattr(enrollment, "video_completed", False) or (watch_pct >= 80)
+    if not video_completed and not getattr(current_user, "is_admin", False):
+        flash(f"Course Requirement: You must watch at least 80% of the course lecture video before submitting your project for review. Your current watch progress is {watch_pct}%.", "warning")
+        return redirect(url_for("learning.course_detail", slug=course.slug))
+
     if request.method == "POST":
         title = request.form.get("title", "").strip()
         description = request.form.get("description", "").strip()
@@ -632,11 +703,12 @@ def submit_project(assignment_id):
 # ==============================================================================
 
 @learning_bp.route("/certificate/<cert_id>")
+@login_required
 def view_certificate(cert_id):
     """
     Official Certificate Presentation View.
-    Renders high-resolution printable award with digital verification QR/hash,
-    signatures, and verified student credentials.
+    Strictly protected: Only the student who earned this certificate or an administrator can access it.
+    External visitors and recruiters must use the public verification route: /verify/<cert_id>.
     """
     certificate = Certificate.get_by_cert_id(cert_id)
     if not certificate:
@@ -644,6 +716,11 @@ def view_certificate(cert_id):
     if not certificate:
         flash("Certificate record not found.", "warning")
         return redirect(url_for("learning.courses_list"))
+
+    # Security: Verify that the current user is the owner of the certificate or an administrator
+    if str(certificate.user_id) != str(current_user.id) and not getattr(current_user, "is_admin", False):
+        flash("Access Denied: You are not authorized to view or download another student's certificate.", "danger")
+        return redirect(url_for("learning.my_learning"))
 
     student = certificate.user
     course = certificate.course

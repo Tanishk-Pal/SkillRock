@@ -1393,8 +1393,8 @@ class Course:
             return ""
         if yt_id.startswith("playlist:"):
             playlist_id = yt_id.split(":", 1)[1]
-            return f"https://www.youtube-nocookie.com/embed/videoseries?list={playlist_id}"
-        return f"https://www.youtube-nocookie.com/embed/{yt_id}"
+            return f"https://www.youtube-nocookie.com/embed/videoseries?list={playlist_id}&rel=0&modestbranding=1&enablejsapi=1"
+        return f"https://www.youtube-nocookie.com/embed/{yt_id}?rel=0&modestbranding=1&enablejsapi=1"
 
     @property
     def fallback_thumbnail(self):
@@ -1576,8 +1576,35 @@ class Enrollment:
         self.user_id = str(self._data.get("user_id", ""))
         self.course_id = str(self._data.get("course_id", ""))
         self.status = self._data.get("status", "enrolled")  # enrolled, in_progress, completed
+        self.watch_seconds = int(self._data.get("watch_seconds", 0))
+        self.max_watch_seconds = int(self._data.get("max_watch_seconds", self.watch_seconds))
+        self.video_duration = int(self._data.get("video_duration", 0))
+        self.watch_percent = int(self._data.get("watch_percent", 0))
+        self.video_completed = bool(self._data.get("video_completed", False) or self.watch_percent >= 80)
         self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
         self.updated_at = self._data.get("updated_at") or datetime.now(timezone.utc)
+
+    @property
+    def formatted_resume_time(self):
+        secs = self.watch_seconds
+        hours = secs // 3600
+        minutes = (secs % 3600) // 60
+        seconds = secs % 60
+        if hours > 0:
+            return f"{hours}:{minutes:02d}:{seconds:02d}"
+        return f"{minutes:02d}:{seconds:02d}"
+
+    @property
+    def formatted_duration(self):
+        secs = self.video_duration
+        if not secs:
+            return ""
+        hours = secs // 3600
+        minutes = (secs % 3600) // 60
+        seconds = secs % 60
+        if hours > 0:
+            return f"{hours}h {minutes}m"
+        return f"{minutes}m {seconds}s"
 
     @property
     def user(self):
@@ -1612,6 +1639,11 @@ class Enrollment:
         self._data["user_id"] = str(self.user_id)
         self._data["course_id"] = str(self.course_id)
         self._data["status"] = self.status
+        self._data["watch_seconds"] = int(self.watch_seconds)
+        self._data["max_watch_seconds"] = int(self.max_watch_seconds)
+        self._data["video_duration"] = int(self.video_duration)
+        self._data["watch_percent"] = int(self.watch_percent)
+        self._data["video_completed"] = bool(self.video_completed or self.watch_percent >= 80)
         self._data["updated_at"] = datetime.now(timezone.utc)
 
         if self._id:

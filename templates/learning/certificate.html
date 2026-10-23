@@ -223,6 +223,7 @@
         }
     }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 {% endblock %}
 
 {% block content %}
@@ -238,9 +239,13 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
-            <button onclick="window.print()" class="btn btn-primary btn-sm" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                <i data-lucide="printer" style="width: 15px; height: 15px;"></i>
-                <span>Print / Save as PDF</span>
+            <button onclick="downloadCertificatePDF()" class="btn btn-primary btn-sm" id="btnDownloadPdf" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                <i data-lucide="download" id="downloadIcon" style="width: 15px; height: 15px;"></i>
+                <span id="downloadBtnText">Download PDF</span>
+            </button>
+            <button onclick="window.print()" class="btn btn-secondary btn-sm" style="font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" title="Print on paper printer">
+                <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
+                <span>Print</span>
             </button>
             <button onclick="copyVerifyLink()" class="btn btn-secondary btn-sm" id="copyBtn" style="font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                 <i data-lucide="share-2" style="width: 14px; height: 14px;"></i>
@@ -322,6 +327,49 @@
 </div>
 
 <script>
+    async function downloadCertificatePDF() {
+        const certElement = document.getElementById('printableCertificate');
+        const btn = document.getElementById('btnDownloadPdf');
+        const btnText = document.getElementById('downloadBtnText');
+        const originalText = btnText ? btnText.textContent : 'Download PDF';
+
+        if (!certElement) return;
+
+        if (btnText) btnText.textContent = 'Generating PDF...';
+        if (btn) btn.disabled = true;
+
+        const studentName = "{{ certificate.user_name | replace(' ', '_') | e }}";
+        const certId = "{{ certificate.certificate_id | e }}";
+
+        const opt = {
+            margin: [6, 6, 6, 6],
+            filename: `SkillRock_Certificate_${studentName}_${certId}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                scrollX: 0,
+                scrollY: 0
+            },
+            jsPDF: {
+                unit: 'mm',
+                format: 'a4',
+                orientation: 'landscape'
+            }
+        };
+
+        try {
+            await html2pdf().set(opt).from(certElement).save();
+        } catch (err) {
+            console.error('PDF generation error, fallback to print:', err);
+            window.print();
+        } finally {
+            if (btnText) btnText.textContent = originalText;
+            if (btn) btn.disabled = false;
+        }
+    }
+
     function copyVerifyLink() {
         const verifyUrl = "{{ url_for('learning.verify_certificate', cert_id=certificate.certificate_id, _external=True) }}";
         navigator.clipboard.writeText(verifyUrl).then(() => {

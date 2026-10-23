@@ -305,12 +305,12 @@
 
             <div class="interests-actions">
                 <a href="{{ url_for('learning.courses_list') }}" class="skip-link">
-                    Explore all courses first &rarr;
+                    Explore all courses &rarr;
                 </a>
-                <button type="submit" class="btn-submit-interests" id="btnSubmitInterests" disabled>
-                    <span>Save & Go to Learn & Build</span>
+                <a href="{{ url_for('learning.courses_list') }}" class="btn-submit-interests" id="btnGoToCourses" style="text-decoration: none;">
+                    <span>Go to Learn & Build</span>
                     <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
-                </button>
+                </a>
             </div>
         </form>
     </div>
@@ -323,29 +323,42 @@ document.addEventListener("DOMContentLoaded", function() {
     const bubbles = document.querySelectorAll(".interest-bubble");
     const counterDisplay = document.getElementById("counterDisplay");
     const counterHint = document.getElementById("counterHint");
-    const submitBtn = document.getElementById("btnSubmitInterests");
+    const goToCoursesBtn = document.getElementById("btnGoToCourses");
     const MAX_SELECTIONS = 3;
+    let saveDebounceTimer = null;
 
-    function getSelectedCount() {
-        return document.querySelectorAll(".interest-bubble.selected").length;
+    function getSelectedIds() {
+        return Array.from(document.querySelectorAll(".interest-bubble.selected"))
+            .map(b => b.getAttribute("data-id") || b.getAttribute("data-name"))
+            .filter(Boolean);
     }
 
     function updateState() {
-        const count = getSelectedCount();
+        const selected = getSelectedIds();
+        const count = selected.length;
         counterDisplay.textContent = `${count} / ${MAX_SELECTIONS}`;
 
         if (count === 0) {
-            counterHint.textContent = "Please select 1 to 3 topics to proceed";
+            counterHint.innerHTML = "<span>Pick at least 1 topic (saves automatically on click)</span>";
             counterHint.style.color = "#64748B";
-            submitBtn.disabled = true;
+            if (goToCoursesBtn) {
+                goToCoursesBtn.style.opacity = "0.5";
+                goToCoursesBtn.style.pointerEvents = "none";
+            }
         } else if (count < MAX_SELECTIONS) {
-            counterHint.textContent = `You can select ${MAX_SELECTIONS - count} more topic${MAX_SELECTIONS - count > 1 ? 's' : ''}`;
+            counterHint.innerHTML = `<span style="color: #10B981; font-weight: 600;">✓ Auto-saved!</span> You can select ${MAX_SELECTIONS - count} more`;
             counterHint.style.color = "#5B46F6";
-            submitBtn.disabled = false;
+            if (goToCoursesBtn) {
+                goToCoursesBtn.style.opacity = "1";
+                goToCoursesBtn.style.pointerEvents = "auto";
+            }
         } else {
-            counterHint.textContent = "Maximum 3 topics reached. Click any topic to deselect.";
+            counterHint.innerHTML = `<span style="color: #10B981; font-weight: 700;">✓ 3 Topics Selected & Auto-Saved!</span>`;
             counterHint.style.color = "#10B981";
-            submitBtn.disabled = false;
+            if (goToCoursesBtn) {
+                goToCoursesBtn.style.opacity = "1";
+                goToCoursesBtn.style.pointerEvents = "auto";
+            }
         }
 
         // Apply disabled-max class to unselected bubbles if max reached
@@ -363,14 +376,41 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    // Auto-save selected interests to backend immediately on click
+    async function autoSaveInterests() {
+        const selected = getSelectedIds();
+        if (selected.length === 0) return;
+
+        counterHint.innerHTML = `<span style="color: #2563EB;">Saving interests...</span>`;
+
+        try {
+            const res = await fetch("{{ url_for('learning.onboarding_interests') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify({ interests: selected })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                const count = selected.length;
+                counterHint.innerHTML = `<span style="color: #10B981; font-weight: 600;">✓ Saved automatically!</span> (${count}/${MAX_SELECTIONS})`;
+            }
+        } catch (err) {
+            console.error("Auto-save failed:", err);
+            counterHint.innerHTML = `<span style="color: #EF4444;">Could not save automatically. Try clicking again.</span>`;
+        }
+    }
+
     bubbles.forEach(bubble => {
         bubble.addEventListener("click", function() {
             const isSelected = bubble.classList.contains("selected");
-            const count = getSelectedCount();
+            const count = getSelectedIds().length;
 
             if (!isSelected) {
                 if (count >= MAX_SELECTIONS) {
-                    // Shake animation or warning
                     bubble.style.transform = "translateX(4px)";
                     setTimeout(() => bubble.style.transform = "translateX(-4px)", 80);
                     setTimeout(() => bubble.style.transform = "none", 160);
@@ -382,6 +422,12 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             updateState();
+
+            // Debounced auto-save
+            clearTimeout(saveDebounceTimer);
+            saveDebounceTimer = setTimeout(() => {
+                autoSaveInterests();
+            }, 300);
         });
 
         // Keyboard accessibility (Space / Enter)

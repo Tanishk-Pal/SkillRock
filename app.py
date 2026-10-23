@@ -97,6 +97,19 @@ def create_app(config_class=Config):
     def handle_404(e):
         return render_template("errors/404.html"), 404
 
+    # HTTP Security Hardening (OWASP Headers & Anti-Sniffing)
+    @app.after_request
+    def set_security_headers(response):
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        # Prevent caching of sensitive authentication or admin pages
+        if request.path.startswith("/admin") or request.path.startswith("/auth") or request.path.startswith("/signin"):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+        return response
+
     # Ensure user sessions are persistent across browser closes and computer restarts (60 days)
     @app.before_request
     def make_session_permanent():

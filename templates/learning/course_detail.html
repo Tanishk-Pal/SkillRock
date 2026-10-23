@@ -18,36 +18,68 @@
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 28px; margin-bottom: 32px;" class="course-layout-grid">
         <!-- Left: Video Embed & Course Content -->
         <div>
-            <!-- Video Player -->
-            <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 24px; border: 1px solid var(--border-color); background: #000000;">
-                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+            <!-- Video Player with Resume & Progress Tracking -->
+            <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border-color); background: #000000;">
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;" id="ytPlayerContainer">
+                    <div id="skillrockYtPlayer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
                     {% if course.embed_url %}
-                        <iframe 
-                            src="{{ course.embed_url }}" 
-                            title="{{ course.title }}"
-                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                            allowfullscreen>
-                        </iframe>
-                    {% else %}
-                        <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0F172A; color: white; padding: 20px; text-align: center;">
-                            <i data-lucide="video" style="width: 48px; height: 48px; color: #60A5FA; margin-bottom: 12px;"></i>
-                            <h4 style="margin-bottom: 8px;">Direct YouTube Course Resource</h4>
-                            <a href="{{ course.youtube_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="margin-top: 10px;">
-                                Watch on YouTube <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-                            </a>
-                        </div>
+                        <noscript>
+                            <iframe 
+                                src="{{ course.embed_url }}" 
+                                title="{{ course.title }}"
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen>
+                            </iframe>
+                        </noscript>
                     {% endif %}
                 </div>
-                <div style="padding: 12px 18px; background: #0F172A; display: flex; justify-content: space-between; align-items: center;">
+                <div style="padding: 10px 18px; background: #0F172A; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                     <span style="color: #94A3B8; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;">
                         <i data-lucide="info" style="width: 14px; height: 14px; color: #3B82F6;"></i>
-                        Watch full tutorial, build the assignment below, and submit for certification.
+                        Watch lecture here — your playback progress auto-saves so you can resume anytime.
                     </span>
-                    <a href="{{ course.youtube_url }}" target="_blank" rel="noopener noreferrer" style="color: #60A5FA; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                        <span>Open in YouTube</span>
-                        <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
-                    </a>
+                    <span id="playerSaveStatus" style="color: #10B981; font-size: 0.76rem; font-weight: 600;"></span>
+                </div>
+            </div>
+
+            <!-- Lecture Watch Progress & 80% Certificate Requirement Bar -->
+            <div class="card" style="padding: 18px 22px; margin-bottom: 24px; border: 1px solid var(--border-color); background: #FFFFFF; border-radius: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="play-circle" style="width: 20px; height: 20px; color: #2563EB;"></i>
+                        <span style="font-weight: 700; font-size: 0.94rem; color: #0F172A;">Lecture Watch Progress</span>
+                        <span id="resumeBadge" style="font-size: 0.74rem; color: #475569; background: #F1F5F9; border: 1px solid #E2E8F0; padding: 2px 10px; border-radius: 9999px;">
+                            {% if enrollment and enrollment.watch_seconds > 0 %}
+                                Resumed from {{ enrollment.formatted_resume_time }}
+                            {% else %}
+                                Ready to play
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div style="font-size: 0.86rem; font-weight: 700;">
+                        <span id="liveProgressNumber" style="color: {% if enrollment and enrollment.watch_percent >= 80 %}#10B981{% else %}#2563EB{% endif %}; font-size: 1rem;">
+                            {{ enrollment.watch_percent if enrollment else 0 }}%
+                        </span>
+                        <span style="color: #64748B; font-weight: 500;">/ 80% needed for Certificate</span>
+                    </div>
+                </div>
+
+                <!-- Progress Track -->
+                <div style="width: 100%; height: 9px; background: #E2E8F0; border-radius: 9999px; overflow: hidden; margin-bottom: 8px;">
+                    <div id="liveProgressBar" style="width: {{ enrollment.watch_percent if enrollment else 0 }}%; height: 100%; background: {% if enrollment and enrollment.watch_percent >= 80 %}#10B981{% else %}#2563EB{% endif %}; border-radius: 9999px; transition: width 0.4s ease;"></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+                    <span id="progressStatusHint">
+                        {% if enrollment and (enrollment.video_completed or enrollment.watch_percent >= 80) %}
+                            <span style="color: #10B981; font-weight: 700;">🎉 80% Requirement Met — Project submission is unlocked!</span>
+                        {% else %}
+                            <span style="color: #64748B;">Watch at least <strong>80%</strong> of the video lecture to unlock project submission & earn your certificate.</span>
+                        {% endif %}
+                    </span>
+                    <span id="lastSavedTimeText" style="color: #94A3B8; font-size: 0.73rem;"></span>
                 </div>
             </div>
 
@@ -179,11 +211,26 @@
                                 <a href="{{ url_for('learning.my_learning') }}" class="btn btn-secondary" style="font-weight: 600;">
                                     View Submission Status ({{ submission.status_label }})
                                 </a>
+                            {% elif enrollment and (enrollment.video_completed or enrollment.watch_percent >= 80) %}
+                                <div class="project-submit-slot">
+                                    <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 22px; display: inline-flex; align-items: center; gap: 8px;">
+                                        <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
+                                        <span>Submit Your Project</span>
+                                    </a>
+                                </div>
+                            {% elif enrollment %}
+                                <div class="project-submit-slot">
+                                    <button type="button" class="btn btn-secondary" disabled style="opacity: 0.65; cursor: not-allowed; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 10px 20px;" title="Watch 80% of lecture to unlock project submission">
+                                        <i data-lucide="lock" style="width: 15px; height: 15px;"></i>
+                                        <span>Watch 80% to Unlock Project ({{ enrollment.watch_percent }}%)</span>
+                                    </button>
+                                </div>
                             {% else %}
-                                <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 22px; display: inline-flex; align-items: center; gap: 8px;">
-                                    <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
-                                    <span>Submit Your Project</span>
-                                </a>
+                                <form action="{{ url_for('learning.enrol_course', course_id=course.id) }}" method="POST" style="margin: 0;">
+                                    <button type="submit" class="btn btn-primary" style="font-weight: 700; padding: 10px 22px;">
+                                        Enrol Free to Start
+                                    </button>
+                                </form>
                             {% endif %}
                         {% else %}
                             <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 20px;">
@@ -239,11 +286,21 @@
                                 <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-secondary" style="width: 100%; justify-content: center; font-weight: 600; margin-bottom: 8px;">
                                     Update Submission
                                 </a>
-                            {% else %}
-                                {% if assignment %}
-                                    <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; margin-bottom: 8px;">
-                                        Submit Project
-                                    </a>
+                            {% elif assignment %}
+                                {% if enrollment.video_completed or enrollment.watch_percent >= 80 %}
+                                    <div class="project-submit-slot">
+                                        <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 8px;">
+                                            <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
+                                            <span>Submit Project</span>
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <div class="project-submit-slot">
+                                        <button type="button" class="btn btn-secondary" disabled style="width: 100%; justify-content: center; font-weight: 600; margin-bottom: 8px; opacity: 0.65; cursor: not-allowed; display: inline-flex; align-items: center; gap: 6px;">
+                                            <i data-lucide="lock" style="width: 15px; height: 15px;"></i>
+                                            <span>Watch 80% to Submit ({{ enrollment.watch_percent }}%)</span>
+                                        </button>
+                                    </div>
                                 {% endif %}
                             {% endif %}
                         {% else %}
@@ -289,4 +346,172 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+(function() {
+    let player = null;
+    let progressTimer = null;
+    const courseId = "{{ course.id }}";
+    const initialWatchSeconds = {{ enrollment.watch_seconds if enrollment else 0 }};
+    let currentPercent = {{ enrollment.watch_percent if enrollment else 0 }};
+    let videoCompleted = {{ 'true' if (enrollment and (enrollment.video_completed or enrollment.watch_percent >= 80)) else 'false' }};
+    const youtubeVideoId = "{{ course.youtube_video_id or '' }}";
+    const submitProjectUrl = "{{ url_for('learning.submit_project', assignment_id=assignment.id) if assignment else '#' }}";
+
+    // Called automatically by YouTube IFrame API when script loads
+    window.onYouTubeIframeAPIReady = function() {
+        if (!youtubeVideoId || youtubeVideoId.startsWith("playlist:")) {
+            return;
+        }
+
+        player = new YT.Player('skillrockYtPlayer', {
+            videoId: youtubeVideoId,
+            playerVars: {
+                rel: 0,
+                modestbranding: 1,
+                enablejsapi: 1,
+                origin: window.location.origin
+            },
+            events: {
+                onReady: onPlayerReady,
+                onStateChange: onPlayerStateChange
+            }
+        });
+    };
+
+    function onPlayerReady(event) {
+        if (initialWatchSeconds > 0) {
+            try {
+                player.seekTo(initialWatchSeconds, true);
+                const resumeBadge = document.getElementById("resumeBadge");
+                if (resumeBadge) {
+                    resumeBadge.textContent = "Resumed from {{ enrollment.formatted_resume_time if enrollment else 'previous part' }}";
+                    resumeBadge.style.background = "#EFF6FF";
+                    resumeBadge.style.color = "#2563EB";
+                    resumeBadge.style.borderColor = "#BFDBFE";
+                }
+            } catch(e) {
+                console.warn("Could not seek player to saved time:", e);
+            }
+        }
+    }
+
+    function onPlayerStateChange(event) {
+        if (event.data === YT.PlayerState.PLAYING) {
+            if (!progressTimer) {
+                progressTimer = setInterval(syncPlaybackProgress, 12000); // sync every 12 seconds while playing
+            }
+        } else {
+            if (progressTimer) {
+                clearInterval(progressTimer);
+                progressTimer = null;
+            }
+            if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+                syncPlaybackProgress();
+            }
+        }
+    }
+
+    async function syncPlaybackProgress() {
+        if (!player || typeof player.getCurrentTime !== "function") return;
+        const currentSecs = Math.floor(player.getCurrentTime() || 0);
+        const durationSecs = Math.floor(player.getDuration() || 0);
+
+        if (currentSecs <= 0) return;
+
+        try {
+            const res = await fetch("{{ url_for('learning.save_course_progress') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    watch_seconds: currentSecs,
+                    video_duration: durationSecs
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                currentPercent = data.watch_percent;
+                videoCompleted = data.video_completed;
+
+                // Update UI elements
+                const liveProgressNum = document.getElementById("liveProgressNumber");
+                const liveProgressBar = document.getElementById("liveProgressBar");
+                const statusHint = document.getElementById("progressStatusHint");
+                const saveStatus = document.getElementById("playerSaveStatus");
+                const lastSavedTime = document.getElementById("lastSavedTimeText");
+
+                if (liveProgressNum) {
+                    liveProgressNum.textContent = `${currentPercent}%`;
+                }
+                if (liveProgressBar) {
+                    liveProgressBar.style.width = `${currentPercent}%`;
+                    if (currentPercent >= 80) {
+                        liveProgressBar.style.background = "#10B981";
+                        if (liveProgressNum) liveProgressNum.style.color = "#10B981";
+                    }
+                }
+
+                if (saveStatus) {
+                    saveStatus.textContent = "✓ Progress saved";
+                    setTimeout(() => { if (saveStatus) saveStatus.textContent = ""; }, 2500);
+                }
+
+                if (lastSavedTime && data.formatted_resume_time) {
+                    lastSavedTime.textContent = `Auto-saved at ${data.formatted_resume_time}`;
+                }
+
+                // If 80% achieved, unlock project submission buttons!
+                if (videoCompleted || currentPercent >= 80) {
+                    if (statusHint) {
+                        statusHint.innerHTML = '<span style="color: #10B981; font-weight: 700;">🎉 80% Requirement Met — Project submission is unlocked!</span>';
+                    }
+                    unlockSubmitButtons();
+                }
+            }
+        } catch(err) {
+            console.warn("Could not save playback progress:", err);
+        }
+    }
+
+    function unlockSubmitButtons() {
+        const slots = document.querySelectorAll(".project-submit-slot");
+        slots.forEach(slot => {
+            slot.innerHTML = `
+                <a href="${submitProjectUrl}" class="btn btn-primary" style="font-weight: 700; width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 8px;">
+                    <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
+                    <span>Submit Project & Earn Certificate</span>
+                </a>
+            `;
+        });
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    }
+
+    // Save on tab close or navigation
+    window.addEventListener("beforeunload", () => {
+        if (player && typeof player.getCurrentTime === "function") {
+            const currentSecs = Math.floor(player.getCurrentTime() || 0);
+            const durationSecs = Math.floor(player.getDuration() || 0);
+            if (currentSecs > 0 && navigator.sendBeacon) {
+                const payload = JSON.stringify({
+                    course_id: courseId,
+                    watch_seconds: currentSecs,
+                    video_duration: durationSecs
+                });
+                const blob = new Blob([payload], { type: 'application/json' });
+                navigator.sendBeacon("{{ url_for('learning.save_course_progress') }}", blob);
+            }
+        }
+    });
+})();
+</script>
 {% endblock %}

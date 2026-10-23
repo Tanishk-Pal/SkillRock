@@ -7,10 +7,14 @@ BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
 class Config:
+    # Production & Deployment Detection
+    is_render = bool(os.getenv("RENDER") or os.getenv("IS_RENDER"))
+    is_prod = os.getenv("FLASK_ENV", "development").lower() == "production" or is_render
+
     # Flask Security
     SECRET_KEY = os.getenv("SECRET_KEY", "skillswap-campus-production-secret-key-change-me")
-    FLASK_ENV = os.getenv("FLASK_ENV", "development")
-    DEBUG = os.getenv("FLASK_DEBUG", "True").lower() in ("true", "1", "yes")
+    FLASK_ENV = "production" if is_prod else os.getenv("FLASK_ENV", "development")
+    DEBUG = False if is_prod else (os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "yes"))
 
     # MongoDB Configuration (Connected to MongoDB Atlas)
     MONGODB_URI = os.getenv("MONGODB_URI", "").strip()
@@ -41,10 +45,10 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(days=60)
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
-    SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").lower() in ("true", "1", "yes")
+    SESSION_COOKIE_SECURE = is_prod or os.getenv("SESSION_COOKIE_SECURE", "False").lower() in ("true", "1", "yes")
 
     # Flask-Login Persistent "Remember Me" Cookie (60 days)
     REMEMBER_COOKIE_DURATION = timedelta(days=60)
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SAMESITE = "Lax"
-    REMEMBER_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").lower() in ("true", "1", "yes")
+    REMEMBER_COOKIE_SECURE = is_prod or os.getenv("SESSION_COOKIE_SECURE", "False").lower() in ("true", "1", "yes")
