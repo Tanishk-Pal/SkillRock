@@ -138,11 +138,11 @@ def create_app(config_class=Config):
             "app_tagline": settings.get("tagline", "Learn. Teach. Grow Together.")
         }
 
-    # Public Landing Page Route
+    # Public Landing Page Route (Authenticated students land directly on Learn & Build)
     @app.route("/")
     def index():
         if current_user.is_authenticated:
-            return redirect(url_for("dashboard.dashboard"))
+            return redirect(url_for("learning.courses_list"))
 
         # Real platform stats directly from MongoDB
         total_students = User.count()

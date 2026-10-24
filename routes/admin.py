@@ -63,7 +63,7 @@ def require_admin():
 
     if not getattr(current_user, "is_admin", False):
         flash("Access Denied: Administrator privileges required.", "danger")
-        return redirect(url_for("dashboard.dashboard"))
+        return redirect(url_for("learning.courses_list"))
 
 
 # ==============================================================================

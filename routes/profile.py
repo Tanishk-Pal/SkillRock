@@ -213,3 +213,35 @@ def remove_skill(user_skill_id):
         flash("Skill was not found in your profile.", "warning")
 
     return redirect(url_for("profile.profile"))
+
+
+# ==============================================================================
+# Appearance Settings (Light / Dark Theme)
+# ==============================================================================
+
+@profile_bp.route("/settings/appearance", methods=["GET", "POST"])
+@profile_bp.route("/api/appearance", methods=["GET", "POST"])
+def appearance_settings():
+    """
+    Dedicated Appearance Settings endpoint.
+    Provides immediate Light and Dark mode switching, persisted to both
+    MongoDB user profile (for logged in students) and client localStorage.
+    """
+    if request.method == "POST":
+        data = request.get_json(silent=True) or request.form or {}
+        new_theme = data.get("theme", "").strip().lower()
+        if new_theme not in ["light", "dark"]:
+            new_theme = "light"
+
+        if current_user.is_authenticated:
+            current_user.theme = new_theme
+            current_user.save()
+
+        if request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return {"success": True, "theme": new_theme}
+
+        flash(f"Appearance updated to {new_theme.capitalize()} mode.", "success")
+        return redirect(url_for("profile.appearance_settings"))
+
+    current_theme = getattr(current_user, "theme", "light") if current_user.is_authenticated else "light"
+    return render_template("settings/appearance.html", current_theme=current_theme)

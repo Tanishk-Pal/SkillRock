@@ -478,6 +478,17 @@ class User(UserMixin):
         seed = self.avatar_seed or self.name.replace(" ", "_")
         return f"https://api.dicebear.com/7.x/notionists/svg?seed={seed}&backgroundColor=e2e8f0,cbd5e1,f1f5f9"
 
+    # User Appearance Theme Preference ("light" or "dark")
+    @property
+    def theme(self):
+        val = self._data.get("theme", "light")
+        return val if val in ["light", "dark"] else "light"
+
+    @theme.setter
+    def theme(self, value):
+        if value in ["light", "dark"]:
+            self._data["theme"] = value
+
     @property
     def has_google_connected(self):
         return bool(self.google_access_token)
@@ -1393,8 +1404,8 @@ class Course:
             return ""
         if yt_id.startswith("playlist:"):
             playlist_id = yt_id.split(":", 1)[1]
-            return f"https://www.youtube-nocookie.com/embed/videoseries?list={playlist_id}&rel=0&modestbranding=1&enablejsapi=1&controls=0&disablekb=1&iv_load_policy=3"
-        return f"https://www.youtube-nocookie.com/embed/{yt_id}?rel=0&modestbranding=1&enablejsapi=1&controls=0&disablekb=1&iv_load_policy=3"
+            return f"https://www.youtube-nocookie.com/embed/videoseries?list={playlist_id}&rel=0&modestbranding=1&enablejsapi=1&playsinline=1"
+        return f"https://www.youtube-nocookie.com/embed/{yt_id}?rel=0&modestbranding=1&enablejsapi=1&playsinline=1"
 
     @property
     def fallback_thumbnail(self):

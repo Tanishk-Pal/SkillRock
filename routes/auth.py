@@ -49,7 +49,7 @@ def google_login():
     # Never redirect to login, register, or auth callback after authenticating
     raw_next = request.args.get("next") or request.referrer or ""
     if not raw_next or any(x in str(raw_next).lower() for x in ["login", "register", "auth", "signin"]):
-        next_url = url_for("dashboard.dashboard")
+        next_url = url_for("learning.courses_list")
     else:
         next_url = raw_next
     session["oauth_next"] = next_url
@@ -101,9 +101,9 @@ def google_callback():
 
     stored_state = session.get("oauth_state") or request.args.get("state")
     redirect_uri = session.get("oauth_redirect_uri") or get_actual_redirect_uri()
-    next_url = session.pop("oauth_next", url_for("dashboard.dashboard"))
+    next_url = session.pop("oauth_next", url_for("learning.courses_list"))
     if not next_url or any(x in str(next_url).lower() for x in ["login", "register", "auth", "signin"]):
-        next_url = url_for("dashboard.dashboard")
+        next_url = url_for("learning.courses_list")
     linking_user_id = session.pop("linking_user_id", None)
 
     try:

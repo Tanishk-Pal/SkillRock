@@ -61,6 +61,21 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Immediate Theme Initialization (Synchronous execution prevents FOUT / flash of wrong theme) -->
+    <script>
+        (function() {
+            try {
+                var userTheme = "{{ current_user.theme if current_user.is_authenticated else '' }}";
+                var savedTheme = localStorage.getItem("skillrock_theme");
+                var theme = userTheme || savedTheme || "light";
+                if (theme !== "dark" && theme !== "light") theme = "light";
+                document.documentElement.setAttribute("data-theme", theme);
+            } catch(e) {
+                document.documentElement.setAttribute("data-theme", "light");
+            }
+        })();
+    </script>
+
     <!-- Custom SaaS Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
@@ -133,14 +148,22 @@
                                 <i data-lucide="user"></i>
                                 <span>My Profile</span>
                             </a>
-                            <a href="{{ url_for('learning.my_learning') }}" class="pw-dropdown-item" role="menuitem">
+                            <a href="{{ url_for('dashboard.dashboard') }}" class="pw-dropdown-item" role="menuitem">
                                 <i data-lucide="layout-dashboard"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="{{ url_for('learning.my_learning') }}" class="pw-dropdown-item" role="menuitem">
+                                <i data-lucide="layers"></i>
                                 <span>My Learning & Projects</span>
                             </a>
                             <a href="{{ url_for('learning.onboarding_interests') }}" class="pw-dropdown-item" role="menuitem">
                                 <i data-lucide="compass"></i>
                                 <span>Study Interests</span>
                             </a>
+                            <button type="button" class="pw-dropdown-item" id="openAppearanceModalBtn" role="menuitem" style="width: 100%; text-align: left; background: none; border: none; font-size: inherit; font-family: inherit; cursor: pointer;">
+                                <i data-lucide="sun-moon"></i>
+                                <span>Appearance</span>
+                            </button>
                             {% if current_user.is_admin %}
                             <a href="{{ url_for('admin.admin_dashboard') }}" class="pw-dropdown-item pw-admin-item" role="menuitem">
                                 <i data-lucide="shield-check"></i>
@@ -157,6 +180,9 @@
                     </div>
                 {% else %}
                     <!-- Unauthenticated Visitor -->
+                    <button type="button" class="btn btn-secondary btn-sm" id="visitorThemeToggleBtn" style="border-radius: 9999px; padding: 6px 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" title="Toggle Theme" aria-label="Toggle Light and Dark Mode">
+                        <i data-lucide="sun-moon" style="width: 14px; height: 14px;"></i>
+                    </button>
                     <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #FFFFFF; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
                         <i data-lucide="book-open" style="width: 14px; height: 14px;"></i>
                         <span>Courses</span>
@@ -766,11 +792,170 @@
     </nav>
     {% endif %}
 
-    <!-- Initialize Lucide Icons -->
+    <!-- Appearance Settings Modal (Exactly Light and Dark Mode Options) -->
+    <div id="appearanceModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center;" role="dialog" aria-modal="true" aria-labelledby="appearanceModalTitle">
+        <div class="card modal-box" style="width: 100%; max-width: 500px; margin: 20px; padding: 28px; border-radius: 16px; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow-hover); position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(81, 69, 205, 0.12); color: var(--primary-action); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="sun-moon" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <h3 id="appearanceModalTitle" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin: 0;">
+                        Appearance Settings
+                    </h3>
+                </div>
+                <button type="button" id="closeAppearanceModalBtn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" aria-label="Close Appearance Settings">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+            
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 22px; line-height: 1.5;">
+                Select your preferred viewing mode. Your setting applies immediately across all pages and persists on your device.
+            </p>
+
+            <!-- 2 Selectable Options: Light and Dark -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px;">
+                <!-- Light Theme Card -->
+                <button type="button" class="global-theme-btn" data-theme-target="light" style="padding: 18px 16px; border-radius: 12px; border: 2px solid var(--border-color); background: #FFFFFF; text-align: left; cursor: pointer; transition: all 0.15s ease; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div style="width: 32px; height: 32px; border-radius: 8px; background: #F6F7FB; border: 1px solid #E1E6EF; color: #172033; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="sun" style="width: 18px; height: 18px; color: #D97706;"></i>
+                        </div>
+                        <span class="theme-active-check" style="display: none; width: 22px; height: 22px; border-radius: 50%; background: #5145CD; color: white; align-items: center; justify-content: center;">
+                            <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+                        </span>
+                    </div>
+                    <div style="font-weight: 800; font-size: 0.98rem; color: #172033; margin-bottom: 2px;">Light</div>
+                    <div style="font-size: 0.78rem; color: #536176;">Clean daytime reading comfort</div>
+                </button>
+
+                <!-- Dark Theme Card -->
+                <button type="button" class="global-theme-btn" data-theme-target="dark" style="padding: 18px 16px; border-radius: 12px; border: 2px solid var(--border-color); background: #1F2937; text-align: left; cursor: pointer; transition: all 0.15s ease; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div style="width: 32px; height: 32px; border-radius: 8px; background: #111827; border: 1px solid #374151; color: #F3F4F6; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="moon" style="width: 18px; height: 18px; color: #A5B4FC;"></i>
+                        </div>
+                        <span class="theme-active-check" style="display: none; width: 22px; height: 22px; border-radius: 50%; background: #A5B4FC; color: #1E1B4B; align-items: center; justify-content: center;">
+                            <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+                        </span>
+                    </div>
+                    <div style="font-weight: 800; font-size: 0.98rem; color: #F3F4F6; margin-bottom: 2px;">Dark</div>
+                    <div style="font-size: 0.78rem; color: #C0CAD8;">Low-glare extended study mode</div>
+                </button>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="{{ url_for('profile.appearance_settings') }}" style="font-size: 0.82rem; color: var(--primary-action); text-decoration: underline; font-weight: 600;">
+                    Open Full Appearance Page
+                </a>
+                <button type="button" id="doneAppearanceModalBtn" class="btn btn-primary" style="padding: 8px 22px; font-weight: 700; border-radius: 8px;">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initialize Lucide Icons & Theme Logic -->
     <script>
         lucide.createIcons();
     </script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Centralized Theme Controller
+        (function initThemeController() {
+            window.setSkillRockTheme = function(theme) {
+                if (theme !== "dark" && theme !== "light") theme = "light";
+                document.documentElement.setAttribute("data-theme", theme);
+                try {
+                    localStorage.setItem("skillrock_theme", theme);
+                } catch(e) {}
+
+                // Update active UI cards in modal & settings
+                updateThemeUI(theme);
+
+                // Asynchronous sync to backend (persists to user's MongoDB profile)
+                {% if current_user.is_authenticated %}
+                fetch("{{ url_for('profile.appearance_settings') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: JSON.stringify({ theme: theme })
+                }).catch(function(err) {
+                    console.warn("Theme sync notice:", err);
+                });
+                {% endif %}
+            };
+
+            function updateThemeUI(theme) {
+                const current = theme || document.documentElement.getAttribute("data-theme") || "light";
+                document.querySelectorAll(".global-theme-btn, .theme-card-option").forEach(btn => {
+                    const target = btn.getAttribute("data-theme-target") || btn.getAttribute("data-theme-choice");
+                    const check = btn.querySelector(".theme-active-check, .theme-check-badge");
+                    if (target === current) {
+                        btn.style.borderColor = target === "dark" ? "#A5B4FC" : "#5145CD";
+                        if (check) check.style.display = "inline-flex";
+                    } else {
+                        btn.style.borderColor = "var(--border-color)";
+                        if (check) check.style.display = "none";
+                    }
+                });
+            }
+
+            // Bind Modal Triggers
+            const appearanceModal = document.getElementById("appearanceModal");
+            const openBtn = document.getElementById("openAppearanceModalBtn");
+            const closeBtn = document.getElementById("closeAppearanceModalBtn");
+            const doneBtn = document.getElementById("doneAppearanceModalBtn");
+            const visitorToggleBtn = document.getElementById("visitorThemeToggleBtn");
+
+            function showModal() {
+                if (!appearanceModal) return;
+                appearanceModal.style.display = "flex";
+                const current = document.documentElement.getAttribute("data-theme") || "light";
+                updateThemeUI(current);
+                if (window.lucide) lucide.createIcons();
+            }
+
+            function hideModal() {
+                if (!appearanceModal) return;
+                appearanceModal.style.display = "none";
+            }
+
+            if (openBtn) openBtn.addEventListener("click", showModal);
+            if (closeBtn) closeBtn.addEventListener("click", hideModal);
+            if (doneBtn) doneBtn.addEventListener("click", hideModal);
+            if (visitorToggleBtn) {
+                visitorToggleBtn.addEventListener("click", function() {
+                    const cur = document.documentElement.getAttribute("data-theme") || "light";
+                    const next = cur === "dark" ? "light" : "dark";
+                    window.setSkillRockTheme(next);
+                });
+            }
+
+            if (appearanceModal) {
+                appearanceModal.addEventListener("click", function(e) {
+                    if (e.target === appearanceModal) hideModal();
+                });
+                document.addEventListener("keydown", function(e) {
+                    if (e.key === "Escape" && appearanceModal.style.display === "flex") {
+                        hideModal();
+                    }
+                });
+            }
+
+            document.querySelectorAll(".global-theme-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const target = this.getAttribute("data-theme-target");
+                    if (target) window.setSkillRockTheme(target);
+                });
+            });
+
+            // Initial UI sync
+            updateThemeUI(document.documentElement.getAttribute("data-theme") || "light");
+        })();
+    </script>
     <script>
         // Physics Wallah Profile Dropdown Interactive Handler
         (function initPWProfileDropdown() {

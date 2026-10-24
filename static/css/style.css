@@ -1,37 +1,60 @@
 /* SkillSwap Campus — Modern Professional SaaS/Education Stylesheet */
-:root {
-  --bg-page: #F8F9FA;
+/* ==========================================================================
+   Skill Rock — Central Theme System (WCAG 2.2 AA Compliant Light & Dark Modes)
+   ========================================================================== */
+
+:root,
+[data-theme="light"] {
+  --theme-mode: light;
+  
+  /* Specified Light Theme Palette */
+  --bg-page: #F6F7FB;
   --bg-card: #FFFFFF;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F1F5F9;
   --bg-input: #FFFFFF;
   --bg-hover: #F1F5F9;
   
-  --border-color: #E2E8F0;
-  --border-focus: #5B46F6;
+  --border-color: #E1E6EF;
+  --border-focus: #5145CD;
   
-  --primary-navy: #0F172A;
-  --primary-blue: #5B46F6;
-  --primary-blue-hover: #4B38E0;
-  --primary-purple: #5B46F6;
-  --primary-purple-hover: #4B38E0;
+  --text-main: #172033;
+  --text-primary: #172033;
+  --text-secondary: #536176;
+  --text-muted: #8896AB;
+  
+  --primary-action: #5145CD;
+  --primary-action-hover: #4338B8;
+  --primary-action-text: #FFFFFF;
+  --primary-blue: #5145CD;
+  --primary-blue-hover: #4338B8;
+  --primary-navy: #172033;
+  --primary-purple: #5145CD;
+  --primary-purple-hover: #4338B8;
   --primary-purple-light: #EDE9FE;
   --secondary-indigo: #4F46E5;
   --secondary-indigo-hover: #4338CA;
   
-  --text-main: #0F172A;
-  --text-secondary: #64748B;
-  --text-muted: #94A3B8;
-  
-  --success: #16A34A;
+  --success: #15803D;
   --success-bg: #F0FDF4;
   --success-border: #BBF7D0;
   
-  --warning: #D97706;
+  --warning: #B45309;
   --warning-bg: #FEF3C7;
   --warning-border: #FDE68A;
   
-  --danger: #DC2626;
+  --danger: #B91C1C;
   --danger-bg: #FEF2F2;
   --danger-border: #FECACA;
+  
+  --nav-bg: #FFFFFF;
+  --nav-border: #E1E6EF;
+  --sidebar-bg: #FFFFFF;
+  --sidebar-border: #E1E6EF;
+  --dropdown-bg: #FFFFFF;
+  --dropdown-border: #E1E6EF;
+  --footer-bg: #FFFFFF;
+  --footer-border: #E1E6EF;
   
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -39,8 +62,72 @@
   --radius-full: 9999px;
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
-  --shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow-hover: 0 6px 12px -2px rgba(15, 23, 42, 0.08), 0 3px 6px -2px rgba(15, 23, 42, 0.04);
+  
+  --transition: all 0.15s ease-in-out;
+}
+
+[data-theme="dark"] {
+  --theme-mode: dark;
+  
+  /* Specified Dark Theme Palette */
+  --bg-page: #111827;
+  --bg-card: #1F2937;
+  --bg-surface: #1F2937;
+  --bg-elevated: #273449;
+  --bg-input: #1F2937;
+  --bg-hover: #273449;
+  
+  --border-color: #374151;
+  --border-focus: #A5B4FC;
+  
+  --text-main: #F3F4F6;
+  --text-primary: #F3F4F6;
+  --text-secondary: #C0CAD8;
+  --text-muted: #9CA3AF;
+  
+  --primary-action: #A5B4FC;
+  --primary-action-hover: #818CF8;
+  --primary-action-text: #1E1B4B;
+  --primary-blue: #A5B4FC;
+  --primary-blue-hover: #818CF8;
+  --primary-navy: #F3F4F6;
+  --primary-purple: #A5B4FC;
+  --primary-purple-hover: #818CF8;
+  --primary-purple-light: rgba(165, 180, 252, 0.15);
+  --secondary-indigo: #818CF8;
+  --secondary-indigo-hover: #A5B4FC;
+  
+  --success: #4ADE80;
+  --success-bg: rgba(74, 222, 128, 0.12);
+  --success-border: rgba(74, 222, 128, 0.3);
+  
+  --warning: #FBBF24;
+  --warning-bg: rgba(251, 191, 36, 0.12);
+  --warning-border: rgba(251, 191, 36, 0.3);
+  
+  --danger: #FCA5A5;
+  --danger-bg: rgba(252, 165, 165, 0.12);
+  --danger-border: rgba(252, 165, 165, 0.3);
+  
+  --nav-bg: #1F2937;
+  --nav-border: #374151;
+  --sidebar-bg: #1F2937;
+  --sidebar-border: #374151;
+  --dropdown-bg: #1F2937;
+  --dropdown-border: #374151;
+  --footer-bg: #1F2937;
+  --footer-border: #374151;
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+  --shadow-hover: 0 8px 16px -2px rgba(0, 0, 0, 0.35);
   
   --transition: all 0.15s ease-in-out;
 }
@@ -449,19 +536,19 @@ a:hover {
 }
 
 .btn-primary {
-  background: var(--primary-blue);
-  color: #FFFFFF;
-  border-color: var(--primary-blue);
+  background: var(--primary-action);
+  color: var(--primary-action-text);
+  border-color: var(--primary-action);
 }
 
 .btn-primary:hover {
-  background: var(--primary-blue-hover);
-  border-color: var(--primary-blue-hover);
-  color: #FFFFFF;
+  background: var(--primary-action-hover);
+  border-color: var(--primary-action-hover);
+  color: var(--primary-action-text);
 }
 
 .btn-secondary {
-  background: #FFFFFF;
+  background: var(--bg-card);
   color: var(--text-main);
   border-color: var(--border-color);
 }
@@ -473,12 +560,12 @@ a:hover {
 
 .btn-outline {
   background: transparent;
-  color: var(--primary-blue);
-  border-color: var(--primary-blue);
+  color: var(--primary-action);
+  border-color: var(--primary-action);
 }
 
 .btn-outline:hover {
-  background: #EFF6FF;
+  background: var(--bg-hover);
 }
 
 .btn-success {
@@ -1650,10 +1737,10 @@ html {
    PHYSICS WALLAH (PW) DESIGN SYSTEM — TOP NAVBAR, SIDEBAR & PALETTE
    ========================================================================== */
 
-/* Dark Modern PW Header */
+/* Top Navbar — Adapts to Light and Dark Mode */
 .navbar-pw {
-  background: #181A20;
-  border-bottom: 1px solid #282C37;
+  background: var(--nav-bg);
+  border-bottom: 1px solid var(--nav-border);
   position: fixed;
   top: 0;
   left: 0;
@@ -1691,7 +1778,7 @@ html {
 .pw-brand-text {
   font-size: 1.3rem;
   font-weight: 800;
-  color: #FFFFFF;
+  color: var(--text-main);
   letter-spacing: -0.02em;
   display: inline-flex;
   align-items: center;
@@ -1709,9 +1796,9 @@ html {
 .pw-brand-author {
   font-size: 0.68rem;
   font-weight: 700;
-  color: #A78BFA;
-  background: rgba(167, 139, 250, 0.15);
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  color: var(--primary-action);
+  background: rgba(81, 69, 205, 0.12);
+  border: 1px solid var(--border-color);
   padding: 2px 7px;
   border-radius: 9999px;
   margin-left: 4px;
@@ -1741,7 +1828,7 @@ html {
 .pw-user-greeting {
   font-size: 0.88rem;
   font-weight: 600;
-  color: #E2E8F0;
+  color: var(--text-main);
 }
 
 /* Profile Dropdown Wrap (PW Style with Logout merged inside) */
@@ -1764,7 +1851,7 @@ html {
 
 .pw-avatar-trigger:hover,
 .pw-avatar-trigger.open {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-hover);
 }
 
 .pw-avatar-img {
@@ -1772,13 +1859,13 @@ html {
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #5B46F6;
+  border: 2px solid var(--primary-action);
 }
 
 .pw-chevron-icon {
   width: 16px;
   height: 16px;
-  color: #94A3B8;
+  color: var(--text-secondary);
   transition: transform 0.2s ease;
 }
 
@@ -1791,10 +1878,10 @@ html {
   top: calc(100% + 10px);
   right: 0;
   width: 240px;
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
+  background: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
   border-radius: 14px;
-  box-shadow: 0 15px 35px -5px rgba(15, 23, 42, 0.15), 0 10px 15px -8px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-hover);
   padding: 8px 0;
   display: none;
   z-index: 1100;
@@ -1818,13 +1905,13 @@ html {
 
 .pw-dropdown-header {
   padding: 10px 18px 12px 18px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .pw-dropdown-name {
   font-size: 0.92rem;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1832,7 +1919,7 @@ html {
 
 .pw-dropdown-email {
   font-size: 0.78rem;
-  color: #64748B;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1845,7 +1932,7 @@ html {
   padding: 10px 18px;
   font-size: 0.88rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--text-main);
   text-decoration: none;
   transition: all 0.15s ease;
 }
@@ -1854,17 +1941,17 @@ html {
 .pw-dropdown-item svg {
   width: 17px;
   height: 17px;
-  color: #64748B;
+  color: var(--text-secondary);
 }
 
 .pw-dropdown-item:hover {
-  background: #F8FAFC;
-  color: #5B46F6;
+  background: var(--bg-hover);
+  color: var(--primary-action);
 }
 
 .pw-dropdown-item:hover i,
 .pw-dropdown-item:hover svg {
-  color: #5B46F6;
+  color: var(--primary-action);
 }
 
 .pw-dropdown-item.pw-admin-item {
@@ -1877,7 +1964,7 @@ html {
 
 .pw-dropdown-divider {
   height: 1px;
-  background: #F1F5F9;
+  background: var(--border-color);
   margin: 6px 0;
 }
 
@@ -1890,7 +1977,7 @@ html {
 }
 
 .pw-dropdown-item.pw-logout-item:hover {
-  background: #FEF2F2;
+  background: rgba(239, 68, 68, 0.1);
   color: #DC2626;
 }
 
@@ -1903,12 +1990,12 @@ html {
   bottom: 0;
   left: 0;
   width: 230px;
-  background: #FFFFFF;
-  border-right: 1px solid #E5E7EB;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
   z-index: 990;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #E2E8F0 transparent;
+  scrollbar-color: var(--border-color) transparent;
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -1923,7 +2010,7 @@ html {
 .pw-group-title {
   font-size: 0.72rem;
   font-weight: 800;
-  color: #94A3B8;
+  color: var(--text-muted);
   letter-spacing: 0.06em;
   padding: 6px 12px;
   text-transform: uppercase;
@@ -1937,7 +2024,7 @@ html {
   border-radius: 10px;
   font-size: 0.88rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--text-secondary);
   text-decoration: none;
   transition: all 0.15s ease;
   margin-bottom: 4px;
@@ -1948,6 +2035,39 @@ html {
 .pw-nav-item svg {
   width: 19px;
   height: 19px;
+  color: var(--text-secondary);
+}
+
+.pw-nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.pw-nav-item:hover i,
+.pw-nav-item:hover svg {
+  color: var(--text-main);
+}
+
+.pw-nav-item.active {
+  background: rgba(81, 69, 205, 0.12);
+  color: var(--primary-action);
+  font-weight: 700;
+}
+
+.pw-nav-item.active i,
+.pw-nav-item.active svg {
+  color: var(--primary-action);
+}
+
+[data-theme="dark"] .pw-nav-item.active {
+  background: rgba(165, 180, 252, 0.15);
+  color: #A5B4FC;
+}
+
+[data-theme="dark"] .pw-nav-item.active i,
+[data-theme="dark"] .pw-nav-item.active svg {
+  color: #A5B4FC;
+}
   color: #64748B;
   flex-shrink: 0;
   transition: color 0.15s ease;
