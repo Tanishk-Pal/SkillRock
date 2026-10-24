@@ -58,8 +58,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Lucide Icons (Pinned version & deferred to eliminate render-blocking delay) -->
+    <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
 
     <!-- Immediate Theme Initialization (Synchronous execution prevents FOUT / flash of wrong theme) -->
     <script>
@@ -76,8 +76,26 @@
         })();
     </script>
 
-    <!-- Custom SaaS Stylesheet -->
+    <!-- Custom SaaS Stylesheet Preload & Link -->
+    <link rel="preload" href="{{ url_for('static', filename='css/style.css') }}" as="style">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        /* Instant Client-Side Navigation Feedback Bar (P95 < 50ms visual response) */
+        #topProgressBar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, #5145CD 0%, #818CF8 50%, #38BDF8 100%);
+            z-index: 999999;
+            opacity: 0;
+            pointer-events: none;
+            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.65);
+        }
+    </style>
     
     <noscript>
         <style>
@@ -89,6 +107,9 @@
     {% block head %}{% endblock %}
 </head>
 <body>
+    <!-- Top Instant Navigation Progress Bar -->
+    <div id="topProgressBar" aria-hidden="true"></div>
+
     <!-- Small Centered Blue Wheel Loader for Functions/Actions (Add Skill, Enroll, Submit, etc.) -->
     <div id="actionWheelLoader" class="action-wheel-overlay" style="display: none;" role="status" aria-live="polite">
         <div class="action-wheel-box">
@@ -857,7 +878,46 @@
 
     <!-- Initialize Lucide Icons & Theme Logic -->
     <script>
-        lucide.createIcons();
+        function renderLucide() {
+            if (window.lucide && typeof window.lucide.createIcons === "function") {
+                window.lucide.createIcons();
+            }
+        }
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", renderLucide);
+        } else {
+            renderLucide();
+        }
+        window.addEventListener("load", renderLucide);
+
+        // Instant Client-Side Navigation Progress Indicator (< 50ms visual response)
+        (function initInstantNavFeedback() {
+            var bar = document.getElementById("topProgressBar");
+            if (!bar) return;
+
+            document.addEventListener("click", function(e) {
+                var link = e.target.closest("a");
+                if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
+                var href = link.getAttribute("href");
+                if (!href || href.startsWith("#") || href.startsWith("javascript:") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+                if (link.origin && link.origin !== window.location.origin) return;
+
+                // Immediate visual response in < 30ms
+                bar.style.opacity = "1";
+                bar.style.width = "40%";
+                setTimeout(function() {
+                    if (bar.style.width === "40%") bar.style.width = "75%";
+                }, 200);
+            });
+
+            window.addEventListener("pageshow", function() {
+                bar.style.width = "100%";
+                setTimeout(function() {
+                    bar.style.opacity = "0";
+                    setTimeout(function() { bar.style.width = "0%"; }, 200);
+                }, 150);
+            });
+        })();
     </script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>

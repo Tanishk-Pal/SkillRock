@@ -162,8 +162,19 @@ def calculate_match_score(user_a, user_b):
         "mutual_pairs": mutual_pairs
     }
 
+_top_matches_cache = {}
+
 def get_top_matches_for_user(user, limit=3):
-    """Retrieves top recommended students from MongoDB sorted by compatibility score."""
+    """Retrieves top recommended students from MongoDB sorted by compatibility score with 60s memory caching."""
+    import time
+    user_id_str = str(getattr(user, "id", ""))
+    cache_key = (user_id_str, limit)
+    now = time.time()
+    if cache_key in _top_matches_cache:
+        cached_time, cached_results = _top_matches_cache[cache_key]
+        if now - cached_time < 60:
+            return cached_results
+
     from models import User
     from models.mongo import _to_obj_id
 
@@ -189,4 +200,8 @@ def get_top_matches_for_user(user, limit=3):
         })
 
     results.sort(key=lambda x: x["score"], reverse=True)
-    return results[:limit]
+    top_results = results[:limit]
+    _top_matches_cache[cache_key] = (now, top_results)
+    if len(_top_matches_cache) > 200:
+        _top_matches_cache.clear()
+    return top_results

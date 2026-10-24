@@ -36,16 +36,39 @@ def dashboard():
     # Display name with sensible fallback
     display_name = current_user.name.split()[0] if current_user.name else (current_user.email.split("@")[0] if current_user.email else "Student")
 
-    # 1. Enrolled Courses with genuine progress tracking
+    from models.mongo import _to_obj_id
+
+    # 1. Verified Certificates (Fetched once and indexed into in-memory map)
+    certificates = Certificate.find_by_user(current_user.id) or []
+    cert_map = {str(getattr(c, "course_id", "")): c for c in certificates if getattr(c, "course_id", None)}
+
+    # 2. Student Projects and Submissions (Fetched once, certificate attached in O(1) memory lookup)
+    submissions = Submission.find_by_user(current_user.id) or []
+    sub_by_asg = {}
+    for sub in submissions:
+        sub.certificate = cert_map.get(str(getattr(sub, "course_id", None)))
+        asg_id = str(getattr(sub, "assignment_id", ""))
+        if asg_id and asg_id not in sub_by_asg:
+            sub_by_asg[asg_id] = sub
+
+    # 3. Enrolled Courses with batch pre-fetching (zero N+1 database roundtrips)
     enrollments = Enrollment.find_by_user(current_user.id) or []
     enrolled_courses = []
+    
+    c_ids = [_to_obj_id(e.course_id) for e in enrollments if getattr(e, "course_id", None)]
+    c_objs = Course.find_all({"_id": {"$in": c_ids}}) if c_ids else []
+    c_map = {str(c.id): c for c in c_objs}
+    asg_map = Assignment.get_by_courses([str(c.id) for c in c_objs]) if c_objs else {}
+    for crs in c_objs:
+        crs._cached_assignment = asg_map.get(str(crs.id))
+
     for enr in enrollments:
         try:
-            crs = getattr(enr, "course", None)
+            crs = c_map.get(str(enr.course_id)) or getattr(enr, "course", None)
             if crs:
-                asg = getattr(crs, "assignment", None)
-                sub = Submission.get_latest(current_user.id, asg.id) if asg else None
-                cert = Certificate.get_by_user_course(current_user.id, crs.id)
+                asg = asg_map.get(str(crs.id)) or getattr(crs, "assignment", None)
+                sub = sub_by_asg.get(str(asg.id)) if asg else None
+                cert = cert_map.get(str(crs.id))
                 enrolled_courses.append({
                     "enrollment": enr,
                     "course": crs,
@@ -55,17 +78,6 @@ def dashboard():
                 })
         except Exception:
             continue
-
-    # 2. Student Projects and Submissions
-    submissions = Submission.find_by_user(current_user.id) or []
-    for sub in submissions:
-        try:
-            sub.certificate = Certificate.get_by_user_course(current_user.id, getattr(sub, "course_id", None))
-        except Exception:
-            sub.certificate = None
-
-    # 3. Verified Certificates
-    certificates = Certificate.find_by_user(current_user.id) or []
 
     # 4. Peer Learning / Skill Exchange (Secondary compact matches & upcoming sessions)
     try:

@@ -97,17 +97,41 @@ def create_app(config_class=Config):
     def handle_404(e):
         return render_template("errors/404.html"), 404
 
-    # HTTP Security Hardening (OWASP Headers & Anti-Sniffing)
+    # HTTP Security Hardening, Response Gzip Compression & Static Asset Caching
     @app.after_request
     def set_security_headers(response):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        # Prevent caching of sensitive authentication or admin pages
-        if request.path.startswith("/admin") or request.path.startswith("/auth") or request.path.startswith("/signin"):
+        
+        # Cache static assets (CSS, JS, images, fonts) for high performance
+        if request.path.startswith("/static/"):
+            response.headers["Cache-Control"] = "public, max-age=86400, stale-while-revalidate=604800"
+        elif request.path.startswith("/admin") or request.path.startswith("/auth") or request.path.startswith("/signin"):
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
             response.headers["Pragma"] = "no-cache"
+
+        # Transparent Gzip Compression for HTML, CSS, JS, and JSON payloads > 500 bytes
+        accept_encoding = request.headers.get("Accept-Encoding", "")
+        if (
+            "gzip" in accept_encoding.lower()
+            and response.status_code == 200
+            and not response.direct_passthrough
+            and response.mimetype in ["text/html", "text/css", "application/javascript", "application/json", "text/plain"]
+        ):
+            try:
+                import gzip
+                content = response.get_data()
+                if len(content) > 500:
+                    compressed = gzip.compress(content, compresslevel=6)
+                    response.set_data(compressed)
+                    response.headers["Content-Encoding"] = "gzip"
+                    response.headers["Content-Length"] = len(compressed)
+                    response.headers["Vary"] = "Accept-Encoding"
+            except Exception:
+                pass
+
         return response
 
     # Ensure user sessions are persistent across browser closes and computer restarts (60 days)
@@ -118,25 +142,28 @@ def create_app(config_class=Config):
     # Context processor for global navbar badges, admin status, and platform settings
     @app.context_processor
     def inject_global_data():
-        pending_requests_count = 0
-        unread_messages_count = 0
-        if current_user.is_authenticated and current_user.id:
-            pending_requests_count = SwapRequest.count({
-                "receiver_id": str(current_user.id),
-                "status": "pending"
-            })
-            unread_messages_count = Message.count_unread(current_user.id)
+        from flask import g
+        if not hasattr(g, "_cached_global_data"):
+            pending_requests_count = 0
+            unread_messages_count = 0
+            if current_user.is_authenticated and current_user.id:
+                pending_requests_count = SwapRequest.count({
+                    "receiver_id": str(current_user.id),
+                    "status": "pending"
+                })
+                unread_messages_count = Message.count_unread(current_user.id)
 
-        settings = PlatformSettings.get_settings()
-        return {
-            "pending_requests_count": pending_requests_count,
-            "unread_messages_count": unread_messages_count,
-            "platform_settings": settings,
-            "announcement_enabled": settings.get("announcement_enabled", False),
-            "announcement_text": settings.get("announcement_text", ""),
-            "app_name": settings.get("platform_name", "Skill Rock"),
-            "app_tagline": settings.get("tagline", "Learn. Teach. Grow Together.")
-        }
+            settings = PlatformSettings.get_settings()
+            g._cached_global_data = {
+                "pending_requests_count": pending_requests_count,
+                "unread_messages_count": unread_messages_count,
+                "platform_settings": settings,
+                "announcement_enabled": settings.get("announcement_enabled", False),
+                "announcement_text": settings.get("announcement_text", ""),
+                "app_name": settings.get("platform_name", "Skill Rock"),
+                "app_tagline": settings.get("tagline", "Learn. Teach. Grow Together.")
+            }
+        return g._cached_global_data
 
     # Public Landing Page Route (Authenticated students land directly on Learn & Build)
     @app.route("/")

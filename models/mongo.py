@@ -82,6 +82,7 @@ def init_indexes(db):
 
         # Swap Requests
         db.swap_requests.create_index([("sender_id", 1), ("receiver_id", 1), ("status", 1)])
+        db.swap_requests.create_index([("receiver_id", 1), ("status", 1)])
         db.swap_requests.create_index("receiver_id")
         db.swap_requests.create_index("sender_id")
 
@@ -109,6 +110,7 @@ def init_indexes(db):
         db.courses.create_index("slug", unique=True)
         db.courses.create_index("category")
         db.courses.create_index("is_published")
+        db.courses.create_index([("is_published", 1), ("category", 1)])
 
         # Assignments
         db.assignments.create_index("course_id")
@@ -116,6 +118,7 @@ def init_indexes(db):
         # Enrollments (unique student per course)
         db.enrollments.create_index([("user_id", 1), ("course_id", 1)], unique=True)
         db.enrollments.create_index("user_id")
+        db.enrollments.create_index([("user_id", 1), ("status", 1)])
 
         # Submissions
         db.submissions.create_index([("user_id", 1), ("assignment_id", 1)])
@@ -128,6 +131,9 @@ def init_indexes(db):
         # Certificates (tamper-proof uniqueness)
         db.certificates.create_index("certificate_id", unique=True)
         db.certificates.create_index([("user_id", 1), ("course_id", 1)], unique=True)
+
+        # Platform Settings
+        db.platform_settings.create_index("key", unique=True)
     except Exception as e:
         logger.debug(f"Index creation note: {e}")
 
@@ -640,15 +646,18 @@ class User(UserMixin):
 
         if self._id:
             db[self.collection_name].update_one({"_id": self._id}, {"$set": self._data})
+            User._user_cache.pop(str(self._id), None)
         else:
             self._data["created_at"] = datetime.now(timezone.utc)
             res = db[self.collection_name].insert_one(self._data)
             self._id = res.inserted_id
             self.id = str(self._id)
+            User._user_cache.pop(str(self.id), None)
         return self
 
     def delete(self):
         if self._id:
+            User._user_cache.pop(str(self._id), None)
             User.delete_cascading(self.id)
 
     @classmethod
@@ -656,6 +665,7 @@ class User(UserMixin):
         """Permanently deletes a user and cascades deletion to all their relations."""
         if not user_id:
             return False
+        cls._user_cache.pop(str(user_id), None)
         db = get_db()
         uid = str(user_id)
         oid = _to_obj_id(uid)
@@ -673,6 +683,9 @@ class User(UserMixin):
         db.ratings.delete_many({"$or": [{"reviewer_id": uid}, {"reviewee_id": uid}]})
         return True
 
+    _user_cache = {}
+    _user_cache_ttl = 30  # seconds
+
     @classmethod
     def create(cls, **kwargs):
         user = cls(kwargs)
@@ -683,9 +696,21 @@ class User(UserMixin):
     def get_by_id(cls, user_id):
         if not user_id:
             return None
+        import time
+        now = time.time()
+        uid_str = str(user_id)
+        cached = cls._user_cache.get(uid_str)
+        if cached and (now - cached[0] < cls._user_cache_ttl):
+            return cached[1]
+
         db = get_db()
         doc = db[cls.collection_name].find_one({"_id": _to_obj_id(user_id)})
-        return cls(doc) if doc else None
+        user_obj = cls(doc) if doc else None
+        if user_obj:
+            cls._user_cache[uid_str] = (now, user_obj)
+            if len(cls._user_cache) > 200:
+                cls._user_cache.clear()
+        return user_obj
 
     @classmethod
     def get_by_email(cls, email):
@@ -1418,7 +1443,37 @@ class Course:
 
     @property
     def assignment(self):
-        return Assignment.get_by_course(self.id)
+        if hasattr(self, "_cached_assignment"):
+            return self._cached_assignment
+        self._cached_assignment = Assignment.get_by_course(self.id)
+        return self._cached_assignment
+
+    _published_courses_cache = None
+    _published_courses_cache_time = 0
+
+    @classmethod
+    def get_published_courses(cls):
+        """Retrieves and caches all published courses with preloaded assignments (60s TTL)."""
+        import time
+        now = time.time()
+        if cls._published_courses_cache is not None and (now - cls._published_courses_cache_time < 60):
+            return cls._published_courses_cache
+
+        courses = cls.find_all(query={"is_published": True}, sort=[("created_at", -1)]) or []
+        if courses:
+            course_ids = [str(c.id) for c in courses]
+            asg_map = Assignment.get_by_courses(course_ids)
+            for c in courses:
+                c._cached_assignment = asg_map.get(str(c.id))
+
+        cls._published_courses_cache = courses
+        cls._published_courses_cache_time = now
+        return courses
+
+    @classmethod
+    def invalidate_published_cache(cls):
+        cls._published_courses_cache = None
+        cls._published_courses_cache_time = 0
 
     @property
     def enrolled_count(self):
@@ -1454,9 +1509,11 @@ class Course:
             res = db[self.collection_name].insert_one(self._data)
             self._id = res.inserted_id
             self.id = str(self._id)
+        Course.invalidate_published_cache()
         return self
 
     def delete(self):
+        Course.invalidate_published_cache()
         if self._id:
             db = get_db()
             db.assignments.delete_many({"course_id": str(self.id)})
@@ -1575,6 +1632,16 @@ class Assignment:
         db = get_db()
         doc = db[cls.collection_name].find_one({"course_id": str(course_id)})
         return cls(doc) if doc else None
+
+    @classmethod
+    def get_by_courses(cls, course_ids):
+        """Batch fetches assignments for multiple courses in a single query."""
+        if not course_ids:
+            return {}
+        db = get_db()
+        str_ids = [str(cid) for cid in course_ids if cid]
+        docs = db[cls.collection_name].find({"course_id": {"$in": str_ids}})
+        return {str(doc.get("course_id")): cls(doc) for doc in docs}
 
 
 class Enrollment:
@@ -2035,10 +2102,17 @@ class Certificate:
 
 class PlatformSettings:
     collection_name = "platform_settings"
+    _cached_settings = None
+    _cached_settings_time = 0
 
     @classmethod
     def get_settings(cls):
-        """Retrieves system-wide configurations from MongoDB with safe defaults."""
+        """Retrieves system-wide configurations from MongoDB with safe defaults & 60s in-memory caching."""
+        import time
+        now = time.time()
+        if cls._cached_settings is not None and (now - cls._cached_settings_time < 60):
+            return cls._cached_settings
+
         db = get_db()
         doc = db[cls.collection_name].find_one({"key": "main_config"})
         if not doc:
@@ -2057,17 +2131,26 @@ class PlatformSettings:
             }
             try:
                 db[cls.collection_name].insert_one(default_config)
+                cls._cached_settings = default_config
+                cls._cached_settings_time = now
                 return default_config
             except Exception:
+                cls._cached_settings = default_config
+                cls._cached_settings_time = now
                 return default_config
+
+        cls._cached_settings = doc
+        cls._cached_settings_time = now
         return doc
 
     @classmethod
     def update_settings(cls, updates):
-        """Updates system-wide configurations in MongoDB."""
+        """Updates system-wide configurations in MongoDB and invalidates in-memory cache."""
         db = get_db()
         updates["updated_at"] = datetime.now(timezone.utc)
         db[cls.collection_name].update_one({"key": "main_config"}, {"$set": updates}, upsert=True)
+        cls._cached_settings = None
+        cls._cached_settings_time = 0
         return cls.get_settings()
 
 

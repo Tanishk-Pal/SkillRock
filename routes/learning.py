@@ -220,7 +220,15 @@ def courses_list():
                 {"language": {"$regex": safe_search, "$options": "i"}}
             ]
 
-        courses = Course.find_all(query=query, sort=[("created_at", -1)]) or []
+        if (not category or category == "All") and not difficulty and not language and not search:
+            courses = Course.get_published_courses() or []
+        else:
+            courses = Course.find_all(query=query, sort=[("created_at", -1)]) or []
+            if courses:
+                course_ids = [str(c.id) for c in courses]
+                asg_map = Assignment.get_by_courses(course_ids)
+                for c in courses:
+                    c._cached_assignment = asg_map.get(str(c.id))
 
         # Collect enrolled course IDs and certified course IDs for the logged-in user
         enrolled_course_ids = set()
@@ -265,12 +273,16 @@ def courses_list():
         else:
             other_courses = list(courses)
 
-        # Distinct categories for filter pills
+        # Distinct categories for filter pills (in-memory extraction when viewing all courses, avoiding remote roundtrip)
         available_categories = []
         try:
-            db = get_db()
-            raw_cats = db.courses.distinct("category", {"is_published": True}) or []
-            available_categories = [str(c).strip() for c in raw_cats if c and str(c).strip()]
+            if not category or category == "All":
+                cat_set = set(str(getattr(c, "category", "")).strip() for c in courses if getattr(c, "category", None))
+                available_categories = sorted(list(cat_set))
+            if not available_categories:
+                db = get_db()
+                raw_cats = db.courses.distinct("category", {"is_published": True}) or []
+                available_categories = [str(c).strip() for c in raw_cats if c and str(c).strip()]
         except Exception as e_cat:
             logger.warning(f"Could not fetch distinct categories: {e_cat}")
             available_categories = ["Programming", "Web Development", "AI & Machine Learning", "Data Science", "Mobile Apps"]
