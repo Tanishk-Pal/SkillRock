@@ -170,6 +170,14 @@ def create_app(config_class=Config):
     def root_courses():
         return redirect(url_for("learning.courses_list"))
 
+    # Lightweight Health Check Endpoint for Keep-Alive & Monitoring (Uptime pings)
+    @app.route("/healthz", methods=["GET", "HEAD"])
+    @app.route("/health", methods=["GET", "HEAD"])
+    def health_check():
+        if request.method == "HEAD":
+            return Response(status=200, mimetype="application/json")
+        return Response('{"status":"ok","app":"SkillRock"}', status=200, mimetype="application/json")
+
     # SEO: Robots.txt for Search Engines
     @app.route("/robots.txt")
     def robots_txt():

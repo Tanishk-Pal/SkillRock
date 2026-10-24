@@ -192,3 +192,14 @@ Open your browser at:
   - Session scheduling collision guard (`connection_id` + `scheduled_date` + `scheduled_time`).
   - Single-review per session guard (`session_id` + `reviewer_id`).
   - Duplicate XP prevention flags (`xp_awarded = True`).
+
+---
+
+## ⚡ Keep-Alive for Render Free Tier
+
+Render's free web services sleep after ~15 minutes of inactivity, resulting in slow 30–50s cold starts. This repository includes an automated GitHub Action workflow ([`.github/workflows/keep-alive.yml`](.github/workflows/keep-alive.yml)) that pings the lightweight `/healthz` endpoint every 10 minutes to keep the instance continuously warm.
+
+- **Endpoint**: `https://skillrock.onrender.com/healthz` (returns `{"status":"ok"}` in < 50ms without hitting MongoDB)
+- **Schedule**: Every 10 minutes (`*/10 * * * *`)
+- **Manual Trigger**: Under the **Actions** tab on GitHub → *Keep Render Instance Alive* → *Run workflow*
+- **Local Test**: `./scripts/ping.sh https://skillrock.onrender.com/healthz`

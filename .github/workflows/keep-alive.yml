@@ -1,0 +1,36 @@
+name: Keep Render Instance Alive
+
+# Runs every 10 minutes to prevent Render free-tier instance from sleeping (~15 min inactivity window).
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL to ping (overrides TARGET_URL)'
+        required: false
+        default: ''
+
+jobs:
+  ping:
+    name: Ping Service
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make ping script executable
+        run: chmod +x scripts/ping.sh
+
+      - name: Execute keep-alive ping
+        env:
+          INPUT_URL: ${{ github.event.inputs.url }}
+          VARS_TARGET_URL: ${{ vars.TARGET_URL }}
+          SECRETS_TARGET_URL: ${{ secrets.TARGET_URL }}
+          HTTP_METHOD: ${{ vars.HTTP_METHOD || 'GET' }}
+          EXPECTED_STATUS: ${{ vars.EXPECTED_STATUS || '200' }}
+          FAIL_ON_ERROR: ${{ vars.FAIL_ON_ERROR || 'false' }}
+        run: |
+          # Priority: manual input -> repository variable -> secret -> default fallback
+          RESOLVED_URL="${INPUT_URL:-${VARS_TARGET_URL:-${SECRETS_TARGET_URL:-https://skillrock.onrender.com/healthz}}}"
+          TARGET_URL="$RESOLVED_URL" ./scripts/ping.sh
