@@ -420,9 +420,16 @@ def save_course_progress():
     except (ValueError, TypeError):
         video_duration = 0
 
+    stored_max = int(getattr(enrollment, "max_watch_seconds", 0) or 0)
+    # Anti-skip guard: prevent client from jumping arbitrarily ahead to bypass 80% requirement
+    if stored_max > 0 and not getattr(enrollment, "video_completed", False):
+        if watch_seconds > stored_max + 30:
+            # Clamp to allowed incremental playback
+            watch_seconds = stored_max + 15
+
     if watch_seconds > 0:
         enrollment.watch_seconds = watch_seconds
-        enrollment.max_watch_seconds = max(getattr(enrollment, "max_watch_seconds", 0), watch_seconds)
+        enrollment.max_watch_seconds = max(stored_max, watch_seconds)
 
     if video_duration > 0:
         enrollment.video_duration = video_duration

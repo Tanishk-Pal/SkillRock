@@ -56,6 +56,65 @@ def is_gemini_configured():
     return len(get_gemini_api_keys()) > 0
 
 
+def execute_fast_gemini_rest(prompt_text, system_instruction=""):
+    """
+    Executes a high-speed Gemini API call using direct REST HTTP requests.
+    Bypasses SDK retry delays with strict 7s timeouts and instant multi-model / multi-key failover.
+    Uses ultra-fast lightweight models (gemini-3.5-flash-lite) for lightning response times.
+    """
+    global _current_key_idx
+    keys = get_gemini_api_keys()
+    if not keys:
+        raise ValueError("No Gemini API keys configured. Please add GEMINI_API_KEY_1..10 in .env.")
+
+    fast_models = ["gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-3.8-flash"]
+    payload = {
+        "contents": [{"parts": [{"text": prompt_text}]}],
+        "generationConfig": {
+            "maxOutputTokens": 850,
+            "temperature": 0.7
+        }
+    }
+    if system_instruction:
+        payload["systemInstruction"] = {
+            "parts": [{"text": system_instruction}]
+        }
+
+    total_keys = len(keys)
+    attempts = 0
+    last_err = None
+
+    while attempts < min(total_keys, 6):
+        active_idx = _current_key_idx % total_keys
+        api_key = keys[active_idx]
+
+        for model in fast_models:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+            try:
+                res = requests.post(url, json=payload, timeout=7)
+                if res.status_code == 200:
+                    data = res.json()
+                    candidates = data.get("candidates", [])
+                    if candidates and "content" in candidates[0]:
+                        parts = candidates[0]["content"].get("parts", [])
+                        if parts and "text" in parts[0]:
+                            return parts[0]["text"]
+                elif res.status_code == 429:
+                    # Key quota reached, advance to next key in pool
+                    break
+                elif res.status_code in (503, 404):
+                    # Model high-demand or deprecated, try next model in fast_models
+                    continue
+            except Exception as e:
+                last_err = e
+                continue
+
+        _current_key_idx = (_current_key_idx + 1) % total_keys
+        attempts += 1
+
+    raise last_err or Exception("All Gemini API keys and models were tried.")
+
+
 def execute_gemini_call(call_func):
     """
     Executes a Gemini API call function with automatic failover across all configured API keys (up to 10 slots).
@@ -170,18 +229,23 @@ def chat_with_skillbot(message, user_context=None):
 
     prompt = f"{system_instruction}\nContext: {context_str}\nStudent Question: {msg}"
 
-    def _call(client):
-        response = client.models.generate_content(
-            model="gemini-3.8-flash",
-            contents=prompt
-        )
-        return response.text
-
     try:
-        return execute_gemini_call(_call)
-    except Exception as e:
-        logger.error(f"Gemini API request failed across all keys: {e}")
-        return f"Unable to reach Google Gemini API (all configured keys in pool were tried). Error: {str(e)[:150]}. Please check your keys or quota."
+        # High-speed direct REST call with ultra-fast lightweight models (gemini-3.5-flash-lite)
+        return execute_fast_gemini_rest(f"Context: {context_str}\nStudent Question: {msg}", system_instruction=system_instruction)
+    except Exception as e_fast:
+        logger.warning(f"Fast REST call failed ({e_fast}), attempting SDK fallback pool...")
+        def _call(client):
+            response = client.models.generate_content(
+                model="gemini-3.5-flash-lite",
+                contents=prompt
+            )
+            return response.text
+
+        try:
+            return execute_gemini_call(_call)
+        except Exception as e:
+            logger.error(f"Gemini API request failed across all keys: {e}")
+            return f"Unable to reach Google Gemini API (all configured keys in pool were tried). Error: {str(e)[:150]}. Please check your keys or quota."
 
 
 def generate_skill_roadmap(skill_name):

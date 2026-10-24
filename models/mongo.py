@@ -1393,8 +1393,8 @@ class Course:
             return ""
         if yt_id.startswith("playlist:"):
             playlist_id = yt_id.split(":", 1)[1]
-            return f"https://www.youtube-nocookie.com/embed/videoseries?list={playlist_id}&rel=0&modestbranding=1&enablejsapi=1"
-        return f"https://www.youtube-nocookie.com/embed/{yt_id}?rel=0&modestbranding=1&enablejsapi=1"
+            return f"https://www.youtube-nocookie.com/embed/videoseries?list={playlist_id}&rel=0&modestbranding=1&enablejsapi=1&controls=0&disablekb=1&iv_load_policy=3"
+        return f"https://www.youtube-nocookie.com/embed/{yt_id}?rel=0&modestbranding=1&enablejsapi=1&controls=0&disablekb=1&iv_load_policy=3"
 
     @property
     def fallback_thumbnail(self):

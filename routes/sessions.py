@@ -27,6 +27,13 @@ def sessions_list():
     )
 
 
+@sessions_bp.route("/sessions/schedule-page", methods=["GET"])
+@sessions_bp.route("/sessions/schedule/<partner_id>", methods=["GET"])
+@login_required
+def schedule_page(partner_id=None):
+    return redirect(url_for("connections.connections_list", partner_id=partner_id) if partner_id else url_for("connections.connections_list"))
+
+
 @sessions_bp.route("/sessions/schedule", methods=["POST"])
 @login_required
 def schedule_session():

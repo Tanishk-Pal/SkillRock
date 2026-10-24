@@ -18,10 +18,47 @@
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 28px; margin-bottom: 32px;" class="course-layout-grid">
         <!-- Left: Video Embed & Course Content -->
         <div>
-            <!-- Video Player with Resume & Progress Tracking -->
-            <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border-color); background: #000000;">
-                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;" id="ytPlayerContainer">
+            <!-- Video Player Container with Custom Controls & Anti-Skipping Shield -->
+            <div id="customVideoWrapper" class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border-color); background: #000000; border-radius: 14px; position: relative; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);">
+                <!-- 16:9 Video Aspect Ratio Frame -->
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000000;" id="ytPlayerContainer">
+                    <!-- YouTube Iframe API Mount Point -->
                     <div id="skillrockYtPlayer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+
+                    <!-- Transparent Click Shield: intercepts clicks on iframe to prevent YouTube links/branding/cards -->
+                    <div id="videoClickSurface" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; cursor: pointer;" title="Click to Play / Pause"></div>
+
+                    <!-- Branded SkillRock Pause & End Overlay: Completely masks YouTube recommendations/suggestions grid -->
+                    <div id="videoPauseOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; background: rgba(10, 15, 29, 0.94); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; color: #FFFFFF; transition: opacity 0.3s ease;">
+                        <span class="badge" style="background: rgba(37, 99, 235, 0.2); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; margin-bottom: 12px; font-size: 0.78rem;">
+                            {{ course.category }} • {{ course.difficulty }}
+                        </span>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; max-width: 640px; margin-bottom: 8px; color: #F8FAFC;">
+                            {{ course.title }}
+                        </h2>
+                        <p style="color: #94A3B8; font-size: 0.85rem; margin-bottom: 22px;">
+                            Instructor: <strong style="color: #E2E8F0;">{{ course.instructor }}</strong>
+                        </p>
+
+                        <!-- Large Animated Play Button -->
+                        <button id="overlayPlayBtn" type="button" style="width: 72px; height: 72px; border-radius: 50%; background: #2563EB; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 0 30px rgba(37, 99, 235, 0.6); transition: transform 0.2s ease, background 0.2s ease; margin-bottom: 18px;">
+                            <i data-lucide="play" style="width: 34px; height: 34px; margin-left: 4px;"></i>
+                        </button>
+
+                        <div style="font-size: 0.82rem; color: #CBD5E1; display: inline-flex; align-items: center; gap: 6px;">
+                            <span id="overlayStatusText">Click to Play Lecture</span>
+                        </div>
+                        <div style="font-size: 0.74rem; color: #64748B; margin-top: 6px;">
+                            SkillRock Focus Mode — Distraction-Free Player
+                        </div>
+                    </div>
+
+                    <!-- Skip Warning Toast inside player -->
+                    <div id="skipNoticeToast" style="position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 30; background: rgba(15, 23, 42, 0.95); border: 1px solid #EF4444; color: #FCA5A5; padding: 10px 18px; border-radius: 9999px; font-size: 0.82rem; font-weight: 600; display: none; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); pointer-events: none; white-space: nowrap;">
+                        <i data-lucide="lock" style="width: 15px; height: 15px; color: #EF4444;"></i>
+                        <span id="skipNoticeMsg">Forward skipping is locked until 80% is completed.</span>
+                    </div>
+
                     {% if course.embed_url %}
                         <noscript>
                             <iframe 
@@ -34,10 +71,69 @@
                         </noscript>
                     {% endif %}
                 </div>
-                <div style="padding: 10px 18px; background: #0F172A; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <span style="color: #94A3B8; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;">
-                        <i data-lucide="info" style="width: 14px; height: 14px; color: #3B82F6;"></i>
-                        Watch lecture here — your playback progress auto-saves so you can resume anytime.
+
+                <!-- Custom SkillRock Video Controls Bar -->
+                <div id="customPlayerControls" style="background: #0B1120; border-top: 1px solid #1E293B; padding: 12px 18px; color: #F8FAFC;">
+                    <!-- Top row: Custom Scrubber Bar with Locked / Unlocked zones -->
+                    <div style="position: relative; margin-bottom: 10px; cursor: pointer; padding: 6px 0;" id="customScrubberContainer">
+                        <!-- Scrubber background track -->
+                        <div style="height: 6px; width: 100%; background: #334155; border-radius: 9999px; position: relative; overflow: hidden;" id="scrubberTrack">
+                            <!-- Unlocked progress region (max watched) -->
+                            <div id="scrubberUnlockedBar" style="position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: rgba(56, 189, 248, 0.35); border-radius: 9999px;"></div>
+                            <!-- Current playback fill -->
+                            <div id="scrubberCurrentBar" style="position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: #2563EB; border-radius: 9999px; transition: width 0.1s linear;"></div>
+                        </div>
+                        <!-- Scrubber head pointer -->
+                        <div id="scrubberThumb" style="position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 14px; height: 14px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 8px rgba(0,0,0,0.6); pointer-events: none; transition: left 0.1s linear;"></div>
+                    </div>
+
+                    <!-- Bottom row: Buttons, Time, Lock indicator, Speed, Volume, Fullscreen -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <!-- Left: Play/Pause + Time + Lock Badge -->
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <button id="ctrlPlayBtn" type="button" style="background: transparent; border: none; color: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 6px;" title="Play / Pause">
+                                <i id="ctrlPlayIcon" data-lucide="play" style="width: 20px; height: 20px;"></i>
+                            </button>
+
+                            <!-- Current / Total Time -->
+                            <div style="font-size: 0.82rem; font-weight: 600; color: #CBD5E1; font-family: monospace;" id="ctrlTimeDisplay">
+                                00:00 / 00:00
+                            </div>
+
+                            <!-- 80% Unskippable Lock Status -->
+                            <span id="ctrlLockBadge" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.74rem; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: rgba(239, 68, 68, 0.15); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.3);">
+                                <i id="ctrlLockIcon" data-lucide="lock" style="width: 12px; height: 12px;"></i>
+                                <span id="ctrlLockText">Unskippable ({{ enrollment.watch_percent if enrollment else 0 }}/80%)</span>
+                            </span>
+                        </div>
+
+                        <!-- Right: Speed selector, Volume, Fullscreen -->
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <!-- Speed Button -->
+                            <div style="position: relative;">
+                                <button id="ctrlSpeedBtn" type="button" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #E2E8F0; font-size: 0.76rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;" title="Playback Speed">
+                                    1x
+                                </button>
+                            </div>
+
+                            <!-- Volume Mute/Unmute -->
+                            <button id="ctrlMuteBtn" type="button" style="background: transparent; border: none; color: #CBD5E1; cursor: pointer; display: flex; align-items: center;" title="Mute / Unmute">
+                                <i id="ctrlVolumeIcon" data-lucide="volume-2" style="width: 18px; height: 18px;"></i>
+                            </button>
+
+                            <!-- Fullscreen Button -->
+                            <button id="ctrlFullscreenBtn" type="button" style="background: transparent; border: none; color: #CBD5E1; cursor: pointer; display: flex; align-items: center;" title="Fullscreen">
+                                <i data-lucide="maximize" style="width: 18px; height: 18px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Status Bar -->
+                <div style="padding: 8px 18px; background: #070B14; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border-top: 1px solid #1E293B;">
+                    <span style="color: #94A3B8; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 6px;">
+                        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #10B981;"></i>
+                        SkillRock Verified Player — Progress auto-saved. Complete 80% to unlock certificate.
                     </span>
                     <span id="playerSaveStatus" style="color: #10B981; font-size: 0.76rem; font-weight: 600;"></span>
                 </div>
@@ -354,14 +450,85 @@
 (function() {
     let player = null;
     let progressTimer = null;
+    let tickerInterval = null;
     const courseId = "{{ course.id }}";
     const initialWatchSeconds = {{ enrollment.watch_seconds if enrollment else 0 }};
+    let maxWatchSeconds = Math.max({{ enrollment.max_watch_seconds if enrollment else 0 }}, initialWatchSeconds);
     let currentPercent = {{ enrollment.watch_percent if enrollment else 0 }};
     let videoCompleted = {{ 'true' if (enrollment and (enrollment.video_completed or enrollment.watch_percent >= 80)) else 'false' }};
     const youtubeVideoId = "{{ course.youtube_video_id or '' }}";
     const submitProjectUrl = "{{ url_for('learning.submit_project', assignment_id=assignment.id) if assignment else '#' }}";
 
-    // Called automatically by YouTube IFrame API when script loads
+    // Playback speeds
+    const speeds = [1, 1.25, 1.5, 2, 0.75];
+    let currentSpeedIndex = 0;
+
+    // Elements
+    const pauseOverlay = document.getElementById("videoPauseOverlay");
+    const clickSurface = document.getElementById("videoClickSurface");
+    const overlayPlayBtn = document.getElementById("overlayPlayBtn");
+    const overlayStatusText = document.getElementById("overlayStatusText");
+    const ctrlPlayBtn = document.getElementById("ctrlPlayBtn");
+    const ctrlPlayIcon = document.getElementById("ctrlPlayIcon");
+    const ctrlTimeDisplay = document.getElementById("ctrlTimeDisplay");
+    const ctrlLockBadge = document.getElementById("ctrlLockBadge");
+    const ctrlLockText = document.getElementById("ctrlLockText");
+    const ctrlSpeedBtn = document.getElementById("ctrlSpeedBtn");
+    const ctrlMuteBtn = document.getElementById("ctrlMuteBtn");
+    const ctrlVolumeIcon = document.getElementById("ctrlVolumeIcon");
+    const ctrlFullscreenBtn = document.getElementById("ctrlFullscreenBtn");
+    const customVideoWrapper = document.getElementById("customVideoWrapper");
+    const scrubberContainer = document.getElementById("customScrubberContainer");
+    const scrubberTrack = document.getElementById("scrubberTrack");
+    const scrubberCurrentBar = document.getElementById("scrubberCurrentBar");
+    const scrubberUnlockedBar = document.getElementById("scrubberUnlockedBar");
+    const scrubberThumb = document.getElementById("scrubberThumb");
+    const skipNoticeToast = document.getElementById("skipNoticeToast");
+    const skipNoticeMsg = document.getElementById("skipNoticeMsg");
+    let toastTimeout = null;
+
+    function formatTime(totalSecs) {
+        const secs = Math.max(0, Math.floor(totalSecs || 0));
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = secs % 60;
+        if (h > 0) {
+            return `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+        return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function showSkipNotice(msg) {
+        if (!skipNoticeToast) return;
+        if (skipNoticeMsg && msg) skipNoticeMsg.textContent = msg;
+        skipNoticeToast.style.display = "inline-flex";
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+            if (skipNoticeToast) skipNoticeToast.style.display = "none";
+        }, 3200);
+    }
+
+    function updateLockBadgeUI() {
+        if (!ctrlLockBadge || !ctrlLockText) return;
+        if (videoCompleted || currentPercent >= 80) {
+            ctrlLockBadge.style.background = "rgba(16, 185, 129, 0.15)";
+            ctrlLockBadge.style.color = "#34D399";
+            ctrlLockBadge.style.borderColor = "rgba(16, 185, 129, 0.35)";
+            ctrlLockText.textContent = `Unlocked (${currentPercent}%)`;
+            const icon = document.getElementById("ctrlLockIcon");
+            if (icon) icon.setAttribute("data-lucide", "unlock");
+        } else {
+            ctrlLockBadge.style.background = "rgba(239, 68, 68, 0.15)";
+            ctrlLockBadge.style.color = "#FCA5A5";
+            ctrlLockBadge.style.borderColor = "rgba(239, 68, 68, 0.3)";
+            ctrlLockText.textContent = `Unskippable (${currentPercent}/80%)`;
+            const icon = document.getElementById("ctrlLockIcon");
+            if (icon) icon.setAttribute("data-lucide", "lock");
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+
+    // Initialize YouTube Player with clean playerVars: no controls, no branding, no suggested videos
     window.onYouTubeIframeAPIReady = function() {
         if (!youtubeVideoId || youtubeVideoId.startsWith("playlist:")) {
             return;
@@ -370,9 +537,14 @@
         player = new YT.Player('skillrockYtPlayer', {
             videoId: youtubeVideoId,
             playerVars: {
-                rel: 0,
-                modestbranding: 1,
-                enablejsapi: 1,
+                controls: 0,          // Hides native YouTube controls
+                disablekb: 1,         // Disables YouTube keyboard shortcuts
+                fs: 0,                // Hides YouTube fullscreen button
+                rel: 0,               // Prevents unrelated recommendations
+                modestbranding: 1,    // Strips YouTube logo
+                iv_load_policy: 3,    // Disables interactive annotations
+                enablejsapi: 1,       // Allows full JavaScript control
+                playsinline: 1,
                 origin: window.location.origin
             },
             events: {
@@ -393,28 +565,200 @@
                     resumeBadge.style.color = "#2563EB";
                     resumeBadge.style.borderColor = "#BFDBFE";
                 }
+                if (overlayStatusText) {
+                    overlayStatusText.textContent = "Resume from {{ enrollment.formatted_resume_time if enrollment else '00:00' }}";
+                }
             } catch(e) {
                 console.warn("Could not seek player to saved time:", e);
             }
+        }
+        updateLockBadgeUI();
+        syncScrubberVisuals();
+    }
+
+    function togglePlayState() {
+        if (!player || typeof player.getPlayerState !== "function") return;
+        const state = player.getPlayerState();
+        if (state === YT.PlayerState.PLAYING) {
+            player.pauseVideo();
+        } else {
+            player.playVideo();
         }
     }
 
     function onPlayerStateChange(event) {
         if (event.data === YT.PlayerState.PLAYING) {
+            // Hide pause overlay smoothly
+            if (pauseOverlay) {
+                pauseOverlay.style.opacity = "0";
+                setTimeout(() => { if (pauseOverlay) pauseOverlay.style.display = "none"; }, 250);
+            }
+            if (ctrlPlayIcon) {
+                ctrlPlayIcon.setAttribute("data-lucide", "pause");
+                if (window.lucide) lucide.createIcons();
+            }
+
+            // Start regular progress saving (every 10s) and scrubber ticker (every 250ms)
             if (!progressTimer) {
-                progressTimer = setInterval(syncPlaybackProgress, 12000); // sync every 12 seconds while playing
+                progressTimer = setInterval(syncPlaybackProgress, 10000);
+            }
+            if (!tickerInterval) {
+                tickerInterval = setInterval(handlePlaybackTick, 250);
             }
         } else {
+            // Paused or Ended
             if (progressTimer) {
                 clearInterval(progressTimer);
                 progressTimer = null;
             }
+            if (tickerInterval) {
+                clearInterval(tickerInterval);
+                tickerInterval = null;
+            }
+
+            if (ctrlPlayIcon) {
+                ctrlPlayIcon.setAttribute("data-lucide", "play");
+                if (window.lucide) lucide.createIcons();
+            }
+
+            // Immediately show branded overlay to completely cover YouTube suggestions / pause cards
+            if (pauseOverlay) {
+                pauseOverlay.style.display = "flex";
+                setTimeout(() => { if (pauseOverlay) pauseOverlay.style.opacity = "1"; }, 10);
+            }
+
+            if (event.data === YT.PlayerState.ENDED) {
+                if (overlayStatusText) overlayStatusText.textContent = "Lecture Finished! Submit your project below";
+            } else {
+                if (overlayStatusText) overlayStatusText.textContent = "Lecture Paused — Click to Resume";
+            }
+
             if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
                 syncPlaybackProgress();
             }
         }
     }
 
+    // Handles rapid UI ticker and anti-skip enforcement
+    function handlePlaybackTick() {
+        if (!player || typeof player.getCurrentTime !== "function") return;
+        const cur = player.getCurrentTime() || 0;
+        const dur = player.getDuration() || 0;
+
+        // Anti-skip enforcement: if student somehow jumped ahead past allowed max watch position before 80%
+        if (!videoCompleted && currentPercent < 80) {
+            if (cur > maxWatchSeconds + 3) {
+                player.seekTo(maxWatchSeconds, true);
+                showSkipNotice(`🔒 Forward skipping is locked until 80% is watched. (Watched: ${currentPercent}%)`);
+                return;
+            }
+            if (cur > maxWatchSeconds) {
+                maxWatchSeconds = cur;
+            }
+        }
+
+        syncScrubberVisuals(cur, dur);
+    }
+
+    function syncScrubberVisuals(currentSecs, durationSecs) {
+        if (!player) return;
+        const cur = currentSecs !== undefined ? currentSecs : (typeof player.getCurrentTime === "function" ? player.getCurrentTime() : 0);
+        const dur = durationSecs !== undefined ? durationSecs : (typeof player.getDuration === "function" ? player.getDuration() : 0);
+
+        if (ctrlTimeDisplay) {
+            ctrlTimeDisplay.textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
+        }
+
+        if (dur > 0) {
+            const curPct = Math.min(100, Math.max(0, (cur / dur) * 100));
+            const maxPct = Math.min(100, Math.max(0, (maxWatchSeconds / dur) * 100));
+
+            if (scrubberCurrentBar) scrubberCurrentBar.style.width = `${curPct}%`;
+            if (scrubberThumb) scrubberThumb.style.left = `${curPct}%`;
+            if (scrubberUnlockedBar) scrubberUnlockedBar.style.width = `${maxPct}%`;
+        }
+    }
+
+    // Scrubber click handler with 80% unskippable enforcement
+    if (scrubberContainer) {
+        scrubberContainer.addEventListener("click", function(e) {
+            if (!player || typeof player.getDuration !== "function") return;
+            const dur = player.getDuration();
+            if (!dur || dur <= 0) return;
+
+            const rect = scrubberTrack.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+            const targetTime = ratio * dur;
+
+            // Check if seeking forward beyond max watched time before 80% reached
+            if (!videoCompleted && currentPercent < 80 && targetTime > maxWatchSeconds + 2) {
+                showSkipNotice(`🔒 Forward skipping is locked until 80% of lecture is watched. (Watched: ${currentPercent}%)`);
+                // Snap scrubber back to current playback time
+                syncScrubberVisuals();
+                return;
+            }
+
+            // Allowed seek (either seeking backward, or within already watched region, or already >=80%)
+            player.seekTo(targetTime, true);
+            syncScrubberVisuals(targetTime, dur);
+        });
+    }
+
+    // Attach Click and Play Listeners
+    if (clickSurface) clickSurface.addEventListener("click", togglePlayState);
+    if (overlayPlayBtn) overlayPlayBtn.addEventListener("click", togglePlayState);
+    if (ctrlPlayBtn) ctrlPlayBtn.addEventListener("click", togglePlayState);
+
+    // Playback Speed Toggle
+    if (ctrlSpeedBtn) {
+        ctrlSpeedBtn.addEventListener("click", function() {
+            if (!player || typeof player.setPlaybackRate !== "function") return;
+            currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
+            const nextSpeed = speeds[currentSpeedIndex];
+            player.setPlaybackRate(nextSpeed);
+            ctrlSpeedBtn.textContent = `${nextSpeed}x`;
+        });
+    }
+
+    // Mute Toggle
+    if (ctrlMuteBtn) {
+        ctrlMuteBtn.addEventListener("click", function() {
+            if (!player || typeof player.isMuted !== "function") return;
+            if (player.isMuted()) {
+                player.unMute();
+                if (ctrlVolumeIcon) {
+                    ctrlVolumeIcon.setAttribute("data-lucide", "volume-2");
+                    if (window.lucide) lucide.createIcons();
+                }
+            } else {
+                player.mute();
+                if (ctrlVolumeIcon) {
+                    ctrlVolumeIcon.setAttribute("data-lucide", "volume-x");
+                    if (window.lucide) lucide.createIcons();
+                }
+            }
+        });
+    }
+
+    // Fullscreen Toggle
+    if (ctrlFullscreenBtn && customVideoWrapper) {
+        ctrlFullscreenBtn.addEventListener("click", function() {
+            if (!document.fullscreenElement) {
+                if (customVideoWrapper.requestFullscreen) {
+                    customVideoWrapper.requestFullscreen();
+                } else if (customVideoWrapper.webkitRequestFullscreen) {
+                    customVideoWrapper.webkitRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+    }
+
+    // Backend Progress Synchronization
     async function syncPlaybackProgress() {
         if (!player || typeof player.getCurrentTime !== "function") return;
         const currentSecs = Math.floor(player.getCurrentTime() || 0);
@@ -440,6 +784,7 @@
             if (data.success) {
                 currentPercent = data.watch_percent;
                 videoCompleted = data.video_completed;
+                maxWatchSeconds = Math.max(maxWatchSeconds, data.max_watch_seconds || 0);
 
                 // Update UI elements
                 const liveProgressNum = document.getElementById("liveProgressNumber");
@@ -448,9 +793,7 @@
                 const saveStatus = document.getElementById("playerSaveStatus");
                 const lastSavedTime = document.getElementById("lastSavedTimeText");
 
-                if (liveProgressNum) {
-                    liveProgressNum.textContent = `${currentPercent}%`;
-                }
+                if (liveProgressNum) liveProgressNum.textContent = `${currentPercent}%`;
                 if (liveProgressBar) {
                     liveProgressBar.style.width = `${currentPercent}%`;
                     if (currentPercent >= 80) {
@@ -467,6 +810,8 @@
                 if (lastSavedTime && data.formatted_resume_time) {
                     lastSavedTime.textContent = `Auto-saved at ${data.formatted_resume_time}`;
                 }
+
+                updateLockBadgeUI();
 
                 // If 80% achieved, unlock project submission buttons!
                 if (videoCompleted || currentPercent >= 80) {
