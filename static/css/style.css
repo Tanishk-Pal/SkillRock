@@ -167,18 +167,55 @@ a:hover {
   padding: 0 20px;
 }
 
-/* Clean Card Component */
-.card {
+/* Clean Card Component with Smooth GPU Lift */
+.card,
+.course-card-custom,
+.stat-card-pw,
+.skill-card,
+.profile-card,
+.lms-course-card,
+.student-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
   padding: 24px;
-  transition: var(--transition);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s ease,
+              background-color 0.2s ease;
+  will-change: transform, box-shadow;
 }
 
-.card:hover {
+.card:hover,
+.course-card-custom:hover,
+.stat-card-pw:hover,
+.skill-card:hover,
+.profile-card:hover,
+.lms-course-card:hover,
+.student-card:hover {
+  transform: translateY(-3px);
   box-shadow: var(--shadow-hover);
+  border-color: rgba(99, 102, 241, 0.28);
+}
+
+.card:active,
+.course-card-custom:active,
+.lms-course-card:active,
+.student-card:active {
+  transform: translateY(-1px) scale(0.996);
+}
+
+/* Smooth thumbnail zoom on course cards */
+.course-card-custom img,
+.lms-course-card img {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.course-card-custom:hover img,
+.lms-course-card:hover img {
+  transform: scale(1.035);
 }
 
 /* Navbar — Instagram-Style Clean Iconic SaaS Nav */
@@ -518,10 +555,6 @@ a:hover {
 }
 
 /* Buttons */
-.btn:active {
-  transform: scale(0.98);
-}
-
 .btn {
   display: inline-flex;
   align-items: center;
@@ -533,10 +566,23 @@ a:hover {
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: var(--transition);
   text-decoration: none;
   outline: none;
   white-space: nowrap;
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.16s ease,
+              background-color 0.16s ease,
+              border-color 0.16s ease,
+              color 0.16s ease;
+  will-change: transform;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: scale(0.97);
 }
 
 .btn-primary {
@@ -1616,23 +1662,51 @@ html {
   ) !important;
 }
 
-/* Live Page Content Reveal Transition */
+/* ==========================================================================
+   SMOOTH PAGE TRANSITIONS & REVEAL ENGINE
+   ========================================================================== */
+
+@keyframes pageGlideEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .live-content-wrapper {
-  transition: opacity 0.2s ease-in-out;
   opacity: 1;
+  animation: pageGlideEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
 }
 
 .live-content-wrapper.is-loading {
   display: none !important;
+  animation: none !important;
+}
+
+/* Fluid navigation click state */
+.live-content-wrapper.page-navigating {
+  opacity: 0.88;
+  filter: saturate(0.94);
+  transition: opacity 0.16s ease-out, filter 0.16s ease-out;
 }
 
 .yt-skeleton-container {
   display: block;
   width: 100%;
+  opacity: 1;
+  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
 }
 
 .yt-skeleton-container.fade-out {
-  display: none !important;
+  opacity: 0 !important;
+  transform: scale(0.995);
+  pointer-events: none !important;
 }
 
 /* 2. Top Navigation Progress Bar (YouTube-Style Glowing Line) */
@@ -2066,9 +2140,25 @@ html {
   color: var(--text-secondary);
 }
 
+.pw-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 4px;
+  position: relative;
+}
+
 .pw-nav-item:hover {
   background: var(--bg-hover);
   color: var(--text-main);
+  transform: translateX(3px);
 }
 
 .pw-nav-item:hover i,
@@ -2080,6 +2170,7 @@ html {
   background: rgba(81, 69, 205, 0.12);
   color: var(--primary-action);
   font-weight: 700;
+  transform: none;
 }
 
 .pw-nav-item.active i,
@@ -2095,33 +2186,6 @@ html {
 [data-theme="dark"] .pw-nav-item.active i,
 [data-theme="dark"] .pw-nav-item.active svg {
   color: #A5B4FC;
-}
-  color: #64748B;
-  flex-shrink: 0;
-  transition: color 0.15s ease;
-}
-
-.pw-nav-item:hover {
-  background: #F8FAFC;
-  color: #0F172A;
-}
-
-.pw-nav-item:hover i,
-.pw-nav-item:hover svg {
-  color: #0F172A;
-}
-
-/* Active Navigation Item (PW Purple Pill) */
-.pw-nav-item.active {
-  background: #EDE9FE;
-  color: #5B46F6;
-  font-weight: 700;
-}
-
-.pw-nav-item.active i,
-.pw-nav-item.active svg {
-  color: #5B46F6;
-  stroke-width: 2.3;
 }
 
 .pw-nav-badge {
@@ -2218,3 +2282,65 @@ html {
 }
 
 
+
+/* ==========================================================================
+   MODAL, PILL & ACCESSIBILITY ANIMATIONS
+   ========================================================================== */
+
+.modal-overlay {
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 0.2s ease;
+}
+
+.modal-box {
+  animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Interactive badges, tabs, and category pills */
+.tab-btn,
+.filter-pill,
+.interest-pill {
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.16s ease,
+              border-color 0.16s ease,
+              color 0.16s ease;
+}
+
+.tab-btn:hover,
+.filter-pill:hover,
+.interest-pill:hover {
+  transform: translateY(-1px);
+}
+
+.tab-btn:active,
+.filter-pill:active,
+.interest-pill:active {
+  transform: scale(0.96);
+}
+
+/* Reduced Motion Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .live-content-wrapper {
+    animation: none !important;
+  }
+  .yt-skeleton-container {
+    transition: none !important;
+  }
+}

@@ -1,9 +1,11 @@
 name: Keep Render Instance Alive
 
-# Runs every 10 minutes to prevent Render free-tier instance from sleeping (~15 min inactivity window).
+# Multi-pulse scheduled runner to keep Render free-tier instance warm (~15 min inactivity window).
+# Uses offset minutes to bypass GitHub Actions runner queue congestion at top-of-hour.
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '4,14,24,34,44,54 * * * *'
+    - cron: '9,19,29,39,49,59 * * * *'
   workflow_dispatch:
     inputs:
       url:
@@ -11,10 +13,15 @@ on:
         required: false
         default: ''
 
+concurrency:
+  group: keep-alive-render
+  cancel-in-progress: false
+
 jobs:
   ping:
-    name: Ping Service
+    name: Multi-Pulse Keep-Alive
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,7 +29,7 @@ jobs:
       - name: Make ping script executable
         run: chmod +x scripts/ping.sh
 
-      - name: Execute keep-alive ping
+      - name: Execute keep-alive multi-pulse sequence
         env:
           INPUT_URL: ${{ github.event.inputs.url }}
           VARS_TARGET_URL: ${{ vars.TARGET_URL }}
@@ -31,6 +38,32 @@ jobs:
           EXPECTED_STATUS: ${{ vars.EXPECTED_STATUS || '200' }}
           FAIL_ON_ERROR: ${{ vars.FAIL_ON_ERROR || 'false' }}
         run: |
-          # Priority: manual input -> repository variable -> secret -> default fallback
           RESOLVED_URL="${INPUT_URL:-${VARS_TARGET_URL:-${SECRETS_TARGET_URL:-https://skillrock.onrender.com/healthz}}}"
+          echo "=========================================================="
+          echo "🚀 Render Free-Tier Multi-Pulse Keep-Alive"
+          echo "🎯 Target URL: $RESOLVED_URL"
+          echo "🕒 Cycle start: $(date -u +"%Y-%m-%d %H:%M:%SZ")"
+          echo "=========================================================="
+
+          # Pulse 1 (Immediate)
+          echo "➡️ [Pulse 1/3] Immediate ping..."
           TARGET_URL="$RESOLVED_URL" ./scripts/ping.sh
+
+          echo "⏳ Resting 270s (4.5 min) to bridge wake window..."
+          sleep 270
+
+          # Pulse 2 (+4.5 minutes)
+          echo "➡️ [Pulse 2/3] Intermediate ping..."
+          TARGET_URL="$RESOLVED_URL" ./scripts/ping.sh
+
+          echo "⏳ Resting 270s (4.5 min) to bridge wake window..."
+          sleep 270
+
+          # Pulse 3 (+9 minutes)
+          echo "➡️ [Pulse 3/3] Final cycle ping..."
+          TARGET_URL="$RESOLVED_URL" ./scripts/ping.sh
+
+          echo "=========================================================="
+          echo "✅ Multi-pulse cycle completed. Instance warm for 24+ mins."
+          echo "🕒 Cycle end: $(date -u +"%Y-%m-%d %H:%M:%SZ")"
+          echo "=========================================================="

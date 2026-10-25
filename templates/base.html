@@ -88,12 +88,12 @@
             left: 0;
             width: 0%;
             height: 3px;
-            background: linear-gradient(90deg, #5145CD 0%, #818CF8 50%, #38BDF8 100%);
+            background: linear-gradient(90deg, #6366F1 0%, #8B5CF6 35%, #EC4899 70%, #38BDF8 100%);
             z-index: 999999;
             opacity: 0;
             pointer-events: none;
-            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
-            box-shadow: 0 0 10px rgba(99, 102, 241, 0.65);
+            transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.75), 0 0 4px rgba(56, 189, 248, 0.6);
         }
     </style>
     
@@ -890,7 +890,7 @@
         }
         window.addEventListener("load", renderLucide);
 
-        // Instant Client-Side Navigation Progress Indicator (< 50ms visual response)
+        // Instant Client-Side Navigation Progress Indicator (< 30ms visual response)
         (function initInstantNavFeedback() {
             var bar = document.getElementById("topProgressBar");
             if (!bar) return;
@@ -905,12 +905,18 @@
                 // Immediate visual response in < 30ms
                 bar.style.opacity = "1";
                 bar.style.width = "40%";
+
+                var lc = document.getElementById("livePageContent");
+                if (lc) lc.classList.add("page-navigating");
+
                 setTimeout(function() {
                     if (bar.style.width === "40%") bar.style.width = "75%";
                 }, 200);
             });
 
             window.addEventListener("pageshow", function() {
+                var lc = document.getElementById("livePageContent");
+                if (lc) lc.classList.remove("page-navigating");
                 bar.style.width = "100%";
                 setTimeout(function() {
                     bar.style.opacity = "0";
@@ -1071,13 +1077,15 @@
             function reveal() {
                 var sk = document.getElementById("youtubeSkeleton") || document.getElementById("pageSkeletonWrapper");
                 var lc = document.getElementById("livePageContent");
-                if (sk) {
-                    sk.classList.add("fade-out");
-                    sk.style.display = "none";
-                }
-                if (lc) {
+                if (lc && lc.classList.contains("is-loading")) {
                     lc.classList.remove("is-loading");
                     lc.style.display = "";
+                }
+                if (sk && !sk.classList.contains("fade-out")) {
+                    sk.classList.add("fade-out");
+                    setTimeout(function() {
+                        sk.style.display = "none";
+                    }, 180);
                 }
             }
             if (document.readyState === "interactive" || document.readyState === "complete") {
@@ -1085,6 +1093,27 @@
             } else {
                 document.addEventListener("DOMContentLoaded", reveal);
             }
+        })();
+    </script>
+        <!-- In-Browser Keep-Alive Heartbeat (Prevents Render spin-down while user has tab open) -->
+    <script>
+        (function initClientKeepAlive() {
+            var PING_INTERVAL_MS = 7 * 60 * 1000; // Ping every 7 minutes while active tab open
+            var lastPulse = Date.now();
+            function sendKeepAlivePulse() {
+                var now = Date.now();
+                if (now - lastPulse >= 60000) {
+                    lastPulse = now;
+                    fetch("/healthz", { method: "GET", credentials: "same-origin", cache: "no-store" })
+                        .catch(function() {});
+                }
+            }
+            setInterval(sendKeepAlivePulse, PING_INTERVAL_MS);
+            document.addEventListener("visibilitychange", function() {
+                if (document.visibilityState === "visible" && (Date.now() - lastPulse > 5 * 60 * 1000)) {
+                    sendKeepAlivePulse();
+                }
+            });
         })();
     </script>
     {% block scripts %}{% endblock %}

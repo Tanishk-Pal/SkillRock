@@ -14,16 +14,18 @@
         liveContent: document.getElementById("livePageContent")
     });
 
-    // Immediately reveal page content when data/DOM is ready (no artificial delays)
+    // Immediately reveal page content with smooth crossfade
     const revealPageContent = () => {
         const { skeleton, liveContent } = getActionElements();
-        if (skeleton) {
-            skeleton.classList.add("fade-out");
-            skeleton.style.display = "none";
-        }
-        if (liveContent) {
+        if (liveContent && liveContent.classList.contains("is-loading")) {
             liveContent.classList.remove("is-loading");
             liveContent.style.display = "";
+        }
+        if (skeleton && !skeleton.classList.contains("fade-out")) {
+            skeleton.classList.add("fade-out");
+            setTimeout(() => {
+                skeleton.style.display = "none";
+            }, 180);
         }
     };
 
