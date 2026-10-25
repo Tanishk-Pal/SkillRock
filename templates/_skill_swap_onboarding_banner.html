@@ -1,15 +1,15 @@
 {% if current_user.is_authenticated and (not current_user.teaching_skills or not current_user.learning_skills) %}
-<div class="card skill-swap-setup-card" id="skillSwapSetupCard" style="background: #FFFFFF; border: 2px solid #5B46F6; border-radius: 18px; padding: 24px 28px; margin-bottom: 28px; box-shadow: 0 10px 25px -5px rgba(91, 70, 246, 0.12);">
+<div class="card skill-swap-setup-card" id="skillSwapSetupCard" style="background: var(--bg-card); border: 2px solid var(--primary-action); border-radius: 18px; padding: 24px 28px; margin-bottom: 28px; box-shadow: var(--shadow-card);">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
         <div>
-            <div style="display: inline-flex; align-items: center; gap: 6px; background: #EDE9FE; color: #5B46F6; font-size: 0.76rem; font-weight: 700; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--primary-purple-light); color: var(--primary-action); font-size: 0.76rem; font-weight: 700; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
                 <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
                 <span>One-Click Campus Skill Swap Setup</span>
             </div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: #0F172A; margin-bottom: 4px;">
+            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">
                 Activate Your Campus Peer Exchange Profile
             </h2>
-            <p style="font-size: 0.9rem; color: #64748B; margin: 0;">
+            <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
                 Click chips or type below to choose at least 1 skill you can teach and 1 you want to learn.
             </p>
         </div>
@@ -26,7 +26,7 @@
                     <i data-lucide="award" style="width: 15px; height: 15px;"></i>
                     <span>Skills You Can Teach (Select 1 or more)</span>
                 </label>
-                <span style="font-size: 0.78rem; color: #64748B;" id="teachSelectedCount">0 selected</span>
+                <span style="font-size: 0.78rem; color: var(--text-secondary);" id="teachSelectedCount">0 selected</span>
             </div>
             <div class="skill-chips-group" id="teachChipsGroup" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
                 {% set teach_defaults = ["Python", "JavaScript", "C++", "Web Development", "React", "Graphic Design", "Data Structures", "Java", "Public Speaking", "Git & GitHub"] %}
@@ -51,7 +51,7 @@
                     <i data-lucide="book-open" style="width: 15px; height: 15px;"></i>
                     <span>Skills You Want to Learn (Select 1 or more)</span>
                 </label>
-                <span style="font-size: 0.78rem; color: #64748B;" id="learnSelectedCount">0 selected</span>
+                <span style="font-size: 0.78rem; color: var(--text-secondary);" id="learnSelectedCount">0 selected</span>
             </div>
             <div class="skill-chips-group" id="learnChipsGroup" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
                 {% set learn_defaults = ["Machine Learning", "Flutter", "Cloud & DevOps", "Cybersecurity", "UI/UX Design", "System Design", "Data Science", "Backend APIs", "Docker", "Figma"] %}
@@ -72,8 +72,8 @@
         <!-- Hidden inputs container for form submission -->
         <div id="hiddenInputsContainer"></div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 12px; align-items: center; border-top: 1px solid #E2E8F0; padding-top: 16px;">
-            <span style="font-size: 0.82rem; color: #64748B;" id="setupValidationMsg">
+        <div style="display: flex; justify-content: flex-end; gap: 12px; align-items: center; border-top: 1px solid var(--border-color); padding-top: 16px;">
+            <span style="font-size: 0.82rem; color: var(--text-secondary);" id="setupValidationMsg">
                 Select at least 1 teaching and 1 learning skill.
             </span>
             <button type="submit" id="btnSaveSkillSetup" class="btn btn-primary" style="background: #5B46F6; border-radius: 10px; font-weight: 700; padding: 9px 22px;" disabled>
@@ -90,28 +90,28 @@
         border-radius: 9999px;
         font-size: 0.82rem;
         font-weight: 600;
-        background: #F8FAFC;
-        border: 1.5px solid #E2E8F0;
-        color: #475569;
+        background: var(--bg-card);
+        border: 1.5px solid var(--border-color);
+        color: var(--text-secondary);
         cursor: pointer;
         transition: all 0.15s ease;
         outline: none;
     }
     .skill-chip-toggle:hover {
-        background: #F1F5F9;
-        border-color: #CBD5E1;
-        color: #0F172A;
+        background: var(--bg-hover);
+        border-color: var(--border-focus);
+        color: var(--text-main);
     }
     .skill-chip-toggle.teach-chip.active {
-        background: #DCFCE7;
-        border-color: #16A34A;
-        color: #15803D;
+        background: var(--success-bg);
+        border-color: var(--success);
+        color: var(--success);
         font-weight: 700;
     }
     .skill-chip-toggle.learn-chip.active {
-        background: #EDE9FE;
-        border-color: #5B46F6;
-        color: #5B46F6;
+        background: var(--primary-purple-light);
+        border-color: var(--primary-action);
+        color: var(--primary-action);
         font-weight: 700;
     }
 </style>

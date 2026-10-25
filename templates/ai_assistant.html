@@ -12,10 +12,10 @@
         flex-direction: column;
         height: calc(100vh - 120px);
         min-height: 560px;
-        background: #FFFFFF;
+        background: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: 20px;
-        box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
+        box-shadow: var(--shadow-hover);
         overflow: hidden;
     }
 
@@ -26,7 +26,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: #FFFFFF;
+        background: var(--bg-card);
         flex-shrink: 0;
     }
 
@@ -40,19 +40,19 @@
         width: 38px;
         height: 38px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #2563EB, #1D4ED8);
+        background: linear-gradient(135deg, var(--primary-action), #4338CA);
         color: #FFFFFF;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.15rem;
-        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+        box-shadow: 0 4px 10px rgba(81, 69, 205, 0.25);
     }
 
     .chatgpt-bot-name {
         font-size: 1.05rem;
         font-weight: 800;
-        color: #0F172A;
+        color: var(--text-main);
         display: flex;
         align-items: center;
         gap: 8px;
@@ -61,16 +61,16 @@
     .chatgpt-model-badge {
         font-size: 0.72rem;
         font-weight: 700;
-        color: #2563EB;
-        background: #EFF6FF;
-        border: 1px solid #BFDBFE;
+        color: var(--primary-action);
+        background: var(--primary-purple-light);
+        border: 1px solid rgba(81, 69, 205, 0.25);
         padding: 2px 8px;
         border-radius: 9999px;
     }
 
     .chatgpt-status {
         font-size: 0.78rem;
-        color: #10B981;
+        color: var(--success);
         display: flex;
         align-items: center;
         gap: 5px;
@@ -80,17 +80,17 @@
         width: 7px;
         height: 7px;
         border-radius: 50%;
-        background: #10B981;
-        box-shadow: 0 0 6px #10B981;
+        background: var(--success);
+        box-shadow: 0 0 6px var(--success);
     }
 
     .btn-new-chat {
         padding: 6px 14px;
         font-size: 0.82rem;
         font-weight: 600;
-        color: #64748B;
-        background: #F8FAFC;
-        border: 1px solid #E2E8F0;
+        color: var(--text-secondary);
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
         border-radius: 10px;
         cursor: pointer;
         display: inline-flex;
@@ -100,9 +100,9 @@
     }
 
     .btn-new-chat:hover {
-        background: #F1F5F9;
-        color: #0F172A;
-        border-color: #CBD5E1;
+        background: var(--bg-hover);
+        color: var(--text-main);
+        border-color: var(--border-focus);
     }
 
     /* Scrollable Conversation Stream */
@@ -114,6 +114,7 @@
         flex-direction: column;
         gap: 20px;
         scroll-behavior: smooth;
+        background: var(--bg-card);
     }
 
     /* Message Row */
@@ -145,8 +146,9 @@
     }
 
     .chatgpt-row.bot .chatgpt-row-avatar {
-        background: #EFF6FF;
-        border: 1px solid #DBEAFE;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        color: var(--primary-action);
     }
 
     .chatgpt-bubble {
@@ -157,16 +159,16 @@
     }
 
     .chatgpt-row.user .chatgpt-bubble {
-        background: #0F172A;
-        color: #FFFFFF;
+        background: var(--primary-action);
+        color: var(--primary-action-text);
         border-radius: 20px 20px 4px 20px;
         max-width: 78%;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+        box-shadow: 0 4px 14px rgba(81, 69, 205, 0.2);
     }
 
     .chatgpt-row.bot .chatgpt-bubble {
         background: transparent;
-        color: #0F172A;
+        color: var(--text-main);
         max-width: 88%;
         padding: 6px 4px;
     }
@@ -175,7 +177,7 @@
     .chatgpt-bubble h2, .chatgpt-bubble h3, .chatgpt-bubble h4 {
         margin: 12px 0 6px 0;
         font-weight: 700;
-        color: #0F172A;
+        color: var(--text-main);
     }
     .chatgpt-bubble h3 { font-size: 1.08rem; }
     .chatgpt-bubble h4 { font-size: 0.98rem; }
@@ -187,16 +189,18 @@
         margin-bottom: 4px;
     }
     .chatgpt-bubble code {
-        background: #F1F5F9;
-        color: #0F172A;
+        background: var(--bg-elevated);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
         padding: 2px 6px;
         border-radius: 5px;
         font-size: 0.88rem;
         font-family: monospace;
     }
     .chatgpt-bubble pre {
-        background: #0F172A;
-        color: #F8FAFC;
+        background: #0B0F19;
+        color: #F3F4F6;
+        border: 1px solid var(--border-color);
         padding: 14px;
         border-radius: 10px;
         overflow-x: auto;
@@ -206,23 +210,25 @@
     .chatgpt-bubble pre code {
         background: transparent;
         color: inherit;
+        border: none;
         padding: 0;
     }
 
-    /* ChatGPT Animated 3-Dots Thinking Indicator (Zero Blur, Zero Overlay) */
+    /* ChatGPT Animated 3-Dots Thinking Indicator */
     .chatgpt-dots-indicator {
         display: inline-flex;
         align-items: center;
         gap: 5px;
         padding: 8px 12px;
-        background: #F1F5F9;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
         border-radius: 14px;
     }
 
     .chatgpt-dot {
         width: 7px;
         height: 7px;
-        background: #64748B;
+        background: var(--text-muted);
         border-radius: 50%;
         animation: chatgptBounce 1.3s infinite ease-in-out;
     }
@@ -255,13 +261,13 @@
         height: 56px;
         margin: 0 auto 14px auto;
         border-radius: 16px;
-        background: linear-gradient(135deg, #2563EB, #1D4ED8);
+        background: linear-gradient(135deg, var(--primary-action), #4338CA);
         color: #FFFFFF;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.8rem;
-        box-shadow: 0 10px 24px -4px rgba(37, 99, 235, 0.3);
+        box-shadow: 0 10px 24px -4px rgba(81, 69, 205, 0.3);
     }
 
     .chatgpt-suggestions-grid {
@@ -273,12 +279,12 @@
     }
 
     .chatgpt-prompt-card {
-        background: #F8FAFC;
-        border: 1px solid #E2E8F0;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
         border-radius: 14px;
         padding: 14px 16px;
         font-size: 0.86rem;
-        color: #334155;
+        color: var(--text-secondary);
         cursor: pointer;
         transition: all 0.2s ease;
         display: flex;
@@ -287,14 +293,15 @@
     }
 
     .chatgpt-prompt-card:hover {
-        background: #FFFFFF;
-        border-color: #2563EB;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        background: var(--bg-hover);
+        border-color: var(--primary-action);
+        color: var(--text-main);
+        box-shadow: var(--shadow-sm);
         transform: translateY(-2px);
     }
 
     .chatgpt-prompt-card strong {
-        color: #0F172A;
+        color: var(--text-main);
         font-weight: 700;
         margin-bottom: 4px;
         display: block;
@@ -303,7 +310,7 @@
     /* ChatGPT Bottom Sticky Input Bar */
     .chatgpt-input-container {
         padding: 16px 20px 14px 20px;
-        background: #FFFFFF;
+        background: var(--bg-card);
         border-top: 1px solid var(--border-color);
         flex-shrink: 0;
     }
@@ -312,8 +319,8 @@
         display: flex;
         align-items: flex-end;
         gap: 10px;
-        background: #F8FAFC;
-        border: 1.5px solid #E2E8F0;
+        background: var(--bg-input);
+        border: 1.5px solid var(--border-color);
         border-radius: 22px;
         padding: 8px 12px 8px 18px;
         transition: all 0.2s ease;
@@ -321,9 +328,8 @@
     }
 
     .chatgpt-input-box:focus-within {
-        background: #FFFFFF;
-        border-color: #2563EB;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        border-color: var(--border-focus);
+        box-shadow: 0 0 0 3px rgba(81, 69, 205, 0.18);
     }
 
     .chatgpt-textarea {
@@ -334,7 +340,7 @@
         font-family: inherit;
         font-size: 0.94rem;
         line-height: 1.5;
-        color: #0F172A;
+        color: var(--text-main);
         resize: none;
         max-height: 160px;
         min-height: 24px;
@@ -342,15 +348,15 @@
     }
 
     .chatgpt-textarea::placeholder {
-        color: #94A3B8;
+        color: var(--text-muted);
     }
 
     .chatgpt-send-btn {
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        background: #0F172A;
-        color: #FFFFFF;
+        background: var(--primary-action);
+        color: var(--primary-action-text);
         border: none;
         display: flex;
         align-items: center;
@@ -362,20 +368,21 @@
     }
 
     .chatgpt-send-btn:hover:not(:disabled) {
-        background: #2563EB;
+        background: var(--primary-action-hover);
         transform: scale(1.05);
     }
 
     .chatgpt-send-btn:disabled {
-        background: #E2E8F0;
-        color: #94A3B8;
+        background: var(--bg-elevated);
+        color: var(--text-muted);
+        border: 1px solid var(--border-color);
         cursor: not-allowed;
         transform: none;
     }
 
     .chatgpt-disclaimer {
         font-size: 0.72rem;
-        color: #94A3B8;
+        color: var(--text-muted);
         text-align: center;
         margin-top: 8px;
     }
@@ -423,8 +430,8 @@
         <!-- Empty State Welcome -->
         <div class="chatgpt-empty-state" id="emptyWelcomeState">
             <div class="chatgpt-hero-icon">🚀</div>
-            <h2 style="font-size: 1.45rem; font-weight: 800; color: #0F172A; margin-bottom: 6px;">How can SkillBot help you today?</h2>
-            <p style="font-size: 0.9rem; color: #64748B; max-width: 480px; margin: 0 auto;">
+            <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">How can SkillBot help you today?</h2>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 480px; margin: 0 auto;">
                 Ask anything about coding concepts, beginner study roadmaps, project architectures, or peer skill exchanges.
             </p>
 

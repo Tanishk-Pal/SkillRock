@@ -7,7 +7,7 @@
     .exchange-tabs-bar {
         display: flex;
         gap: 8px;
-        border-bottom: 2px solid #E2E8F0;
+        border-bottom: 2px solid var(--border-color);
         margin-bottom: 24px;
         overflow-x: auto;
         padding-bottom: 2px;
@@ -19,7 +19,7 @@
         background: none;
         font-size: 0.92rem;
         font-weight: 700;
-        color: #64748B;
+        color: var(--text-secondary);
         cursor: pointer;
         border-bottom: 3px solid transparent;
         margin-bottom: -2px;
@@ -32,17 +32,17 @@
     }
 
     .exchange-tab-btn:hover {
-        color: #5B46F6;
+        color: var(--primary-action);
     }
 
     .exchange-tab-btn.active {
-        color: #5B46F6;
-        border-bottom-color: #5B46F6;
+        color: var(--primary-action);
+        border-bottom-color: var(--primary-action);
     }
 
     .exchange-tab-badge {
-        background: #EDE9FE;
-        color: #5B46F6;
+        background: var(--primary-purple-light);
+        color: var(--primary-action);
         font-size: 0.72rem;
         font-weight: 800;
         padding: 2px 8px;
@@ -72,14 +72,14 @@
     <!-- Page Title & Tagline -->
     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
         <div>
-            <div style="display: inline-flex; align-items: center; gap: 6px; background: #EDE9FE; color: #5B46F6; font-size: 0.78rem; font-weight: 700; padding: 4px 12px; border-radius: 9999px; margin-bottom: 8px;">
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--primary-purple-light); color: var(--primary-action); font-size: 0.78rem; font-weight: 700; padding: 4px 12px; border-radius: 9999px; margin-bottom: 8px;">
                 <i data-lucide="users" style="width: 14px; height: 14px;"></i>
                 <span>Campus Peer Hub</span>
             </div>
-            <h1 style="font-size: 1.85rem; font-weight: 800; color: #0F172A; letter-spacing: -0.02em; margin-bottom: 4px;">
+            <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; margin-bottom: 4px;">
                 Skill Exchange
             </h1>
-            <p style="font-size: 0.94rem; color: #64748B; margin: 0;">
+            <p style="font-size: 0.94rem; color: var(--text-secondary); margin: 0;">
                 Tell what you teach, choose what you learn, and connect directly with campus learning partners.
             </p>
         </div>
@@ -207,7 +207,7 @@
 
                             <!-- Can Teach -->
                             <div style="margin-bottom: 12px;">
-                                <div class="section-label" style="font-size: 0.74rem; font-weight: 700; color: #16A34A; margin-bottom: 6px;">CAN TEACH</div>
+                                <div class="section-label" style="font-size: 0.74rem; font-weight: 700; color: var(--success); margin-bottom: 6px;">CAN TEACH</div>
                                 <div class="skills-wrap">
                                     {% for s in student.teaching_skills %}
                                         <span class="skill-tag teach">{{ s.name }}</span>
@@ -219,7 +219,7 @@
 
                             <!-- Wants to Learn -->
                             <div style="margin-bottom: 14px;">
-                                <div class="section-label" style="font-size: 0.74rem; font-weight: 700; color: #5B46F6; margin-bottom: 6px;">WANTS TO LEARN</div>
+                                <div class="section-label" style="font-size: 0.74rem; font-weight: 700; color: var(--secondary-indigo); margin-bottom: 6px;">WANTS TO LEARN</div>
                                 <div class="skills-wrap">
                                     {% for s in student.learning_skills %}
                                         <span class="skill-tag learn">{{ s.name }}</span>
@@ -293,10 +293,10 @@
         <div style="margin-bottom: 32px;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
                 <i data-lucide="inbox" style="width: 20px; height: 20px; color: #5B46F6;"></i>
-                <h2 style="font-size: 1.3rem; font-weight: 800; color: #0F172A; margin: 0;">
+                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin: 0;">
                     Incoming Swap Requests
                 </h2>
-                <span class="badge" style="background: #EDE9FE; color: #5B46F6; font-weight: 700;">{{ received_requests|length }}</span>
+                <span class="badge" style="background: var(--primary-purple-light); color: var(--primary-action); font-weight: 700;">{{ received_requests|length }}</span>
             </div>
 
             {% if received_requests %}
@@ -307,30 +307,30 @@
                             <div style="display: flex; gap: 14px; align-items: center;">
                                 <img src="{{ req.sender.avatar_url }}" alt="avatar" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
                                 <div>
-                                    <div style="font-size: 1.05rem; font-weight: 700; color: #0F172A;">
+                                    <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">
                                         {{ req.sender.name }}
                                     </div>
-                                    <div style="font-size: 0.82rem; color: #64748B;">
+                                    <div style="font-size: 0.82rem; color: var(--text-secondary);">
                                         {{ req.sender.branch }} • {{ req.sender.college }}
                                     </div>
                                 </div>
                             </div>
-                            <span class="badge" style="background: #EFF6FF; color: #2563EB; font-weight: 600;">{{ req.status_label }}</span>
+                            <span class="badge" style="background: var(--primary-purple-light); color: var(--primary-action); font-weight: 600;">{{ req.status_label }}</span>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; background: #F8FAFC; padding: 12px 16px; border-radius: 10px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; background: var(--bg-elevated); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border-color);">
                             <div>
                                 <div style="font-size: 0.74rem; font-weight: 700; color: #16A34A; text-transform: uppercase;">They Can Teach You</div>
-                                <div style="font-size: 0.92rem; font-weight: 600; color: #0F172A;">{{ req.teach_skill_name }}</div>
+                                <div style="font-size: 0.92rem; font-weight: 600; color: var(--text-main);">{{ req.teach_skill_name }}</div>
                             </div>
                             <div>
                                 <div style="font-size: 0.74rem; font-weight: 700; color: #5B46F6; text-transform: uppercase;">They Want To Learn</div>
-                                <div style="font-size: 0.92rem; font-weight: 600; color: #0F172A;">{{ req.learn_skill_name }}</div>
+                                <div style="font-size: 0.92rem; font-weight: 600; color: var(--text-main);">{{ req.learn_skill_name }}</div>
                             </div>
                         </div>
 
                         {% if req.message %}
-                        <div style="font-size: 0.88rem; color: #475569; margin-bottom: 14px; font-style: italic; background: #FFFFFF; border-left: 3px solid #5B46F6; padding: 6px 12px;">
+                        <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 14px; font-style: italic; background: var(--bg-card); border-left: 3px solid var(--primary-action); padding: 6px 12px;">
                             "{{ req.message }}"
                         </div>
                         {% endif %}
@@ -364,10 +364,10 @@
         <div>
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
                 <i data-lucide="send" style="width: 20px; height: 20px; color: #5B46F6;"></i>
-                <h2 style="font-size: 1.3rem; font-weight: 800; color: #0F172A; margin: 0;">
+                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin: 0;">
                     Outgoing Requests Sent by You
                 </h2>
-                <span class="badge" style="background: #EDE9FE; color: #5B46F6; font-weight: 700;">{{ sent_requests|length }}</span>
+                <span class="badge" style="background: var(--primary-purple-light); color: var(--primary-action); font-weight: 700;">{{ sent_requests|length }}</span>
             </div>
 
             {% if sent_requests %}
@@ -412,10 +412,10 @@
     <div id="connectionsPane" class="exchange-pane {% if active_tab == 'connections' %}active{% endif %}" role="tabpanel">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
             <i data-lucide="user-check" style="width: 20px; height: 20px; color: #5B46F6;"></i>
-            <h2 style="font-size: 1.3rem; font-weight: 800; color: #0F172A; margin: 0;">
+            <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin: 0;">
                 Your Connected Learning Partners
             </h2>
-            <span class="badge" style="background: #EDE9FE; color: #5B46F6; font-weight: 700;">{{ connections|length }}</span>
+            <span class="badge" style="background: var(--primary-purple-light); color: var(--primary-action); font-weight: 700;">{{ connections|length }}</span>
         </div>
 
         {% if connections %}
@@ -428,20 +428,20 @@
                             <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
                                 <img src="{{ partner.avatar_url }}" alt="avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
                                 <div style="min-width: 0;">
-                                    <h3 style="font-size: 1rem; font-weight: 700; color: #0F172A; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                         {{ partner.name }}
                                     </h3>
-                                    <div style="font-size: 0.8rem; color: #64748B;">
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary);">
                                         {{ partner.branch }} • {{ partner.college }}
                                     </div>
                                 </div>
                             </div>
-                            <div style="font-size: 0.82rem; color: #16A34A; background: #DCFCE7; padding: 4px 10px; border-radius: 6px; display: inline-block; font-weight: 600; margin-bottom: 12px;">
+                            <div style="font-size: 0.82rem; color: var(--success); background: var(--success-bg); border: 1px solid var(--success-border); padding: 4px 10px; border-radius: 6px; display: inline-block; font-weight: 600; margin-bottom: 12px;">
                                 ✓ Connected Peer
                             </div>
                         </div>
 
-                        <div style="display: flex; gap: 8px; border-top: 1px solid #E2E8F0; padding-top: 12px;">
+                        <div style="display: flex; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px;">
                             <a href="{{ url_for('chat.conversation', partner_id=partner.id) }}" class="btn btn-secondary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
                                 <i data-lucide="message-square" style="width: 14px; height: 14px;"></i>
                                 <span>Message</span>
@@ -458,7 +458,7 @@
         {% else %}
             <div class="card" style="text-align: center; padding: 48px 24px; color: #64748B; border-radius: 16px;">
                 <i data-lucide="users" style="width: 36px; height: 36px; color: #94A3B8; margin: 0 auto 12px;"></i>
-                <div style="font-size: 1.1rem; font-weight: 700; color: #0F172A;">No Active Connections Yet</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">No Active Connections Yet</div>
                 <p style="font-size: 0.88rem; margin: 6px 0 16px;">Connect with other students by browsing the Discover Peers tab.</p>
             </div>
         {% endif %}

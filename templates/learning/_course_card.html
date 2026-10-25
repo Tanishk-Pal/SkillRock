@@ -57,8 +57,8 @@
 
             <!-- Hands-On Project Teaser -->
             {% if course.assignment %}
-                <div style="background: #F5F3FF; border: 1px dashed #DDD6FE; border-radius: 8px; padding: 10px 12px; margin-bottom: 16px;">
-                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 700; color: #5B46F6; margin-bottom: 2px;">
+                <div style="background: var(--primary-purple-light); border: 1px dashed rgba(81, 69, 205, 0.3); border-radius: 8px; padding: 10px 12px; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 700; color: var(--primary-action); margin-bottom: 2px;">
                         <i data-lucide="code-2" style="width: 14px; height: 14px;"></i>
                         <span>Includes Real-World Project</span>
                     </div>
@@ -71,7 +71,7 @@
     </div>
 
     <!-- Footer / Call to Action -->
-    <div style="padding: 14px 20px; border-top: 1px solid var(--border-color); background: #FAFAFC; display: flex; align-items: center; justify-content: space-between;">
+    <div style="padding: 14px 20px; border-top: 1px solid var(--border-color); background: var(--bg-elevated); display: flex; align-items: center; justify-content: space-between;">
         {% if course.id in completed_course_ids %}
             <span style="display: inline-flex; align-items: center; gap: 5px; color: #10B981; font-size: 0.82rem; font-weight: 700;">
                 <i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i>

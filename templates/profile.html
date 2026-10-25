@@ -39,7 +39,7 @@
                     {% endif %}
                     {% if is_connected %}
                         <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
-                            <span class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; cursor: default; background: #F1F5F9; color: #0F172A; border-color: #CBD5E1; font-weight: 600;">
+                            <span class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; cursor: default; background: var(--bg-elevated); color: var(--text-main); border-color: var(--border-color); font-weight: 600;">
                                 <i data-lucide="check" style="width: 15px; height: 15px; color: var(--primary-blue);"></i>
                                 <span>Following</span>
                             </span>
@@ -49,7 +49,7 @@
                             </a>
                         </div>
                     {% elif is_pending_sent %}
-                        <span class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; cursor: default; background: #F8FAFC; color: var(--text-secondary); border-color: var(--border-color); font-weight: 500;">
+                        <span class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; cursor: default; background: var(--bg-elevated); color: var(--text-secondary); border-color: var(--border-color); font-weight: 500;">
                             <i data-lucide="clock" style="width: 15px; height: 15px;"></i>
                             <span>Requested</span>
                         </span>
@@ -89,7 +89,7 @@
 
             <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
                 {% for us in teach_user_skills %}
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-elevated); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px;">
                         <div>
                             <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary-navy);">{{ us.skill.name }}</span>
                             <span style="font-size: 0.75rem; color: var(--text-secondary); margin-left: 6px;">({{ us.proficiency }})</span>
@@ -133,7 +133,7 @@
 
             <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
                 {% for us in learn_user_skills %}
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-elevated); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px;">
                         <div>
                             <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary-navy);">{{ us.skill.name }}</span>
                             <span style="font-size: 0.75rem; color: var(--text-secondary); margin-left: 6px;">(Target: {{ us.proficiency }})</span>
@@ -187,7 +187,7 @@
             {% set earned_slugs = earned_badges | map(attribute='slug') | list %}
             {% for badge in all_system_badges %}
                 {% set is_earned = badge.slug in earned_slugs %}
-                <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; text-align: center; background: {% if is_earned %}#FFFFFF{% else %}#F8FAFC{% endif %}; opacity: {% if is_earned %}1{% else %}0.5{% endif %};">
+                <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; text-align: center; background: {% if is_earned %}var(--bg-card){% else %}var(--bg-elevated){% endif %}; opacity: {% if is_earned %}1{% else %}0.5{% endif %};">
                     <div style="font-size: 1.3rem; margin-bottom: 4px;">
                         {% if badge.slug == 'first-swap' %}⚡
                         {% elif badge.slug == 'knowledge-sharer' %}📖

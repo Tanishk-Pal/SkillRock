@@ -36,9 +36,9 @@
         border-radius: 9999px;
         font-size: 0.86rem;
         font-weight: 600;
-        background: #FFFFFF;
-        border: 1.5px solid #E2E8F0;
-        color: #475569;
+        background: var(--bg-card);
+        border: 1.5px solid var(--border-color);
+        color: var(--text-secondary);
         cursor: pointer;
         transition: all 0.15s ease;
         white-space: nowrap;
@@ -47,25 +47,27 @@
     }
 
     .bubble-chip:hover {
-        background: #F8FAFC;
-        border-color: #CBD5E1;
-        color: #0F172A;
+        background: var(--bg-hover);
+        border-color: var(--border-focus);
+        color: var(--text-main);
+        transform: translateY(-1px);
     }
 
     .bubble-chip.active {
-        background: #EDE9FE;
-        border-color: #5B46F6;
-        color: #5B46F6;
+        background: var(--primary-purple-light);
+        border-color: var(--primary-action);
+        color: var(--primary-action);
         font-weight: 700;
-        box-shadow: 0 2px 8px rgba(91, 70, 246, 0.15);
+        box-shadow: 0 2px 8px rgba(81, 69, 205, 0.2);
     }
 
     .personalized-banner {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: linear-gradient(90deg, #F5F3FF 0%, #EDE9FE 100%);
-        border: 1px solid #DDD6FE;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--primary-action);
         border-radius: 14px;
         padding: 14px 20px;
         margin-bottom: 24px;
@@ -80,15 +82,18 @@
         overflow: hidden;
         border: 1px solid var(--border-color);
         border-radius: 16px;
-        background: #FFFFFF;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        background: var(--bg-card);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
         padding: 0;
     }
 
     .course-card-custom:hover {
         transform: translateY(-3px);
-        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1);
+        box-shadow: var(--shadow-hover);
+        border-color: rgba(99, 102, 241, 0.35);
     }
+
+
 
     .recommended-badge-ribbon {
         background: linear-gradient(135deg, #5B46F6, #7C3AED);
@@ -149,23 +154,23 @@
                 <span>Your Focus Topics:</span>
             </span>
             {% for interest in user_interests %}
-            <span style="background: #FFFFFF; border: 1px solid #C4B5FD; color: #5B46F6; font-size: 0.82rem; font-weight: 700; padding: 3px 10px; border-radius: 9999px;">
+            <span style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--primary-action); font-size: 0.82rem; font-weight: 700; padding: 3px 10px; border-radius: 9999px;">
                 {{ interest }}
             </span>
             {% endfor %}
         </div>
         <div>
-            <a href="{{ url_for('learning.onboarding_interests') }}" style="color: #5B46F6; font-size: 0.84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+            <a href="{{ url_for('learning.onboarding_interests') }}" style="color: var(--primary-action); font-size: 0.84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
                 <span>Change Focus Topics</span>
                 <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
             </a>
         </div>
     </div>
     {% elif current_user.is_authenticated and not user_interests %}
-    <div class="personalized-banner" style="background: #FFFBEB; border-color: #FDE68A;">
+    <div class="personalized-banner" style="background: var(--warning-bg); border-color: var(--warning-border);">
         <div style="display: flex; align-items: center; gap: 8px;">
             <i data-lucide="sparkles" style="width: 18px; height: 18px; color: #D97706;"></i>
-            <span style="font-size: 0.88rem; font-weight: 600; color: #92400E;">
+            <span style="font-size: 0.88rem; font-weight: 600; color: var(--warning);">
                 Personalize your feed: Pick your top 3 study interests for smart recommendations.
             </span>
         </div>
@@ -248,7 +253,7 @@
 
     <!-- Live Client-Side No Results Card (Dynamic) -->
     <div id="liveNoResultsCard" class="card" style="display: none; text-align: center; padding: 50px 20px; border-radius: 16px; margin-bottom: 24px;">
-        <div style="width: 56px; height: 56px; border-radius: 50%; background: #EDE9FE; color: #5B46F6; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary-purple-light); color: var(--primary-action); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
             <i data-lucide="search-x" style="width: 28px; height: 28px;"></i>
         </div>
         <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 6px;">No Matching Courses</h3>
@@ -266,11 +271,11 @@
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 1.3rem;">🎯</span>
-                <h2 style="font-size: 1.35rem; font-weight: 800; color: #0F172A; letter-spacing: -0.01em;">
+                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em;">
                     Recommended for Your Interests
                 </h2>
             </div>
-            <span style="font-size: 0.84rem; color: #5B46F6; font-weight: 700;" id="recommendedCountBadge">
+            <span style="font-size: 0.84rem; color: var(--primary-action); font-weight: 700;" id="recommendedCountBadge">
                 {{ recommended_courses|length }} Course{{ 's' if recommended_courses|length > 1 else '' }} Matched
             </span>
         </div>
@@ -287,8 +292,8 @@
     <div id="allCoursesSection">
         {% if recommended_courses %}
         <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="book-open" style="width: 20px; height: 20px; color: #5B46F6;"></i>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: #0F172A;">
+            <i data-lucide="book-open" style="width: 20px; height: 20px; color: var(--primary-action);"></i>
+            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">
                 All Curated Courses
             </h2>
         </div>
