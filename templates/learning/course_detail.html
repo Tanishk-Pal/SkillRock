@@ -21,16 +21,22 @@
             </span>
         </div>
 
-        <!-- Single Concise Progress Indicator -->
+        <!-- High-Visibility Header Progress Indicator -->
         <div style="display: flex; align-items: center; gap: 12px;">
             {% if current_user.is_authenticated and enrollment %}
-                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.84rem;">
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 0.84rem;">
                     <span style="color: var(--text-secondary); font-weight: 600;">Lecture Progress:</span>
-                    <span id="headerProgressPct" style="font-weight: 800; color: {% if enrollment.watch_percent >= 80 %}#10B981{% else %}var(--primary-action){% endif %};">
+                    <span id="headerProgressPct" class="badge" style="font-weight: 800; font-size: 0.8rem; padding: 3px 10px; border-radius: 9999px;
+                        {% if enrollment.watch_percent >= 80 %}
+                            background: rgba(16, 185, 129, 0.18); color: #10B981;
+                        {% else %}
+                            background: rgba(99, 102, 241, 0.14); color: var(--primary-action);
+                        {% endif %}
+                    ">
                         {{ enrollment.watch_percent }}%
                     </span>
-                    <div style="width: 70px; height: 6px; background: var(--border-color); border-radius: 9999px; overflow: hidden;">
-                        <div id="headerProgressBar" style="width: {{ enrollment.watch_percent }}%; height: 100%; background: {% if enrollment.watch_percent >= 80 %}#10B981{% else %}var(--primary-action){% endif %}; border-radius: 9999px; transition: width 0.3s ease;"></div>
+                    <div style="width: 130px; height: 10px; background: rgba(99, 102, 241, 0.12); border: 1px solid var(--border-color); border-radius: 9999px; overflow: hidden; position: relative;">
+                        <div id="headerProgressBar" style="width: {{ enrollment.watch_percent }}%; height: 100%; background: {% if enrollment.watch_percent >= 80 %}#10B981{% else %}linear-gradient(90deg, #6366F1, #8B5CF6){% endif %}; border-radius: 9999px; transition: width 0.3s ease; min-width: {% if enrollment.watch_percent > 0 %}6px{% else %}0px{% endif %};"></div>
                     </div>
                 </div>
             {% else %}
@@ -47,7 +53,7 @@
         <!-- Left Column: Primary Video & Lesson Content -->
         <div>
             <!-- 2. Main Lecture Video Container (Clean & Focused) -->
-            <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 24px; border: 1px solid var(--border-color); border-radius: 14px; background: #000000; box-shadow: var(--shadow-card);">
+            <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 14px; background: #000000; box-shadow: var(--shadow-card);">
                 <!-- Responsive 16:9 Video Aspect Ratio -->
                 <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000000;" id="ytPlayerContainer">
                     <div id="skillrockYtPlayer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
@@ -63,18 +69,76 @@
                         </noscript>
                     {% endif %}
                 </div>
+            </div>
 
-                <!-- Unobtrusive Auto-Save Status Bar -->
-                <div style="padding: 10px 18px; background: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <span style="color: var(--text-secondary); font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;">
+            <!-- 3. Dedicated High-Visibility Lecture Progress & Certification Tracker Card -->
+            <div class="card" style="padding: 20px 24px; margin-bottom: 24px; border-left: 5px solid var(--primary-action); border-radius: 14px; background: var(--bg-card); box-shadow: var(--shadow-card);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99, 102, 241, 0.12); display: flex; align-items: center; justify-content: center; color: var(--primary-action);">
+                            <i data-lucide="play-circle" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 800; font-size: 1.05rem; color: var(--text-main);">
+                                Lecture Watch Progress
+                            </div>
+                            <div id="playerWatchTimeDisplay" style="font-size: 0.82rem; color: var(--text-muted); font-family: monospace;">
+                                Time Watched: <strong id="timeElapsedText" style="color: var(--text-main);">{{ enrollment.formatted_resume_time if enrollment else '00:00' }}</strong> / <span id="timeDurationText">{{ enrollment.formatted_duration if (enrollment and enrollment.video_duration) else course.estimated_duration }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div id="mainWatchPercentBadge" class="badge" style="font-size: 0.92rem; font-weight: 800; padding: 6px 14px; border-radius: 9999px;
+                            {% if enrollment and enrollment.watch_percent >= 80 %}
+                                background: rgba(16, 185, 129, 0.18); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3);
+                            {% else %}
+                                background: rgba(99, 102, 241, 0.14); color: var(--primary-action); border: 1px solid rgba(99, 102, 241, 0.25);
+                            {% endif %}
+                        ">
+                            <span id="mainProgressPercentText">{{ enrollment.watch_percent if enrollment else 0 }}%</span> Watched
+                        </div>
+
+                        <div id="certificationGateBadge" style="font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;
+                            {% if enrollment and enrollment.watch_percent >= 80 %}
+                                color: #10B981;
+                            {% else %}
+                                color: #D97706;
+                            {% endif %}
+                        ">
+                            {% if enrollment and enrollment.watch_percent >= 80 %}
+                                <i data-lucide="unlock" style="width: 15px; height: 15px;"></i>
+                                <span>80% Reached — Capstone Unlocked!</span>
+                            {% else %}
+                                <i data-lucide="lock" style="width: 15px; height: 15px;"></i>
+                                <span>80% Required to Unlock Final Project</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wide Progress Bar with 80% Benchmark Line -->
+                <div style="position: relative; width: 100%; height: 14px; background: rgba(99, 102, 241, 0.1); border: 1px solid var(--border-color); border-radius: 9999px; overflow: hidden; margin-bottom: 8px;">
+                    <!-- Filled Progress Track -->
+                    <div id="mainLectureProgressBar" style="position: absolute; top: 0; left: 0; height: 100%; width: {{ enrollment.watch_percent if enrollment else 0 }}%; background: {% if enrollment and enrollment.watch_percent >= 80 %}linear-gradient(90deg, #10B981, #059669){% else %}linear-gradient(90deg, #6366F1, #8B5CF6){% endif %}; border-radius: 9999px; transition: width 0.4s ease; min-width: {% if enrollment and enrollment.watch_percent > 0 %}8px{% else %}0px{% endif %};"></div>
+                    
+                    <!-- 80% Vertical Target Line -->
+                    <div style="position: absolute; top: 0; left: 80%; width: 3px; height: 100%; background: #EF4444; z-index: 2;" title="80% Completion Requirement"></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); flex-wrap: wrap; gap: 8px;">
+                    <span id="playerSaveStatusText" style="display: inline-flex; align-items: center; gap: 5px;">
                         <i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--primary-action);"></i>
-                        <span>Progress auto-saves while watching. Watch at least 80% to unlock project submission.</span>
+                        <span id="saveStatusNarrative">Progress auto-saves continuously while watching.</span>
                     </span>
-                    <span id="playerSaveStatus" style="color: #10B981; font-size: 0.76rem; font-weight: 600;"></span>
+                    <span style="display: inline-flex; align-items: center; gap: 5px; color: #EF4444; font-weight: 700;">
+                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #EF4444;"></span>
+                        <span>Red Marker = 80% Certification Gate</span>
+                    </span>
                 </div>
             </div>
 
-            <!-- 3. Course Details & Learning Objectives -->
+            <!-- 4. Course Details & Learning Objectives -->
             <div class="card" style="padding: 24px; margin-bottom: 24px; border-radius: 14px;">
                 <h1 style="font-size: 1.65rem; font-weight: 800; line-height: 1.3; margin-bottom: 12px; color: var(--text-main);">
                     {{ course.title }}
@@ -116,7 +180,7 @@
                 {% endif %}
             </div>
 
-            <!-- 4. Practical Project Assignment Section -->
+            <!-- 5. Practical Project Assignment Section -->
             {% if assignment %}
                 <div class="card" id="project-assignment" style="padding: 24px; border: 2px solid rgba(81, 69, 205, 0.25); border-radius: 14px; background: linear-gradient(180deg, rgba(81, 69, 205, 0.03) 0%, var(--bg-card) 100%);">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
@@ -138,7 +202,7 @@
                     </div>
 
                     <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">
-                        {{ assignment.problem_statement }}
+                        {{ assignment.problem_statement or assignment.short_description }}
                     </p>
 
                     <!-- Required Features List -->
@@ -318,6 +382,7 @@
 (function() {
     let player = null;
     let progressTimer = null;
+    let tickerTimer = null;
     const courseId = "{{ course.id }}";
     const initialWatchSeconds = {{ enrollment.watch_seconds if enrollment else 0 }};
     let currentPercent = {{ enrollment.watch_percent if enrollment else 0 }};
@@ -325,28 +390,53 @@
     const youtubeVideoId = "{{ course.youtube_video_id or '' }}";
     const submitProjectUrl = "{{ url_for('learning.submit_project', assignment_id=assignment.id) if assignment else '#' }}";
 
+    function formatTime(secs) {
+        if (!secs || isNaN(secs)) return "00:00";
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = Math.floor(secs % 60);
+        if (h > 0) {
+            return `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+        return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
     // Initialize clean YouTube IFrame Player with official API
-    window.onYouTubeIframeAPIReady = function() {
+    function initYouTubePlayer() {
         if (!youtubeVideoId || youtubeVideoId.startsWith("playlist:")) {
             return;
         }
 
-        player = new YT.Player('skillrockYtPlayer', {
-            videoId: youtubeVideoId,
-            playerVars: {
-                controls: 1,          // Supported native YouTube controls
-                rel: 0,               // Limits related videos to same channel
-                modestbranding: 1,    // Restrains YouTube branding
-                enablejsapi: 1,       // Official API event access
-                playsinline: 1,       // Inline playback on mobile
-                origin: window.location.origin
-            },
-            events: {
-                onReady: onPlayerReady,
-                onStateChange: onPlayerStateChange
-            }
-        });
-    };
+        if (typeof YT !== "undefined" && YT.Player) {
+            createPlayer();
+        } else {
+            window.onYouTubeIframeAPIReady = createPlayer;
+        }
+    }
+
+    function createPlayer() {
+        if (player) return;
+        try {
+            player = new YT.Player('skillrockYtPlayer', {
+                videoId: youtubeVideoId,
+                playerVars: {
+                    controls: 1,
+                    rel: 0,
+                    modestbranding: 1,
+                    enablejsapi: 1,
+                    playsinline: 1
+                },
+                events: {
+                    onReady: onPlayerReady,
+                    onStateChange: onPlayerStateChange,
+                    onError: onPlayerError
+                }
+            });
+        } catch(err) {
+            console.warn("Could not create YouTube player:", err);
+            renderErrorFallback();
+        }
+    }
 
     function onPlayerReady(event) {
         if (initialWatchSeconds > 0) {
@@ -356,28 +446,142 @@
                 console.warn("Could not resume player position:", e);
             }
         }
+        updateTimeDisplays();
     }
 
     function onPlayerStateChange(event) {
         if (event.data === YT.PlayerState.PLAYING) {
             if (!progressTimer) {
-                progressTimer = setInterval(syncPlaybackProgress, 10000); // Auto-save progress every 10 seconds while playing
+                progressTimer = setInterval(() => syncPlaybackProgress(), 10000); // Auto-save progress every 10 seconds while playing
+            }
+            if (!tickerTimer) {
+                tickerTimer = setInterval(updateTimeDisplays, 1000); // 1-second live UI updater
             }
         } else {
             if (progressTimer) {
                 clearInterval(progressTimer);
                 progressTimer = null;
             }
+            if (tickerTimer) {
+                clearInterval(tickerTimer);
+                tickerTimer = null;
+            }
+            updateTimeDisplays();
             if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
                 syncPlaybackProgress();
             }
         }
     }
 
-    async function syncPlaybackProgress() {
+    function onPlayerError(event) {
+        console.warn("YouTube player error encountered:", event.data);
+        renderErrorFallback();
+    }
+
+    function renderErrorFallback() {
+        const container = document.getElementById("ytPlayerContainer");
+        if (!container) return;
+        const ytWatchUrl = `https://www.youtube.com/watch?v=${youtubeVideoId}`;
+
+        container.innerHTML = `
+            <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0F172A; color: #F8FAFC; padding: 24px; text-align: center;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(99, 102, 241, 0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                </div>
+                <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; color: #FFFFFF;">External Video Playback</h3>
+                <p style="font-size: 0.88rem; color: #94A3B8; max-width: 460px; line-height: 1.5; margin-bottom: 16px;">
+                    This video can be watched directly on YouTube. Your learning progress and certificate qualifications remain 100% active.
+                </p>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+                    <a href="${ytWatchUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 10px 22px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>Open on YouTube ↗</span>
+                    </a>
+                    <button type="button" id="btnSyncWatched" class="btn btn-secondary" style="padding: 10px 18px; font-weight: 600;">
+                        ✓ Mark Watched (100%)
+                    </button>
+                </div>
+            </div>
+        `;
+
+        const btnSync = document.getElementById("btnSyncWatched");
+        if (btnSync) {
+            btnSync.addEventListener("click", () => {
+                syncPlaybackProgress(3600, 3600);
+            });
+        }
+    }
+
+    function updateTimeDisplays() {
         if (!player || typeof player.getCurrentTime !== "function") return;
         const currentSecs = Math.floor(player.getCurrentTime() || 0);
         const durationSecs = Math.floor(player.getDuration() || 0);
+
+        const timeElapsed = document.getElementById("timeElapsedText");
+        const timeDuration = document.getElementById("timeDurationText");
+
+        if (timeElapsed && currentSecs >= 0) {
+            timeElapsed.textContent = formatTime(currentSecs);
+        }
+        if (timeDuration && durationSecs > 0) {
+            timeDuration.textContent = formatTime(durationSecs);
+        }
+
+        // Live smooth progress estimation
+        if (durationSecs > 0) {
+            const calculatedPct = Math.min(100, Math.round((currentSecs / durationSecs) * 100));
+            if (calculatedPct > currentPercent) {
+                applyProgressUI(calculatedPct);
+            }
+        }
+    }
+
+    function applyProgressUI(pct) {
+        const headerPct = document.getElementById("headerProgressPct");
+        const headerBar = document.getElementById("headerProgressBar");
+        const mainBar = document.getElementById("mainLectureProgressBar");
+        const mainPctText = document.getElementById("mainProgressPercentText");
+        const mainBadge = document.getElementById("mainWatchPercentBadge");
+        const gateBadge = document.getElementById("certificationGateBadge");
+
+        if (headerPct) headerPct.textContent = `${pct}%`;
+        if (mainPctText) mainPctText.textContent = `${pct}%`;
+
+        if (headerBar) {
+            headerBar.style.width = `${pct}%`;
+            if (pct >= 80) headerBar.style.background = "#10B981";
+        }
+        if (mainBar) {
+            mainBar.style.width = `${pct}%`;
+            if (pct >= 80) mainBar.style.background = "linear-gradient(90deg, #10B981, #059669)";
+        }
+
+        if (pct >= 80) {
+            if (headerPct) {
+                headerPct.style.background = "rgba(16, 185, 129, 0.18)";
+                headerPct.style.color = "#10B981";
+            }
+            if (mainBadge) {
+                mainBadge.style.background = "rgba(16, 185, 129, 0.18)";
+                mainBadge.style.color = "#10B981";
+                mainBadge.style.borderColor = "rgba(16, 185, 129, 0.3)";
+            }
+            if (gateBadge) {
+                gateBadge.innerHTML = '<i data-lucide="unlock" style="width: 15px; height: 15px;"></i><span>80% Reached — Capstone Unlocked!</span>';
+                gateBadge.style.color = "#10B981";
+            }
+            unlockSubmitButtons();
+        }
+    }
+
+    async function syncPlaybackProgress(overrideSecs, overrideDur) {
+        let currentSecs = overrideSecs;
+        let durationSecs = overrideDur;
+
+        if (currentSecs === undefined) {
+            if (!player || typeof player.getCurrentTime !== "function") return;
+            currentSecs = Math.floor(player.getCurrentTime() || 0);
+            durationSecs = Math.floor(player.getDuration() || 0);
+        }
 
         if (currentSecs <= 0) return;
 
@@ -400,26 +604,16 @@
                 currentPercent = data.watch_percent;
                 videoCompleted = data.video_completed;
 
-                // Update Header Progress Bar
-                const headerPct = document.getElementById("headerProgressPct");
-                const headerBar = document.getElementById("headerProgressBar");
-                const saveStatus = document.getElementById("playerSaveStatus");
+                applyProgressUI(currentPercent);
 
-                if (headerPct) headerPct.textContent = `${currentPercent}%`;
-                if (headerBar) {
-                    headerBar.style.width = `${currentPercent}%`;
-                    if (currentPercent >= 80) {
-                        headerBar.style.background = "#10B981";
-                        if (headerPct) headerPct.style.color = "#10B981";
-                    }
+                const saveNarrative = document.getElementById("saveStatusNarrative");
+                if (saveNarrative) {
+                    saveNarrative.textContent = "✓ Progress saved successfully.";
+                    setTimeout(() => { 
+                        if (saveNarrative) saveNarrative.textContent = "Progress auto-saves continuously while watching."; 
+                    }, 3000);
                 }
 
-                if (saveStatus) {
-                    saveStatus.textContent = "✓ Progress saved";
-                    setTimeout(() => { if (saveStatus) saveStatus.textContent = ""; }, 2500);
-                }
-
-                // If 80% achieved, unlock project submission button
                 if (videoCompleted || currentPercent >= 80) {
                     unlockSubmitButtons();
                 }
@@ -439,8 +633,8 @@
                 </a>
             `;
         });
-        if (window.lucide) {
-            lucide.createIcons();
+        if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
         }
     }
 
@@ -460,6 +654,9 @@
             }
         }
     });
+
+    // Start initialization
+    initYouTubePlayer();
 })();
 </script>
 {% endblock %}

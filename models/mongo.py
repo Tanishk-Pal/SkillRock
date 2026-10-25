@@ -1429,16 +1429,16 @@ class Course:
             return ""
         if yt_id.startswith("playlist:"):
             playlist_id = yt_id.split(":", 1)[1]
-            return f"https://www.youtube-nocookie.com/embed/videoseries?list={playlist_id}&rel=0&modestbranding=1&enablejsapi=1&playsinline=1"
-        return f"https://www.youtube-nocookie.com/embed/{yt_id}?rel=0&modestbranding=1&enablejsapi=1&playsinline=1"
+            return f"https://www.youtube.com/embed/videoseries?list={playlist_id}&rel=0&modestbranding=1&enablejsapi=1&playsinline=1"
+        return f"https://www.youtube.com/embed/{yt_id}?rel=0&modestbranding=1&enablejsapi=1&playsinline=1"
 
     @property
     def fallback_thumbnail(self):
-        if self.thumbnail_url:
-            return self.thumbnail_url
         yt_id = self.youtube_video_id or extract_youtube_id(self.youtube_url)
         if yt_id and not yt_id.startswith("playlist:"):
             return f"https://img.youtube.com/vi/{yt_id}/hqdefault.jpg"
+        if self.thumbnail_url and "maxresdefault.jpg" not in self.thumbnail_url:
+            return self.thumbnail_url
         return "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80"
 
     @property

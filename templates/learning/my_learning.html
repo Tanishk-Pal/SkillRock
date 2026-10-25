@@ -59,7 +59,7 @@
                         <div>
                             <!-- Course Thumbnail -->
                             <div style="height: 140px; position: relative; background: #0F172A; overflow: hidden;">
-                                <img src="{{ course.fallback_thumbnail }}" alt="{{ course.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="{{ course.fallback_thumbnail }}" alt="{{ course.title }}" loading="lazy" onerror="this.src='https://img.youtube.com/vi/{{ course.youtube_video_id }}/hqdefault.jpg'; this.onerror=function(){this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80';};" style="width: 100%; height: 100%; object-fit: cover;">
                                 <div style="position: absolute; top: 10px; right: 10px;">
                                     {% if cert %}
                                         <span class="badge" style="background: rgba(16, 185, 129, 0.9); color: white; font-weight: 700;">Certified</span>
@@ -91,7 +91,7 @@
                                             {{ enrollment.watch_percent }}% {% if enrollment.watch_percent >= 80 %}✓ (Eligible){% else %}(80% req.){% endif %}
                                         </span>
                                     </div>
-                                    <div style="width: 100%; height: 6px; background: var(--border-color); border-radius: 9999px; overflow: hidden;">
+                                    <div style="width: 100%; height: 8px; background: rgba(99, 102, 241, 0.12); border: 1px solid var(--border-color); border-radius: 9999px; overflow: hidden;">
                                         <div style="width: {{ enrollment.watch_percent }}%; height: 100%; background: {% if enrollment.watch_percent >= 80 %}#10B981{% else %}var(--primary-action){% endif %}; border-radius: 9999px;"></div>
                                     </div>
                                     {% if enrollment.watch_seconds > 0 and enrollment.watch_percent < 100 %}

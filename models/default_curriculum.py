@@ -19,7 +19,7 @@ def get_default_curriculum():
             "estimated_duration": "12 Hours",
             "instructor": "Bro Code",
             "youtube_url": "https://www.youtube.com/watch?v=xk4_1vDrzzo",
-            "thumbnail_url": "https://img.youtube.com/vi/xk4_1vDrzzo/maxresdefault.jpg",
+            "thumbnail_url": "https://img.youtube.com/vi/xk4_1vDrzzo/hqdefault.jpg",
             "description": "Master core Java from first principles: variables, operators, loops, arrays, methods, object-oriented programming (inheritance, polymorphism, abstraction, encapsulation), Java Collections, and file operations.",
             "learning_objectives": [
                 "Understand JVM mechanics, memory allocation, and Java syntax",
@@ -100,7 +100,7 @@ def get_default_curriculum():
             "estimated_duration": "25 Hours",
             "instructor": "Kunal Kushwaha",
             "youtube_url": "https://www.youtube.com/watch?v=rZ41y93P2Qo",
-            "thumbnail_url": "https://img.youtube.com/vi/rZ41y93P2Qo/maxresdefault.jpg",
+            "thumbnail_url": "https://img.youtube.com/vi/rZ41y93P2Qo/hqdefault.jpg",
             "description": "Comprehensive journey from foundational Java mechanics to advanced bitwise algorithms, recursive problem solving, tree traversals, graph algorithms, and enterprise architectural design.",
             "learning_objectives": [
                 "Understand JVM internal memory model, garbage collection, and bitwise math",
@@ -182,7 +182,7 @@ def get_default_curriculum():
             "estimated_duration": "30 Hours",
             "instructor": "take U forward (Striver)",
             "youtube_url": "https://www.youtube.com/watch?v=EAR7De6Goz4",
-            "thumbnail_url": "https://img.youtube.com/vi/EAR7De6Goz4/maxresdefault.jpg",
+            "thumbnail_url": "https://img.youtube.com/vi/EAR7De6Goz4/hqdefault.jpg",
             "description": "The gold standard interview curriculum covering step-by-step problem solving patterns: Two Pointers, Sliding Window, Prefix Sums, Binary Trees, Graphs, Disjoint Sets, and Dynamic Programming.",
             "learning_objectives": [
                 "Deconstruct LeetCode Medium & Hard patterns methodically",
@@ -264,7 +264,7 @@ def get_default_curriculum():
             "estimated_duration": "18 Hours",
             "instructor": "Abdul Bari / Curated",
             "youtube_url": "https://www.youtube.com/watch?v=8hly31xKli0",
-            "thumbnail_url": "https://img.youtube.com/vi/8hly31xKli0/maxresdefault.jpg",
+            "thumbnail_url": "https://img.youtube.com/vi/8hly31xKli0/hqdefault.jpg",
             "description": "Master algorithmic complexity, asymptotic analysis, recursive trees, dynamic programming memoization, and custom data structure implementations using idiomatic Python.",
             "learning_objectives": [
                 "Analyze time & space complexity with mathematical rigor",
@@ -345,7 +345,7 @@ def get_default_curriculum():
             "estimated_duration": "12 Hours",
             "instructor": "Programming with Mosh",
             "youtube_url": "https://www.youtube.com/watch?v=_uQrJ0TkZlc",
-            "thumbnail_url": "https://img.youtube.com/vi/_uQrJ0TkZlc/maxresdefault.jpg",
+            "thumbnail_url": "https://img.youtube.com/vi/_uQrJ0TkZlc/hqdefault.jpg",
             "description": "Master Python from fundamental variables and data structures up through object-oriented design and real-world scripting. Learn how to process files, automate spreadsheets, and build CLI utilities.",
             "learning_objectives": [
                 "Master Python syntax, variables, conditionals, loops, and collection types",
@@ -425,7 +425,7 @@ def get_default_curriculum():
             "estimated_duration": "14 Hours",
             "instructor": "freeCodeCamp",
             "youtube_url": "https://www.youtube.com/watch?v=GPVsHOlRBBI",
-            "thumbnail_url": "https://img.youtube.com/vi/GPVsHOlRBBI/maxresdefault.jpg",
+            "thumbnail_url": "https://img.youtube.com/vi/GPVsHOlRBBI/hqdefault.jpg",
             "description": "Learn real-world data science with Python's core analytical libraries: NumPy multi-dimensional arrays, Pandas DataFrames, and Matplotlib data visualization.",
             "learning_objectives": [
                 "Master NumPy vectorization, array slicing, broadcasting, and linear algebra operations",
@@ -505,7 +505,7 @@ def get_default_curriculum():
             "estimated_duration": "22 Hours",
             "instructor": "The Net Ninja / Traversy Media",
             "youtube_url": "https://www.youtube.com/watch?v=7CqJlxBYj-M",
-            "thumbnail_url": "https://img.youtube.com/vi/7CqJlxBYj-M/maxresdefault.jpg",
+            "thumbnail_url": "https://img.youtube.com/vi/7CqJlxBYj-M/hqdefault.jpg",
             "description": "Build complete production web applications from scratch with React, Node.js, Express, and MongoDB Atlas. Master REST APIs, JWT authentication, responsive Tailwind layouts, and cloud deployment.",
             "learning_objectives": [
                 "Architect modern responsive frontends using React functional components and hooks",
@@ -586,7 +586,7 @@ def get_default_curriculum():
             "estimated_duration": "24 Hours",
             "instructor": "CodeWithHarry",
             "youtube_url": "https://www.youtube.com/watch?v=tVzUXW6siu0",
-            "thumbnail_url": "https://img.youtube.com/vi/tVzUXW6siu0/maxresdefault.jpg",
+            "thumbnail_url": "https://img.youtube.com/vi/tVzUXW6siu0/hqdefault.jpg",
             "description": "Complete Hindi web development bootcamp covering HTML5 semantics, modern CSS Flexbox and Grid, JavaScript ES6+, DOM manipulation, and building real-world MERN web applications.",
             "learning_objectives": [
                 "Master HTML5 semantic tags, accessibility, and modern responsive CSS layout in Hindi",
@@ -666,7 +666,7 @@ def get_default_curriculum():
             "estimated_duration": "15 Hours",
             "instructor": "NetworkChuck",
             "youtube_url": "https://www.youtube.com/watch?v=VbEx7B_PTOE",
-            "thumbnail_url": "https://img.youtube.com/vi/VbEx7B_PTOE/maxresdefault.jpg",
+            "thumbnail_url": "https://img.youtube.com/vi/VbEx7B_PTOE/hqdefault.jpg",
             "description": "Master the Linux command line, filesystem hierarchy, file permissions (chmod/chown), bash scripting, pipes, grep, networking commands, package management, and security tools on Kali Linux.",
             "learning_objectives": [
                 "Navigate the Linux directory tree and manage processes with confidence",
@@ -745,9 +745,9 @@ def get_default_curriculum():
             "language": "English",
             "difficulty": "Intermediate",
             "estimated_duration": "15 Hours",
-            "instructor": "freeCodeCamp",
-            "youtube_url": "https://www.youtube.com/watch?v=WnN0WUrhHuk",
-            "thumbnail_url": "https://img.youtube.com/vi/WnN0WUrhHuk/maxresdefault.jpg",
+            "instructor": "Heath Adams / freeCodeCamp",
+            "youtube_url": "https://www.youtube.com/watch?v=3Kq1MIfTWCE",
+            "thumbnail_url": "https://img.youtube.com/vi/3Kq1MIfTWCE/hqdefault.jpg",
             "description": "Learn practical offensive and defensive security: reconnaissance, network scanning with Nmap, vulnerability assessment, web application security (OWASP Top 10), and ethical penetration testing.",
             "learning_objectives": [
                 "Execute structured reconnaissance and network footprinting ethically",
@@ -827,7 +827,7 @@ def get_default_curriculum():
             "estimated_duration": "10 Hours",
             "instructor": "Gary Simon (DesignCourse)",
             "youtube_url": "https://www.youtube.com/watch?v=i48q0JQQ2EA",
-            "thumbnail_url": "https://img.youtube.com/vi/i48q0JQQ2EA/maxresdefault.jpg",
+            "thumbnail_url": "https://img.youtube.com/vi/i48q0JQQ2EA/hqdefault.jpg",
             "description": "Master modern UI/UX design in Figma. Learn design theory, typography hierarchy, whitespace, color contrast, autolayout, component variants, design tokens, micro-interactions, and accessibility standards.",
             "learning_objectives": [
                 "Master Figma tools: Autolayout 5.0, Component Variants, and Design Tokens",
@@ -905,9 +905,9 @@ def get_default_curriculum():
             "language": "English",
             "difficulty": "Intermediate",
             "estimated_duration": "12 Hours",
-            "instructor": "Jesse Showalter / Curated",
-            "youtube_url": "https://www.youtube.com/watch?v=c9Wg6Ge_YGU",
-            "thumbnail_url": "https://img.youtube.com/vi/c9Wg6Ge_YGU/maxresdefault.jpg",
+            "instructor": "Adrian Twarog / freeCodeCamp",
+            "youtube_url": "https://www.youtube.com/watch?v=c9Wg6Cb_YlU",
+            "thumbnail_url": "https://img.youtube.com/vi/c9Wg6Cb_YlU/hqdefault.jpg",
             "description": "Explore user-centered product design: qualitative user research, persona creation, user journey mapping, information architecture, wireframing, and building production design systems.",
             "learning_objectives": [
                 "Conduct user interviews and synthesize insights into user personas",
@@ -986,9 +986,9 @@ def get_default_curriculum():
             "language": "English",
             "difficulty": "Beginner",
             "estimated_duration": "12 Hours",
-            "instructor": "SuperSimpleDev / Curated",
-            "youtube_url": "https://www.youtube.com/watch?v=EerdGm-ehJQ",
-            "thumbnail_url": "https://img.youtube.com/vi/EerdGm-ehJQ/maxresdefault.jpg",
+            "instructor": "Per Harald Borgen / freeCodeCamp",
+            "youtube_url": "https://www.youtube.com/watch?v=jS4aFq5-91M",
+            "thumbnail_url": "https://img.youtube.com/vi/jS4aFq5-91M/hqdefault.jpg",
             "description": "Master JavaScript from variables, conditionals, arrays, and objects through DOM manipulation, event listeners, promises, fetch API, and async/await for modern interactive web development.",
             "learning_objectives": [
                 "Master modern JavaScript ES6+ syntax, scoping, and arrow functions",
@@ -1068,7 +1068,7 @@ def get_default_curriculum():
             "estimated_duration": "16 Hours",
             "instructor": "freeCodeCamp / Andrew Ng",
             "youtube_url": "https://www.youtube.com/watch?v=i_LwzRVP7bg",
-            "thumbnail_url": "https://img.youtube.com/vi/i_LwzRVP7bg/maxresdefault.jpg",
+            "thumbnail_url": "https://img.youtube.com/vi/i_LwzRVP7bg/hqdefault.jpg",
             "description": "Learn practical machine learning: supervised algorithms (regression, classification), model evaluation metrics, deep learning neural networks with TensorFlow/PyTorch, and deploying predictive ML models.",
             "learning_objectives": [
                 "Understand cost functions, gradient descent, and training convergence",
