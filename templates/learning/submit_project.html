@@ -1,29 +1,102 @@
 {% extends "base.html" %}
 
-{% block title %}Submit Project — {{ assignment.title }} — Skill Rock{% endblock %}
+{% block title %}
+    {% if assignment.is_final_capstone or assignment.evaluation_type == 'human' %}
+        Submit Capstone — {{ assignment.title }} — Skill Rock
+    {% else %}
+        Milestone {{ assignment.step_number or 1 }} Workspace — {{ assignment.title }} — Skill Rock
+    {% endif %}
+{% endblock %}
 
 {% block content %}
-<div class="submit-project-container" style="max-width: 800px; margin: 0 auto;">
+<div class="submit-project-container" style="max-width: 960px; margin: 0 auto; padding-bottom: 60px;">
     <!-- Breadcrumbs -->
-    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; flex-wrap: wrap;">
         <a href="{{ url_for('learning.courses_list') }}" style="color: inherit; text-decoration: none;">Courses</a>
         <span>/</span>
         <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" style="color: inherit; text-decoration: none;">{{ course.title }}</a>
         <span>/</span>
-        <span style="color: var(--text-primary); font-weight: 600;">Submit Project</span>
+        <a href="{{ url_for('learning.assignment_detail', assignment_id=assignment.id) }}" style="color: inherit; text-decoration: none;">Milestone {{ assignment.step_number or 1 }}</a>
+        <span>/</span>
+        <span style="color: var(--text-main); font-weight: 600;">
+            {% if assignment.is_final_capstone or assignment.evaluation_type == 'human' %}
+                Capstone Submission
+            {% else %}
+                Code Workspace
+            {% endif %}
+        </span>
+    </div>
+
+    <!-- Stepper Navigation Mini-Bar -->
+    <div class="card" style="padding: 14px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: rgba(15, 23, 42, 0.02);">
+        <div style="display: flex; align-items: center; gap: 10px; font-size: 0.88rem; font-weight: 700; color: var(--text-main);">
+            <i data-lucide="layers" style="width: 18px; height: 18px; color: var(--primary-action);"></i>
+            <span>Milestone Progress:</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            {% for step_i in range(1, (assignment.total_steps or 3) + 1) %}
+                <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+                    {% if step_i == (assignment.step_number or 1) %}
+                        background: var(--primary-action); color: #FFFFFF; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+                    {% elif step_i < (assignment.step_number or 1) %}
+                        background: rgba(16, 185, 129, 0.15); color: #10B981;
+                    {% else %}
+                        background: rgba(148, 163, 184, 0.15); color: var(--text-muted);
+                    {% endif %}
+                ">
+                    {% if step_i < (assignment.step_number or 1) %}
+                        <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                    {% endif %}
+                    Step {{ step_i }}
+                    {% if step_i == (assignment.total_steps or 3) %} (Capstone){% endif %}
+                </span>
+                {% if not loop.last %}
+                    <span style="color: var(--border-color); font-size: 0.8rem;">→</span>
+                {% endif %}
+            {% endfor %}
+        </div>
     </div>
 
     <!-- Header Card -->
-    <div class="card" style="padding: 24px 28px; margin-bottom: 24px; border-top: 4px solid #2563EB;">
-        <h1 style="font-size: 1.55rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">
-            Submit Project: {{ assignment.title }}
+    <div class="card" style="padding: 24px 28px; margin-bottom: 24px; border-top: 4px solid var(--primary-action);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: var(--primary-action); font-weight: 700;">
+                    Milestone {{ assignment.step_number or 1 }} of {{ assignment.total_steps or 3 }}
+                </span>
+
+                {% if assignment.evaluation_type == 'algorithmic' %}
+                    <span class="badge" style="background: rgba(59, 130, 246, 0.12); color: #2563EB; font-weight: 700;">
+                        ⚡ Algorithmic Test Suite (Instant Automated Grading)
+                    </span>
+                {% elif assignment.evaluation_type == 'ai_dual' %}
+                    <span class="badge" style="background: rgba(139, 92, 246, 0.12); color: #7C3AED; font-weight: 700;">
+                        🤖 Dual-Engine (Automated Tests + SkillBot AI Analysis)
+                    </span>
+                {% else %}
+                    <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #D97706; font-weight: 700;">
+                        👥 Human Verification Gate (Required for Certificate)
+                    </span>
+                {% endif %}
+            </div>
+
+            {% if submission and submission.status == 'approved' %}
+                <span class="badge" style="background: rgba(16, 185, 129, 0.18); color: #10B981; font-weight: 800; padding: 6px 12px;">
+                    <i data-lucide="check-circle" style="width: 14px; height: 14px; display: inline; vertical-align: -2px;"></i>
+                    Approved ({{ submission.automated_score or 100 }}%)
+                </span>
+            {% endif %}
+        </div>
+
+        <h1 style="font-size: 1.55rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+            {{ assignment.title }}
         </h1>
-        <p style="font-size: 0.92rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">
-            Course: <strong>{{ course.title }}</strong> • Provide your GitHub repository and live deployment link for human evaluation.
+        <p style="font-size: 0.94rem; color: var(--text-secondary); margin: 0; line-height: 1.55;">
+            {{ assignment.problem_statement or assignment.short_description }}
         </p>
     </div>
 
-    <!-- Review Feedback Banner if Changes Requested or Rejected -->
+    <!-- Reviewer Feedback Banner if Changes Requested or Rejected (Capstone) -->
     {% if submission and submission.review_feedback and submission.status in ['changes_requested', 'rejected'] %}
         <div class="card" style="padding: 20px 24px; margin-bottom: 24px; border-left: 4px solid #F59E0B; background: rgba(245, 158, 11, 0.05);">
             <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #D97706; margin-bottom: 6px;">
@@ -39,48 +112,271 @@
         </div>
     {% endif %}
 
-    <!-- Submission Form -->
-    <div class="card" style="padding: 28px; margin-bottom: 28px;">
-        <form action="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" method="POST">
-            <!-- Project Title -->
-            <div style="margin-bottom: 20px;">
-                <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
-                    Project Title <span style="color: #EF4444;">*</span>
-                </label>
-                <input 
-                    type="text" 
-                    name="title" 
-                    class="form-control" 
-                    placeholder="e.g. Campus Task Manager with MongoDB & Flask" 
-                    value="{{ form_data.title if form_data else '' }}"
-                    required
-                >
-                <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
-                    Give your project a descriptive, professional name.
-                </small>
+    <!-- ========================================================================= -->
+    <!-- BRANCH A: AUTOMATED MILESTONES (Algorithmic / Dual-Engine Steps 1 & 2)    -->
+    <!-- ========================================================================= -->
+    {% if not (assignment.is_final_capstone or assignment.evaluation_type == 'human') %}
+        
+        <!-- Target Function Specifications -->
+        {% if assignment.target_function_name %}
+            <div class="card" style="padding: 16px 22px; margin-bottom: 20px; background: rgba(99, 102, 241, 0.04); border-left: 4px solid var(--primary-action);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="terminal" style="width: 18px; height: 18px; color: var(--primary-action);"></i>
+                    <div style="font-size: 0.9rem; color: var(--text-main);">
+                        Expected Target Function: <code style="font-family: monospace; font-weight: 700; color: var(--primary-action); background: rgba(99, 102, 241, 0.1); padding: 3px 8px; border-radius: 4px;">{{ assignment.target_function_name }}()</code>
+                        {% if assignment.required_keywords %}
+                            <span style="margin-left: 12px; font-size: 0.82rem; color: var(--text-muted);">
+                                Required keywords: {{ assignment.required_keywords|join(', ') }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Diagnostic Feedback Card (Rendered if server evaluated or after AJAX run) -->
+        <div id="diagnosticCard" class="card" style="padding: 24px; margin-bottom: 24px; display: {% if eval_result or (submission and submission.automated_feedback) %}block{% else %}none{% endif %};">
+            <div id="diagnosticHeader" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div id="diagnosticIcon">
+                        {% if (eval_result and eval_result.decision == 'approved') or (submission and submission.status == 'approved') %}
+                            <i data-lucide="check-circle-2" style="width: 24px; height: 24px; color: #10B981;"></i>
+                        {% else %}
+                            <i data-lucide="alert-triangle" style="width: 24px; height: 24px; color: #F59E0B;"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h3 id="diagnosticTitle" style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">
+                            {% if (eval_result and eval_result.decision == 'approved') or (submission and submission.status == 'approved') %}
+                                Milestone Passed!
+                            {% else %}
+                                Diagnostics: Needs Revision
+                            {% endif %}
+                        </h3>
+                        <div id="diagnosticSubtitle" style="font-size: 0.82rem; color: var(--text-muted);">
+                            Automated evaluation results and test case metrics
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Score:</div>
+                    <div id="diagnosticScoreBadge" class="badge" style="font-size: 1rem; font-weight: 800; padding: 6px 14px;
+                        {% if (eval_result and eval_result.decision == 'approved') or (submission and submission.status == 'approved') %}
+                            background: rgba(16, 185, 129, 0.18); color: #10B981;
+                        {% else %}
+                            background: rgba(245, 158, 11, 0.18); color: #D97706;
+                        {% endif %}
+                    ">
+                        <span id="diagnosticScoreValue">{{ (eval_result and eval_result.score) or (submission and submission.automated_score) or 0 }}</span>%
+                    </div>
+                </div>
             </div>
 
-            <!-- Tech Stack -->
-            <div style="margin-bottom: 20px;">
-                <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
-                    Technologies & Tools Used <span style="color: #EF4444;">*</span>
-                </label>
-                <input 
-                    type="text" 
-                    name="tech_stack" 
-                    class="form-control" 
-                    placeholder="e.g. Python, Flask, Jinja2, MongoDB, Render" 
-                    value="{{ form_data.tech_stack if form_data else '' }}"
-                    required
-                >
+            <!-- Feedback Narrative -->
+            <div id="diagnosticFeedbackBox" style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; white-space: pre-line; background: rgba(15, 23, 42, 0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; margin-bottom: 18px;">
+                {{ (eval_result and eval_result.feedback) or (submission and submission.automated_feedback) or '' }}
             </div>
 
-            <!-- GitHub Repository URL -->
-            <div style="margin-bottom: 20px;">
-                <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
-                    Public GitHub Repository URL <span style="color: #EF4444;">*</span>
-                </label>
-                <div style="position: relative;">
+            <!-- Test Cases Breakdown Table -->
+            <div id="diagnosticTestsSection">
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 10px;">
+                    Deterministic Test Suite Assertions:
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
+                                <th style="padding: 8px 12px; font-weight: 700; color: var(--text-main);">Test Name</th>
+                                <th style="padding: 8px 12px; font-weight: 700; color: var(--text-main); width: 90px;">Result</th>
+                                <th style="padding: 8px 12px; font-weight: 700; color: var(--text-main);">Expected Output</th>
+                                <th style="padding: 8px 12px; font-weight: 700; color: var(--text-main);">Actual Returned</th>
+                            </tr>
+                        </thead>
+                        <tbody id="diagnosticTestsBody">
+                            {% set tr_list = (eval_result and eval_result.test_results) or (submission and submission.test_results) or [] %}
+                            {% for tr in tr_list %}
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 8px 12px; font-weight: 600; color: var(--text-main);">{{ tr.name }}</td>
+                                    <td style="padding: 8px 12px;">
+                                        {% if tr.status == 'pass' %}
+                                            <span style="display: inline-flex; align-items: center; gap: 4px; color: #10B981; font-weight: 700; font-size: 0.8rem; background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 4px;">
+                                                ✓ PASS
+                                            </span>
+                                        {% else %}
+                                            <span style="display: inline-flex; align-items: center; gap: 4px; color: #EF4444; font-weight: 700; font-size: 0.8rem; background: rgba(239, 68, 68, 0.1); padding: 2px 8px; border-radius: 4px;">
+                                                ✗ FAIL
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 8px 12px; font-family: monospace; color: #10B981;">{{ tr.expected }}</td>
+                                    <td style="padding: 8px 12px; font-family: monospace; color: {% if tr.status == 'pass' %}#10B981{% else %}#EF4444{% endif %};">
+                                        {{ tr.actual }}
+                                        {% if tr.error %}<div style="color: #EF4444; font-size: 0.78rem;">Error: {{ tr.error }}</div>{% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Next Step Action if Passed -->
+            <div id="diagnosticNextStep" style="display: {% if (eval_result and eval_result.decision == 'approved') or (submission and submission.status == 'approved') %}block{% else %}none{% endif %}; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div style="font-size: 0.9rem; color: #10B981; font-weight: 700;">
+                        🎉 Fantastic! You have unlocked Milestone {{ (assignment.step_number or 1) + 1 }}.
+                    </div>
+                    <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" class="btn btn-primary" style="padding: 10px 22px; font-weight: 700; font-size: 0.9rem;">
+                        View Next Milestone →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Code Workspace Form -->
+        <div class="card" style="padding: 28px; margin-bottom: 28px;">
+            <form id="automatedSubmitForm" action="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" method="POST">
+                
+                <!-- Code Editor Container -->
+                <div style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.92rem; margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="code-2" style="width: 18px; height: 18px; color: var(--primary-action);"></i>
+                            <span>Solution Code</span>
+                            <span style="color: #EF4444;">*</span>
+                        </label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button type="button" id="btnResetCode" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="rotate-ccw" style="width: 12px; height: 12px;"></i>
+                                Reset Starter Code
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="position: relative; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: #0F172A;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #1E293B; padding: 6px 14px; font-size: 0.78rem; color: #94A3B8; border-bottom: 1px solid #334155;">
+                            <span style="font-family: monospace; font-weight: 600;">solution.py</span>
+                            <span>Tab inserts 4 spaces • Python 3</span>
+                        </div>
+                        <textarea 
+                            id="codeSnippet"
+                            name="code_snippet" 
+                            rows="16" 
+                            spellcheck="false"
+                            style="width: 100%; box-sizing: border-box; background: #0F172A; color: #F8FAFC; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.92rem; line-height: 1.55; padding: 16px; border: none; outline: none; resize: vertical;"
+                            placeholder="# Write your implementation here..."
+                            required
+                        >{{ (form_data and form_data.code_snippet) or assignment.starter_code or '' }}</textarea>
+                    </div>
+                    <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 6px;">
+                        Implement the logic inside <code style="font-family: monospace; color: var(--primary-action);">{{ assignment.target_function_name or 'the function' }}</code>. Do not rename the target function signature.
+                    </small>
+                </div>
+
+                <!-- Student Notes & Approach -->
+                <div style="margin-bottom: 24px;">
+                    <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
+                        Implementation Notes & Complexity Analysis
+                        <span style="color: var(--text-muted); font-weight: normal;">(Optional but recommended for AI Code Review)</span>
+                    </label>
+                    <textarea 
+                        name="student_notes" 
+                        class="form-control" 
+                        rows="3" 
+                        placeholder="Explain your approach, edge cases handled, time complexity (e.g. O(N)), or architectural choices..."
+                    >{{ (form_data and form_data.student_notes) or '' }}</textarea>
+                    <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
+                        Our SkillBot AI engine will review your reasoning alongside automated unit tests.
+                    </small>
+                </div>
+
+                <!-- Action Controls -->
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                    <a href="{{ url_for('learning.assignment_detail', assignment_id=assignment.id) }}" class="btn btn-secondary">
+                        ← Back to Problem Brief
+                    </a>
+
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <!-- Run Instant Diagnostic via AJAX -->
+                        <button type="button" id="btnRunTests" class="btn btn-secondary" style="padding: 11px 22px; font-weight: 700; font-size: 0.92rem; display: inline-flex; align-items: center; gap: 8px;">
+                            <i data-lucide="play" style="width: 16px; height: 16px; color: #10B981;"></i>
+                            <span id="btnRunTestsLabel">Run Tests & Diagnostics</span>
+                        </button>
+
+                        <!-- Submit Milestone for Official Grade -->
+                        <button type="submit" id="btnSubmitMilestone" class="btn btn-primary" style="padding: 11px 26px; font-weight: 700; font-size: 0.92rem; display: inline-flex; align-items: center; gap: 8px;">
+                            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                            <span>Submit Milestone</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    <!-- ========================================================================= -->
+    <!-- BRANCH B: FINAL CAPSTONE (GitHub + Live Deployment - Human Review Gate)   -->
+    <!-- ========================================================================= -->
+    {% else %}
+
+        <!-- Human Review Notice Card -->
+        <div class="card" style="padding: 20px 24px; margin-bottom: 24px; border-left: 4px solid #F59E0B; background: rgba(245, 158, 11, 0.05);">
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                <i data-lucide="shield-check" style="width: 24px; height: 24px; color: #D97706; flex-shrink: 0; margin-top: 2px;"></i>
+                <div>
+                    <h3 style="font-size: 1.05rem; font-weight: 800; color: #B45309; margin: 0 0 6px 0;">
+                        Human Verification & Final Capstone Gate
+                    </h3>
+                    <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.55; margin: 0;">
+                        Unlike automated code challenges, your final capstone project is thoroughly reviewed by engineering mentors.
+                        <strong>Certificate Requirements:</strong> To earn your verified Certificate of Completion, you must have (1) at least 80% video lecture completion, and (2) an approved capstone review.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Capstone Submission Form -->
+        <div class="card" style="padding: 28px; margin-bottom: 28px;">
+            <form action="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" method="POST">
+                
+                <!-- Project Title -->
+                <div style="margin-bottom: 20px;">
+                    <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
+                        Project Title <span style="color: #EF4444;">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="title" 
+                        class="form-control" 
+                        placeholder="e.g. Distributed Task Orchestrator with Celery & Redis" 
+                        value="{{ form_data.title if form_data else '' }}"
+                        required
+                    >
+                    <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
+                        Give your project a descriptive, professional name.
+                    </small>
+                </div>
+
+                <!-- Tech Stack -->
+                <div style="margin-bottom: 20px;">
+                    <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
+                        Technologies & Tools Used <span style="color: #EF4444;">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="tech_stack" 
+                        class="form-control" 
+                        placeholder="e.g. Python, FastAPI, PostgreSQL, Docker, Render" 
+                        value="{{ form_data.tech_stack if form_data else '' }}"
+                        required
+                    >
+                </div>
+
+                <!-- GitHub Repository URL -->
+                <div style="margin-bottom: 20px;">
+                    <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
+                        Public GitHub Repository URL <span style="color: #EF4444;">*</span>
+                    </label>
                     <input 
                         type="url" 
                         name="github_url" 
@@ -89,75 +385,226 @@
                         value="{{ form_data.github_url if form_data else '' }}"
                         required
                     >
+                    <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
+                        Repository must be set to <strong>Public</strong> so mentors can inspect your code architecture and commit history.
+                    </small>
                 </div>
-                <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
-                    Repository must be set to <strong>Public</strong> so our reviewers can inspect your code and commit history.
-                </small>
-            </div>
 
-            <!-- Live Deployment URL -->
-            <div style="margin-bottom: 20px;">
-                <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
-                    Live Deployment URL 
-                    {% if assignment.is_deployment_required %}
-                        <span style="color: #EF4444;">* (Required for this project)</span>
-                    {% else %}
-                        <span style="color: var(--text-muted);">(Optional but recommended)</span>
-                    {% endif %}
-                </label>
-                <input 
-                    type="url" 
-                    name="deployment_url" 
-                    class="form-control" 
-                    placeholder="https://your-project.onrender.com or https://your-project.vercel.app" 
-                    value="{{ form_data.deployment_url if form_data else '' }}"
-                    {% if assignment.is_deployment_required %}required{% endif %}
-                >
-                <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
-                    Host on free platforms such as Render, Vercel, Netlify, or GitHub Pages.
-                </small>
-            </div>
-
-            <!-- Project Description & Testing Notes -->
-            <div style="margin-bottom: 24px;">
-                <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
-                    Project Description & Testing Instructions <span style="color: #EF4444;">*</span>
-                </label>
-                <textarea 
-                    name="description" 
-                    class="form-control" 
-                    rows="6" 
-                    placeholder="Explain what you built, how you implemented key requirements, test user credentials if needed, and what makes your solution unique..."
-                    required
-                >{{ form_data.description if form_data else '' }}</textarea>
-                <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
-                    Minimum 30 characters. Clearly detail how you fulfilled the assignment requirements.
-                </small>
-            </div>
-
-            <!-- Academic Integrity & Checklist -->
-            <div style="background: rgba(15, 23, 42, 0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px; margin-bottom: 24px; font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6;">
-                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
-                    Submission Checklist:
+                <!-- Live Deployment URL -->
+                <div style="margin-bottom: 20px;">
+                    <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
+                        Live Deployment URL 
+                        {% if assignment.is_deployment_required %}
+                            <span style="color: #EF4444;">* (Required for this project)</span>
+                        {% else %}
+                            <span style="color: var(--text-muted);">(Optional but recommended)</span>
+                        {% endif %}
+                    </label>
+                    <input 
+                        type="url" 
+                        name="deployment_url" 
+                        class="form-control" 
+                        placeholder="https://your-project.onrender.com or https://your-project.vercel.app" 
+                        value="{{ form_data.deployment_url if form_data else '' }}"
+                        {% if assignment.is_deployment_required %}required{% endif %}
+                    >
+                    <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
+                        Deploy on free tiers such as Render, Vercel, Netlify, or GitHub Pages.
+                    </small>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <div>✓ My GitHub repository is public and includes a readable README.</div>
-                    <div>✓ The live deployment (if applicable) is functional and accessible.</div>
-                    <div>✓ I wrote this code myself and credit any libraries or tutorial foundations.</div>
-                </div>
-            </div>
 
-            <!-- Submit Button -->
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" class="btn btn-secondary">
-                    Cancel
-                </a>
-                <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-weight: 700; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px;">
-                    <i data-lucide="send" style="width: 18px; height: 18px;"></i>
-                    <span>{% if submission %}Update & Resubmit Project{% else %}Submit Project for Review{% endif %}</span>
-                </button>
-            </div>
-        </form>
-    </div>
+                <!-- Project Description & Testing Notes -->
+                <div style="margin-bottom: 24px;">
+                    <label class="form-label" style="font-weight: 700; font-size: 0.88rem;">
+                        Project Description & Testing Instructions <span style="color: #EF4444;">*</span>
+                    </label>
+                    <textarea 
+                        name="description" 
+                        class="form-control" 
+                        rows="6" 
+                        placeholder="Explain what you built, how you implemented key requirements, test user credentials if needed, and what makes your solution unique..."
+                        required
+                    >{{ form_data.description if form_data else '' }}</textarea>
+                    <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
+                        Minimum 30 characters. Detail how your project meets the capstone deliverables.
+                    </small>
+                </div>
+
+                <!-- Academic Integrity & Checklist -->
+                <div style="background: rgba(15, 23, 42, 0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px; margin-bottom: 24px; font-size: 0.84rem; color: var(--text-secondary); line-height: 1.6;">
+                    <div style="font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
+                        Submission Checklist:
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <div>✓ My GitHub repository is public and includes a comprehensive README with setup instructions.</div>
+                        <div>✓ The live deployment (if applicable) is functional and accessible without auth barriers.</div>
+                        <div>✓ I authored this implementation myself and properly credit any open-source libraries used.</div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <a href="{{ url_for('learning.assignment_detail', assignment_id=assignment.id) }}" class="btn btn-secondary">
+                        ← Back to Capstone Brief
+                    </a>
+                    <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-weight: 700; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px;">
+                        <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+                        <span>{% if submission %}Update & Resubmit Capstone{% else %}Submit Capstone for Human Review{% endif %}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    {% endif %}
 </div>
+
+<!-- Interactive Code Workspace Scripts -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const codeArea = document.getElementById("codeSnippet");
+    const starterCode = {{ (assignment.starter_code or '')|tojson }};
+    const btnReset = document.getElementById("btnResetCode");
+    const btnRunTests = document.getElementById("btnRunTests");
+    const btnRunTestsLabel = document.getElementById("btnRunTestsLabel");
+    const diagnosticCard = document.getElementById("diagnosticCard");
+
+    // Handle Tab key inside textarea (insert 4 spaces instead of losing focus)
+    if (codeArea) {
+        codeArea.addEventListener("keydown", function(e) {
+            if (e.key === "Tab") {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 4;
+            }
+        });
+    }
+
+    // Reset Code Button
+    if (btnReset && codeArea) {
+        btnReset.addEventListener("click", function() {
+            if (confirm("Reset editor to starter code template? Current edits will be overwritten.")) {
+                codeArea.value = starterCode;
+            }
+        });
+    }
+
+    // Run Tests via AJAX (Instant In-Browser Evaluation)
+    if (btnRunTests && codeArea) {
+        btnRunTests.addEventListener("click", async function() {
+            const codeSnippet = codeArea.value.trim();
+            const notesField = document.querySelector("textarea[name='student_notes']");
+            const studentNotes = notesField ? notesField.value.trim() : "";
+
+            if (!codeSnippet) {
+                alert("Please write your solution code before running tests.");
+                return;
+            }
+
+            btnRunTests.disabled = true;
+            btnRunTestsLabel.textContent = "Evaluating...";
+
+            try {
+                const response = await fetch("{{ url_for('learning.api_evaluate_milestone', assignment_id=assignment.id) }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: JSON.stringify({
+                        code_snippet: codeSnippet,
+                        student_notes: studentNotes
+                    })
+                });
+
+                const data = await response.json();
+                if (data.status !== "ok") {
+                    alert("Evaluation error: " + (data.message || "Unknown error"));
+                    return;
+                }
+
+                // Render Diagnostics
+                diagnosticCard.style.display = "block";
+                diagnosticCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+                const isApproved = data.decision === "approved";
+                const score = data.score || 0;
+
+                // Title & Icon
+                const titleEl = document.getElementById("diagnosticTitle");
+                const iconEl = document.getElementById("diagnosticIcon");
+                const scoreBadge = document.getElementById("diagnosticScoreBadge");
+                const scoreVal = document.getElementById("diagnosticScoreValue");
+                const feedbackBox = document.getElementById("diagnosticFeedbackBox");
+                const nextStepBox = document.getElementById("diagnosticNextStep");
+
+                if (isApproved) {
+                    titleEl.textContent = "Milestone Passed!";
+                    iconEl.innerHTML = '<i data-lucide="check-circle-2" style="width: 24px; height: 24px; color: #10B981;"></i>';
+                    scoreBadge.style.background = "rgba(16, 185, 129, 0.18)";
+                    scoreBadge.style.color = "#10B981";
+                    nextStepBox.style.display = "block";
+                } else {
+                    titleEl.textContent = "Diagnostics: Needs Revision";
+                    iconEl.innerHTML = '<i data-lucide="alert-triangle" style="width: 24px; height: 24px; color: #F59E0B;"></i>';
+                    scoreBadge.style.background = "rgba(245, 158, 11, 0.18)";
+                    scoreBadge.style.color = "#D97706";
+                    nextStepBox.style.display = "none";
+                }
+
+                scoreVal.textContent = score;
+                feedbackBox.textContent = data.feedback || "";
+
+                // Populate Tests Table
+                const tbody = document.getElementById("diagnosticTestsBody");
+                tbody.innerHTML = "";
+                if (data.test_results && data.test_results.length > 0) {
+                    data.test_results.forEach(tr => {
+                        const trRow = document.createElement("tr");
+                        trRow.style.borderBottom = "1px solid var(--border-color)";
+
+                        const passBadge = tr.status === "pass" 
+                            ? '<span style="display: inline-flex; align-items: center; gap: 4px; color: #10B981; font-weight: 700; font-size: 0.8rem; background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 4px;">✓ PASS</span>'
+                            : '<span style="display: inline-flex; align-items: center; gap: 4px; color: #EF4444; font-weight: 700; font-size: 0.8rem; background: rgba(239, 68, 68, 0.1); padding: 2px 8px; border-radius: 4px;">✗ FAIL</span>';
+
+                        const errText = tr.error ? `<div style="color: #EF4444; font-size: 0.78rem;">Error: ${escapeHtml(tr.error)}</div>` : "";
+                        const actualColor = tr.status === "pass" ? "#10B981" : "#EF4444";
+
+                        trRow.innerHTML = `
+                            <td style="padding: 8px 12px; font-weight: 600; color: var(--text-main);">${escapeHtml(tr.name)}</td>
+                            <td style="padding: 8px 12px;">${passBadge}</td>
+                            <td style="padding: 8px 12px; font-family: monospace; color: #10B981;">${escapeHtml(String(tr.expected))}</td>
+                            <td style="padding: 8px 12px; font-family: monospace; color: ${actualColor};">
+                                ${escapeHtml(String(tr.actual))}
+                                ${errText}
+                            </td>
+                        `;
+                        tbody.appendChild(trRow);
+                    });
+                }
+
+                if (window.lucide && window.lucide.createIcons) {
+                    window.lucide.createIcons();
+                }
+            } catch (err) {
+                alert("Network error occurred during evaluation: " + err.message);
+            } finally {
+                btnRunTests.disabled = false;
+                btnRunTestsLabel.textContent = "Run Tests & Diagnostics";
+            }
+        });
+    }
+
+    function escapeHtml(text) {
+        if (!text) return "";
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+});
+</script>
 {% endblock %}

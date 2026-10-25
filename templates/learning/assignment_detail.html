@@ -1,51 +1,190 @@
 {% extends "base.html" %}
 
-{% block title %}{{ assignment.title }} — Project Specifications — Skill Rock{% endblock %}
+{% block title %}{{ assignment.title }} — Milestone {{ assignment.step_number }} — Skill Rock{% endblock %}
 
 {% block content %}
-<div class="assignment-container" style="max-width: 900px; margin: 0 auto;">
+<div class="assignment-container" style="max-width: 960px; margin: 0 auto; padding-bottom: 60px;">
     <!-- Breadcrumbs -->
     <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
         <a href="{{ url_for('learning.courses_list') }}" style="color: inherit; text-decoration: none;">Courses</a>
         <span>/</span>
         <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" style="color: inherit; text-decoration: none;">{{ course.title }}</a>
         <span>/</span>
-        <span style="color: var(--text-primary); font-weight: 600;">Assignment</span>
+        <span style="color: var(--text-main); font-weight: 600;">Milestone {{ assignment.step_number }}: {{ assignment.title }}</span>
     </div>
 
-    <!-- Header Card -->
-    <div class="card" style="padding: 28px; margin-bottom: 24px; border-left: 5px solid #2563EB;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 12px;">
+    <!-- Progressive Milestone Stepper -->
+    {% if all_milestones and all_milestones|length > 1 %}
+    <div class="card" style="padding: 20px 24px; margin-bottom: 24px; border-radius: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+            <div style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="layers" style="width: 18px; height: 18px; color: var(--primary-action);"></i>
+                <span>Course Certification Milestones</span>
+            </div>
+            <span style="font-size: 0.82rem; color: var(--text-muted);">
+                Pass all steps + 80% video watch to earn your official certificate
+            </span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+            {% for m in all_milestones %}
+                {% set m_sub = user_submissions.get(m.step_number) if user_submissions else None %}
+                {% set is_curr = (m.id == assignment.id) %}
+                {% set is_prev_passed = (m.step_number == 1) or (user_submissions and user_submissions.get(m.step_number - 1) and user_submissions.get(m.step_number - 1).status == 'approved') %}
+
+                <a href="{{ url_for('learning.assignment_detail', assignment_id=m.id) if (is_prev_passed or current_user.is_admin) else '#' }}" 
+                   style="text-decoration: none; color: inherit; display: block; border-radius: 12px; padding: 14px 16px; border: 1.5px solid {% if is_curr %}var(--primary-action){% elif m_sub and m_sub.status == 'approved' %}#10B981{% else %}var(--border-color){% endif %}; background: {% if is_curr %}rgba(99, 102, 241, 0.08){% elif m_sub and m_sub.status == 'approved' %}rgba(16, 185, 129, 0.06){% else %}var(--bg-card){% endif %}; opacity: {% if is_prev_passed or current_user.is_admin %}1{% else %}0.65{% endif %}; transition: all 0.2s ease;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 0.76rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: {% if is_curr %}var(--primary-action){% elif m_sub and m_sub.status == 'approved' %}#10B981{% else %}var(--text-muted){% endif %};">
+                            Step {{ m.step_number }} of {{ m.total_steps }}
+                        </span>
+
+                        {% if m_sub and m_sub.status == 'approved' %}
+                            <span style="font-size: 0.72rem; font-weight: 800; background: rgba(16, 185, 129, 0.15); color: #10B981; padding: 2px 8px; border-radius: 9999px;">
+                                Passed ✓
+                            </span>
+                        {% elif is_curr %}
+                            <span style="font-size: 0.72rem; font-weight: 800; background: rgba(99, 102, 241, 0.15); color: var(--primary-action); padding: 2px 8px; border-radius: 9999px;">
+                                Current 📍
+                            </span>
+                        {% elif not is_prev_passed and not current_user.is_admin %}
+                            <span style="font-size: 0.72rem; font-weight: 700; background: var(--bg-hover); color: var(--text-muted); padding: 2px 8px; border-radius: 9999px;">
+                                Locked 🔒
+                            </span>
+                        {% else %}
+                            <span style="font-size: 0.72rem; font-weight: 700; background: var(--bg-hover); color: var(--text-secondary); padding: 2px 8px; border-radius: 9999px;">
+                                Ready
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {{ m.title }}
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-muted);">
+                        {% if m.evaluation_type == 'algorithmic' %}
+                            <i data-lucide="zap" style="width: 12px; height: 12px; color: #3B82F6;"></i>
+                            <span>Algorithmic Test Runner</span>
+                        {% elif m.evaluation_type == 'ai_dual' %}
+                            <i data-lucide="bot" style="width: 12px; height: 12px; color: #8B5CF6;"></i>
+                            <span>Tests + SkillBot AI</span>
+                        {% else %}
+                            <i data-lucide="user-check" style="width: 12px; height: 12px; color: #F59E0B;"></i>
+                            <span>Human Capstone Review</span>
+                        {% endif %}
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Prerequisite Lock Alert -->
+    {% if not is_unlocked and not current_user.is_admin %}
+    <div class="card" style="padding: 20px 24px; margin-bottom: 24px; border-left: 5px solid #F59E0B; background: rgba(245, 158, 11, 0.08);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i data-lucide="lock" style="width: 24px; height: 24px; color: #D97706; flex-shrink: 0;"></i>
             <div>
-                <span class="badge" style="background: rgba(37, 99, 235, 0.1); color: #2563EB; font-weight: 700; margin-bottom: 8px; display: inline-block;">
-                    {{ course.category }} Project
-                </span>
-                <h1 style="font-size: 1.7rem; font-weight: 800; color: var(--text-primary); margin: 0;">
+                <h3 style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin: 0 0 4px 0;">
+                    Milestone {{ assignment.step_number }} is Currently Locked
+                </h3>
+                <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0;">
+                    To ensure real mastery, you must pass Milestone {{ assignment.step_number - 1 }} before you can submit this assignment.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Header Card -->
+    <div class="card" style="padding: 28px; margin-bottom: 24px; border-left: 5px solid var(--primary-action);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 14px;">
+            <div>
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
+                    <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: var(--primary-action); font-weight: 700;">
+                        Milestone {{ assignment.step_number }} of {{ assignment.total_steps }}
+                    </span>
+
+                    {% if assignment.evaluation_type == 'algorithmic' %}
+                        <span class="badge" style="background: rgba(59, 130, 246, 0.12); color: #2563EB; font-weight: 700;">
+                            ⚡ Algorithmic Test Runner (Instant Automated Grading)
+                        </span>
+                    {% elif assignment.evaluation_type == 'ai_dual' %}
+                        <span class="badge" style="background: rgba(139, 92, 246, 0.12); color: #7C3AED; font-weight: 700;">
+                            🤖 Dual-Engine (Automated Tests + SkillBot AI Analysis)
+                        </span>
+                    {% else %}
+                        <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #D97706; font-weight: 700;">
+                            👥 Human Verification Gate (Required for Certificate)
+                        </span>
+                    {% endif %}
+                </div>
+
+                <h1 style="font-size: 1.7rem; font-weight: 800; color: var(--text-main); margin: 0;">
                     {{ assignment.title }}
                 </h1>
             </div>
 
-            {% if assignment.is_deployment_required %}
-                <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #D97706; font-weight: 700; padding: 6px 12px;">
-                    <i data-lucide="globe" style="width: 13px; height: 13px; display: inline;"></i> Live Deployment Required
-                </span>
-            {% else %}
-                <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: var(--text-secondary); font-weight: 600; padding: 6px 12px;">
-                    Code Repository Project
+            {% if submission and submission.status == 'approved' %}
+                <span class="badge" style="background: rgba(16, 185, 129, 0.18); color: #10B981; font-weight: 800; padding: 7px 14px; font-size: 0.85rem;">
+                    <i data-lucide="check-circle" style="width: 14px; height: 14px; display: inline; vertical-align: -2px;"></i>
+                    Passed with {{ submission.automated_score or 100 }}%
                 </span>
             {% endif %}
         </div>
 
         <p style="font-size: 1rem; color: var(--text-secondary); line-height: 1.6; margin: 0;">
-            {{ assignment.problem_statement }}
+            {{ assignment.problem_statement or assignment.short_description }}
         </p>
     </div>
 
-    <!-- Required Features -->
+    <!-- Automated Test Cases / Sample Assertions (for Algorithmic / Dual steps) -->
+    {% if assignment.test_cases and assignment.test_cases|length > 0 %}
     <div class="card" style="padding: 24px; margin-bottom: 24px;">
-        <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="check-circle-2" style="width: 20px; height: 20px; color: #10B981;"></i>
+            <span>Automated Test Suite Assertions</span>
+        </h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+            Your code will be evaluated against these deterministic test cases:
+        </p>
+
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
+                        <th style="padding: 10px 14px; font-weight: 700; color: var(--text-main);">Test Case</th>
+                        <th style="padding: 10px 14px; font-weight: 700; color: var(--text-main);">Input Sample</th>
+                        <th style="padding: 10px 14px; font-weight: 700; color: var(--text-main);">Expected Return</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tc in assignment.test_cases %}
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 10px 14px; font-weight: 600; color: var(--text-main);">
+                                {{ tc.name }}
+                            </td>
+                            <td style="padding: 10px 14px; font-family: monospace; color: var(--primary-action);">
+                                {{ tc.input }}
+                            </td>
+                            <td style="padding: 10px 14px; font-family: monospace; color: #10B981; font-weight: 700;">
+                                {{ tc.expected }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Required Features (for Capstone) -->
+    {% if assignment.required_features and assignment.required_features|length > 0 %}
+    <div class="card" style="padding: 24px; margin-bottom: 24px;">
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
             <i data-lucide="check-square" style="width: 20px; height: 20px; color: #10B981;"></i>
-            <span>Mandatory Core Features</span>
+            <span>Mandatory Capstone Deliverables</span>
         </h2>
         <ul style="padding-left: 20px; margin: 0; color: var(--text-secondary); font-size: 0.92rem; line-height: 1.7;">
             {% for feat in assignment.required_features %}
@@ -53,61 +192,48 @@
             {% endfor %}
         </ul>
     </div>
-
-    <!-- Optional / Bonus Features -->
-    {% if assignment.optional_features %}
-        <div class="card" style="padding: 24px; margin-bottom: 24px; border: 1px dashed rgba(37, 99, 235, 0.3);">
-            <h2 style="font-size: 1.15rem; font-weight: 800; color: #2563EB; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="sparkles" style="width: 20px; height: 20px; color: #2563EB;"></i>
-                <span>Bonus & Stretch Goals</span>
-            </h2>
-            <ul style="padding-left: 20px; margin: 0; color: var(--text-secondary); font-size: 0.92rem; line-height: 1.7;">
-                {% for feat in assignment.optional_features %}
-                    <li style="margin-bottom: 6px;">{{ feat }}</li>
-                {% endfor %}
-            </ul>
-        </div>
     {% endif %}
 
-    <!-- Technical Requirements & Recommended Stack -->
+    <!-- Technical Specifications -->
     {% if assignment.tech_requirements %}
-        <div class="card" style="padding: 24px; margin-bottom: 24px;">
-            <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="cpu" style="width: 20px; height: 20px; color: #7C3AED;"></i>
-                <span>Technical Specifications & Recommended Stack</span>
-            </h2>
-            <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin: 0;">
-                {{ assignment.tech_requirements }}
-            </p>
-        </div>
+    <div class="card" style="padding: 24px; margin-bottom: 24px;">
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="cpu" style="width: 20px; height: 20px; color: #7C3AED;"></i>
+            <span>Technical Requirements & Constraints</span>
+        </h2>
+        <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin: 0;">
+            {{ assignment.tech_requirements }}
+        </p>
+    </div>
     {% endif %}
 
-    <!-- Evaluation Rubric -->
+    <!-- Evaluation Rubric (for Capstone human review) -->
+    {% if assignment.is_final_capstone or assignment.evaluation_type == 'human' %}
     <div class="card" style="padding: 24px; margin-bottom: 28px;">
-        <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
             <i data-lucide="clipboard-check" style="width: 20px; height: 20px; color: #F59E0B;"></i>
-            <span>Evaluation & Grading Rubric</span>
+            <span>Human Reviewer Grading Rubric</span>
         </h2>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 18px;">
-            Submissions are reviewed by human reviewers against these explicit standards. A passing grade across all core criteria is required for certificate issuance.
+            Reviewed by real human reviewers. A passing grade across all 4 criteria is required to mint your tamper-proof certificate.
         </p>
 
         <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
                 <thead>
                     <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
-                        <th style="padding: 10px 14px; font-weight: 700; color: var(--text-primary);">Evaluation Criterion</th>
-                        <th style="padding: 10px 14px; font-weight: 700; color: var(--text-primary); width: 100px;">Weight</th>
-                        <th style="padding: 10px 14px; font-weight: 700; color: var(--text-primary);">Review Standard</th>
+                        <th style="padding: 10px 14px; font-weight: 700; color: var(--text-main);">Criterion</th>
+                        <th style="padding: 10px 14px; font-weight: 700; color: var(--text-main); width: 90px;">Weight</th>
+                        <th style="padding: 10px 14px; font-weight: 700; color: var(--text-main);">Review Standard</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in assignment.rubric %}
                         <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 14px; font-weight: 600; color: var(--text-primary);">
+                            <td style="padding: 12px 14px; font-weight: 600; color: var(--text-main);">
                                 {{ item.criterion }}
                             </td>
-                            <td style="padding: 12px 14px; color: #2563EB; font-weight: 700;">
+                            <td style="padding: 12px 14px; color: var(--primary-action); font-weight: 700;">
                                 {{ item.max_points }} pts
                             </td>
                             <td style="padding: 12px 14px; color: var(--text-secondary); line-height: 1.5;">
@@ -119,21 +245,34 @@
             </table>
         </div>
     </div>
+    {% endif %}
 
-    <!-- Action Buttons -->
+    <!-- Action Bar -->
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 40px;">
         <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" class="btn btn-secondary">
-            ← Back to Course Video
+            ← Back to Course Lecture
         </a>
 
         {% if current_user.is_authenticated %}
-            <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 700; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px;">
-                <i data-lucide="upload-cloud" style="width: 18px; height: 18px;"></i>
-                <span>Submit Your Project Now</span>
-            </a>
+            {% if is_unlocked or current_user.is_admin %}
+                <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 700; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px;">
+                    {% if assignment.is_final_capstone or assignment.evaluation_type == 'human' %}
+                        <i data-lucide="upload-cloud" style="width: 18px; height: 18px;"></i>
+                        <span>Submit Capstone for Human Review</span>
+                    {% else %}
+                        <i data-lucide="code" style="width: 18px; height: 18px;"></i>
+                        <span>Open Code Workspace & Evaluate</span>
+                    {% endif %}
+                </a>
+            {% else %}
+                <button type="button" class="btn btn-secondary" disabled style="opacity: 0.6; cursor: not-allowed; display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
+                    <span>Complete Milestone {{ assignment.step_number - 1 }} to Unlock</span>
+                </button>
+            {% endif %}
         {% else %}
             <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="padding: 12px 24px; font-weight: 700;">
-                Sign In to Submit Project
+                Sign In to Start Milestone
             </a>
         {% endif %}
     </div>

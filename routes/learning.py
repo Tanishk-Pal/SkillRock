@@ -541,50 +541,69 @@ def my_learning():
 @learning_bp.route("/assignment/<assignment_id>")
 def assignment_detail(assignment_id):
     """
-    Dedicated Assignment Briefing.
-    Displays problem statement, mandatory & bonus features,
-    tech requirements, and the transparent grading rubric.
+    Dedicated Assignment & Milestone Briefing.
+    Displays problem statement, test cases, progressive milestone stepper,
+    and requirements based on whether the step is automated or human-reviewed.
     """
     assignment = Assignment.get_by_id(assignment_id)
     if not assignment:
-        flash("Project assignment not found.", "warning")
+        flash("Milestone assignment not found.", "warning")
         return redirect(url_for("learning.courses_list"))
 
     course = assignment.course
     enrollment = None
     submission = None
     certificate = None
+    all_milestones = []
+    user_submissions = {}
+    is_unlocked = True
+
+    if course:
+        all_milestones = Assignment.get_all_by_course(course.id)
 
     if current_user.is_authenticated and course:
         enrollment = Enrollment.get_by_user_course(current_user.id, course.id)
         submission = Submission.get_latest(current_user.id, assignment.id)
         certificate = Certificate.get_by_user_course(current_user.id, course.id)
+        user_submissions = Submission.get_all_for_course(current_user.id, course.id)
+
+        # Check progressive prerequisite lock
+        step_num = getattr(assignment, "step_number", 1)
+        if step_num > 1:
+            is_unlocked = Submission.is_step_approved(current_user.id, course.id, step_num - 1)
+
+    watch_pct = getattr(enrollment, "watch_percent", 0) if enrollment else 0
+    is_lecture_qualified = (watch_pct >= 80) or getattr(current_user, "is_admin", False)
 
     return render_template(
         "learning/assignment_detail.html",
         assignment=assignment,
         course=course,
+        all_milestones=all_milestones,
+        user_submissions=user_submissions,
         enrollment=enrollment,
         submission=submission,
-        certificate=certificate
+        certificate=certificate,
+        is_unlocked=is_unlocked,
+        is_lecture_qualified=is_lecture_qualified
     )
 
 
 # ==============================================================================
-# 6. Project Submission & Revision Workflow
+# 6. Progressive Milestone Submission (Automated & Human Verified)
 # ==============================================================================
 
 @learning_bp.route("/submit/<assignment_id>", methods=["GET", "POST"])
 @login_required
 def submit_project(assignment_id):
     """
-    Project Submission Portal.
-    Validates GitHub repo URL, live deployment URL, technical overview,
-    and supports resubmission upon reviewer revision requests.
+    Project & Milestone Submission Portal.
+    - Interim Milestones: Evaluated automatically by Algorithmic or Dual-Engine AI evaluator.
+    - Final Capstone: Validates GitHub repo + live deployment, strictly reviewed by human.
     """
     assignment = Assignment.get_by_id(assignment_id)
     if not assignment:
-        flash("Assignment not found.", "danger")
+        flash("Milestone assignment not found.", "danger")
         return redirect(url_for("learning.courses_list"))
 
     course = assignment.course
@@ -603,29 +622,102 @@ def submit_project(assignment_id):
         })
         enrollment.save()
 
-    # Check for existing submission
+    # Prerequisite verification: cannot submit Milestone N without Milestone N-1 approved
+    step_num = getattr(assignment, "step_number", 1)
+    if step_num > 1:
+        prev_approved = Submission.is_step_approved(current_user.id, course.id, step_num - 1)
+        if not prev_approved:
+            flash(f"🔒 Prerequisite Required: You must complete and pass Milestone {step_num - 1} before accessing Milestone {step_num}.", "warning")
+            prev_asg = Assignment.get_by_course_and_step(course.id, step_num - 1)
+            if prev_asg:
+                return redirect(url_for("learning.assignment_detail", assignment_id=prev_asg.id))
+            return redirect(url_for("learning.course_detail", slug=course.slug))
+
     existing_sub = Submission.get_latest(current_user.id, assignment.id)
 
-    # If already approved and certified, prevent duplicate submissions
+    # If already approved
     if existing_sub and existing_sub.status == Submission.STATUS_APPROVED:
-        flash("You have already earned your verified certificate for this project! Great job.", "success")
+        flash(f"You have already passed Milestone {step_num}! Great job.", "success")
+        next_asg = Assignment.get_by_course_and_step(course.id, step_num + 1)
+        if next_asg:
+            return redirect(url_for("learning.assignment_detail", assignment_id=next_asg.id))
         return redirect(url_for("learning.my_learning"))
 
-    # 80% Lecture Completion Gate: Students must watch at least 80% of the course video lecture before project submission
-    watch_pct = getattr(enrollment, "watch_percent", 0)
-    video_completed = getattr(enrollment, "video_completed", False) or (watch_pct >= 80)
-    if not video_completed and not getattr(current_user, "is_admin", False):
-        flash(f"Course Requirement: You must watch at least 80% of the course lecture video before submitting your project for review. Your current watch progress is {watch_pct}%.", "warning")
-        return redirect(url_for("learning.course_detail", slug=course.slug))
+    is_capstone = getattr(assignment, "is_final_capstone", False) or getattr(assignment, "evaluation_type", "") == "human"
+
+    # For Final Capstone, verify 80% video lecture gate
+    if is_capstone:
+        watch_pct = getattr(enrollment, "watch_percent", 0)
+        video_completed = getattr(enrollment, "video_completed", False) or (watch_pct >= 80)
+        if not video_completed and not getattr(current_user, "is_admin", False):
+            flash(f"Course Requirement: You must watch at least 80% of the course lecture video before submitting your final project for human review. Your current watch progress is {watch_pct}%.", "warning")
+            return redirect(url_for("learning.course_detail", slug=course.slug))
 
     if request.method == "POST":
+        # PATH A: AUTOMATED EVALUATION (Milestones 1 & 2)
+        if not is_capstone:
+            code_snippet = request.form.get("code_snippet", "").strip()
+            student_notes = request.form.get("student_notes", "").strip()
+
+            from services.assignment_evaluator import AssignmentEvaluator
+            eval_result = AssignmentEvaluator.evaluate(assignment, code_snippet, student_notes)
+
+            # Record or update submission
+            if existing_sub:
+                sub = existing_sub
+                sub.code_snippet = code_snippet
+                sub.description = student_notes
+                sub.automated_score = eval_result["score"]
+                sub.automated_feedback = eval_result["feedback"]
+                sub.test_results = eval_result["test_results"]
+                sub.status = Submission.STATUS_APPROVED if eval_result["decision"] == "approved" else Submission.STATUS_REJECTED
+                sub.reviewed_at = datetime.now(timezone.utc)
+                sub.reviewer_id = "automated_engine"
+                sub.save()
+            else:
+                sub = Submission({
+                    "assignment_id": str(assignment.id),
+                    "course_id": str(course.id),
+                    "user_id": str(current_user.id),
+                    "title": f"Milestone {step_num}: {assignment.title}",
+                    "code_snippet": code_snippet,
+                    "description": student_notes,
+                    "step_number": step_num,
+                    "evaluation_type": getattr(assignment, "evaluation_type", "algorithmic"),
+                    "automated_score": eval_result["score"],
+                    "automated_feedback": eval_result["feedback"],
+                    "test_results": eval_result["test_results"],
+                    "status": Submission.STATUS_APPROVED if eval_result["decision"] == "approved" else Submission.STATUS_REJECTED,
+                    "reviewed_at": datetime.now(timezone.utc),
+                    "reviewer_id": "automated_engine",
+                    "created_at": datetime.now(timezone.utc)
+                })
+                sub.save()
+
+            if eval_result["decision"] == "approved":
+                flash(f"🎉 Milestone {step_num} Approved! Automated Score: {eval_result['score']}%. Next step unlocked!", "success")
+                next_asg = Assignment.get_by_course_and_step(course.id, step_num + 1)
+                if next_asg:
+                    return redirect(url_for("learning.assignment_detail", assignment_id=next_asg.id))
+                return redirect(url_for("learning.course_detail", slug=course.slug))
+            else:
+                flash(f"⚠️ Milestone {step_num} Needs Revision (Score: {eval_result['score']}%). Review the diagnostic feedback below and try again.", "warning")
+                return render_template(
+                    "learning/submit_project.html",
+                    assignment=assignment,
+                    course=course,
+                    submission=sub,
+                    eval_result=eval_result,
+                    form_data={"code_snippet": code_snippet, "student_notes": student_notes}
+                )
+
+        # PATH B: FINAL CAPSTONE (GitHub + Live Deployment - Human Review)
         title = request.form.get("title", "").strip()
         description = request.form.get("description", "").strip()
         github_url = request.form.get("github_url", "").strip()
         deployment_url = request.form.get("deployment_url", "").strip()
         tech_stack = request.form.get("tech_stack", "").strip()
 
-        # Validation
         errors = []
         if not title:
             errors.append("Please enter a clear project title.")
@@ -662,7 +754,6 @@ def submit_project(assignment_id):
                 }
             )
 
-        # Create or update submission
         if existing_sub and existing_sub.status in [Submission.STATUS_PENDING, Submission.STATUS_CHANGES, Submission.STATUS_REJECTED]:
             sub = existing_sub
             sub.title = title
@@ -673,12 +764,14 @@ def submit_project(assignment_id):
             sub.status = Submission.STATUS_PENDING
             sub.reviewed_at = None
             sub.save()
-            flash("🚀 Project resubmission received! Our reviewers will inspect your updated code and deployment.", "success")
+            flash("🚀 Capstone project resubmission received! Our reviewers will inspect your updated code and live deployment.", "success")
         else:
             sub = Submission({
                 "assignment_id": str(assignment.id),
                 "course_id": str(course.id),
                 "user_id": str(current_user.id),
+                "step_number": step_num,
+                "evaluation_type": "human",
                 "title": title,
                 "description": description,
                 "github_url": github_url,
@@ -688,9 +781,8 @@ def submit_project(assignment_id):
                 "created_at": datetime.now(timezone.utc)
             })
             sub.save()
-            flash("🚀 Project submitted successfully! It is now in the review queue. You will be notified once evaluated.", "success")
+            flash("🚀 Capstone project submitted successfully! It is now in the human review queue. You will be notified once evaluated.", "success")
 
-        # Update enrollment state to in_progress
         if enrollment.status == "enrolled":
             enrollment.status = "in_progress"
             enrollment.save()
@@ -705,7 +797,13 @@ def submit_project(assignment_id):
             "description": existing_sub.description,
             "github_url": existing_sub.github_url,
             "deployment_url": existing_sub.deployment_url,
-            "tech_stack": existing_sub.tech_stack
+            "tech_stack": existing_sub.tech_stack,
+            "code_snippet": getattr(existing_sub, "code_snippet", ""),
+            "student_notes": existing_sub.description
+        }
+    elif not is_capstone and getattr(assignment, "starter_code", ""):
+        form_data = {
+            "code_snippet": getattr(assignment, "starter_code", "")
         }
 
     return render_template(
@@ -715,6 +813,54 @@ def submit_project(assignment_id):
         submission=existing_sub,
         form_data=form_data
     )
+
+
+@learning_bp.route("/api/evaluate-milestone/<assignment_id>", methods=["POST"])
+@login_required
+def api_evaluate_milestone(assignment_id):
+    """
+    Instant in-browser algorithmic/AI evaluation for intermediate milestones.
+    Returns JSON results immediately with test case breakdown.
+    """
+    assignment = Assignment.get_by_id(assignment_id)
+    if not assignment:
+        return jsonify({"status": "error", "message": "Assignment not found"}), 404
+
+    data = request.get_json(silent=True) or request.form
+    code_snippet = (data.get("code_snippet") or "").strip()
+    student_notes = (data.get("student_notes") or "").strip()
+
+    from services.assignment_evaluator import AssignmentEvaluator
+    eval_result = AssignmentEvaluator.evaluate(assignment, code_snippet, student_notes)
+
+    # Save or update submission state
+    sub = Submission.get_latest(current_user.id, assignment.id) or Submission({
+        "assignment_id": str(assignment.id),
+        "course_id": str(assignment.course_id),
+        "user_id": str(current_user.id),
+        "step_number": getattr(assignment, "step_number", 1),
+        "evaluation_type": getattr(assignment, "evaluation_type", "algorithmic"),
+        "created_at": datetime.now(timezone.utc)
+    })
+    sub.title = f"Milestone {getattr(assignment, 'step_number', 1)}: {assignment.title}"
+    sub.code_snippet = code_snippet
+    sub.description = student_notes
+    sub.automated_score = eval_result["score"]
+    sub.automated_feedback = eval_result["feedback"]
+    sub.test_results = eval_result["test_results"]
+    sub.status = Submission.STATUS_APPROVED if eval_result["decision"] == "approved" else Submission.STATUS_REJECTED
+    sub.reviewed_at = datetime.now(timezone.utc)
+    sub.reviewer_id = "automated_engine"
+    sub.save()
+
+    return jsonify({
+        "status": "ok",
+        "decision": eval_result["decision"],
+        "score": eval_result["score"],
+        "feedback": eval_result["feedback"],
+        "test_results": eval_result["test_results"],
+        "evaluator_type": eval_result.get("evaluator_type")
+    })
 
 
 # ==============================================================================

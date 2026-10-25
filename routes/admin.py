@@ -862,9 +862,12 @@ def submission_review(submission_id):
         submission.save()
 
         if decision == "approved":
-            # Issue verified certificate
+            # Issue verified certificate if all requirements and gates are satisfied
             cert = Certificate.issue(student, course, assignment, submission)
-            flash(f"🎉 Submission Approved! Certificate #{cert.certificate_id} has been officially issued to {student.name}.", "success")
+            if cert:
+                flash(f"🎉 Submission Approved! Certificate #{cert.certificate_id} has been officially issued to {student.name}.", "success")
+            else:
+                flash(f"⚠️ Submission approved, but certificate is gated until student passes all prior milestones and watches >= 80% of lecture video.", "warning")
         elif decision == "changes_requested":
             flash(f"Changes requested for {student.name}'s submission. Student notified on their dashboard.", "info")
         else:
