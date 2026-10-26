@@ -140,6 +140,28 @@ Docker containerization or CI/CD workflow">{{ '\n'.join(assignment.optional_feat
                 <input type="text" name="tech_requirements" class="admin-input" placeholder="e.g. Python 3.10+, Flask or FastAPI, SQLite / MongoDB" value="{{ assignment.tech_requirements if assignment else '' }}">
             </div>
 
+            <!-- Evaluation Engine & Passing Score -->
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <div class="admin-form-group" style="margin-bottom: 0;">
+                    <label class="admin-label">Evaluation Mode *</label>
+                    <select name="evaluation_type" class="admin-select">
+                        <option value="project_based" {% if not assignment or assignment.is_project_based %}selected{% endif %}>
+                            🚀 Project-Based (Live Deployment + GitHub URL + Rubric Review)
+                        </option>
+                        <option value="algorithmic" {% if assignment and assignment.evaluation_type == 'algorithmic' and not assignment.is_project_based %}selected{% endif %}>
+                            ⚡ Algorithmic Test Suite (Automated Python Tests)
+                        </option>
+                        <option value="ai_dual" {% if assignment and assignment.evaluation_type == 'ai_dual' %}selected{% endif %}>
+                            🤖 Dual-Engine (Automated Tests + SkillBot AI Analysis)
+                        </option>
+                    </select>
+                </div>
+                <div class="admin-form-group" style="margin-bottom: 0;">
+                    <label class="admin-label">Passing Score (%) *</label>
+                    <input type="number" name="passing_score" class="admin-input" min="1" max="100" value="{{ assignment.passing_score if assignment else 70 }}" required>
+                </div>
+            </div>
+
             <!-- Deployment Required Switch -->
             <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
                 <input type="checkbox" name="is_deployment_required" id="is_deployment_required" {% if not assignment or assignment.is_deployment_required %}checked{% endif %} style="width: 18px; height: 18px;">

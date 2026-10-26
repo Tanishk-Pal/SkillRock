@@ -6,6 +6,7 @@ student submission workflow, project review tracking, and tamper-proof certifica
 
 import re
 import logging
+from urllib.parse import urlparse
 from datetime import datetime, timezone
 from flask import (
     Blueprint,
@@ -41,15 +42,19 @@ learning_bp = Blueprint("learning", __name__, url_prefix="/learning")
 # ==============================================================================
 
 def is_valid_url(url):
-    """Validates if a URL is well-formed with http/https scheme."""
-    if not url:
+    """Validates if a URL is well-formed with http/https scheme and a valid network domain."""
+    if not url or not isinstance(url, str):
         return False
     url = url.strip()
-    return url.startswith("http://") or url.startswith("https://")
+    try:
+        parsed = urlparse(url)
+        return parsed.scheme in ["http", "https"] and bool(parsed.netloc) and ("." in parsed.netloc or parsed.hostname == "localhost")
+    except Exception:
+        return False
 
 
 def is_valid_github_url(url):
-    """Validates that a URL is a legitimate GitHub repository link."""
+    """Validates that a URL is a legitimate public GitHub repository link."""
     if not is_valid_url(url):
         return False
     pattern = r"^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+(\/.*)?$"
@@ -643,151 +648,161 @@ def submit_project(assignment_id):
             return redirect(url_for("learning.assignment_detail", assignment_id=next_asg.id))
         return redirect(url_for("learning.my_learning"))
 
-    is_capstone = getattr(assignment, "is_final_capstone", False) or getattr(assignment, "evaluation_type", "") == "human"
+    is_project = assignment.is_project_based
+    is_capstone = assignment.is_final_capstone
 
     # For Final Capstone, verify 80% video lecture gate
     if is_capstone:
         watch_pct = getattr(enrollment, "watch_percent", 0)
         video_completed = getattr(enrollment, "video_completed", False) or (watch_pct >= 80)
         if not video_completed and not getattr(current_user, "is_admin", False):
-            flash(f"Course Requirement: You must watch at least 80% of the course lecture video before submitting your final project for human review. Your current watch progress is {watch_pct}%.", "warning")
+            flash(f"Course Requirement: You must watch at least 80% of the course lecture video before submitting your capstone project for evaluation. Your current watch progress is {watch_pct}%.", "warning")
             return redirect(url_for("learning.course_detail", slug=course.slug))
 
     if request.method == "POST":
-        # PATH A: AUTOMATED EVALUATION (Milestones 1 & 2)
-        if not is_capstone:
-            code_snippet = request.form.get("code_snippet", "").strip()
-            student_notes = request.form.get("student_notes", "").strip()
+        # =====================================================================
+        # PATH A: DEDICATED PROJECT-BASED ASSIGNMENT (GitHub + Live URL Review)
+        # =====================================================================
+        if is_project:
+            title = request.form.get("title", "").strip() or assignment.title
+            description = request.form.get("description", "").strip()
+            github_url = request.form.get("github_url", "").strip()
+            deployment_url = request.form.get("deployment_url", "").strip()
+            tech_stack = request.form.get("tech_stack", "").strip()
 
-            from services.assignment_evaluator import AssignmentEvaluator
-            eval_result = AssignmentEvaluator.evaluate(assignment, code_snippet, student_notes)
+            errors = []
+            if not title:
+                errors.append("Please enter a descriptive project title.")
+            if not github_url:
+                errors.append("Public GitHub repository URL is required.")
+            elif not is_valid_github_url(github_url):
+                errors.append("Please provide a valid GitHub repository URL (e.g., https://github.com/username/project-repo).")
 
-            # Record or update submission
+            # Validate live deployment URL (required for all project-based assignments)
+            if not deployment_url:
+                errors.append("Live deployment URL (e.g. Render, Vercel, Netlify, GitHub Pages) is required for this project.")
+            elif not is_valid_url(deployment_url):
+                errors.append("Please provide a valid live deployment URL starting with http:// or https://")
+
+            if not description or len(description) < 30:
+                errors.append("Please provide a meaningful description of your project (at least 30 characters) explaining what you built.")
+
+            if errors:
+                for err in errors:
+                    flash(err, "danger")
+                return render_template(
+                    "learning/submit_project.html",
+                    assignment=assignment,
+                    course=course,
+                    submission=existing_sub,
+                    form_data={
+                        "title": title,
+                        "description": description,
+                        "github_url": github_url,
+                        "deployment_url": deployment_url,
+                        "tech_stack": tech_stack
+                    }
+                )
+
+            # Security: enforce student ownership
+            if existing_sub and str(existing_sub.user_id) != str(current_user.id):
+                abort(403)
+
             if existing_sub:
                 sub = existing_sub
-                sub.code_snippet = code_snippet
-                sub.description = student_notes
-                sub.automated_score = eval_result["score"]
-                sub.automated_feedback = eval_result["feedback"]
-                sub.test_results = eval_result["test_results"]
-                sub.status = Submission.STATUS_APPROVED if eval_result["decision"] == "approved" else Submission.STATUS_REJECTED
-                sub.reviewed_at = datetime.now(timezone.utc)
-                sub.reviewer_id = "automated_engine"
+                sub.title = title
+                sub.description = description
+                sub.github_url = github_url
+                sub.deployment_url = deployment_url
+                sub.tech_stack = tech_stack
+                sub.evaluation_type = assignment.evaluation_type or Assignment.TYPE_PROJECT_BASED
+                sub.status = Submission.STATUS_PENDING
+                sub.reviewer_id = ""
+                sub.review_feedback = ""
+                sub.reviewed_at = None
                 sub.save()
+                flash("🚀 Project resubmission received! Your updated code and live deployment are now Under Review.", "success")
             else:
                 sub = Submission({
                     "assignment_id": str(assignment.id),
                     "course_id": str(course.id),
                     "user_id": str(current_user.id),
-                    "title": f"Milestone {step_num}: {assignment.title}",
-                    "code_snippet": code_snippet,
-                    "description": student_notes,
                     "step_number": step_num,
-                    "evaluation_type": getattr(assignment, "evaluation_type", "algorithmic"),
-                    "automated_score": eval_result["score"],
-                    "automated_feedback": eval_result["feedback"],
-                    "test_results": eval_result["test_results"],
-                    "status": Submission.STATUS_APPROVED if eval_result["decision"] == "approved" else Submission.STATUS_REJECTED,
-                    "reviewed_at": datetime.now(timezone.utc),
-                    "reviewer_id": "automated_engine",
-                    "created_at": datetime.now(timezone.utc)
-                })
-                sub.save()
-
-            if eval_result["decision"] == "approved":
-                flash(f"🎉 Milestone {step_num} Approved! Automated Score: {eval_result['score']}%. Next step unlocked!", "success")
-                next_asg = Assignment.get_by_course_and_step(course.id, step_num + 1)
-                if next_asg:
-                    return redirect(url_for("learning.assignment_detail", assignment_id=next_asg.id))
-                return redirect(url_for("learning.course_detail", slug=course.slug))
-            else:
-                flash(f"⚠️ Milestone {step_num} Needs Revision (Score: {eval_result['score']}%). Review the diagnostic feedback below and try again.", "warning")
-                return render_template(
-                    "learning/submit_project.html",
-                    assignment=assignment,
-                    course=course,
-                    submission=sub,
-                    eval_result=eval_result,
-                    form_data={"code_snippet": code_snippet, "student_notes": student_notes}
-                )
-
-        # PATH B: FINAL CAPSTONE (GitHub + Live Deployment - Human Review)
-        title = request.form.get("title", "").strip()
-        description = request.form.get("description", "").strip()
-        github_url = request.form.get("github_url", "").strip()
-        deployment_url = request.form.get("deployment_url", "").strip()
-        tech_stack = request.form.get("tech_stack", "").strip()
-
-        errors = []
-        if not title:
-            errors.append("Please enter a clear project title.")
-        if not github_url:
-            errors.append("GitHub repository URL is required.")
-        elif not is_valid_github_url(github_url):
-            errors.append("Please provide a valid GitHub repository URL (e.g., https://github.com/username/project-repo).")
-
-        if assignment.is_deployment_required:
-            if not deployment_url:
-                errors.append("A live deployment URL (e.g. Render, Vercel, Netlify) is required for this project.")
-            elif not is_valid_url(deployment_url):
-                errors.append("Please provide a valid live deployment URL starting with http:// or https://")
-        elif deployment_url and not is_valid_url(deployment_url):
-            errors.append("Deployment URL must start with http:// or https://")
-
-        if not description or len(description) < 30:
-            errors.append("Please provide a meaningful description of your project (at least 30 characters) explaining what you built.")
-
-        if errors:
-            for err in errors:
-                flash(err, "danger")
-            return render_template(
-                "learning/submit_project.html",
-                assignment=assignment,
-                course=course,
-                submission=existing_sub,
-                form_data={
+                    "evaluation_type": assignment.evaluation_type or Assignment.TYPE_PROJECT_BASED,
                     "title": title,
                     "description": description,
                     "github_url": github_url,
                     "deployment_url": deployment_url,
-                    "tech_stack": tech_stack
-                }
-            )
+                    "tech_stack": tech_stack,
+                    "status": Submission.STATUS_PENDING,
+                    "created_at": datetime.now(timezone.utc)
+                })
+                sub.save()
+                flash("🚀 Project submitted successfully! Your submission is now Under Review by our evaluation team.", "success")
 
-        if existing_sub and existing_sub.status in [Submission.STATUS_PENDING, Submission.STATUS_CHANGES, Submission.STATUS_REJECTED]:
+            if enrollment.status == "enrolled":
+                enrollment.status = "in_progress"
+                enrollment.save()
+
+            return redirect(url_for("learning.assignment_detail", assignment_id=assignment.id))
+
+        # =====================================================================
+        # PATH B: ALGORITHMIC TEST RUNNER (Automated Python Unit Tests)
+        # =====================================================================
+        code_snippet = request.form.get("code_snippet", "").strip()
+        student_notes = request.form.get("student_notes", "").strip()
+
+        from services.assignment_evaluator import AssignmentEvaluator
+        eval_result = AssignmentEvaluator.evaluate(assignment, code_snippet, student_notes)
+
+        # Record or update submission
+        if existing_sub:
             sub = existing_sub
-            sub.title = title
-            sub.description = description
-            sub.github_url = github_url
-            sub.deployment_url = deployment_url
-            sub.tech_stack = tech_stack
-            sub.status = Submission.STATUS_PENDING
-            sub.reviewed_at = None
+            sub.code_snippet = code_snippet
+            sub.description = student_notes
+            sub.automated_score = eval_result["score"]
+            sub.automated_feedback = eval_result["feedback"]
+            sub.test_results = eval_result["test_results"]
+            sub.status = Submission.STATUS_APPROVED if eval_result["decision"] == "approved" else Submission.STATUS_REJECTED
+            sub.reviewed_at = datetime.now(timezone.utc)
+            sub.reviewer_id = "automated_engine"
             sub.save()
-            flash("🚀 Capstone project resubmission received! Our reviewers will inspect your updated code and live deployment.", "success")
         else:
             sub = Submission({
                 "assignment_id": str(assignment.id),
                 "course_id": str(course.id),
                 "user_id": str(current_user.id),
+                "title": f"Milestone {step_num}: {assignment.title}",
+                "code_snippet": code_snippet,
+                "description": student_notes,
                 "step_number": step_num,
-                "evaluation_type": "human",
-                "title": title,
-                "description": description,
-                "github_url": github_url,
-                "deployment_url": deployment_url,
-                "tech_stack": tech_stack,
-                "status": Submission.STATUS_PENDING,
+                "evaluation_type": getattr(assignment, "evaluation_type", Assignment.TYPE_ALGORITHMIC),
+                "automated_score": eval_result["score"],
+                "automated_feedback": eval_result["feedback"],
+                "test_results": eval_result["test_results"],
+                "status": Submission.STATUS_APPROVED if eval_result["decision"] == "approved" else Submission.STATUS_REJECTED,
+                "reviewed_at": datetime.now(timezone.utc),
+                "reviewer_id": "automated_engine",
                 "created_at": datetime.now(timezone.utc)
             })
             sub.save()
-            flash("🚀 Capstone project submitted successfully! It is now in the human review queue. You will be notified once evaluated.", "success")
 
-        if enrollment.status == "enrolled":
-            enrollment.status = "in_progress"
-            enrollment.save()
-
-        return redirect(url_for("learning.my_learning"))
+        if eval_result["decision"] == "approved":
+            flash(f"🎉 Milestone {step_num} Approved! Automated Score: {eval_result['score']}%. Next step unlocked!", "success")
+            next_asg = Assignment.get_by_course_and_step(course.id, step_num + 1)
+            if next_asg:
+                return redirect(url_for("learning.assignment_detail", assignment_id=next_asg.id))
+            return redirect(url_for("learning.course_detail", slug=course.slug))
+        else:
+            flash(f"⚠️ Milestone {step_num} Needs Revision (Score: {eval_result['score']}%). Review the diagnostic feedback below and try again.", "warning")
+            return render_template(
+                "learning/submit_project.html",
+                assignment=assignment,
+                course=course,
+                submission=sub,
+                eval_result=eval_result,
+                form_data={"code_snippet": code_snippet, "student_notes": student_notes}
+            )
 
     # GET request
     form_data = {}
@@ -801,7 +816,7 @@ def submit_project(assignment_id):
             "code_snippet": getattr(existing_sub, "code_snippet", ""),
             "student_notes": existing_sub.description
         }
-    elif not is_capstone and getattr(assignment, "starter_code", ""):
+    elif not is_project and getattr(assignment, "starter_code", ""):
         form_data = {
             "code_snippet": getattr(assignment, "starter_code", "")
         }

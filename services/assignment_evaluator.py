@@ -210,18 +210,28 @@ class AssignmentEvaluator:
                         test_results.append({
                             "name": tc_name,
                             "passed": True,
+                            "status": "pass",
+                            "expected": str(expected),
+                            "actual": str(actual),
                             "details": f"Passed. Input: {tc_input} ➔ Output: {actual}"
                         })
                     else:
                         test_results.append({
                             "name": tc_name,
                             "passed": False,
+                            "status": "fail",
+                            "expected": str(expected),
+                            "actual": str(actual),
                             "details": f"Failed. Input: {tc_input} | Expected: {expected} | Received: {actual}"
                         })
                 except Exception as ex:
                     test_results.append({
                         "name": tc_name,
                         "passed": False,
+                        "status": "fail",
+                        "expected": str(expected),
+                        "actual": "Error",
+                        "error": f"{type(ex).__name__}: {str(ex)}",
                         "details": f"Error during test: {type(ex).__name__}: {str(ex)}"
                     })
         elif total_tests == 0:

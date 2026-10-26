@@ -109,11 +109,14 @@
 
     <!-- Evaluation & Grading Form -->
     <div class="admin-card">
-        <div class="admin-card-header">
+        <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div class="admin-card-title">
                 <i data-lucide="award"></i>
                 <span>Evaluation Scorecard & Decision</span>
             </div>
+            <span class="admin-badge admin-badge-blue" style="font-weight: 700;">
+                Passing Score: {{ assignment.passing_score if assignment else 70 }}%
+            </span>
         </div>
 
         <form method="POST" action="{{ url_for('admin.submission_review', submission_id=submission.id) }}">

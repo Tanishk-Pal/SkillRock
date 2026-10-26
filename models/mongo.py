@@ -1561,6 +1561,11 @@ class Course:
 class Assignment:
     collection_name = "assignments"
 
+    TYPE_PROJECT_BASED = "project_based"
+    TYPE_HUMAN = "human"       # legacy alias for human-reviewed project
+    TYPE_ALGORITHMIC = "algorithmic"
+    TYPE_AI_DUAL = "ai_dual"
+
     DEFAULT_RUBRIC = [
         {"criterion": "Core Functionality & Requirements", "max_points": 40, "description": "All specified mandatory features implemented and functional."},
         {"criterion": "Code Quality, Architecture & Structure", "max_points": 30, "description": "Clean, organized, readable code with sensible design patterns."},
@@ -1577,7 +1582,25 @@ class Assignment:
         self.step_number = int(raw_step) if raw_step is not None else 1
         raw_total = self._data.get("total_steps")
         self.total_steps = int(raw_total) if raw_total is not None else 3
-        self.evaluation_type = str(self._data.get("evaluation_type") or ("algorithmic" if self.step_number < 3 else "human"))
+        
+        # Dynamically determine assignment evaluation type
+        raw_eval = self._data.get("evaluation_type")
+        raw_asg_type = self._data.get("assignment_type")
+        if raw_asg_type in [self.TYPE_PROJECT_BASED, self.TYPE_HUMAN, self.TYPE_ALGORITHMIC, self.TYPE_AI_DUAL]:
+            self.evaluation_type = raw_asg_type
+        elif raw_eval in [self.TYPE_PROJECT_BASED, self.TYPE_HUMAN, self.TYPE_ALGORITHMIC, self.TYPE_AI_DUAL]:
+            self.evaluation_type = raw_eval
+        else:
+            # Safe backward-compatible inference:
+            has_test_cases = bool(self._data.get("test_cases"))
+            has_project_specs = bool(self._data.get("required_features") or self._data.get("is_deployment_required"))
+            if has_test_cases:
+                self.evaluation_type = self.TYPE_ALGORITHMIC
+            elif has_project_specs:
+                self.evaluation_type = self.TYPE_PROJECT_BASED
+            else:
+                self.evaluation_type = self.TYPE_PROJECT_BASED if self.step_number >= self.total_steps else self.TYPE_ALGORITHMIC
+
         self.target_function_name = str(self._data.get("target_function_name", "solution"))
         self.starter_code = str(self._data.get("starter_code", ""))
         self.test_cases = self._data.get("test_cases", []) or []
@@ -1588,15 +1611,37 @@ class Assignment:
         self.required_features = self._data.get("required_features", []) or []
         self.optional_features = self._data.get("optional_features", []) or []
         self.tech_requirements = self._data.get("tech_requirements", "")
-        self.is_deployment_required = bool(self._data.get("is_deployment_required", self.evaluation_type == "human"))
+        self.is_deployment_required = bool(self._data.get("is_deployment_required", self.evaluation_type in [self.TYPE_PROJECT_BASED, self.TYPE_HUMAN]))
         self.rubric = self._data.get("rubric") or self.DEFAULT_RUBRIC
         self.is_published = bool(self._data.get("is_published", True))
         self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
         self.updated_at = self._data.get("updated_at") or datetime.now(timezone.utc)
 
     @property
+    def is_project_based(self):
+        """Returns True if this assignment requires project submission (GitHub + Live URL) and rubric evaluation."""
+        return (
+            self.evaluation_type in [self.TYPE_PROJECT_BASED, self.TYPE_HUMAN]
+            or bool(self._data.get("is_project_based"))
+            or (bool(self.required_features) and not self.test_cases)
+        )
+
+    @property
+    def is_algorithmic(self):
+        """Returns True if this assignment executes in the automated Python algorithmic test runner."""
+        return not self.is_project_based and self.evaluation_type in [self.TYPE_ALGORITHMIC, self.TYPE_AI_DUAL]
+
+    @property
+    def passing_score(self):
+        raw = self._data.get("passing_score")
+        try:
+            return int(raw) if raw is not None else 70
+        except (ValueError, TypeError):
+            return 70
+
+    @property
     def is_final_capstone(self):
-        return self.evaluation_type == "human" or self.step_number >= self.total_steps
+        return bool(self._data.get("is_final_capstone", False)) or (self.step_number >= self.total_steps)
 
     @property
     def course(self):
@@ -1608,6 +1653,7 @@ class Assignment:
         self._data["step_number"] = int(self.step_number)
         self._data["total_steps"] = int(self.total_steps)
         self._data["evaluation_type"] = str(self.evaluation_type)
+        self._data["passing_score"] = int(self.passing_score)
         self._data["target_function_name"] = str(self.target_function_name)
         self._data["starter_code"] = str(self.starter_code)
         self._data["test_cases"] = self.test_cases if isinstance(self.test_cases, list) else []
@@ -1800,6 +1846,7 @@ class Enrollment:
 class Submission:
     collection_name = "submissions"
 
+    STATUS_NOT_SUBMITTED = "not_submitted"
     STATUS_PENDING = "pending_review"
     STATUS_CHANGES = "changes_requested"
     STATUS_REJECTED = "rejected"
@@ -1855,10 +1902,22 @@ class Submission:
     @property
     def status_label(self):
         labels = {
-            self.STATUS_PENDING: "Pending Review",
+            self.STATUS_NOT_SUBMITTED: "Not Submitted",
+            self.STATUS_PENDING: "Under Review",
             self.STATUS_CHANGES: "Changes Requested",
             self.STATUS_REJECTED: "Needs Revision / Rejected",
-            self.STATUS_APPROVED: "Approved & Certified"
+            self.STATUS_APPROVED: "Approved"
+        }
+        return labels.get(self.status, self.status.replace("_", " ").title())
+
+    @property
+    def status_display(self):
+        labels = {
+            self.STATUS_NOT_SUBMITTED: "Not Submitted",
+            self.STATUS_PENDING: "Under Review",
+            self.STATUS_CHANGES: "Changes Requested",
+            self.STATUS_REJECTED: "Needs Revision",
+            self.STATUS_APPROVED: "Approved"
         }
         return labels.get(self.status, self.status.replace("_", " ").title())
 

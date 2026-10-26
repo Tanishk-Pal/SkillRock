@@ -674,6 +674,12 @@ def course_new():
         })
         course.save()
 
+        evaluation_type = request.form.get("evaluation_type", "project_based").strip()
+        try:
+            passing_score = int(request.form.get("passing_score", 70))
+        except (ValueError, TypeError):
+            passing_score = 70
+
         assignment = Assignment({
             "course_id": str(course.id),
             "title": assignment_title,
@@ -682,6 +688,8 @@ def course_new():
             "required_features": required_features or ["Working application implementing core concepts", "Clean, documented repository on GitHub"],
             "optional_features": optional_features,
             "tech_requirements": tech_requirements,
+            "evaluation_type": evaluation_type,
+            "passing_score": passing_score,
             "is_deployment_required": is_deployment_required,
             "is_published": True,
             "created_at": datetime.now(timezone.utc)
@@ -730,6 +738,13 @@ def course_edit(course_id):
         assignment.optional_features = [line.strip() for line in raw_optional.splitlines() if line.strip()]
         assignment.tech_requirements = request.form.get("tech_requirements", "").strip()
         assignment.is_deployment_required = request.form.get("is_deployment_required") == "on"
+        if request.form.get("evaluation_type"):
+            assignment.evaluation_type = request.form.get("evaluation_type").strip()
+        if request.form.get("passing_score"):
+            try:
+                assignment._data["passing_score"] = int(request.form.get("passing_score"))
+            except (ValueError, TypeError):
+                pass
         assignment.save()
 
         flash(f"Course '{course.title}' updated successfully!", "success")
@@ -841,6 +856,13 @@ def submission_review(submission_id):
             scores[criterion] = pts
             total_score += pts
 
+        percentage_score = int(round((total_score / max_score) * 100)) if max_score > 0 else total_score
+        passing_score = getattr(assignment, "passing_score", 70) if assignment else 70
+
+        if decision == "approved" and percentage_score < passing_score:
+            flash(f"Approval Failed: Awarded score of {percentage_score}% ({total_score}/{max_score} pts) does not meet the passing score requirement of {passing_score}%. Please adjust the scores or select 'Request Changes' / 'Reject'.", "danger")
+            return redirect(url_for("admin.submission_review", submission_id=submission.id))
+
         # Save review
         review = Review({
             "submission_id": str(submission.id),
@@ -854,24 +876,28 @@ def submission_review(submission_id):
         })
         review.save()
 
-        # Update submission
+        # Update submission with score & status
         submission.status = decision
+        submission.automated_score = percentage_score
         submission.reviewer_id = str(current_user.id)
         submission.review_feedback = feedback
         submission.reviewed_at = datetime.now(timezone.utc)
         submission.save()
 
         if decision == "approved":
-            # Issue verified certificate if all requirements and gates are satisfied
+            # Check if this course or capstone qualifies for Certificate issuance
             cert = Certificate.issue(student, course, assignment, submission)
             if cert:
-                flash(f"🎉 Submission Approved! Certificate #{cert.certificate_id} has been officially issued to {student.name}.", "success")
+                flash(f"🎉 Submission Approved with {percentage_score}%! Verified Certificate #{cert.certificate_id} has been officially issued to {student.name}.", "success")
             else:
-                flash(f"⚠️ Submission approved, but certificate is gated until student passes all prior milestones and watches >= 80% of lecture video.", "warning")
+                if assignment and assignment.is_final_capstone:
+                    flash(f"⚠️ Capstone approved with {percentage_score}%, but certificate is withheld until student watches at least 80% of the lecture video.", "warning")
+                else:
+                    flash(f"🎉 Milestone {submission.step_number} Approved with {percentage_score}%! Milestone marked as passed and next milestone unlocked for {student.name}.", "success")
         elif decision == "changes_requested":
-            flash(f"Changes requested for {student.name}'s submission. Student notified on their dashboard.", "info")
+            flash(f"Changes requested for {student.name}'s submission ({percentage_score}%). Student notified with reviewer guidance on their dashboard.", "info")
         else:
-            flash(f"Submission rejected with feedback.", "warning")
+            flash(f"Submission rejected with feedback ({percentage_score}%). Student may review requirements and resubmit.", "warning")
 
         return redirect(url_for("admin.submissions_list"))
 
