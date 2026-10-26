@@ -60,10 +60,18 @@
             <i data-lucide="activity"></i>
             <span>System Architecture & Production Telemetry</span>
         </div>
-        <a href="{{ url_for('admin.settings_page') }}" class="admin-btn admin-btn-secondary" style="font-size: 0.78rem;">
-            <i data-lucide="sliders" style="width: 14px; height: 14px;"></i>
-            <span>Modify Settings</span>
-        </a>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <form method="POST" action="{{ url_for('admin.storage_clean') }}" style="display: inline;" onsubmit="return confirm('Run storage optimization now? Inactive non-admin users (>= 7 days inactive) and orphaned records will be permanently removed to reclaim database storage.');">
+                <button type="submit" class="admin-btn admin-btn-secondary" style="font-size: 0.78rem; color: #10B981; border-color: rgba(16, 185, 129, 0.4);">
+                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                    <span>Reclaim Storage (7d Inactive)</span>
+                </button>
+            </form>
+            <a href="{{ url_for('admin.settings_page') }}" class="admin-btn admin-btn-secondary" style="font-size: 0.78rem;">
+                <i data-lucide="sliders" style="width: 14px; height: 14px;"></i>
+                <span>Modify Settings</span>
+            </a>
+        </div>
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">

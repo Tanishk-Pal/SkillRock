@@ -134,10 +134,29 @@ def create_app(config_class=Config):
 
         return response
 
-    # Ensure user sessions are persistent across browser closes and computer restarts (60 days)
+    # Ensure user sessions are persistent and track last active timestamp for storage management
     @app.before_request
-    def make_session_permanent():
+    def handle_request_preflight():
         session.permanent = True
+        if current_user and current_user.is_authenticated:
+            try:
+                current_user.touch_activity()
+            except Exception:
+                pass
+
+    # Storage Optimization: Run inactive user & orphan purger in background daemon thread on boot
+    import threading
+    def _startup_storage_clean():
+        try:
+            import time
+            time.sleep(15)  # Wait for app & DB connection to stabilize
+            from services.storage_cleaner import run_storage_optimization
+            run_storage_optimization(days=7)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Startup storage optimization note: {e}")
+
+    threading.Thread(target=_startup_storage_clean, daemon=True).start()
 
     # Context processor for global navbar badges, admin status, and platform settings
     @app.context_processor

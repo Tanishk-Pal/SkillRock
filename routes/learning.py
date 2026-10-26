@@ -745,6 +745,13 @@ def submit_project(assignment_id):
                 sub.save()
                 flash("🚀 Project submitted successfully! Your submission is now Under Review by our evaluation team.", "success")
 
+            # Asynchronously notify admin via Gmail
+            try:
+                from services.email_service import send_admin_assignment_notification
+                send_admin_assignment_notification(current_user, course, assignment, sub)
+            except Exception as e:
+                logger.warning(f"Could not dispatch admin assignment notification: {e}")
+
             if enrollment.status == "enrolled":
                 enrollment.status = "in_progress"
                 enrollment.save()
@@ -1100,15 +1107,13 @@ def quiz_submit(assignment_id):
     })
     submission.save()
 
-    # If passed and final capstone, attempt certificate issue
+    # If passed and capstone or quiz-based milestone, automatically issue certificate without manual review
     cert_issued = False
     if sub_status == Submission.STATUS_APPROVED:
-        if assignment.is_final_capstone:
-            enrollment = Enrollment.get_by_user_course(current_user.id, course.id)
-            watch_pct = getattr(enrollment, "watch_percent", 0) if enrollment else 0
-            if watch_pct >= 80 or getattr(current_user, "is_admin", False):
-                cert = Certificate.issue(current_user, course, assignment, submission)
-                cert_issued = bool(cert)
+        next_asg = Assignment.get_by_course_and_step(course.id, int(getattr(assignment, "step_number", 1)) + 1)
+        if not next_asg or assignment.is_final_capstone or getattr(assignment, "is_quiz_based", False):
+            cert = Certificate.issue(current_user, course, assignment, submission, bypass_video=True)
+            cert_issued = bool(cert)
 
     if request.is_json:
         return jsonify({
@@ -1144,6 +1149,13 @@ def quiz_result(assignment_id):
 
     all_milestones = Assignment.get_all_by_course(course.id) if course else []
     certificate = Certificate.get_by_user_course(current_user.id, course.id) if course else None
+
+    # Automatic certificate unlocking for approved quiz assessments
+    if not certificate and submission and submission.status == Submission.STATUS_APPROVED and course:
+        next_asg = Assignment.get_by_course_and_step(course.id, int(getattr(assignment, "step_number", 1)) + 1)
+        if not next_asg or assignment.is_final_capstone or getattr(assignment, "is_quiz_based", False):
+            certificate = Certificate.issue(current_user, course, assignment, submission, bypass_video=True)
+
     attempts = Submission.get_user_attempts(current_user.id, assignment.id)
     max_attempts = assignment.quiz_max_attempts
     attempts_remaining = max(0, max_attempts - len(attempts)) if max_attempts > 0 else 999

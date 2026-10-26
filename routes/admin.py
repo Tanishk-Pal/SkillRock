@@ -1015,3 +1015,25 @@ def submission_review(submission_id):
         previous_review=previous_review
     )
 
+
+# ==============================================================================
+# 9. Storage Maintenance & Automated Cleanup
+# ==============================================================================
+
+@admin_bp.route("/maintenance/storage-clean", methods=["POST"])
+def storage_clean():
+    """Runs on-demand storage optimization: purges 7-day inactive users and orphaned records."""
+    from services.storage_cleaner import run_storage_optimization
+    try:
+        days = int(request.form.get("days", 7))
+    except (ValueError, TypeError):
+        days = 7
+    stats = run_storage_optimization(days=days)
+    flash(
+        f"🧹 Storage Optimization Complete! Purged {stats['purged_inactive_users']} inactive users (inactive >= {days} days) "
+        f"and {stats['purged_orphaned_records']} orphaned records across all collections.",
+        "success"
+    )
+    return redirect(url_for("admin.dashboard"))
+
+

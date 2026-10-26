@@ -63,16 +63,15 @@
         <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
             {% if is_approved %}
                 {% if certificate %}
-                    <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 0.95rem;">
+                    <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 0.95rem; background: #10B981; border-color: #10B981; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
                         🎓 View Official Verified Certificate
                     </a>
-                {% elif assignment.step_number < assignment.total_steps %}
-                    {% set next_asg = assignment.get_by_course_and_step(course.id, assignment.step_number + 1) %}
-                    {% if next_asg %}
-                        <a href="{{ url_for('learning.assignment_detail', assignment_id=next_asg.id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 0.95rem;">
-                            Proceed to Milestone {{ assignment.step_number + 1 }} →
-                        </a>
-                    {% endif %}
+                {% endif %}
+                {% set next_asg = assignment.get_by_course_and_step(course.id, assignment.step_number + 1) %}
+                {% if next_asg %}
+                    <a href="{{ url_for('learning.assignment_detail', assignment_id=next_asg.id) }}" class="btn btn-secondary" style="padding: 12px 28px; font-weight: 800; font-size: 0.95rem;">
+                        Proceed to Milestone {{ assignment.step_number + 1 }} →
+                    </a>
                 {% endif %}
             {% elif is_rejected %}
                 {% if attempts_remaining > 0 %}

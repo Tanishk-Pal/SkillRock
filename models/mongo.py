@@ -369,7 +369,8 @@ class User(UserMixin):
         self.role = self._data.get("role", "admin" if self.email == "palt51419@gmail.com" else "student")
         self.is_banned = bool(self._data.get("is_banned", False))
         self.ban_reason = self._data.get("ban_reason", "")
-        self.created_at = self._data.get("created_at")
+        self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
+        self.last_active_at = self._data.get("last_active_at") or self.created_at
 
     def get_id(self):
         return str(self.id)
@@ -641,6 +642,7 @@ class User(UserMixin):
         self._data["is_banned"] = bool(getattr(self, "is_banned", False))
         self._data["ban_reason"] = getattr(self, "ban_reason", "")
         self._data["interests"] = self.interests
+        self._data["last_active_at"] = getattr(self, "last_active_at", None) or datetime.now(timezone.utc)
         if self.password_hash:
             self._data["password_hash"] = self.password_hash
 
@@ -648,12 +650,26 @@ class User(UserMixin):
             db[self.collection_name].update_one({"_id": self._id}, {"$set": self._data})
             User._user_cache.pop(str(self._id), None)
         else:
-            self._data["created_at"] = datetime.now(timezone.utc)
+            self._data["created_at"] = getattr(self, "created_at", None) or datetime.now(timezone.utc)
             res = db[self.collection_name].insert_one(self._data)
             self._id = res.inserted_id
             self.id = str(self._id)
             User._user_cache.pop(str(self.id), None)
         return self
+
+    def touch_activity(self):
+        """Updates user last_active_at timestamp (throttled to avoid redundant writes)."""
+        now = datetime.now(timezone.utc)
+        last = getattr(self, "last_active_at", None)
+        if not last or not isinstance(last, datetime) or (now - last).total_seconds() > 900:
+            self.last_active_at = now
+            self._data["last_active_at"] = now
+            if self._id:
+                db = get_db()
+                db[self.collection_name].update_one(
+                    {"_id": self._id},
+                    {"$set": {"last_active_at": now}}
+                )
 
     def delete(self):
         if self._id:
@@ -662,25 +678,32 @@ class User(UserMixin):
 
     @classmethod
     def delete_cascading(cls, user_id):
-        """Permanently deletes a user and cascades deletion to all their relations."""
+        """Permanently deletes a user and cascades deletion to all their relations across all 11 collections."""
         if not user_id:
             return False
         cls._user_cache.pop(str(user_id), None)
         db = get_db()
         uid = str(user_id)
         oid = _to_obj_id(uid)
-        # Delete user
-        db[cls.collection_name].delete_one({"_id": oid})
-        # Delete connections
+        user_query = {"$or": [{"user_id": uid}, {"user_id": oid}]}
+
+        # 1. Delete user document
+        db[cls.collection_name].delete_many({"$or": [{"_id": oid}, {"_id": uid}]})
+        # 2. Delete campus exchange relations
         db.connections.delete_many({"$or": [{"user1_id": uid}, {"user2_id": uid}]})
-        # Delete swap requests
         db.swap_requests.delete_many({"$or": [{"sender_id": uid}, {"receiver_id": uid}]})
-        # Delete messages
         db.messages.delete_many({"$or": [{"sender_id": uid}, {"receiver_id": uid}]})
-        # Delete sessions
         db.sessions.delete_many({"$or": [{"teacher_id": uid}, {"learner_id": uid}]})
-        # Delete ratings
         db.ratings.delete_many({"$or": [{"reviewer_id": uid}, {"reviewee_id": uid}]})
+        db.skills.delete_many({"user_id": uid})
+        # 3. Delete learning platform records (reviews, submissions, enrollments, certificates)
+        subs = list(db.submissions.find(user_query, {"_id": 1}))
+        if subs:
+            sub_ids = [s["_id"] for s in subs] + [str(s["_id"]) for s in subs]
+            db.reviews.delete_many({"submission_id": {"$in": sub_ids}})
+        db.submissions.delete_many(user_query)
+        db.enrollments.delete_many(user_query)
+        db.certificates.delete_many(user_query)
         return True
 
     _user_cache = {}
@@ -2352,13 +2375,18 @@ class Certificate:
         return [cls(d) for d in docs]
 
     @classmethod
-    def issue(cls, user, course, assignment=None, submission=None):
+    def issue(cls, user, course, assignment=None, submission=None, bypass_video=False):
         """
         Atomically checks prerequisites and issues a verified certificate for course completion.
-        STRICT GATES:
+        STRICT GATES FOR PROJECT ASSIGNMENTS:
         1. All course progressive milestone assignments must be passed/approved.
         2. Final capstone must be approved by human review.
         3. Student must have watched at least 80% of the course lecture video.
+        
+        QUIZ-BASED ASSIGNMENTS:
+        - When a student passes the quiz (score >= passing_score), certificate is unlocked immediately!
+        - Manual review is NOT required.
+        - Video gate is bypassed.
         """
         if not user or not course:
             return None
@@ -2367,15 +2395,20 @@ class Certificate:
         if existing:
             return existing
 
-        # Gate 1: Check Video Lecture Watch (>= 80%)
-        enrollment = Enrollment.get_by_user_course(user.id, course.id)
-        watch_pct = getattr(enrollment, "watch_percent", 0) if enrollment else 0
-        video_done = (getattr(enrollment, "video_completed", False) or watch_pct >= 80) if enrollment else False
-        is_admin_user = getattr(user, "is_admin", False)
+        is_quiz_flow = bypass_video or \
+                       (assignment and getattr(assignment, "is_quiz_based", False)) or \
+                       (submission and getattr(submission, "evaluation_type", "") == Assignment.TYPE_QUIZ_BASED)
 
-        if not video_done and not is_admin_user:
-            logger.info(f"[CERTIFICATE BLOCKED] User {user.id} has only {watch_pct}% video watch progress.")
-            return None
+        # Gate 1: Check Video Lecture Watch (>= 80%) - Bypassed for Quiz Assessment workflow
+        if not is_quiz_flow:
+            enrollment = Enrollment.get_by_user_course(user.id, course.id)
+            watch_pct = getattr(enrollment, "watch_percent", 0) if enrollment else 0
+            video_done = (getattr(enrollment, "video_completed", False) or watch_pct >= 80) if enrollment else False
+            is_admin_user = getattr(user, "is_admin", False)
+
+            if not video_done and not is_admin_user:
+                logger.info(f"[CERTIFICATE BLOCKED] User {user.id} has only {watch_pct}% video watch progress.")
+                return None
 
         # Gate 2: Check all milestone assignments for this course
         milestones = Assignment.get_all_by_course(course.id)
@@ -2386,7 +2419,10 @@ class Certificate:
                 step_approved = Submission.is_step_approved(user.id, course.id, step_num)
                 if not step_approved:
                     # If this is the current submission being approved
-                    if submission and str(submission.assignment_id) == str(m.id) and submission.status == Submission.STATUS_APPROVED:
+                    if submission and (str(submission.assignment_id) == str(m.id) or str(getattr(submission, "step_number", 0)) == str(step_num)) and submission.status == Submission.STATUS_APPROVED:
+                        continue
+                    # For quiz-based workflow on courses where this quiz is passed
+                    if is_quiz_flow and (len(milestones) <= 1 or (assignment and getattr(assignment, "is_quiz_based", False))):
                         continue
                     logger.info(f"[CERTIFICATE BLOCKED] User {user.id} has not passed Milestone {step_num} for course {course.id}.")
                     return None
