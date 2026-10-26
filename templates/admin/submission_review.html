@@ -49,43 +49,70 @@
             </div>
         </div>
 
-        <!-- Links to Code & Live Demo -->
-        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
-            <a href="{{ submission.github_url }}" target="_blank" rel="noopener noreferrer" class="admin-btn admin-btn-secondary" style="padding: 10px 16px; font-size: 0.88rem; color: #FFFFFF;">
-                <i data-lucide="github" style="width: 18px; height: 18px;"></i>
-                <span>Inspect GitHub Repository</span>
-                <i data-lucide="external-link" style="width: 13px; height: 13px; color: var(--admin-text-muted);"></i>
-            </a>
-
-            {% if submission.deployment_url %}
-                <a href="{{ submission.deployment_url }}" target="_blank" rel="noopener noreferrer" class="admin-btn admin-btn-primary" style="padding: 10px 16px; font-size: 0.88rem;">
-                    <i data-lucide="globe" style="width: 18px; height: 18px;"></i>
-                    <span>Test Live Working Application</span>
-                    <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+        {% if submission.is_quiz %}
+            <!-- Quiz Assessment Details -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                <div style="padding: 12px 14px; background: var(--admin-surface-card); border-radius: 8px;">
+                    <div style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 700;">Score Achieved</div>
+                    <div style="font-size: 1.3rem; font-weight: 800; color: {% if submission.status == 'approved' %}#34D399{% elif submission.status == 'pending_review' %}#FBBF24{% else %}#F87171{% endif %}; margin-top: 2px;">
+                        {{ submission.automated_score }}%
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--admin-text-muted);">{{ submission.quiz_results.marks_obtained if submission.quiz_results else 0 }} / {{ submission.quiz_results.total_marks if submission.quiz_results else 100 }} pts</div>
+                </div>
+                <div style="padding: 12px 14px; background: var(--admin-surface-card); border-radius: 8px;">
+                    <div style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 700;">Attempt Number</div>
+                    <div style="font-size: 1.3rem; font-weight: 800; color: #FFFFFF; margin-top: 2px;">
+                        #{{ submission.attempt_number or 1 }}
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--admin-text-muted);">Candidate attempt</div>
+                </div>
+                <div style="padding: 12px 14px; background: var(--admin-surface-card); border-radius: 8px;">
+                    <div style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 700;">Time Elapsed</div>
+                    <div style="font-size: 1.3rem; font-weight: 800; color: #FFFFFF; margin-top: 2px;">
+                        {{ (submission.time_spent_seconds or 0) // 60 }}m {{ (submission.time_spent_seconds or 0) % 60 }}s
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--admin-text-muted);">Assessment duration</div>
+                </div>
+            </div>
+        {% else %}
+            <!-- Links to Code & Live Demo -->
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
+                <a href="{{ submission.github_url }}" target="_blank" rel="noopener noreferrer" class="admin-btn admin-btn-secondary" style="padding: 10px 16px; font-size: 0.88rem; color: #FFFFFF;">
+                    <i data-lucide="github" style="width: 18px; height: 18px;"></i>
+                    <span>Inspect GitHub Repository</span>
+                    <i data-lucide="external-link" style="width: 13px; height: 13px; color: var(--admin-text-muted);"></i>
                 </a>
-            {% endif %}
-        </div>
 
-        <!-- Tech Stack -->
-        {% if submission.tech_stack %}
-            <div style="font-size: 0.85rem; margin-bottom: 16px; color: var(--admin-text-muted);">
-                Technologies: <strong style="color: #FFFFFF;">{{ submission.tech_stack }}</strong>
+                {% if submission.deployment_url %}
+                    <a href="{{ submission.deployment_url }}" target="_blank" rel="noopener noreferrer" class="admin-btn admin-btn-primary" style="padding: 10px 16px; font-size: 0.88rem;">
+                        <i data-lucide="globe" style="width: 18px; height: 18px;"></i>
+                        <span>Test Live Working Application</span>
+                        <i data-lucide="external-link" style="width: 13px; height: 13px;"></i>
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Tech Stack -->
+            {% if submission.tech_stack %}
+                <div style="font-size: 0.85rem; margin-bottom: 16px; color: var(--admin-text-muted);">
+                    Technologies: <strong style="color: #FFFFFF;">{{ submission.tech_stack }}</strong>
+                </div>
+            {% endif %}
+
+            <!-- Student Notes -->
+            <div>
+                <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--admin-text-muted); margin-bottom: 6px;">
+                    Student Implementation Description:
+                </div>
+                <div style="background: #090D16; border: 1px solid var(--admin-border); border-radius: 8px; padding: 14px 16px; font-size: 0.88rem; color: #E2E8F0; line-height: 1.6; white-space: pre-line;">
+                    {{ submission.description }}
+                </div>
             </div>
         {% endif %}
-
-        <!-- Student Notes -->
-        <div>
-            <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--admin-text-muted); margin-bottom: 6px;">
-                Student Implementation Description:
-            </div>
-            <div style="background: #090D16; border: 1px solid var(--admin-border); border-radius: 8px; padding: 14px 16px; font-size: 0.88rem; color: #E2E8F0; line-height: 1.6; white-space: pre-line;">
-                {{ submission.description }}
-            </div>
-        </div>
     </div>
 
-    <!-- Assignment Criteria Checklist Reference -->
-    {% if assignment %}
+    <!-- Assignment Criteria Checklist Reference (For Projects) -->
+    {% if assignment and not submission.is_quiz %}
         <div class="admin-card">
             <div class="admin-card-header">
                 <div class="admin-card-title">
@@ -120,26 +147,75 @@
         </div>
 
         <form method="POST" action="{{ url_for('admin.submission_review', submission_id=submission.id) }}">
-            <!-- Rubric Scores -->
-            {% set rubric = assignment.rubric if assignment and assignment.rubric else [] %}
-            {% if rubric %}
+            {% if submission.is_quiz and submission.quiz_results and submission.quiz_results.questions %}
+                <!-- Quiz Question-by-Question Grading -->
                 <div style="margin-bottom: 24px;">
                     <div style="font-size: 0.85rem; font-weight: 700; color: #FFFFFF; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.04em;">
-                        Rubric Criteria Scoring
+                        Assessment Question Breakdown & Grading
                     </div>
-                    {% for item in rubric %}
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--admin-surface-card); border-radius: 8px; margin-bottom: 10px;">
-                            <div>
-                                <div style="font-weight: 700; color: #FFFFFF; font-size: 0.88rem;">{{ item.criterion }}</div>
-                                <div style="font-size: 0.78rem; color: var(--admin-text-muted);">{{ item.description }}</div>
+                    {% for q in submission.quiz_results.questions %}
+                        <div style="padding: 14px 16px; background: var(--admin-surface-card); border-radius: 8px; margin-bottom: 12px; border-left: 3px solid {% if q.is_correct %}#34D399{% elif q.awarded_marks > 0 %}#FBBF24{% elif q.needs_manual_review %}#60A5FA{% else %}#F87171{% endif %};">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px;">
+                                <div style="font-weight: 700; color: #FFFFFF; font-size: 0.9rem;">
+                                    Q{{ loop.index }}. {{ q.question }}
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <input type="number" step="0.5" name="manual_score_{{ q.question_id }}" class="admin-input" style="width: 70px; text-align: center; padding: 4px;" min="0" max="{{ q.max_marks }}" value="{{ q.awarded_marks }}" required>
+                                    <span style="font-size: 0.82rem; color: var(--admin-text-muted);">/ {{ q.max_marks }} pts</span>
+                                </div>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <input type="number" name="score_{{ loop.index0 }}" class="admin-input" style="width: 70px; text-align: center;" min="0" max="{{ item.max_points }}" value="{{ previous_review.scores.get(item.criterion, item.max_points) if previous_review and previous_review.scores else item.max_points }}" required>
-                                <span style="font-size: 0.82rem; color: var(--admin-text-muted);">/ {{ item.max_points }}</span>
+                            <div style="font-size: 0.82rem; color: var(--admin-text-muted); margin-bottom: 4px;">
+                                <strong>Candidate Answer:</strong>
+                                <span style="color: {% if q.is_correct %}#34D399{% elif q.awarded_marks > 0 %}#FBBF24{% else %}#F87171{% endif %}; font-weight: 600;">
+                                    {% if q.student_answer is iterable and q.student_answer is not string %}
+                                        {{ q.student_answer | join(', ') }}
+                                    {% else %}
+                                        {{ q.student_answer or 'No answer provided' }}
+                                    {% endif %}
+                                </span>
                             </div>
+                            {% if q.correct_option_ids or q.accepted_answers %}
+                                <div style="font-size: 0.82rem; color: var(--admin-text-muted);">
+                                    <strong>Official Key:</strong>
+                                    <span style="color: #34D399; font-weight: 600;">
+                                        {% if q.accepted_answers %}
+                                            {{ q.accepted_answers | join(' OR ') }}
+                                        {% else %}
+                                            {{ q.correct_option_ids | join(', ') }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            {% endif %}
+                            {% if q.needs_manual_review %}
+                                <div style="margin-top: 6px; font-size: 0.78rem; color: #60A5FA; font-weight: 700;">
+                                    ℹ️ Flagged for Review: Please verify the candidate's answer and adjust awarded score above.
+                                </div>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>
+            {% else %}
+                <!-- Project Rubric Scores -->
+                {% set rubric = assignment.rubric if assignment and assignment.rubric else [] %}
+                {% if rubric %}
+                    <div style="margin-bottom: 24px;">
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #FFFFFF; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.04em;">
+                            Rubric Criteria Scoring
+                        </div>
+                        {% for item in rubric %}
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--admin-surface-card); border-radius: 8px; margin-bottom: 10px;">
+                                <div>
+                                    <div style="font-weight: 700; color: #FFFFFF; font-size: 0.88rem;">{{ item.criterion }}</div>
+                                    <div style="font-size: 0.78rem; color: var(--admin-text-muted);">{{ item.description }}</div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <input type="number" name="score_{{ loop.index0 }}" class="admin-input" style="width: 70px; text-align: center;" min="0" max="{{ item.max_points }}" value="{{ previous_review.scores.get(item.criterion, item.max_points) if previous_review and previous_review.scores else item.max_points }}" required>
+                                    <span style="font-size: 0.82rem; color: var(--admin-text-muted);">/ {{ item.max_points }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             {% endif %}
 
             <!-- Decision Radio Buttons -->

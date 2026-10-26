@@ -98,53 +98,20 @@ Understand error handling and debugging">{{ '\n'.join(course.learning_objectives
             </div>
         </div>
 
-        <!-- Part 2: Practical Project Assignment -->
+        <!-- Part 2: Practical Assignment Configuration -->
         <div class="admin-card">
             <div class="admin-card-header">
                 <div class="admin-card-title">
-                    <i data-lucide="code-2"></i>
-                    <span>Practical Project Assignment & Rubric</span>
+                    <i data-lucide="award"></i>
+                    <span id="assignment-card-title">Course Practical Assignment & Evaluation</span>
                 </div>
             </div>
 
-            <!-- Assignment Title -->
-            <div class="admin-form-group">
-                <label class="admin-label">Project Title *</label>
-                <input type="text" name="assignment_title" class="admin-input" placeholder="e.g. Automated Data & Task Manager" value="{{ assignment.title if assignment else '' }}" required>
-            </div>
-
-            <!-- Problem Statement -->
-            <div class="admin-form-group">
-                <label class="admin-label">Problem Statement / Project Goal *</label>
-                <textarea name="problem_statement" class="admin-textarea" rows="4" placeholder="Define the real-world scenario students must build to demonstrate mastery..." required>{{ assignment.problem_statement if assignment else '' }}</textarea>
-            </div>
-
-            <!-- Mandatory Features -->
-            <div class="admin-form-group">
-                <label class="admin-label">Mandatory Core Features (One per line) *</label>
-                <textarea name="required_features" class="admin-textarea" rows="4" placeholder="Working CRUD interface with data validation
-Proper error handling and input sanitization
-Clean GitHub repository with setup instructions" required>{{ '\n'.join(assignment.required_features) if assignment and assignment.required_features else '' }}</textarea>
-            </div>
-
-            <!-- Optional Features -->
-            <div class="admin-form-group">
-                <label class="admin-label">Bonus & Stretch Features (One per line)</label>
-                <textarea name="optional_features" class="admin-textarea" rows="3" placeholder="Automated unit tests
-Docker containerization or CI/CD workflow">{{ '\n'.join(assignment.optional_features) if assignment and assignment.optional_features else '' }}</textarea>
-            </div>
-
-            <!-- Tech Requirements -->
-            <div class="admin-form-group">
-                <label class="admin-label">Technical Specifications & Recommended Stack</label>
-                <input type="text" name="tech_requirements" class="admin-input" placeholder="e.g. Python 3.10+, Flask or FastAPI, SQLite / MongoDB" value="{{ assignment.tech_requirements if assignment else '' }}">
-            </div>
-
             <!-- Evaluation Engine & Passing Score -->
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px;">
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px;">
                 <div class="admin-form-group" style="margin-bottom: 0;">
                     <label class="admin-label">Evaluation Mode *</label>
-                    <select name="evaluation_type" class="admin-select">
+                    <select name="evaluation_type" id="evaluation_type_select" class="admin-select">
                         <option value="project_based" {% if not assignment or assignment.is_project_based %}selected{% endif %}>
                             🚀 Project-Based (Live Deployment + GitHub URL + Rubric Review)
                         </option>
@@ -154,6 +121,9 @@ Docker containerization or CI/CD workflow">{{ '\n'.join(assignment.optional_feat
                         <option value="ai_dual" {% if assignment and assignment.evaluation_type == 'ai_dual' %}selected{% endif %}>
                             🤖 Dual-Engine (Automated Tests + SkillBot AI Analysis)
                         </option>
+                        <option value="quiz_based" {% if assignment and assignment.is_quiz_based %}selected{% endif %}>
+                            📝 Quiz-Based (Manual Questions + Automatic Scoring)
+                        </option>
                     </select>
                 </div>
                 <div class="admin-form-group" style="margin-bottom: 0;">
@@ -162,12 +132,117 @@ Docker containerization or CI/CD workflow">{{ '\n'.join(assignment.optional_feat
                 </div>
             </div>
 
-            <!-- Deployment Required Switch -->
-            <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
-                <input type="checkbox" name="is_deployment_required" id="is_deployment_required" {% if not assignment or assignment.is_deployment_required %}checked{% endif %} style="width: 18px; height: 18px;">
-                <label for="is_deployment_required" style="color: #FFFFFF; font-size: 0.88rem; font-weight: 600; cursor: pointer;">
-                    Mandatory Live Deployment URL (e.g. Render, Vercel, Netlify)
-                </label>
+            <!-- Assignment Title -->
+            <div class="admin-form-group">
+                <label class="admin-label" id="lbl_assignment_title">Assignment Title *</label>
+                <input type="text" name="assignment_title" class="admin-input" placeholder="e.g. Automated Data & Task Manager" value="{{ assignment.title if assignment else '' }}" required>
+            </div>
+
+            <!-- Problem Statement / Instructions -->
+            <div class="admin-form-group">
+                <label class="admin-label" id="lbl_problem_statement">Problem Statement / Instructions *</label>
+                <textarea name="problem_statement" class="admin-textarea" rows="4" placeholder="Define the real-world scenario or instructions students must follow..." required>{{ assignment.problem_statement if assignment else '' }}</textarea>
+            </div>
+
+            <!-- Project-Specific Configuration Fields -->
+            <div id="project-fields-container" {% if assignment and assignment.is_quiz_based %}style="display: none;"{% endif %}>
+                <!-- Mandatory Features -->
+                <div class="admin-form-group">
+                    <label class="admin-label">Mandatory Core Features (One per line) *</label>
+                    <textarea name="required_features" id="required_features_input" class="admin-textarea" rows="4" placeholder="Working CRUD interface with data validation
+Proper error handling and input sanitization
+Clean GitHub repository with setup instructions" {% if not assignment or not assignment.is_quiz_based %}required{% endif %}>{{ '\n'.join(assignment.required_features) if assignment and assignment.required_features else '' }}</textarea>
+                </div>
+
+                <!-- Optional Features -->
+                <div class="admin-form-group">
+                    <label class="admin-label">Bonus & Stretch Features (One per line)</label>
+                    <textarea name="optional_features" class="admin-textarea" rows="3" placeholder="Automated unit tests
+Docker containerization or CI/CD workflow">{{ '\n'.join(assignment.optional_features) if assignment and assignment.optional_features else '' }}</textarea>
+                </div>
+
+                <!-- Tech Requirements -->
+                <div class="admin-form-group">
+                    <label class="admin-label">Technical Specifications & Recommended Stack</label>
+                    <input type="text" name="tech_requirements" class="admin-input" placeholder="e.g. Python 3.10+, Flask or FastAPI, SQLite / MongoDB" value="{{ assignment.tech_requirements if assignment else '' }}">
+                </div>
+
+                <!-- Deployment Required Switch -->
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                    <input type="checkbox" name="is_deployment_required" id="is_deployment_required" {% if not assignment or assignment.is_deployment_required %}checked{% endif %} style="width: 18px; height: 18px;">
+                    <label for="is_deployment_required" style="color: #FFFFFF; font-size: 0.88rem; font-weight: 600; cursor: pointer;">
+                        Mandatory Live Deployment URL (e.g. Render, Vercel, Netlify)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Quiz Builder Configuration Section (Only for Quiz-Based mode) -->
+            <div id="quiz-builder-container" {% if not assignment or not assignment.is_quiz_based %}style="display: none;"{% endif %}>
+                <input type="hidden" name="quiz_json" id="quiz_json_input" value="">
+
+                <div style="padding: 16px; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                        <span style="font-weight: 700; color: #FFFFFF; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="sliders" style="width: 16px; height: 16px; color: var(--admin-primary);"></i>
+                            Quiz Assessment Settings
+                        </span>
+                        <div id="quiz-summary-badge" style="font-size: 0.82rem; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.1); padding: 4px 12px; border-radius: 20px;">
+                            0 Questions • 0 Marks
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+                        <div>
+                            <label class="admin-label" style="font-size: 0.78rem;">Time Limit (Minutes)</label>
+                            <input type="number" id="quiz_time_limit" class="admin-input" min="0" placeholder="0 = No time limit" value="{{ assignment.quiz_time_limit_minutes if assignment else 0 }}">
+                        </div>
+                        <div>
+                            <label class="admin-label" style="font-size: 0.78rem;">Max Allowed Attempts</label>
+                            <input type="number" id="quiz_max_attempts" class="admin-input" min="1" max="10" value="{{ assignment.quiz_max_attempts if assignment else 3 }}">
+                        </div>
+                        <div style="display: flex; flex-direction: column; justify-content: center; gap: 8px; padding-top: 10px;">
+                            <label style="display: flex; align-items: center; gap: 8px; color: #E2E8F0; font-size: 0.82rem; cursor: pointer;">
+                                <input type="checkbox" id="quiz_shuffle_q" {% if assignment and assignment.quiz_shuffle_questions %}checked{% endif %}>
+                                <span>Shuffle Questions for Students</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; color: #E2E8F0; font-size: 0.82rem; cursor: pointer;">
+                                <input type="checkbox" id="quiz_allow_review" {% if not assignment or assignment.quiz_allow_review %}checked{% endif %}>
+                                <span>Allow Reviewing Answers After Submission</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Questions List -->
+                <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="font-size: 1rem; font-weight: 700; color: #FFFFFF; margin: 0;">
+                        Questions & Grading Rubric
+                    </h3>
+                </div>
+
+                <div id="quiz-questions-list" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+                    <!-- Question Cards dynamically injected by JS -->
+                </div>
+
+                <!-- Add Question Buttons -->
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; padding: 16px; background: rgba(255, 255, 255, 0.02); border: 1.5px dashed var(--admin-border); border-radius: 8px; justify-content: center;">
+                    <button type="button" class="admin-btn admin-btn-secondary" onclick="quizBuilder.addQuestion('single_choice')" style="font-size: 0.82rem;">
+                        <i data-lucide="circle-dot"></i>
+                        <span>+ Multiple Choice (Single)</span>
+                    </button>
+                    <button type="button" class="admin-btn admin-btn-secondary" onclick="quizBuilder.addQuestion('multiple_select')" style="font-size: 0.82rem;">
+                        <i data-lucide="check-square"></i>
+                        <span>+ Multiple Select</span>
+                    </button>
+                    <button type="button" class="admin-btn admin-btn-secondary" onclick="quizBuilder.addQuestion('true_false')" style="font-size: 0.82rem;">
+                        <i data-lucide="toggle-left"></i>
+                        <span>+ True / False</span>
+                    </button>
+                    <button type="button" class="admin-btn admin-btn-secondary" onclick="quizBuilder.addQuestion('short_answer')" style="font-size: 0.82rem;">
+                        <i data-lucide="type"></i>
+                        <span>+ Short Answer</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -176,11 +251,316 @@ Docker containerization or CI/CD workflow">{{ '\n'.join(assignment.optional_feat
             <a href="{{ url_for('admin.courses_list') }}" class="admin-btn admin-btn-secondary">
                 Cancel
             </a>
-            <button type="submit" class="admin-btn admin-btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">
+            <button type="submit" id="btn-save-course" class="admin-btn admin-btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">
                 <i data-lucide="save"></i>
-                <span>Save Course & Project</span>
+                <span id="btn-save-label">Save Course & Assignment</span>
             </button>
         </div>
     </form>
 </div>
+
+<!-- Quiz Builder Client Logic -->
+<script>
+window.EXISTING_QUIZ_DATA = {{ (assignment.quiz_data if assignment and assignment.quiz_data else {}) | tojson }};
+
+const quizBuilder = {
+    questions: [],
+
+    init() {
+        const evalSelect = document.getElementById('evaluation_type_select');
+        const projectFields = document.getElementById('project-fields-container');
+        const quizFields = document.getElementById('quiz-builder-container');
+        const reqFeatures = document.getElementById('required_features_input');
+        const lblTitle = document.getElementById('lbl_assignment_title');
+        const lblProb = document.getElementById('lbl_problem_statement');
+        const cardTitle = document.getElementById('assignment-card-title');
+
+        const updateVisibility = () => {
+            const isQuiz = evalSelect.value === 'quiz_based';
+            if (isQuiz) {
+                projectFields.style.display = 'none';
+                quizFields.style.display = 'block';
+                if (reqFeatures) reqFeatures.removeAttribute('required');
+                if (lblTitle) lblTitle.innerText = 'Quiz Assignment Title *';
+                if (lblProb) lblProb.innerText = 'Quiz Instructions & Overview *';
+                if (cardTitle) cardTitle.innerText = 'Quiz Builder & Evaluation Settings';
+            } else {
+                projectFields.style.display = 'block';
+                quizFields.style.display = 'none';
+                if (reqFeatures) reqFeatures.setAttribute('required', 'required');
+                if (lblTitle) lblTitle.innerText = 'Project Title *';
+                if (lblProb) lblProb.innerText = 'Problem Statement / Project Goal *';
+                if (cardTitle) cardTitle.innerText = 'Practical Project Assignment & Rubric';
+            }
+            if (window.lucide) window.lucide.createIcons();
+        };
+
+        evalSelect.addEventListener('change', updateVisibility);
+        updateVisibility();
+
+        // Load existing questions
+        if (window.EXISTING_QUIZ_DATA && Array.isArray(window.EXISTING_QUIZ_DATA.questions)) {
+            this.questions = JSON.parse(JSON.stringify(window.EXISTING_QUIZ_DATA.questions));
+        }
+
+        this.render();
+
+        // Form submit synchronization
+        const form = document.querySelector('form');
+        form.addEventListener('submit', (e) => {
+            if (evalSelect.value === 'quiz_based') {
+                if (this.questions.length === 0) {
+                    e.preventDefault();
+                    alert('Please add at least one question to the quiz before saving.');
+                    return false;
+                }
+            }
+            this.syncJSON();
+        });
+    },
+
+    addQuestion(type) {
+        const newId = 'q_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        let q = {
+            id: newId,
+            type: type,
+            question: '',
+            marks: 5,
+            options: [],
+            correct_option_ids: [],
+            accepted_answers: [],
+            case_sensitive: false,
+            requires_manual_review: false,
+            explanation: ''
+        };
+
+        if (type === 'single_choice' || type === 'multiple_select') {
+            q.options = [
+                { id: 'opt_1', text: 'Option 1' },
+                { id: 'opt_2', text: 'Option 2' },
+                { id: 'opt_3', text: 'Option 3' },
+                { id: 'opt_4', text: 'Option 4' }
+            ];
+            q.correct_option_ids = ['opt_1'];
+        } else if (type === 'true_false') {
+            q.options = [
+                { id: 'true', text: 'True' },
+                { id: 'false', text: 'False' }
+            ];
+            q.correct_option_ids = ['true'];
+        } else if (type === 'short_answer') {
+            q.accepted_answers = ['answer'];
+        }
+
+        this.questions.push(q);
+        this.render();
+    },
+
+    removeQuestion(idx) {
+        if (confirm('Delete this question?')) {
+            this.questions.splice(idx, 1);
+            this.render();
+        }
+    },
+
+    moveQuestion(idx, dir) {
+        const target = idx + dir;
+        if (target >= 0 && target < this.questions.length) {
+            const temp = this.questions[idx];
+            this.questions[idx] = this.questions[target];
+            this.questions[target] = temp;
+            this.render();
+        }
+    },
+
+    addOption(qIdx) {
+        const q = this.questions[qIdx];
+        const nextNum = (q.options ? q.options.length : 0) + 1;
+        const optId = 'opt_' + Date.now() + '_' + nextNum;
+        q.options.push({ id: optId, text: 'Option ' + nextNum });
+        this.render();
+    },
+
+    removeOption(qIdx, optIdx) {
+        const q = this.questions[qIdx];
+        if (q.options.length <= 2) {
+            alert('A question must have at least 2 options.');
+            return;
+        }
+        const opt = q.options[optIdx];
+        q.options.splice(optIdx, 1);
+        q.correct_option_ids = (q.correct_option_ids || []).filter(id => id !== opt.id);
+        if (q.correct_option_ids.length === 0 && q.options.length > 0) {
+            q.correct_option_ids = [q.options[0].id];
+        }
+        this.render();
+    },
+
+    syncJSON() {
+        const timeLimit = parseInt(document.getElementById('quiz_time_limit').value) || 0;
+        const maxAttempts = parseInt(document.getElementById('quiz_max_attempts').value) || 3;
+        const shuffleQ = document.getElementById('quiz_shuffle_q').checked;
+        const allowReview = document.getElementById('quiz_allow_review').checked;
+
+        let totalMarks = 0;
+        this.questions.forEach(q => {
+            totalMarks += (parseInt(q.marks) || 1);
+        });
+
+        const payload = {
+            time_limit_minutes: timeLimit,
+            max_attempts: maxAttempts,
+            shuffle_questions: shuffleQ,
+            allow_review_answers: allowReview,
+            total_marks: totalMarks,
+            questions: this.questions
+        };
+
+        const jsonInput = document.getElementById('quiz_json_input');
+        if (jsonInput) jsonInput.value = JSON.stringify(payload);
+
+        // Update badge
+        const badge = document.getElementById('quiz-summary-badge');
+        if (badge) {
+            badge.innerText = `${this.questions.length} Questions • ${totalMarks} Marks`;
+        }
+    },
+
+    render() {
+        const container = document.getElementById('quiz-questions-list');
+        if (!container) return;
+
+        if (this.questions.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 32px; background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--admin-border); border-radius: 8px; color: var(--admin-text-muted);">
+                    <i data-lucide="help-circle" style="width: 32px; height: 32px; opacity: 0.5; margin-bottom: 8px;"></i>
+                    <p style="margin: 0; font-size: 0.9rem;">No questions added yet. Click one of the buttons below to create your first question.</p>
+                </div>
+            `;
+            this.syncJSON();
+            if (window.lucide) window.lucide.createIcons();
+            return;
+        }
+
+        let html = '';
+        this.questions.forEach((q, idx) => {
+            const isFirst = idx === 0;
+            const isLast = idx === this.questions.length - 1;
+
+            let typeBadge = '';
+            if (q.type === 'single_choice') typeBadge = '<span style="background: rgba(99, 102, 241, 0.15); color: #818CF8; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">Single Choice</span>';
+            else if (q.type === 'multiple_select') typeBadge = '<span style="background: rgba(16, 185, 129, 0.15); color: #34D399; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">Multiple Select</span>';
+            else if (q.type === 'true_false') typeBadge = '<span style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">True / False</span>';
+            else if (q.type === 'short_answer') typeBadge = '<span style="background: rgba(236, 72, 153, 0.15); color: #F472B6; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">Short Answer</span>';
+
+            html += `
+                <div class="quiz-q-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--admin-border); border-radius: 8px; padding: 18px;">
+                    <!-- Question Card Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-weight: 800; color: #FFFFFF; font-size: 0.95rem;">Q${idx + 1}.</span>
+                            ${typeBadge}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="color: var(--admin-text-muted); font-size: 0.78rem;">Marks:</label>
+                            <input type="number" min="1" max="100" value="${q.marks || 5}" onchange="quizBuilder.questions[${idx}].marks = parseInt(this.value)||1; quizBuilder.syncJSON();" style="width: 60px; padding: 4px 8px; background: rgba(0,0,0,0.3); border: 1px solid var(--admin-border); border-radius: 4px; color: #FFFFFF; font-size: 0.85rem; text-align: center;">
+
+                            <button type="button" class="admin-btn admin-btn-secondary" style="padding: 4px 8px;" onclick="quizBuilder.moveQuestion(${idx}, -1)" ${isFirst ? 'disabled style="opacity: 0.4;"' : ''}>▲</button>
+                            <button type="button" class="admin-btn admin-btn-secondary" style="padding: 4px 8px;" onclick="quizBuilder.moveQuestion(${idx}, 1)" ${isLast ? 'disabled style="opacity: 0.4;"' : ''}>▼</button>
+                            <button type="button" class="admin-btn admin-btn-danger" style="padding: 4px 8px;" onclick="quizBuilder.removeQuestion(${idx})">🗑️</button>
+                        </div>
+                    </div>
+
+                    <!-- Question Stem Input -->
+                    <div style="margin-bottom: 14px;">
+                        <input type="text" class="admin-input" placeholder="Enter question statement..." value="${(q.question || '').replace(/"/g, '&quot;')}" onchange="quizBuilder.questions[${idx}].question = this.value; quizBuilder.syncJSON();" required>
+                    </div>
+            `;
+
+            // Question Options Body
+            if (q.type === 'single_choice' || q.type === 'multiple_select') {
+                html += `<div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">`;
+                (q.options || []).forEach((opt, oIdx) => {
+                    const isChecked = (q.correct_option_ids || []).includes(opt.id);
+                    const inputType = q.type === 'single_choice' ? 'radio' : 'checkbox';
+                    const inputName = `q_correct_${idx}`;
+
+                    html += `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="${inputType}" name="${inputName}" ${isChecked ? 'checked' : ''} onchange="
+                                if ('${q.type}' === 'single_choice') {
+                                    quizBuilder.questions[${idx}].correct_option_ids = ['${opt.id}'];
+                                } else {
+                                    const set = new Set(quizBuilder.questions[${idx}].correct_option_ids || []);
+                                    if (this.checked) set.add('${opt.id}'); else set.delete('${opt.id}');
+                                    quizBuilder.questions[${idx}].correct_option_ids = Array.from(set);
+                                }
+                                quizBuilder.syncJSON();
+                            }" title="Mark as correct answer">
+                            <input type="text" class="admin-input" style="flex: 1; padding: 6px 12px; font-size: 0.88rem;" value="${(opt.text || '').replace(/"/g, '&quot;')}" onchange="quizBuilder.questions[${idx}].options[${oIdx}].text = this.value; quizBuilder.syncJSON();" required>
+                            <button type="button" class="admin-btn admin-btn-secondary" style="padding: 4px 8px; color: #EF4444;" onclick="quizBuilder.removeOption(${idx}, ${oIdx})">✕</button>
+                        </div>
+                    `;
+                });
+                html += `
+                    <div>
+                        <button type="button" class="admin-btn admin-btn-secondary" style="padding: 4px 10px; font-size: 0.78rem; margin-top: 4px;" onclick="quizBuilder.addOption(${idx})">
+                            + Add Option
+                        </button>
+                    </div>
+                </div>`;
+            } else if (q.type === 'true_false') {
+                const isTrue = (q.correct_option_ids || [])[0] === 'true';
+                html += `
+                    <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 12px; padding: 8px 12px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+                        <span style="font-size: 0.85rem; color: var(--admin-text-muted);">Correct Answer:</span>
+                        <label style="display: flex; align-items: center; gap: 6px; color: #FFFFFF; font-size: 0.88rem; cursor: pointer;">
+                            <input type="radio" name="tf_${idx}" value="true" ${isTrue ? 'checked' : ''} onchange="quizBuilder.questions[${idx}].correct_option_ids = ['true']; quizBuilder.syncJSON();">
+                            <span>True</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; color: #FFFFFF; font-size: 0.88rem; cursor: pointer;">
+                            <input type="radio" name="tf_${idx}" value="false" ${!isTrue ? 'checked' : ''} onchange="quizBuilder.questions[${idx}].correct_option_ids = ['false']; quizBuilder.syncJSON();">
+                            <span>False</span>
+                        </label>
+                    </div>
+                `;
+            } else if (q.type === 'short_answer') {
+                const acceptedStr = (q.accepted_answers || []).join(', ');
+                html += `
+                    <div style="margin-bottom: 12px;">
+                        <label class="admin-label" style="font-size: 0.78rem;">Accepted Answers (comma-separated, evaluated case-insensitively unless checked)</label>
+                        <input type="text" class="admin-input" placeholder="e.g. print(), console.log(), echo" value="${acceptedStr.replace(/"/g, '&quot;')}" onchange="quizBuilder.questions[${idx}].accepted_answers = this.value.split(',').map(s => s.trim()).filter(Boolean); quizBuilder.syncJSON();">
+                        <div style="display: flex; gap: 16px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #E2E8F0; cursor: pointer;">
+                                <input type="checkbox" ${q.case_sensitive ? 'checked' : ''} onchange="quizBuilder.questions[${idx}].case_sensitive = this.checked; quizBuilder.syncJSON();">
+                                <span>Case Sensitive</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #E2E8F0; cursor: pointer;">
+                                <input type="checkbox" ${q.requires_manual_review ? 'checked' : ''} onchange="quizBuilder.questions[${idx}].requires_manual_review = this.checked; quizBuilder.syncJSON();">
+                                <span>Route to Admin Review Queue if no exact match</span>
+                            </label>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Explanation / Solution Hint
+            html += `
+                    <div>
+                        <input type="text" class="admin-input" style="font-size: 0.82rem; color: var(--admin-text-muted);" placeholder="Optional explanation/solution revealed to students after assessment..." value="${(q.explanation || '').replace(/"/g, '&quot;')}" onchange="quizBuilder.questions[${idx}].explanation = this.value; quizBuilder.syncJSON();">
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        this.syncJSON();
+        if (window.lucide) window.lucide.createIcons();
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    quizBuilder.init();
+});
+</script>
 {% endblock %}

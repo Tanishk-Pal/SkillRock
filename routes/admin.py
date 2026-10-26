@@ -8,6 +8,7 @@ import os
 import sys
 import platform
 import logging
+import json
 from datetime import datetime, timezone
 from flask import (
     Blueprint,
@@ -680,17 +681,29 @@ def course_new():
         except (ValueError, TypeError):
             passing_score = 70
 
+        quiz_json_raw = request.form.get("quiz_json", "").strip()
+        quiz_data = {}
+        if quiz_json_raw:
+            try:
+                quiz_data = json.loads(quiz_json_raw)
+            except Exception as e:
+                logger.warning(f"Error parsing quiz_json in course_new: {e}")
+
+        if evaluation_type == "quiz_based":
+            is_deployment_required = False
+
         assignment = Assignment({
             "course_id": str(course.id),
             "title": assignment_title,
-            "short_description": f"Build and submit a functional project for {title}.",
-            "problem_statement": problem_statement or f"Demonstrate practical competence in {title} by building a complete working application.",
-            "required_features": required_features or ["Working application implementing core concepts", "Clean, documented repository on GitHub"],
+            "short_description": f"Assessment quiz for {title}." if evaluation_type == "quiz_based" else f"Build and submit a functional project for {title}.",
+            "problem_statement": problem_statement or (f"Complete the assessment to demonstrate understanding of {title}." if evaluation_type == "quiz_based" else f"Demonstrate practical competence in {title} by building a complete working application."),
+            "required_features": required_features if evaluation_type != "quiz_based" else [],
             "optional_features": optional_features,
             "tech_requirements": tech_requirements,
             "evaluation_type": evaluation_type,
             "passing_score": passing_score,
             "is_deployment_required": is_deployment_required,
+            "quiz_data": quiz_data,
             "is_published": True,
             "created_at": datetime.now(timezone.utc)
         })
@@ -740,6 +753,18 @@ def course_edit(course_id):
         assignment.is_deployment_required = request.form.get("is_deployment_required") == "on"
         if request.form.get("evaluation_type"):
             assignment.evaluation_type = request.form.get("evaluation_type").strip()
+        if assignment.evaluation_type == "quiz_based":
+            assignment.is_deployment_required = False
+            
+        quiz_json_raw = request.form.get("quiz_json", "").strip()
+        if quiz_json_raw:
+            try:
+                parsed_quiz = json.loads(quiz_json_raw)
+                assignment.quiz_data = parsed_quiz
+                assignment._data["quiz_data"] = parsed_quiz
+            except Exception as e:
+                logger.warning(f"Error parsing quiz_json in course_edit: {e}")
+
         if request.form.get("passing_score"):
             try:
                 assignment._data["passing_score"] = int(request.form.get("passing_score"))
@@ -839,24 +864,52 @@ def submission_review(submission_id):
             flash("Please provide constructive feedback explaining your decision.", "danger")
             return redirect(url_for("admin.submission_review", submission_id=submission.id))
 
-        # Collect rubric scores
-        rubric = assignment.rubric if assignment else Assignment.DEFAULT_RUBRIC
-        scores = {}
-        total_score = 0
-        max_score = 0
-        for i, item in enumerate(rubric):
-            criterion = item.get("criterion", f"Criterion {i+1}")
-            max_pts = int(item.get("max_points", 25))
-            max_score += max_pts
-            try:
-                pts = int(request.form.get(f"score_{i}", max_pts))
-                pts = max(0, min(max_pts, pts))
-            except (ValueError, TypeError):
-                pts = max_pts
-            scores[criterion] = pts
-            total_score += pts
+        # Collect scores: Quiz vs Project Rubric
+        is_quiz_submission = getattr(submission, "is_quiz", False) or submission.evaluation_type == "quiz_based"
+        if is_quiz_submission and submission.quiz_results:
+            q_results = submission.quiz_results.get("questions", [])
+            total_score = 0
+            max_score = int(submission.quiz_results.get("total_marks", 100) or 100)
+            scores = {}
+            for q in q_results:
+                q_id = q.get("question_id")
+                manual_input = request.form.get(f"manual_score_{q_id}")
+                if manual_input is not None and manual_input.strip() != "":
+                    try:
+                        awarded = float(manual_input)
+                        q["awarded_marks"] = awarded
+                        q["is_correct"] = (awarded == q.get("max_marks"))
+                        q["needs_manual_review"] = False
+                    except ValueError:
+                        pass
+                total_score += float(q.get("awarded_marks", 0))
+                scores[q.get("question", f"Q_{q_id}")] = q.get("awarded_marks", 0)
 
-        percentage_score = int(round((total_score / max_score) * 100)) if max_score > 0 else total_score
+            total_score = round(total_score, 2)
+            percentage_score = int(round((total_score / max_score) * 100)) if max_score > 0 else int(total_score)
+            submission.quiz_results["marks_obtained"] = total_score
+            submission.quiz_results["percentage"] = percentage_score
+            submission.quiz_results["requires_manual_review"] = any(q.get("needs_manual_review") for q in q_results)
+            submission.quiz_results["is_passed"] = (percentage_score >= (getattr(assignment, "passing_score", 70) if assignment else 70))
+        else:
+            rubric = assignment.rubric if assignment else Assignment.DEFAULT_RUBRIC
+            scores = {}
+            total_score = 0
+            max_score = 0
+            for i, item in enumerate(rubric):
+                criterion = item.get("criterion", f"Criterion {i+1}")
+                max_pts = int(item.get("max_points", 25))
+                max_score += max_pts
+                try:
+                    pts = int(request.form.get(f"score_{i}", max_pts))
+                    pts = max(0, min(max_pts, pts))
+                except (ValueError, TypeError):
+                    pts = max_pts
+                scores[criterion] = pts
+                total_score += pts
+
+            percentage_score = int(round((total_score / max_score) * 100)) if max_score > 0 else total_score
+
         passing_score = getattr(assignment, "passing_score", 70) if assignment else 70
 
         if decision == "approved" and percentage_score < passing_score:

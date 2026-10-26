@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Results: {{ assignment.title }} | SkillRock{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 960px; margin: 30px auto; padding: 0 16px;">
+    <!-- Breadcrumb -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--text-muted);">
+            <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" style="color: var(--text-secondary); text-decoration: none;">
+                {{ course.title }}
+            </a>
+            <span>›</span>
+            <a href="{{ url_for('learning.assignment_detail', assignment_id=assignment.id) }}" style="color: var(--text-secondary); text-decoration: none;">
+                Milestone {{ assignment.step_number }}
+            </a>
+            <span>›</span>
+            <span style="color: var(--text-main); font-weight: 700;">Assessment Results</span>
+        </div>
+
+        <a href="{{ url_for('learning.course_detail', slug=course.slug) }}" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 14px;">
+            ← Back to Course Lecture
+        </a>
+    </div>
+
+    <!-- Hero Result Card -->
+    {% set is_approved = (submission.status == 'approved') %}
+    {% set is_pending = (submission.status == 'pending_review') %}
+    {% set is_rejected = (submission.status == 'rejected') %}
+
+    <div class="card" style="padding: 36px; text-align: center; margin-bottom: 24px; border: 1.5px solid {% if is_approved %}#10B981{% elif is_pending %}#F59E0B{% else %}#EF4444{% endif %}; background: {% if is_approved %}rgba(16, 185, 129, 0.05){% elif is_pending %}rgba(245, 158, 11, 0.05){% else %}rgba(239, 68, 68, 0.05){% endif %};">
+        <div style="width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 18px; display: flex; align-items: center; justify-content: center; background: {% if is_approved %}rgba(16, 185, 129, 0.15){% elif is_pending %}rgba(245, 158, 11, 0.15){% else %}rgba(239, 68, 68, 0.15){% endif %}; color: {% if is_approved %}#10B981{% elif is_pending %}#F59E0B{% else %}#EF4444{% endif %};">
+            {% if is_approved %}
+                <i data-lucide="award" style="width: 38px; height: 38px;"></i>
+            {% elif is_pending %}
+                <i data-lucide="clock" style="width: 38px; height: 38px;"></i>
+            {% else %}
+                <i data-lucide="alert-circle" style="width: 38px; height: 38px;"></i>
+            {% endif %}
+        </div>
+
+        <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+            {% if is_approved %}
+                Assessment Passed! 🎉
+            {% elif is_pending %}
+                Assessment Under Review ⏳
+            {% else %}
+                Assessment Needs Revision ⚠️
+            {% endif %}
+        </h1>
+
+        <p style="font-size: 1.05rem; color: var(--text-secondary); max-width: 650px; margin: 0 auto 24px; line-height: 1.5;">
+            {% if is_approved %}
+                Excellent work! You achieved <strong>{{ submission.automated_score }}%</strong>, exceeding the required passing score of <strong>{{ assignment.passing_score }}%</strong>.
+            {% elif is_pending %}
+                Your objective questions were graded automatically. One or more short-answer responses have been queued for reviewer verification.
+            {% else %}
+                You scored <strong>{{ submission.automated_score }}%</strong>, which is below the required passing threshold of <strong>{{ assignment.passing_score }}%</strong>.
+            {% endif %}
+        </p>
+
+        <!-- CTA Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            {% if is_approved %}
+                {% if certificate %}
+                    <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 0.95rem;">
+                        🎓 View Official Verified Certificate
+                    </a>
+                {% elif assignment.step_number < assignment.total_steps %}
+                    {% set next_asg = assignment.get_by_course_and_step(course.id, assignment.step_number + 1) %}
+                    {% if next_asg %}
+                        <a href="{{ url_for('learning.assignment_detail', assignment_id=next_asg.id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 0.95rem;">
+                            Proceed to Milestone {{ assignment.step_number + 1 }} →
+                        </a>
+                    {% endif %}
+                {% endif %}
+            {% elif is_rejected %}
+                {% if attempts_remaining > 0 %}
+                    <a href="{{ url_for('learning.quiz_assessment', assignment_id=assignment.id, retake=1) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 0.95rem;">
+                        🔄 Retake Assessment ({{ attempts_remaining }} Attempt{{ 's' if attempts_remaining > 1 else '' }} Remaining)
+                    </a>
+                {% else %}
+                    <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; font-weight: 700; padding: 10px 18px; font-size: 0.9rem;">
+                        Maximum Attempts Reached ({{ max_attempts }}/{{ max_attempts }})
+                    </span>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Telemetry Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px;">
+        <div class="card" style="padding: 18px; text-align: center;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Final Score</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: {% if is_approved %}#10B981{% elif is_pending %}#F59E0B{% else %}#EF4444{% endif %}; margin-top: 4px;">
+                {{ submission.automated_score }}%
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                {{ quiz_results.marks_obtained if quiz_results else 0 }} / {{ quiz_results.total_marks if quiz_results else 100 }} pts
+            </div>
+        </div>
+
+        <div class="card" style="padding: 18px; text-align: center;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Passing Target</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">
+                {{ assignment.passing_score }}%
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                Required to unlock
+            </div>
+        </div>
+
+        <div class="card" style="padding: 18px; text-align: center;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Attempt Used</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">
+                #{{ submission.attempt_number or 1 }}
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                of {% if max_attempts > 0 %}{{ max_attempts }}{% else %}Unlimited{% endif %} total
+            </div>
+        </div>
+
+        <div class="card" style="padding: 18px; text-align: center;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Time Taken</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">
+                {{ (submission.time_spent_seconds or 0) // 60 }}m {{ (submission.time_spent_seconds or 0) % 60 }}s
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                Assessment duration
+            </div>
+        </div>
+    </div>
+
+    <!-- Question-by-Question Review Breakdown (if allowed) -->
+    {% if assignment.quiz_allow_review and quiz_results and quiz_results.questions %}
+    <div class="card" style="padding: 28px; margin-bottom: 30px;">
+        <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="list-checks" style="width: 20px; height: 20px; color: var(--primary-action);"></i>
+            <span>Detailed Question Review</span>
+        </h2>
+
+        <div style="display: flex; flex-direction: column; gap: 18px;">
+            {% for q in quiz_results.questions %}
+                <div style="padding: 20px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; border-left: 4px solid {% if q.is_correct %}#10B981{% elif q.awarded_marks > 0 %}#F59E0B{% elif q.needs_manual_review %}#3B82F6{% else %}#EF4444{% endif %};">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                        <span style="font-weight: 800; color: var(--text-main); font-size: 0.95rem;">
+                            Question {{ loop.index }}. {{ q.question }}
+                        </span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="badge" style="background: {% if q.is_correct %}rgba(16, 185, 129, 0.15){% elif q.awarded_marks > 0 %}rgba(245, 158, 11, 0.15){% elif q.needs_manual_review %}rgba(59, 130, 246, 0.15){% else %}rgba(239, 68, 68, 0.15){% endif %}; color: {% if q.is_correct %}#10B981{% elif q.awarded_marks > 0 %}#F59E0B{% elif q.needs_manual_review %}#3B82F6{% else %}#EF4444{% endif %}; font-weight: 700; font-size: 0.8rem;">
+                                {{ q.awarded_marks }} / {{ q.max_marks }} Marks
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Student response display -->
+                    <div style="margin-bottom: 8px; font-size: 0.9rem;">
+                        <span style="color: var(--text-muted); font-weight: 600;">Your Answer:</span>
+                        <span style="color: {% if q.is_correct %}#10B981{% elif q.awarded_marks > 0 %}#F59E0B{% else %}#EF4444{% endif %}; font-weight: 700; margin-left: 6px;">
+                            {% if q.type == 'single_choice' or q.type == 'true_false' %}
+                                {{ q.options_map.get(q.student_answer, q.student_answer) if q.student_answer else 'No answer provided' }}
+                            {% elif q.type == 'multiple_select' %}
+                                {% if q.student_answer %}
+                                    {% if q.student_answer is string %}
+                                        {{ q.options_map.get(q.student_answer, q.student_answer) }}
+                                    {% else %}
+                                        {% for opt_id in q.student_answer %}
+                                            <span class="badge" style="background: var(--bg-hover); color: var(--text-main); margin-right: 4px;">{{ q.options_map.get(opt_id, opt_id) }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% else %}
+                                    No answer provided
+                                {% endif %}
+                            {% else %}
+                                {{ q.student_answer if q.student_answer else 'No answer provided' }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Correct Answer display -->
+                    <div style="margin-bottom: 10px; font-size: 0.9rem;">
+                        <span style="color: var(--text-muted); font-weight: 600;">Correct Answer:</span>
+                        <span style="color: #10B981; font-weight: 700; margin-left: 6px;">
+                            {% if q.type == 'single_choice' or q.type == 'true_false' %}
+                                {% if q.correct_option_ids %}
+                                    {{ q.options_map.get(q.correct_option_ids[0], q.correct_option_ids[0]) }}
+                                {% endif %}
+                            {% elif q.type == 'multiple_select' %}
+                                {% for opt_id in q.correct_option_ids %}
+                                    <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #059669; margin-right: 4px;">{{ q.options_map.get(opt_id, opt_id) }}</span>
+                                {% endfor %}
+                            {% elif q.type == 'short_answer' %}
+                                {{ q.accepted_answers | join(', ') }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Explanation -->
+                    {% if q.explanation %}
+                        <div style="padding: 10px 14px; background: rgba(99, 102, 241, 0.04); border-left: 3px solid var(--primary-action); border-radius: 4px; font-size: 0.85rem; color: var(--text-secondary); margin-top: 10px;">
+                            <strong style="color: var(--primary-action);">Explanation:</strong> {{ q.explanation }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1565,6 +1565,7 @@ class Assignment:
     TYPE_HUMAN = "human"       # legacy alias for human-reviewed project
     TYPE_ALGORITHMIC = "algorithmic"
     TYPE_AI_DUAL = "ai_dual"
+    TYPE_QUIZ_BASED = "quiz_based"
 
     DEFAULT_RUBRIC = [
         {"criterion": "Core Functionality & Requirements", "max_points": 40, "description": "All specified mandatory features implemented and functional."},
@@ -1586,15 +1587,19 @@ class Assignment:
         # Dynamically determine assignment evaluation type
         raw_eval = self._data.get("evaluation_type")
         raw_asg_type = self._data.get("assignment_type")
-        if raw_asg_type in [self.TYPE_PROJECT_BASED, self.TYPE_HUMAN, self.TYPE_ALGORITHMIC, self.TYPE_AI_DUAL]:
+        valid_eval_types = [self.TYPE_PROJECT_BASED, self.TYPE_HUMAN, self.TYPE_ALGORITHMIC, self.TYPE_AI_DUAL, self.TYPE_QUIZ_BASED]
+        if raw_asg_type in valid_eval_types:
             self.evaluation_type = raw_asg_type
-        elif raw_eval in [self.TYPE_PROJECT_BASED, self.TYPE_HUMAN, self.TYPE_ALGORITHMIC, self.TYPE_AI_DUAL]:
+        elif raw_eval in valid_eval_types:
             self.evaluation_type = raw_eval
         else:
             # Safe backward-compatible inference:
+            has_quiz = bool(self._data.get("quiz_data") or self._data.get("questions"))
             has_test_cases = bool(self._data.get("test_cases"))
             has_project_specs = bool(self._data.get("required_features") or self._data.get("is_deployment_required"))
-            if has_test_cases:
+            if has_quiz:
+                self.evaluation_type = self.TYPE_QUIZ_BASED
+            elif has_test_cases:
                 self.evaluation_type = self.TYPE_ALGORITHMIC
             elif has_project_specs:
                 self.evaluation_type = self.TYPE_PROJECT_BASED
@@ -1613,23 +1618,78 @@ class Assignment:
         self.tech_requirements = self._data.get("tech_requirements", "")
         self.is_deployment_required = bool(self._data.get("is_deployment_required", self.evaluation_type in [self.TYPE_PROJECT_BASED, self.TYPE_HUMAN]))
         self.rubric = self._data.get("rubric") or self.DEFAULT_RUBRIC
+        self.quiz_data = self._data.get("quiz_data") or {}
         self.is_published = bool(self._data.get("is_published", True))
         self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
         self.updated_at = self._data.get("updated_at") or datetime.now(timezone.utc)
 
     @property
+    def is_quiz_based(self):
+        """Returns True if this assignment is evaluated via manually created questions and automated/manual quiz grading."""
+        return self.evaluation_type == self.TYPE_QUIZ_BASED or bool(self._data.get("is_quiz_based"))
+
+    @property
     def is_project_based(self):
         """Returns True if this assignment requires project submission (GitHub + Live URL) and rubric evaluation."""
+        if self.is_quiz_based:
+            return False
         return (
             self.evaluation_type in [self.TYPE_PROJECT_BASED, self.TYPE_HUMAN]
             or bool(self._data.get("is_project_based"))
-            or (bool(self.required_features) and not self.test_cases)
+            or (bool(self.required_features) and not self.test_cases and not self.quiz_questions)
         )
 
     @property
     def is_algorithmic(self):
         """Returns True if this assignment executes in the automated Python algorithmic test runner."""
+        if self.is_quiz_based:
+            return False
         return not self.is_project_based and self.evaluation_type in [self.TYPE_ALGORITHMIC, self.TYPE_AI_DUAL]
+
+    @property
+    def quiz_questions(self):
+        qdata = self.quiz_data
+        if isinstance(qdata, dict):
+            return qdata.get("questions", []) or []
+        elif isinstance(self._data.get("questions"), list):
+            return self._data.get("questions", [])
+        return []
+
+    @property
+    def quiz_total_marks(self):
+        questions = self.quiz_questions
+        total = 0
+        for q in questions:
+            try:
+                total += int(q.get("marks", 1))
+            except (ValueError, TypeError):
+                total += 1
+        return total if total > 0 else 100
+
+    @property
+    def quiz_time_limit_minutes(self):
+        if isinstance(self.quiz_data, dict):
+            return int(self.quiz_data.get("time_limit_minutes", 0) or 0)
+        return 0
+
+    @property
+    def quiz_max_attempts(self):
+        if isinstance(self.quiz_data, dict):
+            raw = self.quiz_data.get("max_attempts")
+            return int(raw) if raw is not None and str(raw).strip() != "" else 3
+        return 3
+
+    @property
+    def quiz_shuffle_questions(self):
+        if isinstance(self.quiz_data, dict):
+            return bool(self.quiz_data.get("shuffle_questions", False))
+        return False
+
+    @property
+    def quiz_allow_review(self):
+        if isinstance(self.quiz_data, dict):
+            return bool(self.quiz_data.get("allow_review_answers", True))
+        return True
 
     @property
     def passing_score(self):
@@ -1666,6 +1726,7 @@ class Assignment:
         self._data["tech_requirements"] = self.tech_requirements
         self._data["is_deployment_required"] = bool(self.is_deployment_required)
         self._data["rubric"] = self.rubric if isinstance(self.rubric, list) else self.DEFAULT_RUBRIC
+        self._data["quiz_data"] = self.quiz_data if isinstance(self.quiz_data, dict) else {}
         self._data["is_published"] = bool(self.is_published)
         self._data["updated_at"] = datetime.now(timezone.utc)
 
@@ -1872,6 +1933,10 @@ class Submission:
         self.github_url = self._data.get("github_url", "")
         self.deployment_url = self._data.get("deployment_url", "")
         self.tech_stack = self._data.get("tech_stack", "")
+        self.quiz_answers = self._data.get("quiz_answers", {}) or {}
+        self.quiz_results = self._data.get("quiz_results", {}) or {}
+        self.attempt_number = int(self._data.get("attempt_number", 1))
+        self.time_spent_seconds = int(self._data.get("time_spent_seconds", 0))
         self.status = self._data.get("status", self.STATUS_PENDING)
         self.reviewer_id = str(self._data.get("reviewer_id", ""))
         self.review_feedback = self._data.get("review_feedback", "")
@@ -1898,6 +1963,10 @@ class Submission:
     @property
     def review(self):
         return Review.get_by_submission(self.id)
+
+    @property
+    def is_quiz(self):
+        return self.evaluation_type == "quiz_based" or bool(self.quiz_results)
 
     @property
     def status_label(self):
@@ -1947,6 +2016,10 @@ class Submission:
         self._data["github_url"] = self.github_url
         self._data["deployment_url"] = self.deployment_url
         self._data["tech_stack"] = self.tech_stack
+        self._data["quiz_answers"] = self.quiz_answers if isinstance(self.quiz_answers, dict) else {}
+        self._data["quiz_results"] = self.quiz_results if isinstance(self.quiz_results, dict) else {}
+        self._data["attempt_number"] = int(self.attempt_number)
+        self._data["time_spent_seconds"] = int(self.time_spent_seconds)
         self._data["status"] = self.status
         self._data["reviewer_id"] = str(self.reviewer_id) if self.reviewer_id else ""
         self._data["review_feedback"] = self.review_feedback
@@ -1975,6 +2048,16 @@ class Submission:
         db = get_db()
         doc = db[cls.collection_name].find_one({"_id": _to_obj_id(submission_id)})
         return cls(doc) if doc else None
+
+    @classmethod
+    def get_user_attempts(cls, user_id, assignment_id):
+        if not user_id or not assignment_id:
+            return []
+        db = get_db()
+        docs = db[cls.collection_name].find(
+            {"user_id": str(user_id), "assignment_id": str(assignment_id)}
+        ).sort("attempt_number", 1)
+        return [cls(d) for d in docs]
 
     @classmethod
     def get_latest(cls, user_id, assignment_id):

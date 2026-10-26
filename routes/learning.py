@@ -31,6 +31,7 @@ from models import (
     extract_youtube_id,
     slugify
 )
+from services.quiz_evaluator import sanitize_for_student, evaluate_quiz_submission
 
 logger = logging.getLogger(__name__)
 
@@ -616,6 +617,10 @@ def submit_project(assignment_id):
         flash("Associated course not found.", "danger")
         return redirect(url_for("learning.courses_list"))
 
+    # If this assignment is quiz-based, route to the dedicated assessment interface
+    if assignment.is_quiz_based:
+        return redirect(url_for("learning.quiz_assessment", assignment_id=assignment.id))
+
     # Auto-enrol student if they haven't enrolled yet
     enrollment = Enrollment.get_by_user_course(current_user.id, course.id)
     if not enrollment:
@@ -936,4 +941,222 @@ def verify_certificate(cert_id):
         certificate=certificate,
         is_valid=is_valid,
         cert_id=cert_id
+    )
+
+
+# ==============================================================================
+# 9. Quiz-Based Assessment & Evaluation Endpoints
+# ==============================================================================
+
+@learning_bp.route("/assignments/<assignment_id>/quiz", methods=["GET"])
+@login_required
+def quiz_assessment(assignment_id):
+    """
+    Dedicated Student Quiz Assessment Interface.
+    Serves sanitized question payload (no answers or explanations leaked),
+    handles time tracking, attempt validation, and progressive unlock gates.
+    """
+    assignment = Assignment.get_by_id(assignment_id)
+    if not assignment:
+        flash("Quiz assignment not found.", "danger")
+        return redirect(url_for("learning.courses_list"))
+
+    if not assignment.is_quiz_based:
+        return redirect(url_for("learning.submit_project", assignment_id=assignment.id))
+
+    course = assignment.course
+    if not course:
+        flash("Associated course not found.", "danger")
+        return redirect(url_for("learning.courses_list"))
+
+    # Auto-enrol student if needed
+    enrollment = Enrollment.get_by_user_course(current_user.id, course.id)
+    if not enrollment:
+        enrollment = Enrollment({
+            "user_id": str(current_user.id),
+            "course_id": str(course.id),
+            "status": "in_progress",
+            "created_at": datetime.now(timezone.utc)
+        })
+        enrollment.save()
+
+    # Progressive milestone unlock verification
+    step_num = getattr(assignment, "step_number", 1)
+    if step_num > 1:
+        prev_approved = Submission.is_step_approved(current_user.id, course.id, step_num - 1)
+        if not prev_approved and not getattr(current_user, "is_admin", False):
+            flash(f"🔒 Prerequisite Required: You must complete and pass Milestone {step_num - 1} before taking this assessment.", "warning")
+            prev_asg = Assignment.get_by_course_and_step(course.id, step_num - 1)
+            if prev_asg:
+                return redirect(url_for("learning.assignment_detail", assignment_id=prev_asg.id))
+            return redirect(url_for("learning.course_detail", slug=course.slug))
+
+    # For capstones, verify 80% video gate
+    if assignment.is_final_capstone:
+        watch_pct = getattr(enrollment, "watch_percent", 0)
+        video_completed = getattr(enrollment, "video_completed", False) or (watch_pct >= 80)
+        if not video_completed and not getattr(current_user, "is_admin", False):
+            flash(f"Course Requirement: You must watch at least 80% of the course lecture video before attempting the final assessment. Your current watch progress is {watch_pct}%.", "warning")
+            return redirect(url_for("learning.course_detail", slug=course.slug))
+
+    # Check attempt limit
+    attempts = Submission.get_user_attempts(current_user.id, assignment.id)
+    max_attempts = assignment.quiz_max_attempts
+    has_passed = any(a.status == Submission.STATUS_APPROVED for a in attempts)
+
+    # If student has already passed, allow reviewing results unless retake requested
+    if has_passed and request.args.get("retake") != "1":
+        flash("You have already passed this quiz assessment! You can review your results below.", "success")
+        return redirect(url_for("learning.quiz_result", assignment_id=assignment.id))
+
+    if max_attempts > 0 and len(attempts) >= max_attempts and not has_passed:
+        flash(f"You have reached the maximum allowed attempts ({max_attempts}) for this quiz.", "danger")
+        return redirect(url_for("learning.quiz_result", assignment_id=assignment.id))
+
+    # Sanitize payload for student client (never leak answer keys or explanations)
+    sanitized_quiz = sanitize_for_student(
+        assignment.quiz_data,
+        shuffle_questions=assignment.quiz_shuffle_questions
+    )
+
+    attempt_number = len(attempts) + 1
+
+    return render_template(
+        "learning/quiz_assessment.html",
+        assignment=assignment,
+        course=course,
+        enrollment=enrollment,
+        sanitized_quiz=sanitized_quiz,
+        attempt_number=attempt_number,
+        max_attempts=max_attempts
+    )
+
+
+@learning_bp.route("/assignments/<assignment_id>/quiz/submit", methods=["POST"])
+@login_required
+def quiz_submit(assignment_id):
+    """
+    Evaluates submitted quiz answers, calculates score and partial credit,
+    records the submission attempt, and unlocks subsequent milestones or certificate.
+    """
+    assignment = Assignment.get_by_id(assignment_id)
+    if not assignment or not assignment.is_quiz_based:
+        return jsonify({"success": False, "error": "Invalid quiz assignment."}), 400
+
+    course = assignment.course
+    if not course:
+        return jsonify({"success": False, "error": "Associated course not found."}), 404
+
+    # Extract answers from JSON or Form
+    if request.is_json:
+        data = request.get_json() or {}
+        submitted_answers = data.get("answers", {})
+        time_spent_seconds = int(data.get("time_spent_seconds", 0) or 0)
+    else:
+        submitted_answers = {}
+        for key in request.form:
+            if key.startswith("q_"):
+                q_id = key[2:]
+                val_list = request.form.getlist(key)
+                if len(val_list) > 1:
+                    submitted_answers[q_id] = val_list
+                elif val_list:
+                    submitted_answers[q_id] = val_list[0]
+        time_spent_seconds = int(request.form.get("time_spent_seconds", 0) or 0)
+
+    # Validate attempt limit
+    attempts = Submission.get_user_attempts(current_user.id, assignment.id)
+    max_attempts = assignment.quiz_max_attempts
+    if max_attempts > 0 and len(attempts) >= max_attempts:
+        if request.is_json:
+            return jsonify({"success": False, "error": f"Maximum attempts ({max_attempts}) reached."}), 400
+        flash(f"Maximum attempts ({max_attempts}) reached for this quiz.", "danger")
+        return redirect(url_for("learning.quiz_result", assignment_id=assignment.id))
+
+    # Evaluate on the server
+    eval_result = evaluate_quiz_submission(
+        quiz_data=assignment.quiz_data,
+        submitted_answers=submitted_answers,
+        passing_score=assignment.passing_score
+    )
+
+    attempt_number = len(attempts) + 1
+    sub_status = eval_result["status"]
+
+    submission = Submission({
+        "assignment_id": str(assignment.id),
+        "course_id": str(course.id),
+        "user_id": str(current_user.id),
+        "step_number": int(getattr(assignment, "step_number", 1)),
+        "evaluation_type": Assignment.TYPE_QUIZ_BASED,
+        "automated_score": int(eval_result["percentage"]),
+        "automated_feedback": f"Scored {eval_result['marks_obtained']}/{eval_result['total_marks']} marks ({eval_result['percentage']}%).",
+        "quiz_answers": submitted_answers,
+        "quiz_results": eval_result,
+        "attempt_number": attempt_number,
+        "time_spent_seconds": time_spent_seconds,
+        "status": sub_status,
+        "created_at": datetime.now(timezone.utc)
+    })
+    submission.save()
+
+    # If passed and final capstone, attempt certificate issue
+    cert_issued = False
+    if sub_status == Submission.STATUS_APPROVED:
+        if assignment.is_final_capstone:
+            enrollment = Enrollment.get_by_user_course(current_user.id, course.id)
+            watch_pct = getattr(enrollment, "watch_percent", 0) if enrollment else 0
+            if watch_pct >= 80 or getattr(current_user, "is_admin", False):
+                cert = Certificate.issue(current_user, course, assignment, submission)
+                cert_issued = bool(cert)
+
+    if request.is_json:
+        return jsonify({
+            "success": True,
+            "submission_id": str(submission.id),
+            "percentage": eval_result["percentage"],
+            "is_passed": eval_result["is_passed"],
+            "status": sub_status,
+            "cert_issued": cert_issued,
+            "redirect_url": url_for("learning.quiz_result", assignment_id=assignment.id)
+        })
+
+    return redirect(url_for("learning.quiz_result", assignment_id=assignment.id))
+
+
+@learning_bp.route("/assignments/<assignment_id>/quiz/result", methods=["GET"])
+@login_required
+def quiz_result(assignment_id):
+    """
+    Displays the student's latest quiz submission results,
+    score gauge, question breakdown (if allowed), and next steps.
+    """
+    assignment = Assignment.get_by_id(assignment_id)
+    if not assignment:
+        flash("Quiz assignment not found.", "danger")
+        return redirect(url_for("learning.courses_list"))
+
+    course = assignment.course
+    submission = Submission.get_latest(current_user.id, assignment.id)
+    if not submission:
+        flash("No submission record found for this quiz.", "warning")
+        return redirect(url_for("learning.quiz_assessment", assignment_id=assignment.id))
+
+    all_milestones = Assignment.get_all_by_course(course.id) if course else []
+    certificate = Certificate.get_by_user_course(current_user.id, course.id) if course else None
+    attempts = Submission.get_user_attempts(current_user.id, assignment.id)
+    max_attempts = assignment.quiz_max_attempts
+    attempts_remaining = max(0, max_attempts - len(attempts)) if max_attempts > 0 else 999
+
+    return render_template(
+        "learning/quiz_result.html",
+        assignment=assignment,
+        course=course,
+        submission=submission,
+        quiz_results=submission.quiz_results,
+        all_milestones=all_milestones,
+        certificate=certificate,
+        attempts=attempts,
+        attempts_remaining=attempts_remaining,
+        max_attempts=max_attempts
     )

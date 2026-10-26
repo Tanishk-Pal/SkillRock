@@ -63,7 +63,10 @@
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-muted);">
-                        {% if m.is_project_based %}
+                        {% if m.is_quiz_based %}
+                            <i data-lucide="help-circle" style="width: 12px; height: 12px; color: #8B5CF6;"></i>
+                            <span>Quiz Assessment</span>
+                        {% elif m.is_project_based %}
                             <i data-lucide="folder-git-2" style="width: 12px; height: 12px; color: #10B981;"></i>
                             <span>Project Submission & Review</span>
                         {% elif m.evaluation_type == 'algorithmic' %}
@@ -190,7 +193,11 @@
                         Milestone {{ assignment.step_number }} of {{ assignment.total_steps }}
                     </span>
 
-                    {% if assignment.is_project_based %}
+                    {% if assignment.is_quiz_based %}
+                        <span class="badge" style="background: rgba(139, 92, 246, 0.12); color: #7C3AED; font-weight: 700;">
+                            📝 Quiz-Based Assessment ({{ assignment.quiz_questions|length }} Questions • {{ assignment.passing_score }}% to Pass)
+                        </span>
+                    {% elif assignment.is_project_based %}
                         <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-weight: 700;">
                             🚀 Project-Based Assignment (Portfolio & Live Deployment Review)
                         </span>
@@ -222,6 +229,36 @@
             {{ assignment.problem_statement or assignment.short_description }}
         </p>
     </div>
+
+    <!-- Quiz Specifications Callout (for Quiz-Based Assignments) -->
+    {% if assignment.is_quiz_based %}
+    <div class="card" style="padding: 24px; margin-bottom: 24px; background: rgba(99, 102, 241, 0.03); border: 1.5px solid rgba(99, 102, 241, 0.18);">
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="help-circle" style="width: 20px; height: 20px; color: var(--primary-action);"></i>
+            <span>Assessment Overview & Rules</span>
+        </h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+            <div style="padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px;">
+                <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Total Questions</div>
+                <div style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">{{ assignment.quiz_questions|length }} Items</div>
+            </div>
+            <div style="padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px;">
+                <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Total Marks</div>
+                <div style="font-size: 1.3rem; font-weight: 800; color: var(--primary-action); margin-top: 4px;">{{ assignment.quiz_total_marks }} pts</div>
+            </div>
+            <div style="padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px;">
+                <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Passing Score</div>
+                <div style="font-size: 1.3rem; font-weight: 800; color: #10B981; margin-top: 4px;">{{ assignment.passing_score }}%</div>
+            </div>
+            <div style="padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px;">
+                <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Time Limit</div>
+                <div style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">
+                    {% if assignment.quiz_time_limit_minutes > 0 %}{{ assignment.quiz_time_limit_minutes }} Mins{% else %}Untimed{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Required Submission Deliverables Callout (for Project-Based Assignments) -->
     {% if assignment.is_project_based %}
@@ -389,15 +426,22 @@
 
         {% if current_user.is_authenticated %}
             {% if is_unlocked or current_user.is_admin %}
-                <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 700; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px;">
-                    {% if assignment.is_project_based %}
+                {% if assignment.is_quiz_based %}
+                    <a href="{{ url_for('learning.quiz_assessment', assignment_id=assignment.id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 700; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px;">
+                        <i data-lucide="help-circle" style="width: 18px; height: 18px;"></i>
+                        <span>{% if submission and submission.status == 'approved' %}Review Quiz Results{% elif submission %}Continue / Retake Quiz Assessment{% else %}Start Quiz Assessment{% endif %}</span>
+                    </a>
+                {% elif assignment.is_project_based %}
+                    <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 700; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px;">
                         <i data-lucide="folder-git-2" style="width: 18px; height: 18px;"></i>
                         <span>{% if submission and submission.status != 'not_submitted' %}Open Project Submission Portal{% else %}Start Project Submission{% endif %}</span>
-                    {% else %}
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 700; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px;">
                         <i data-lucide="code" style="width: 18px; height: 18px;"></i>
                         <span>Open Code Workspace & Evaluate</span>
-                    {% endif %}
-                </a>
+                    </a>
+                {% endif %}
             {% else %}
                 <button type="button" class="btn btn-secondary" disabled style="opacity: 0.6; cursor: not-allowed; display: inline-flex; align-items: center; gap: 6px;">
                     <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
