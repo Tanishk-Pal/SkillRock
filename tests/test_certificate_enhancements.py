@@ -124,9 +124,10 @@ class TestCertificateEnhancements(unittest.TestCase):
             })
             course.save()
 
+        unique_user_id = f"test_user_disp_{datetime.now().timestamp()}"
         cert = Certificate({
             "certificate_id": Certificate.generate_cert_id(),
-            "user_id": "test_user_id",
+            "user_id": unique_user_id,
             "user_name": "Test User",
             "course_id": str(course.id),
             "course_title": course.title,

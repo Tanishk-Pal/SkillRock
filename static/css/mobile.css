@@ -1,0 +1,1015 @@
+/* ==========================================================================
+   SkillRock Dedicated Mobile Experience Stylesheet (mobile.css)
+   Clean, ergonomic UI & UX specifically tailored for smartphones (<= 768px)
+   Does NOT alter the laptop / desktop layout.
+   ========================================================================== */
+
+@media (max-width: 768px) {
+
+  /* --------------------------------------------------------------------------
+     1. GLOBAL TOUCH & CONTAINER NORMALIZATION
+     -------------------------------------------------------------------------- */
+  html, body {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent auto-zooming on form fields on iOS / Android */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  input[type="url"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Compact Fluid Container Padding */
+  .container {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Cards Mobile Padding & Radius (Eliminate desktop padding waste) */
+  .card {
+    padding: 16px !important;
+    margin-bottom: 14px !important;
+    border-radius: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Force all desktop multi-column grids to stack cleanly on mobile */
+  .grid-2,
+  .grid-3,
+  .grid-4,
+  .course-grid,
+  .admin-metrics-grid,
+  .admin-telemetry-grid,
+  .admin-two-col-grid,
+  .course-layout-grid {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    width: 100% !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     2. NAVBAR & TOP HEADER (COMPACT & UNCLUTTERED)
+     -------------------------------------------------------------------------- */
+  .navbar-pw {
+    height: 56px !important;
+  }
+
+  .navbar-pw-content {
+    padding: 0 10px !important;
+    gap: 8px !important;
+    height: 100% !important;
+  }
+
+  .pw-brand-img {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 6px !important;
+  }
+
+  .pw-brand-text {
+    font-size: 1.05rem !important;
+    letter-spacing: -0.01em;
+  }
+
+  .pw-mobile-toggle-btn {
+    display: inline-flex !important;
+    padding: 6px 8px !important;
+    border-radius: 8px !important;
+  }
+
+  .pw-nav-right {
+    gap: 8px !important;
+    align-items: center !important;
+  }
+
+  /* Compact XP Badge (fits neatly beside logo without squishing) */
+  .pw-xp-badge {
+    padding: 4px 8px !important;
+    font-size: 0.74rem !important;
+    gap: 3px !important;
+    max-width: 95px !important;
+    white-space: nowrap !important;
+  }
+
+  .pw-xp-badge i,
+  .pw-xp-badge svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  .pw-user-greeting {
+    display: none !important;
+  }
+
+  .pw-avatar-trigger {
+    padding: 2px !important;
+  }
+
+  .pw-avatar-img {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .pw-chevron-icon {
+    display: none !important;
+  }
+
+  /* Mobile Profile Dropdown (Full width sheet style) */
+  .pw-dropdown-menu {
+    width: calc(100vw - 20px) !important;
+    right: -6px !important;
+    top: 52px !important;
+    border-radius: 14px !important;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45) !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     3. MAIN WRAPPER & MOBILE BOTTOM NAVIGATION CLEARANCE
+     -------------------------------------------------------------------------- */
+  .main-wrapper-pw,
+  .main-wrapper-pw.with-sidebar {
+    margin-left: 0 !important;
+    padding: 12px 10px 88px 10px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Mobile Bottom App Navigation Bar */
+  .mobile-bottom-nav {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 60px !important;
+    background: var(--nav-bg, #0F172A) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)) !important;
+    z-index: 9999 !important;
+    box-shadow: 0 -3px 16px rgba(0, 0, 0, 0.25) !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  }
+
+  .mobile-bottom-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    color: var(--text-muted, #94A3B8) !important;
+    font-size: 0.65rem !important;
+    font-weight: 600 !important;
+    gap: 3px !important;
+    flex: 1 !important;
+    height: 100% !important;
+    position: relative !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  .mobile-bottom-item i,
+  .mobile-bottom-item svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .mobile-bottom-item.active {
+    color: var(--primary-action, #6366F1) !important;
+    font-weight: 700 !important;
+  }
+
+  .mobile-bottom-item.active svg {
+    stroke: var(--primary-action, #6366F1) !important;
+  }
+
+  .footer,
+  .footer.with-sidebar {
+    margin-left: 0 !important;
+    padding-bottom: 76px !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     4. COURSE DETAIL & LECTURE PAGE (Image 1 Mobile Fixes)
+     -------------------------------------------------------------------------- */
+  .course-detail-container {
+    padding-bottom: 24px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Compact Header & Filter Badges */
+  .learning-compact-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    margin-bottom: 14px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .learning-compact-header > div {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  /* Video Player Container */
+  #ytPlayerContainer {
+    border-radius: 10px !important;
+  }
+
+  /* Watch Progress Card */
+  #playerWatchTimeDisplay {
+    font-size: 0.78rem !important;
+    margin-top: 3px !important;
+  }
+
+  #mainWatchPercentBadge {
+    font-size: 0.8rem !important;
+    padding: 4px 10px !important;
+  }
+
+  #certificationGateBadge {
+    font-size: 0.76rem !important;
+    margin-top: 4px !important;
+  }
+
+  /* Course About & Objectives */
+  .course-detail-container h1 {
+    font-size: 1.25rem !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Milestones Section */
+  .milestone-card {
+    padding: 14px !important;
+    border-radius: 12px !important;
+  }
+
+  .milestone-card .btn {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+    padding: 10px 14px !important;
+    margin-top: 8px !important;
+  }
+
+  .course-layout-grid > div:last-child > .card {
+    position: static !important;
+    margin-top: 14px !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     5. SKILLBOT AI ASSISTANT (Image 2 Mobile Fixes)
+     -------------------------------------------------------------------------- */
+  .chatgpt-wrapper {
+    height: calc(100dvh - 138px) !important;
+    min-height: 480px !important;
+    border-radius: 14px !important;
+    margin-bottom: 74px !important;
+    border: 1px solid var(--border-color) !important;
+  }
+
+  .chatgpt-topbar {
+    padding: 10px 14px !important;
+  }
+
+  .chatgpt-bot-name {
+    font-size: 0.95rem !important;
+  }
+
+  .chatgpt-model-badge {
+    font-size: 0.68rem !important;
+    padding: 1px 6px !important;
+  }
+
+  .chatgpt-status {
+    font-size: 0.72rem !important;
+    max-width: 200px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .btn-new-chat {
+    padding: 5px 10px !important;
+    font-size: 0.75rem !important;
+    border-radius: 8px !important;
+  }
+
+  .chatgpt-stream {
+    padding: 16px 12px !important;
+    gap: 14px !important;
+  }
+
+  .chatgpt-hero-icon {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 1.4rem !important;
+    border-radius: 12px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .chatgpt-empty-state h2 {
+    font-size: 1.22rem !important;
+    margin-bottom: 6px !important;
+  }
+
+  .chatgpt-empty-state p {
+    font-size: 0.84rem !important;
+    line-height: 1.45 !important;
+    padding: 0 8px !important;
+  }
+
+  .chatgpt-suggestions-grid {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin-top: 16px !important;
+  }
+
+  .chatgpt-suggestion-card {
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    font-size: 0.82rem !important;
+  }
+
+  .chatgpt-input-container {
+    padding: 8px 12px !important;
+  }
+
+  .chatgpt-input-box {
+    padding: 6px 10px 6px 14px !important;
+    border-radius: 18px !important;
+  }
+
+  .chatgpt-textarea {
+    font-size: 0.88rem !important;
+    min-height: 22px !important;
+    max-height: 90px !important;
+  }
+
+  .chatgpt-send-btn {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .chatgpt-disclaimer {
+    display: none !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     6. ADMIN CONSOLE & DASHBOARD (Image 3 Mobile Fixes)
+     -------------------------------------------------------------------------- */
+  .admin-sidebar {
+    transform: translateX(-100%) !important;
+    z-index: 1000 !important;
+    width: 260px !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .admin-sidebar.open {
+    transform: translateX(0) !important;
+  }
+
+  .admin-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  .admin-topbar {
+    padding: 0 12px !important;
+    height: 54px !important;
+  }
+
+  .admin-mobile-toggle {
+    display: block !important;
+  }
+
+  .admin-breadcrumb {
+    font-size: 0.78rem !important;
+    max-width: 160px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .admin-telemetry-badge {
+    display: none !important;
+  }
+
+  .admin-view-app-btn {
+    padding: 4px 10px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .admin-content {
+    padding: 12px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  /* Admin KPI Metric Cards (Single full-width column, huge readable typography) */
+  .admin-metrics-grid {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .admin-metric-card {
+    padding: 16px !important;
+    border-radius: 12px !important;
+    width: 100% !important;
+  }
+
+  .admin-metric-val {
+    font-size: 1.7rem !important;
+  }
+
+  /* Admin System Telemetry Grid */
+  .admin-telemetry-grid {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  /* Admin 2-Column Sections (Stack on Mobile) */
+  .admin-two-col-grid {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  /* Admin Table Wrappers with Smooth Touch Scrolling */
+  .admin-table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+    margin-bottom: 12px !important;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 10px 12px !important;
+    font-size: 0.8rem !important;
+    white-space: nowrap !important;
+  }
+
+  .admin-card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .admin-card-header > div {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     7. CERTIFICATES & QUIZ ASSESSMENTS (MOBILE OPTIMIZED)
+     -------------------------------------------------------------------------- */
+  .cert-wrapper {
+    padding: 0 4px !important;
+    margin: 10px auto 40px auto !important;
+  }
+
+  .cert-frame {
+    padding: 24px 16px !important;
+    border-width: 6px !important;
+    outline-width: 2px !important;
+    outline-offset: -5px !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  .cert-main-title {
+    font-size: 1.4rem !important;
+  }
+
+  .cert-subtitle {
+    font-size: 0.78rem !important;
+  }
+
+  .cert-recipient-name {
+    font-size: 1.55rem !important;
+    min-width: unset !important;
+    padding: 0 14px 4px 14px !important;
+  }
+
+  .cert-statement {
+    font-size: 0.84rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 12px !important;
+  }
+
+  .cert-course-name {
+    font-size: 1.15rem !important;
+    margin-bottom: 12px !important;
+  }
+
+  .cert-project-box {
+    font-size: 0.78rem !important;
+    padding: 8px 12px !important;
+  }
+
+  .cert-footer {
+    flex-direction: column-reverse !important;
+    align-items: center !important;
+    gap: 18px !important;
+    text-align: center !important;
+    margin-top: 24px !important;
+    padding-top: 16px !important;
+  }
+
+  .cert-footer > div {
+    flex-direction: column !important;
+    text-align: center !important;
+    align-items: center !important;
+  }
+
+  .cert-meta-tag {
+    text-align: center !important;
+    margin-top: 6px !important;
+  }
+
+  .cert-signature-block {
+    width: 100% !important;
+  }
+
+  .cert-action-bar {
+    padding: 12px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .cert-action-bar > div {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .name-lock-banner {
+    padding: 12px 14px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .name-lock-banner button {
+    width: 100% !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     8. QUIZ ASSESSMENT RUNNER & RESULTS
+     -------------------------------------------------------------------------- */
+  #quiz-main-grid {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    width: 100% !important;
+  }
+
+  #quiz-main-grid > .card {
+    padding: 16px 14px !important;
+    border-radius: 12px !important;
+  }
+
+  #q-statement {
+    font-size: 1.1rem !important;
+    line-height: 1.45 !important;
+    margin-bottom: 16px !important;
+  }
+
+  .quiz-opt-card {
+    padding: 12px 14px !important;
+    min-height: 48px !important;
+    font-size: 0.88rem !important;
+    border-radius: 10px !important;
+  }
+
+  .quiz-opt-card > div:last-child {
+    font-size: 0.88rem !important;
+    line-height: 1.4 !important;
+  }
+
+  #quiz-palette-grid {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .palette-btn {
+    font-size: 0.78rem !important;
+    min-height: 36px !important;
+    border-radius: 6px !important;
+  }
+
+  /* Clear / Prev / Next buttons bar in quiz runner */
+  #quiz-main-grid .card > div[style*="justify-content: space-between"] {
+    flex-direction: column-reverse !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+
+  #btn-clear-answer {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 8px 12px !important;
+  }
+
+  #btn-prev-q,
+  #btn-next-q {
+    flex: 1 !important;
+    text-align: center !important;
+    justify-content: center !important;
+    padding: 10px 14px !important;
+  }
+
+  #submit-confirm-modal .card {
+    padding: 20px 16px !important;
+    width: 92% !important;
+    max-width: 360px !important;
+  }
+
+  /* Quiz Results Screen (quiz_result.html) */
+  .quiz-result-hero {
+    padding: 24px 16px !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     9. MILESTONE STEPPER & PROJECT SUBMISSION (assignment_detail & submit_project)
+     -------------------------------------------------------------------------- */
+  .assignment-container,
+  .submit-project-container {
+    padding: 0 4px 60px 4px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  .assignment-container h1,
+  .submit-project-container h1 {
+    font-size: 1.35rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .assignment-container .card,
+  .submit-project-container .card {
+    padding: 16px 14px !important;
+    border-radius: 12px !important;
+  }
+
+  /* Responsive Tables inside Assignments */
+  .assignment-container table,
+  .submit-project-container table {
+    font-size: 0.8rem !important;
+  }
+
+  .assignment-container th,
+  .assignment-container td,
+  .submit-project-container th,
+  .submit-project-container td {
+    padding: 8px 10px !important;
+    white-space: normal !important;
+  }
+
+  /* Action Bar Buttons Stack on Mobile */
+  .assignment-container > div:last-child {
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+
+  .assignment-container > div:last-child .btn {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  /* Code Workspace Editor for Algorithmic Assignments */
+  #codeSnippet {
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+    padding: 12px 10px !important;
+    min-height: 240px !important;
+    tab-size: 2 !important;
+    border-radius: 8px !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     10. COURSES CATALOG & MY LEARNING (courses.html & my_learning.html)
+     -------------------------------------------------------------------------- */
+  .learning-hero-card {
+    padding: 20px 16px !important;
+    border-radius: 14px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .learning-hero-card h1 {
+    font-size: 1.4rem !important;
+    line-height: 1.25 !important;
+    margin-bottom: 8px !important;
+  }
+
+  .learning-hero-card p {
+    font-size: 0.86rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 14px !important;
+  }
+
+  .bubble-filter-scroll {
+    gap: 7px !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .bubble-chip {
+    padding: 6px 14px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .course-card-custom {
+    border-radius: 14px !important;
+    width: 100% !important;
+  }
+
+  .course-card-custom img {
+    height: 165px !important;
+  }
+
+  .personalized-banner {
+    padding: 12px 14px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     11. STUDENT DASHBOARD (dashboard.html)
+     -------------------------------------------------------------------------- */
+  .lms-dashboard-container {
+    padding: 0 4px 60px 4px !important;
+    width: 100% !important;
+  }
+
+  .lms-welcome-banner {
+    padding: 18px 16px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    border-radius: 14px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .lms-welcome-banner h1 {
+    font-size: 1.45rem !important;
+    margin-bottom: 6px !important;
+  }
+
+  .lms-welcome-banner p {
+    font-size: 0.88rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 14px !important;
+  }
+
+  .lms-welcome-banner > div:last-child {
+    min-width: 100% !important;
+    width: 100% !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .lms-welcome-banner .card {
+    padding: 12px 8px !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     12. CERTIFICATE VERIFICATION & SCANNER (verify_certificate.html)
+     -------------------------------------------------------------------------- */
+  .verify-container {
+    padding: 0 4px !important;
+    margin: 16px auto 40px auto !important;
+    width: 100% !important;
+  }
+
+  .verify-card {
+    padding: 20px 14px !important;
+    border-radius: 12px !important;
+  }
+
+  .verify-card h1 {
+    font-size: 1.35rem !important;
+  }
+
+  .spec-table {
+    padding: 14px 12px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .spec-row {
+    grid-template-columns: 1fr !important;
+    gap: 3px !important;
+    padding: 8px 0 !important;
+  }
+
+  .spec-row > div:first-child {
+    font-size: 0.78rem !important;
+    color: var(--text-muted) !important;
+  }
+
+  .spec-row > div:last-child {
+    font-size: 0.88rem !important;
+    word-break: break-all !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     13. ADMIN SUBMISSION EVALUATION (submission_review.html)
+     -------------------------------------------------------------------------- */
+  .admin-review-grid {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .admin-review-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .admin-review-actions .admin-btn {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  /* Admin Form Rows Stacking */
+  .admin-card div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .admin-card form > div:last-child {
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .admin-card form > div:last-child .admin-btn {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     14. PEER CHAT & MESSAGING (chat.html)
+     -------------------------------------------------------------------------- */
+  .chat-layout {
+    height: calc(100dvh - 142px) !important;
+    min-height: unset !important;
+    margin-bottom: 74px !important;
+    border-radius: 12px !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     15. DISCOVER & SKILL SWAP (discover.html & profile.html)
+     -------------------------------------------------------------------------- */
+  .discover-filter-grid {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .discover-filter-grid button,
+  .discover-filter-grid a {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  div[style*="grid-template-columns: 2fr 1fr auto"] {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  div[style*="grid-template-columns: 2fr 1fr auto"] button {
+    width: 100% !important;
+  }
+
+  /* --------------------------------------------------------------------------
+     16. LANDING PAGE HERO & CALL TO ACTION (index.html)
+     -------------------------------------------------------------------------- */
+  .hero-title {
+    font-size: 1.85rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.5px !important;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 24px !important;
+  }
+
+  .hero-cta-wrap {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .hero-cta-wrap .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 12px 18px !important;
+  }
+
+  .stats-strip {
+    flex-direction: column !important;
+    gap: 8px !important;
+    font-size: 0.84rem !important;
+    margin-bottom: 36px !important;
+  }
+
+  .stats-dot {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   EXTRA-COMPACT SCREENS (<= 480px, e.g. iPhone SE, 360px Android devices)
+   ========================================================================== */
+@media (max-width: 480px) {
+  .container,
+  .main-wrapper-pw,
+  .main-wrapper-pw.with-sidebar {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .card {
+    padding: 14px 12px !important;
+  }
+
+  .pw-brand-text {
+    font-size: 0.98rem !important;
+  }
+
+  .pw-xp-badge {
+    padding: 3px 6px !important;
+    font-size: 0.7rem !important;
+    max-width: 82px !important;
+  }
+
+  .course-detail-container h1 {
+    font-size: 1.18rem !important;
+  }
+
+  .chatgpt-hero-icon {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 1.2rem !important;
+  }
+
+  .chatgpt-empty-state h2 {
+    font-size: 1.15rem !important;
+  }
+
+  .admin-metric-val {
+    font-size: 1.45rem !important;
+  }
+
+  .cert-frame {
+    padding: 18px 12px !important;
+  }
+
+  .cert-main-title {
+    font-size: 1.25rem !important;
+  }
+
+  .cert-recipient-name {
+    font-size: 1.35rem !important;
+  }
+}
