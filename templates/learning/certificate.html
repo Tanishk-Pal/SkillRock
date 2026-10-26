@@ -1,13 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Certificate of Achievement — {{ certificate.user_name }} — {{ certificate.course_title }}{% endblock %}
+{% block title %}Official Certificate — {{ certificate.user_name }} — {{ certificate.display_course_title }} | SkillRock{% endblock %}
 
 {% block head %}
 <style>
     /* Certificate Presentation Canvas */
     .cert-wrapper {
-        max-width: 960px;
-        margin: 20px auto 40px auto;
+        max-width: 980px;
+        margin: 20px auto 50px auto;
+        padding: 0 16px;
     }
 
     .cert-frame {
@@ -15,12 +16,13 @@
         border: 12px solid #0F172A;
         outline: 3px solid #D97706;
         outline-offset: -8px;
-        padding: 50px 60px;
+        padding: 48px 56px;
         position: relative;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
         color: #0F172A;
         font-family: 'Plus Jakarta Sans', sans-serif;
         overflow: hidden;
+        border-radius: 4px;
     }
 
     /* Watermark background */
@@ -29,10 +31,11 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        opacity: 0.03;
+        opacity: 0.035;
         pointer-events: none;
-        width: 440px;
-        height: 440px;
+        width: 460px;
+        height: 460px;
+        z-index: 1;
     }
 
     .cert-header {
@@ -43,25 +46,25 @@
     }
 
     .cert-brand-logo {
-        width: 54px;
-        height: 54px;
+        width: 56px;
+        height: 56px;
         border-radius: 12px;
         margin: 0 auto 12px auto;
         display: block;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.12);
     }
 
     .cert-org-title {
         font-size: 0.88rem;
         font-weight: 800;
-        letter-spacing: 0.18em;
+        letter-spacing: 0.22em;
         text-transform: uppercase;
         color: #2563EB;
         margin-bottom: 6px;
     }
 
     .cert-main-title {
-        font-size: 2.3rem;
+        font-size: 2.35rem;
         font-weight: 800;
         letter-spacing: -0.01em;
         color: #0F172A;
@@ -73,58 +76,61 @@
     .cert-subtitle {
         font-size: 0.95rem;
         color: #64748B;
-        font-weight: 500;
+        font-weight: 600;
         margin-top: 6px;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
     }
 
     .cert-body {
         text-align: center;
-        margin: 30px 0;
+        margin: 28px 0;
         position: relative;
         z-index: 2;
     }
 
     .cert-recipient-intro {
-        font-size: 1rem;
+        font-size: 1.05rem;
         color: #475569;
         font-style: italic;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
     }
 
     .cert-recipient-name {
-        font-size: 2.4rem;
+        font-size: 2.5rem;
         font-weight: 800;
         color: #0F172A;
         border-bottom: 2px solid #CBD5E1;
         display: inline-block;
-        padding: 0 40px 6px 40px;
-        margin-bottom: 16px;
+        padding: 0 44px 6px 44px;
+        margin-bottom: 18px;
         letter-spacing: -0.01em;
+        min-width: 320px;
     }
 
     .cert-statement {
-        font-size: 1rem;
+        font-size: 0.98rem;
         color: #334155;
-        max-width: 720px;
+        max-width: 740px;
         margin: 0 auto 18px auto;
         line-height: 1.6;
     }
 
     .cert-course-name {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
         font-weight: 800;
         color: #1D4ED8;
         margin-bottom: 14px;
+        letter-spacing: -0.01em;
     }
 
     .cert-project-box {
         background: #F8FAFC;
         border: 1px dashed #CBD5E1;
         border-radius: 8px;
-        padding: 12px 20px;
-        max-width: 620px;
-        margin: 0 auto 24px auto;
+        padding: 10px 20px;
+        max-width: 660px;
+        margin: 0 auto 18px auto;
         font-size: 0.88rem;
         color: #475569;
     }
@@ -133,25 +139,32 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
-        margin-top: 40px;
-        padding-top: 20px;
+        margin-top: 36px;
+        padding-top: 22px;
         border-top: 1px solid #E2E8F0;
         position: relative;
         z-index: 2;
     }
 
+    .cert-meta-tag {
+        font-size: 0.74rem;
+        color: #64748B;
+        text-align: left;
+        line-height: 1.5;
+    }
+
     .cert-signature-block {
         text-align: center;
-        width: 220px;
+        width: 210px;
     }
 
     .cert-sig-line {
-        height: 40px;
+        height: 38px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-family: 'Brush Script MT', 'Dancing Script', cursive;
-        font-size: 1.6rem;
+        font-size: 1.65rem;
         color: #1E293B;
         border-bottom: 1px solid #94A3B8;
         margin-bottom: 6px;
@@ -164,15 +177,15 @@
     }
 
     .cert-sig-title {
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         color: #64748B;
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
 
     .cert-seal {
-        width: 90px;
-        height: 90px;
+        width: 88px;
+        height: 88px;
         border-radius: 50%;
         background: linear-gradient(135deg, #F59E0B, #D97706);
         color: #FFFFFF;
@@ -180,16 +193,47 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
+        box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4);
         border: 3px double #FFFFFF;
         text-align: center;
         padding: 6px;
     }
 
-    .cert-meta-tag {
-        font-size: 0.75rem;
-        color: #64748B;
-        text-align: left;
+    /* One-time Name Lock Banner & Modal */
+    .name-lock-banner {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(217, 119, 6, 0.08));
+        border: 1.5px solid #F59E0B;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 22px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 16px;
+    }
+
+    .modal-card {
+        background: var(--bg-card, #1E293B);
+        border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+        border-radius: 16px;
+        max-width: 520px;
+        width: 100%;
+        padding: 28px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        color: var(--text-main, #FFFFFF);
     }
 
     /* Print styles */
@@ -198,8 +242,9 @@
             background: #FFFFFF !important;
             padding: 0 !important;
             margin: 0 !important;
+            color: #0F172A !important;
         }
-        .navbar, .nav-content, .cert-action-bar, footer, #pageProgressBar, #pageRedirectLoader {
+        .navbar, .nav-content, .cert-action-bar, .name-lock-banner, footer, #pageProgressBar, #pageRedirectLoader {
             display: none !important;
         }
         .main-wrapper, .container {
@@ -210,40 +255,82 @@
         .cert-wrapper {
             max-width: 100% !important;
             margin: 0 !important;
+            padding: 0 !important;
             page-break-after: avoid;
         }
         .cert-frame {
             box-shadow: none !important;
             border-width: 8px !important;
-            padding: 30px 40px !important;
+            padding: 28px 36px !important;
         }
         @page {
             size: A4 landscape;
-            margin: 10mm;
+            margin: 8mm;
         }
     }
 </style>
+<!-- Libraries for PDF Generation and Vector QR Code -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 {% endblock %}
 
 {% block content %}
 <div class="cert-wrapper">
+
+    <!-- One-Time Name Edit Opportunity Banner (Shown if not yet permanently locked) -->
+    {% if not certificate.name_locked and (current_user.id == certificate.user_id or current_user.is_admin) %}
+    <div class="name-lock-banner" id="nameLockNoticeBanner">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(245, 158, 11, 0.2); color: #F59E0B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="user-check" style="width: 22px; height: 22px;"></i>
+            </div>
+            <div>
+                <div style="font-weight: 800; color: #D97706; font-size: 0.95rem;">
+                    Confirm Your Official Certificate Name (One-Time Opportunity)
+                </div>
+                <div style="font-size: 0.84rem; color: var(--text-secondary, #475569); margin-top: 2px;">
+                    Ensure your legal name is spelled exactly as you wish it to appear on your credentials before saving as PDF or printing.
+                </div>
+            </div>
+        </div>
+        <button onclick="openNameLockModal()" class="btn btn-primary btn-sm" style="font-weight: 700; background: #D97706; border-color: #D97706; white-space: nowrap; padding: 9px 18px;">
+            <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+            <span>Edit & Lock Legal Name</span>
+        </button>
+    </div>
+    {% endif %}
+
     <!-- Non-Printable Action Controls -->
     <div class="card cert-action-bar" style="padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
             <a href="{{ url_for('learning.my_learning') }}" class="btn btn-secondary btn-sm" style="font-weight: 600;">
                 <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
                 <span>My Learning</span>
             </a>
-            <span style="font-size: 0.84rem; color: var(--text-muted);">Official Verified Credential</span>
+            {% if certificate.name_locked %}
+                <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.12); padding: 4px 10px; border-radius: 9999px;">
+                    <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i>
+                    Official Name Verified & Locked
+                </span>
+            {% else %}
+                <span style="font-size: 0.82rem; color: #F59E0B; font-weight: 600;">
+                    • Name Pending Final Lock
+                </span>
+            {% endif %}
         </div>
 
-        <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            {% if not certificate.name_locked and (current_user.id == certificate.user_id or current_user.is_admin) %}
+            <button onclick="openNameLockModal()" class="btn btn-secondary btn-sm" style="font-weight: 700; color: #F59E0B; border-color: rgba(245, 158, 11, 0.4);">
+                <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
+                <span>Edit Name (1x)</span>
+            </button>
+            {% endif %}
             <button onclick="downloadCertificatePDF()" class="btn btn-primary btn-sm" id="btnDownloadPdf" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                 <i data-lucide="download" id="downloadIcon" style="width: 15px; height: 15px;"></i>
                 <span id="downloadBtnText">Download PDF</span>
             </button>
-            <button onclick="window.print()" class="btn btn-secondary btn-sm" style="font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" title="Print on paper printer">
+            <button onclick="window.print()" class="btn btn-secondary btn-sm" style="font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" title="Print official certificate">
                 <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
                 <span>Print</span>
             </button>
@@ -254,9 +341,9 @@
         </div>
     </div>
 
-    <!-- Official Certificate Frame -->
+    <!-- Official Certificate Frame (Print & PDF Canvas) -->
     <div class="cert-frame" id="printableCertificate">
-        <!-- Watermark -->
+        <!-- Watermark Background -->
         <div class="cert-watermark">
             <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.5">
                 <path d="M12 2L15 8L22 9L17 14L18 21L12 17.5L6 21L7 14L2 9L9 8L12 2Z"></path>
@@ -268,24 +355,29 @@
             <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="SkillRock" class="cert-brand-logo">
             <div class="cert-org-title">Skill Rock Student Academy</div>
             <h1 class="cert-main-title">Certificate of Achievement</h1>
-            <div class="cert-subtitle">Project Verification & Competency Credential</div>
+            <div class="cert-subtitle">Official Credential of Competency & Project Verification</div>
         </div>
 
         <!-- Recipient & Course Body -->
         <div class="cert-body">
-            <div class="cert-recipient-intro">This is proudly awarded to</div>
-            <div class="cert-recipient-name">{{ certificate.user_name }}</div>
+            <div class="cert-recipient-intro">This certificate is proudly awarded to</div>
+            <div class="cert-recipient-name" id="displayRecipientName">{{ certificate.user_name }}</div>
 
             <div class="cert-statement">
-                for successfully completing the rigorous curriculum, building and deploying a functional application, and passing thorough human review for
+                for successfully completing the comprehensive curriculum, demonstrating practical competency, and fulfilling all rigorous assessment benchmarks for
             </div>
 
-            <div class="cert-course-name">{{ certificate.course_title }}</div>
+            <!-- Professional Canonical Course Title -->
+            <div class="cert-course-name">{{ certificate.display_course_title }}</div>
 
-            <!-- Project Deliverable Info -->
-            {% if submission %}
+            <!-- Contextual Evaluation Details (No Empty Boxes) -->
+            {% if submission and submission.evaluation_type == 'quiz_based' %}
                 <div class="cert-project-box">
-                    <strong style="color: #0F172A;">Verified Project:</strong> {{ submission.title }}
+                    <strong style="color: #0F172A;">Verified Competency:</strong> Comprehensive Knowledge & Technical Assessment Passed (Score: {{ submission.automated_score }}%)
+                </div>
+            {% elif submission and submission.title %}
+                <div class="cert-project-box">
+                    <strong style="color: #0F172A;">Verified Capstone Deliverable:</strong> {{ submission.title }}
                     {% if submission.tech_stack %}
                         • Built with {{ submission.tech_stack }}
                     {% endif %}
@@ -293,19 +385,28 @@
             {% endif %}
         </div>
 
-        <!-- Footer with Verification Details and Signatures -->
+        <!-- Footer with Verification Details, Vector QR Code, and Signatures -->
         <div class="cert-footer">
-            <!-- Left: Metadata & Verification -->
-            <div class="cert-meta-tag">
-                <div><strong>Certificate ID:</strong> {{ certificate.certificate_id }}</div>
-                <div><strong>Issued Date:</strong> {{ certificate.formatted_date }}</div>
-                <div style="font-family: monospace; font-size: 0.7rem; color: #94A3B8; margin-top: 2px;">
-                    Verification Hash: {{ certificate.verification_hash }}
+            <!-- Left: Scannable Vector QR Code + Cryptographic Metadata -->
+            <div style="display: flex; gap: 14px; align-items: center; max-width: 440px;">
+                <!-- QR Code Box -->
+                <div id="certQrBox" style="background: #FFFFFF; padding: 6px; border: 1.5px solid #CBD5E1; border-radius: 8px; width: 88px; height: 88px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <div id="certQrCode"></div>
                 </div>
-                <div style="margin-top: 6px;">
-                    <a href="{{ url_for('learning.verify_certificate', cert_id=certificate.certificate_id, _external=True) }}" style="color: #2563EB; text-decoration: none; font-size: 0.72rem; font-weight: 600;">
-                        Verify Authenticity Online →
-                    </a>
+
+                <!-- Metadata Details -->
+                <div class="cert-meta-tag">
+                    <div><strong>Certificate ID:</strong> <span style="font-family: monospace; font-weight: 700; color: #0F172A;">{{ certificate.certificate_id }}</span></div>
+                    <div><strong>Issue Date:</strong> {{ certificate.formatted_date }}</div>
+                    <div style="font-family: monospace; font-size: 0.68rem; color: #64748B; margin-top: 2px;">
+                        SHA-256 Hash: <span id="displayHash">{{ certificate.verification_hash }}</span>
+                    </div>
+                    <div style="margin-top: 4px;">
+                        <a href="{{ verification_url }}" target="_blank" style="color: #2563EB; text-decoration: none; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 3px;">
+                            <span>Scan QR or verify online</span>
+                            <span>→</span>
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -316,7 +417,7 @@
                 <span style="font-size: 0.5rem; font-weight: 700;">ACADEMY</span>
             </div>
 
-            <!-- Right: Signature -->
+            <!-- Right: Signature Block -->
             <div class="cert-signature-block">
                 <div class="cert-sig-line">Tanishk Pal</div>
                 <div class="cert-sig-name">Skill Rock Directorate</div>
@@ -326,7 +427,156 @@
     </div>
 </div>
 
+<!-- Interactive One-Time Name Confirmation Modal -->
+<div class="modal-overlay" id="nameLockModal">
+    <div class="modal-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="edit-3" style="width: 20px; height: 20px; color: #F59E0B;"></i>
+                <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0;">Set Official Legal Name</h3>
+            </div>
+            <button onclick="closeNameLockModal()" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer;">
+                <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+            </button>
+        </div>
+
+        <p style="font-size: 0.88rem; color: var(--text-secondary, #94A3B8); line-height: 1.5; margin-bottom: 18px;">
+            Enter your official full name as you want it permanently embossed on your <strong>SkillRock Certificate</strong> and verification ledger.
+        </p>
+
+        <form id="nameLockForm" onsubmit="submitNameLock(event)">
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; color: var(--text-muted);">
+                    Full Legal Name
+                </label>
+                <input type="text" id="legalNameInput" name="legal_name" value="{{ certificate.user_name }}" required minlength="2" maxlength="80" 
+                    style="width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border-color, #475569); background: var(--bg-input, #0F172A); color: #FFFFFF; font-size: 1rem; font-weight: 700;"
+                    placeholder="e.g. Alexander James Mercer" oninput="updateLivePreview(this.value)">
+            </div>
+
+            <!-- Live Preview -->
+            <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 16px; margin-bottom: 18px;">
+                <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Certificate Preview:</div>
+                <div id="modalPreviewName" style="font-size: 1.25rem; font-weight: 800; color: #38BDF8; margin-top: 4px;">
+                    {{ certificate.user_name }}
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: flex-start; gap: 8px; margin-bottom: 22px;">
+                <input type="checkbox" id="confirmLockCheckbox" required style="margin-top: 3px; cursor: pointer;">
+                <label for="confirmLockCheckbox" style="font-size: 0.82rem; color: var(--text-secondary, #94A3B8); cursor: pointer; line-height: 1.4;">
+                    I understand that this name can only be set <strong>one time</strong>. Once locked, it cannot be modified by the student.
+                </label>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="closeNameLockModal()" class="btn btn-secondary btn-sm" style="padding: 10px 18px; font-weight: 600;">
+                    Cancel
+                </button>
+                <button type="submit" id="btnSubmitLock" class="btn btn-primary btn-sm" style="padding: 10px 22px; font-weight: 800; background: #10B981; border-color: #10B981;">
+                    <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+                    <span>Confirm & Lock Official Name</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+    // 1. Vector QR Code Initialization
+    document.addEventListener("DOMContentLoaded", function () {
+        const qrContainer = document.getElementById("certQrCode");
+        const verifyUrl = "{{ verification_url }}";
+
+        if (qrContainer && typeof QRCode !== "undefined") {
+            // Render crisp vector QR code
+            new QRCode(qrContainer, {
+                text: verifyUrl,
+                width: 76,
+                height: 76,
+                colorDark: "#0F172A",
+                colorLight: "#FFFFFF",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+    });
+
+    // 2. Name Lock Modal Operations
+    function openNameLockModal() {
+        const modal = document.getElementById("nameLockModal");
+        if (modal) modal.style.display = "flex";
+    }
+
+    function closeNameLockModal() {
+        const modal = document.getElementById("nameLockModal");
+        if (modal) modal.style.display = "none";
+    }
+
+    function updateLivePreview(val) {
+        const prev = document.getElementById("modalPreviewName");
+        if (prev) prev.textContent = val.trim() || "Your Name";
+    }
+
+    async function submitNameLock(event) {
+        event.preventDefault();
+        const input = document.getElementById("legalNameInput");
+        const submitBtn = document.getElementById("btnSubmitLock");
+        const cleanName = input ? input.value.trim() : "";
+
+        if (!cleanName || cleanName.length < 2) {
+            alert("Please enter a valid legal name.");
+            return;
+        }
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = "<span>Locking Name...</span>";
+        }
+
+        try {
+            const resp = await fetch("{{ url_for('learning.lock_certificate_name', cert_id=certificate.certificate_id) }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify({ legal_name: cleanName })
+            });
+
+            const data = await resp.json();
+            if (data.success) {
+                // Instantly update recipient name on certificate
+                const dispName = document.getElementById("displayRecipientName");
+                if (dispName) dispName.textContent = data.updated_name;
+
+                const dispHash = document.getElementById("displayHash");
+                if (dispHash && data.verification_hash) dispHash.textContent = data.verification_hash;
+
+                // Hide lock notice banner
+                const banner = document.getElementById("nameLockNoticeBanner");
+                if (banner) banner.remove();
+
+                closeNameLockModal();
+                alert("🎉 Official name verified and locked successfully!");
+                window.location.reload();
+            } else {
+                alert(data.error || "Could not lock certificate name.");
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<span>Confirm & Lock Official Name</span>';
+                }
+            }
+        } catch (err) {
+            console.error("Name lock error:", err);
+            alert("A network error occurred. Please try again.");
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Confirm & Lock Official Name</span>';
+            }
+        }
+    }
+
+    // 3. Download Certificate as PDF
     async function downloadCertificatePDF() {
         const certElement = document.getElementById('printableCertificate');
         const btn = document.getElementById('btnDownloadPdf');
@@ -370,8 +620,9 @@
         }
     }
 
+    // 4. Copy Verification Link to Clipboard
     function copyVerifyLink() {
-        const verifyUrl = "{{ url_for('learning.verify_certificate', cert_id=certificate.certificate_id, _external=True) }}";
+        const verifyUrl = "{{ verification_url }}";
         navigator.clipboard.writeText(verifyUrl).then(() => {
             const btn = document.getElementById('copyBtn');
             btn.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i> <span>Copied!</span>';

@@ -917,14 +917,64 @@ def view_certificate(cert_id):
     student = certificate.user
     course = certificate.course
     submission = certificate.submission
+    verification_url = url_for("learning.verify_certificate", cert_id=certificate.certificate_id, _external=True)
 
     return render_template(
         "learning/certificate.html",
         certificate=certificate,
         student=student,
         course=course,
-        submission=submission
+        submission=submission,
+        verification_url=verification_url
     )
+
+
+@learning_bp.route("/certificate/<cert_id>/lock-name", methods=["POST"])
+@login_required
+def lock_certificate_name(cert_id):
+    """
+    Allows a student to verify and permanently lock their official legal name
+    on their certificate (one-time opportunity before download/print).
+    """
+    certificate = Certificate.get_by_cert_id(cert_id)
+    if not certificate:
+        certificate = Certificate.get_by_id(cert_id)
+    if not certificate:
+        if request.is_json:
+            return jsonify({"success": False, "error": "Certificate not found."}), 404
+        flash("Certificate record not found.", "warning")
+        return redirect(url_for("learning.my_learning"))
+
+    # Security check: must be owner or admin
+    if str(certificate.user_id) != str(current_user.id) and not getattr(current_user, "is_admin", False):
+        if request.is_json:
+            return jsonify({"success": False, "error": "Unauthorized."}), 403
+        flash("Access Denied: You cannot modify another student's certificate.", "danger")
+        return redirect(url_for("learning.my_learning"))
+
+    if request.is_json:
+        data = request.get_json() or {}
+        new_name = data.get("legal_name", "")
+    else:
+        new_name = request.form.get("legal_name", "")
+
+    success, msg = certificate.lock_legal_name(new_name)
+    if not success:
+        if request.is_json:
+            return jsonify({"success": False, "error": msg}), 400
+        flash(msg, "warning")
+        return redirect(url_for("learning.view_certificate", cert_id=certificate.certificate_id))
+
+    if request.is_json:
+        return jsonify({
+            "success": True,
+            "message": msg,
+            "updated_name": certificate.user_name,
+            "verification_hash": certificate.verification_hash
+        })
+
+    flash(msg, "success")
+    return redirect(url_for("learning.view_certificate", cert_id=certificate.certificate_id))
 
 
 # ==============================================================================

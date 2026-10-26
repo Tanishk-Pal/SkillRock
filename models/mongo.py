@@ -1430,6 +1430,7 @@ class Course:
         self._id = self._data.get("_id")
         self.id = str(self._id) if self._id else ""
         self.title = self._data.get("title", "")
+        self.certificate_title = self._data.get("certificate_title", "")
         self.slug = self._data.get("slug", "") or slugify(self.title)
         self.thumbnail_url = self._data.get("thumbnail_url", "")
         self.category = self._data.get("category", "Programming")
@@ -1498,6 +1499,34 @@ class Course:
         cls._published_courses_cache = None
         cls._published_courses_cache_time = 0
 
+    CANONICAL_CERT_TITLES = {
+        "sql-complete-course-in-3-hours-mysql": "SQL & Relational Database Management",
+        "complete-aiml-job-ready-batch-introduction": "Artificial Intelligence & Machine Learning Fundamentals",
+        "python-programming-for-beginners-complete-python-fundamentals": "Python Programming Fundamentals",
+        "full-stack-web-development-complete-beginner-course-html-css-javascript-react-nodejs": "Full Stack Web Application Development",
+        "complete-c-programming-tutorial-for-beginners": "C++ Systems Programming & Software Development",
+        "html-full-course-learn-html-in-5-hours": "Modern Web Architecture & HTML5 Standards"
+    }
+
+    def get_certificate_title(self):
+        """Returns a prestigious, clean, concise academic course title for certificates."""
+        if self.certificate_title and self.certificate_title.strip():
+            return self.certificate_title.strip()
+        slug = getattr(self, "slug", "")
+        if slug in self.CANONICAL_CERT_TITLES:
+            return self.CANONICAL_CERT_TITLES[slug]
+        
+        # Automated regex sanitization to remove clickbait and video duration
+        t = self.title or ""
+        t = re.sub(r'[\(\[]?\b(?:learn\s+)?(?:in\s+)?\d+[-\s]*(?:hours?|hrs?|mins?|days?)[^\]\)]*[\)\]]?', '', t, flags=re.IGNORECASE)
+        t = re.sub(r'\b(?:complete|full)\s+(?:course|tutorial|bootcamp|fundamentals|batch)\b', '', t, flags=re.IGNORECASE)
+        t = re.sub(r'\b(?:for beginners|crash course|from scratch|beginner to (?:pro|advanced)|zero to hero)\b', '', t, flags=re.IGNORECASE)
+        t = re.sub(r'[\(\[]\s*[\)\]]', '', t)
+        t = re.sub(r'[\s—–:-]+$', '', t)
+        t = re.sub(r'^[\s—–:-]+', '', t)
+        t = re.sub(r'\s{2,}', ' ', t).strip()
+        return t or self.title
+
     @property
     def enrolled_count(self):
         db = get_db()
@@ -1511,6 +1540,7 @@ class Course:
             self.youtube_video_id = extract_youtube_id(self.youtube_url)
 
         self._data["title"] = self.title
+        self._data["certificate_title"] = getattr(self, "certificate_title", "")
         self._data["slug"] = self.slug
         self._data["thumbnail_url"] = self.thumbnail_url
         self._data["category"] = self.category
@@ -2294,6 +2324,56 @@ class Certificate:
         self.submission_id = str(self._data.get("submission_id", ""))
         self.issued_at = self._data.get("issued_at") or datetime.now(timezone.utc)
         self.verification_hash = self._data.get("verification_hash", "")
+        self.name_locked = bool(self._data.get("name_locked", False))
+        self.name_locked_at = self._data.get("name_locked_at")
+
+    @property
+    def display_course_title(self):
+        """Returns clean, academic course title from course model or sanitized fallback."""
+        c = self.course
+        if c:
+            return c.get_certificate_title()
+        # Fallback sanitization on stored course_title string
+        t = self.course_title or ""
+        t = re.sub(r'[\(\[]?\b(?:learn\s+)?(?:in\s+)?\d+[-\s]*(?:hours?|hrs?|mins?|days?)[^\]\)]*[\)\]]?', '', t, flags=re.IGNORECASE)
+        t = re.sub(r'\b(?:complete|full)\s+(?:course|tutorial|bootcamp|fundamentals|batch)\b', '', t, flags=re.IGNORECASE)
+        t = re.sub(r'[\s—–:-]+$', '', t)
+        t = re.sub(r'^[\s—–:-]+', '', t)
+        return t.strip() or self.course_title
+
+    def lock_legal_name(self, new_name):
+        """
+        One-time update and permanent lock of the student's legal name on this certificate.
+        Also synchronizes the user's name on their account profile and recalculates verification hash.
+        """
+        if self.name_locked:
+            return False, "Certificate name has already been permanently locked."
+
+        clean_name = " ".join((new_name or "").strip().split())
+        if len(clean_name) < 2 or len(clean_name) > 80:
+            return False, "Please enter a valid legal name between 2 and 80 characters."
+
+        now = datetime.now(timezone.utc)
+        self.user_name = clean_name
+        self.name_locked = True
+        self.name_locked_at = now
+
+        # Recalculate tamper-proof verification hash with official name
+        raw_hash_data = f"{self.certificate_id}:{self.user_id}:{self.course_id}:{clean_name}:{self.issued_at.isoformat() if hasattr(self.issued_at, 'isoformat') else self.issued_at}"
+        self.verification_hash = hashlib.sha256(raw_hash_data.encode("utf-8")).hexdigest()[:24]
+
+        self.save()
+
+        # Synchronize User profile name
+        try:
+            u = self.user
+            if u:
+                u.name = clean_name
+                u.save()
+        except Exception as e:
+            logger.warning(f"Note syncing user name: {e}")
+
+        return True, "Official certificate name verified and permanently locked successfully."
 
     @property
     def user(self):
@@ -2325,6 +2405,8 @@ class Certificate:
         self._data["submission_id"] = str(self.submission_id)
         self._data["issued_at"] = self.issued_at
         self._data["verification_hash"] = self.verification_hash
+        self._data["name_locked"] = bool(getattr(self, "name_locked", False))
+        self._data["name_locked_at"] = getattr(self, "name_locked_at", None)
 
         if self._id:
             db[self.collection_name].update_one({"_id": self._id}, {"$set": self._data})
@@ -2442,7 +2524,9 @@ class Certificate:
             "assignment_id": str(assignment.id if assignment else ""),
             "submission_id": str(submission.id if submission else ""),
             "issued_at": issued_at,
-            "verification_hash": verification_hash
+            "verification_hash": verification_hash,
+            "name_locked": False,
+            "name_locked_at": None
         })
         cert.save()
 
