@@ -793,14 +793,66 @@ def course_toggle(course_id):
     return redirect(url_for("admin.courses_list"))
 
 
-@admin_bp.route("/courses/<course_id>/delete", methods=["POST"])
+@admin_bp.route("/courses/<course_id>/delete", methods=["GET", "POST"])
 def course_delete(course_id):
-    """Delete a course and associated records."""
+    """Permanently delete a course and all associated milestone assignments, enrollments, and submissions."""
+    db = get_db()
     course = Course.get_by_id(course_id)
+    if not course:
+        course = Course.get_by_slug(str(course_id).strip())
+
     if course:
         title = course.title
         course.delete()
-        flash(f"Course '{title}' was deleted successfully.", "success")
+        flash(f"Course '{title}' and all associated records were permanently deleted.", "success")
+    else:
+        # Direct fallback in MongoDB if model lookup missed
+        obj_id = _to_obj_id(course_id)
+        str_id = str(course_id).strip()
+        c_doc = db.courses.find_one({
+            "$or": [
+                {"_id": obj_id},
+                {"_id": str_id},
+                {"slug": str_id}
+            ]
+        })
+        if c_doc:
+            title = c_doc.get("title", "Course")
+            c_slug = c_doc.get("slug")
+            c_real_id = str(c_doc["_id"])
+            c_obj_id = c_doc["_id"]
+
+            if c_slug:
+                db.deleted_courses.update_one(
+                    {"slug": c_slug},
+                    {"$set": {
+                        "slug": c_slug,
+                        "course_id": c_real_id,
+                        "deleted_at": datetime.now(timezone.utc)
+                    }},
+                    upsert=True
+                )
+
+            course_query = {"$or": [{"course_id": c_real_id}, {"course_id": c_obj_id}, {"course_id": c_slug}]}
+            subs = list(db.submissions.find(course_query, {"_id": 1}))
+            if subs:
+                sub_ids = []
+                for s in subs:
+                    sub_ids.append(s["_id"])
+                    sub_ids.append(str(s["_id"]))
+                    sub_ids.append(_to_obj_id(s["_id"]))
+                db.reviews.delete_many({"submission_id": {"$in": sub_ids}})
+
+            db.submissions.delete_many(course_query)
+            db.assignments.delete_many(course_query)
+            db.enrollments.delete_many(course_query)
+            db.certificates.delete_many(course_query)
+            db.courses.delete_many({"$or": [{"_id": c_obj_id}, {"_id": c_real_id}, {"slug": c_slug}]})
+            Course.invalidate_published_cache()
+            flash(f"Course '{title}' and all associated records were permanently deleted.", "success")
+        else:
+            flash("Course not found or has already been permanently deleted.", "warning")
+
     return redirect(url_for("admin.courses_list"))
 
 

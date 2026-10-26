@@ -247,16 +247,38 @@ Docker containerization or CI/CD workflow">{{ '\n'.join(assignment.optional_feat
         </div>
 
         <!-- Submit Controls -->
-        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 40px;">
-            <a href="{{ url_for('admin.courses_list') }}" class="admin-btn admin-btn-secondary">
-                Cancel
-            </a>
-            <button type="submit" id="btn-save-course" class="admin-btn admin-btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">
-                <i data-lucide="save"></i>
-                <span id="btn-save-label">Save Course & Assignment</span>
-            </button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 16px;">
+            <div>
+                {% if course and course.id %}
+                <button type="button" class="admin-btn admin-btn-danger" onclick="confirmDeleteCourse()" style="padding: 10px 20px; font-size: 0.9rem;">
+                    <i data-lucide="trash-2"></i>
+                    <span>Permanently Delete Course</span>
+                </button>
+                {% endif %}
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <a href="{{ url_for('admin.courses_list') }}" class="admin-btn admin-btn-secondary">
+                    Cancel
+                </a>
+                <button type="submit" id="btn-save-course" class="admin-btn admin-btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">
+                    <i data-lucide="save"></i>
+                    <span id="btn-save-label">Save Course & Assignment</span>
+                </button>
+            </div>
         </div>
     </form>
+
+    {% if course and course.id %}
+    <form id="delete-course-form" method="POST" action="{{ url_for('admin.course_delete', course_id=course.id) }}" style="display: none;">
+    </form>
+    <script>
+    function confirmDeleteCourse() {
+        if (confirm("WARNING: Are you sure you want to permanently delete this course?\n\nThis will permanently delete the course, all milestone assignments, enrolled student progress, and submissions. This action CANNOT be undone.")) {
+            document.getElementById('delete-course-form').submit();
+        }
+    }
+    </script>
+    {% endif %}
 </div>
 
 <!-- Quiz Builder Client Logic -->

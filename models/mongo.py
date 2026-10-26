@@ -1514,20 +1514,81 @@ class Course:
 
     def delete(self):
         Course.invalidate_published_cache()
+        db = get_db()
+        obj_id = _to_obj_id(self.id)
+        str_id = str(self.id) if self.id else ""
+        slug = getattr(self, "slug", "")
+
+        # 1. Permanently record in deleted_courses to prevent ensure_default_courses() from resurrecting it
+        if slug:
+            db.deleted_courses.update_one(
+                {"slug": slug},
+                {"$set": {
+                    "slug": slug,
+                    "course_id": str_id,
+                    "deleted_at": datetime.now(timezone.utc)
+                }},
+                upsert=True
+            )
+
+        # 2. Build course filter for related collections (assignments, enrollments, submissions, certificates)
+        course_filters = []
+        if str_id:
+            course_filters.append({"course_id": str_id})
+        if obj_id:
+            course_filters.append({"course_id": obj_id})
+        if slug:
+            course_filters.append({"course_id": slug})
+
+        course_query = {"$or": course_filters} if course_filters else {}
+
+        if course_query:
+            # Delete reviews associated with any submissions for this course
+            subs = list(db.submissions.find(course_query, {"_id": 1}))
+            if subs:
+                sub_ids = []
+                for s in subs:
+                    sub_ids.append(s["_id"])
+                    sub_ids.append(str(s["_id"]))
+                    sub_ids.append(_to_obj_id(s["_id"]))
+                db.reviews.delete_many({"submission_id": {"$in": sub_ids}})
+
+            # Cascade delete submissions, assignments, enrollments, certificates
+            db.submissions.delete_many(course_query)
+            db.assignments.delete_many(course_query)
+            db.enrollments.delete_many(course_query)
+            db.certificates.delete_many(course_query)
+
+        # 3. Delete the course document itself (matching ObjectId, string id, and slug)
+        id_filters = []
         if self._id:
-            db = get_db()
-            db.assignments.delete_many({"course_id": str(self.id)})
-            db.enrollments.delete_many({"course_id": str(self.id)})
-            db.submissions.delete_many({"course_id": str(self.id)})
-            db.certificates.delete_many({"course_id": str(self.id)})
-            db[self.collection_name].delete_one({"_id": self._id})
+            id_filters.append({"_id": self._id})
+        if obj_id:
+            id_filters.append({"_id": obj_id})
+        if str_id:
+            id_filters.append({"_id": str_id})
+        if slug:
+            id_filters.append({"slug": slug})
+
+        if id_filters:
+            db[self.collection_name].delete_many({"$or": id_filters})
+
+        Course.invalidate_published_cache()
 
     @classmethod
     def get_by_id(cls, course_id):
         if not course_id:
             return None
         db = get_db()
-        doc = db[cls.collection_name].find_one({"_id": _to_obj_id(course_id)})
+        obj_id = _to_obj_id(course_id)
+        str_id = str(course_id).strip()
+        doc = db[cls.collection_name].find_one({
+            "$or": [
+                {"_id": obj_id},
+                {"_id": str_id},
+                {"slug": str_id}
+            ]
+        })
         return cls(doc) if doc else None
 
     @classmethod
@@ -1749,7 +1810,14 @@ class Assignment:
         if not assignment_id:
             return None
         db = get_db()
-        doc = db[cls.collection_name].find_one({"_id": _to_obj_id(assignment_id)})
+        obj_id = _to_obj_id(assignment_id)
+        str_id = str(assignment_id).strip()
+        doc = db[cls.collection_name].find_one({
+            "$or": [
+                {"_id": obj_id},
+                {"_id": str_id}
+            ]
+        })
         return cls(doc) if doc else None
 
     @classmethod
@@ -1757,8 +1825,13 @@ class Assignment:
         if not course_id:
             return None
         db = get_db()
+        obj_id = _to_obj_id(course_id)
+        str_id = str(course_id).strip()
         # Returns Milestone 1 or first assignment sorted by step_number
-        doc = db[cls.collection_name].find_one({"course_id": str(course_id)}, sort=[("step_number", 1)])
+        doc = db[cls.collection_name].find_one(
+            {"$or": [{"course_id": str_id}, {"course_id": obj_id}]},
+            sort=[("step_number", 1)]
+        )
         return cls(doc) if doc else None
 
     @classmethod
@@ -2463,18 +2536,40 @@ def ensure_default_courses():
     """
     Guarantees foundational curated production courses and progressive 3-step milestone assignments exist in MongoDB.
     Curated from acclaimed Reddit and YouTube community recommendations.
+    Respects admin course deletions so deleted courses are never resurrected on restart.
     """
     try:
         from models.default_curriculum import get_default_curriculum
         db = get_db()
         curriculum = get_default_curriculum()
 
+        # Check if platform was already seeded initially
+        seeding_record = db.platform_settings.find_one({"key": "default_courses_seeded"})
+        is_already_seeded = bool(seeding_record)
+
         for item in curriculum:
             milestones = item.pop("milestone_assignments", [])
             slug = item.get("slug")
-            existing = db.courses.find_one({"slug": slug})
+
+            # 1. If this course was explicitly deleted by an admin, never re-create it!
+            if db.deleted_courses.find_one({"slug": slug}):
+                logger.info(f"[COURSES] Skipping deleted default course: {slug}")
+                continue
+
+            existing = db.courses.find_one({
+                "$or": [
+                    {"slug": slug},
+                    {"title": item.get("title")}
+                ]
+            })
 
             if not existing:
+                # 2. If the platform was already seeded previously, and this default course is missing,
+                # it means the admin intentionally deleted it! Do NOT recreate it!
+                if is_already_seeded:
+                    logger.info(f"[COURSES] Default course {slug} missing but initial seed complete. Skipping recreation.")
+                    continue
+
                 course = Course(item)
                 course.save()
                 cid = str(course.id)
@@ -2498,7 +2593,12 @@ def ensure_default_courses():
             # Ensure all 3 milestone assignments exist for this course
             for m in milestones:
                 step = int(m.get("step_number", 1))
-                existing_asg = db.assignments.find_one({"course_id": cid, "step_number": step})
+                existing_asg = db.assignments.find_one({
+                    "$or": [
+                        {"course_id": cid, "step_number": step},
+                        {"course_id": _to_obj_id(cid), "step_number": step}
+                    ]
+                })
                 if not existing_asg:
                     m_data = dict(m)
                     m_data["course_id"] = cid
@@ -2523,7 +2623,14 @@ def ensure_default_courses():
                         }}
                     )
 
-        logger.info(f"[COURSES] Ensured 14+ default curated courses and progressive milestone assignments are registered.")
+        # Mark seeded so subsequent restarts respect admin course deletions
+        db.platform_settings.update_one(
+            {"key": "default_courses_seeded"},
+            {"$set": {"key": "default_courses_seeded", "seeded_at": datetime.now(timezone.utc)}},
+            upsert=True
+        )
+
+        logger.info(f"[COURSES] Ensured default curated courses and progressive milestone assignments are registered.")
     except Exception as e:
         logger.warning(f"[COURSES INITIALIZATION WARNING] Could not seed default courses: {e}")
 
