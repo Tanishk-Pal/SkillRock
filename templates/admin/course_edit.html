@@ -289,6 +289,7 @@ const quizBuilder = {
     questions: [],
 
     init() {
+        window.quizBuilder = this;
         const evalSelect = document.getElementById('evaluation_type_select');
         const projectFields = document.getElementById('project-fields-container');
         const quizFields = document.getElementById('quiz-builder-container');
@@ -329,19 +330,50 @@ const quizBuilder = {
 
         // Form submit synchronization
         const form = document.querySelector('form');
-        form.addEventListener('submit', (e) => {
-            if (evalSelect.value === 'quiz_based') {
-                if (this.questions.length === 0) {
-                    e.preventDefault();
-                    alert('Please add at least one question to the quiz before saving.');
-                    return false;
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                if (evalSelect.value === 'quiz_based') {
+                    this.syncFromDOM();
+                    if (this.questions.length === 0) {
+                        e.preventDefault();
+                        alert('Please add at least one question to the quiz before saving.');
+                        return false;
+                    }
                 }
-            }
+                this.syncJSON();
+            });
+        }
+    },
+
+    setCorrectSingle(qIdx, optId) {
+        if (this.questions[qIdx]) {
+            this.questions[qIdx].correct_option_ids = [optId];
             this.syncJSON();
-        });
+        }
+    },
+
+    toggleCorrectMultiple(qIdx, optId, isChecked) {
+        if (this.questions[qIdx]) {
+            const set = new Set(this.questions[qIdx].correct_option_ids || []);
+            if (isChecked) {
+                set.add(optId);
+            } else {
+                set.delete(optId);
+            }
+            this.questions[qIdx].correct_option_ids = Array.from(set);
+            this.syncJSON();
+        }
+    },
+
+    setTrueFalseCorrect(qIdx, val) {
+        if (this.questions[qIdx]) {
+            this.questions[qIdx].correct_option_ids = [val];
+            this.syncJSON();
+        }
     },
 
     addQuestion(type) {
+        this.syncFromDOM();
         const newId = 'q_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
         let q = {
             id: newId,
@@ -380,12 +412,14 @@ const quizBuilder = {
 
     removeQuestion(idx) {
         if (confirm('Delete this question?')) {
+            this.syncFromDOM();
             this.questions.splice(idx, 1);
             this.render();
         }
     },
 
     moveQuestion(idx, dir) {
+        this.syncFromDOM();
         const target = idx + dir;
         if (target >= 0 && target < this.questions.length) {
             const temp = this.questions[idx];
@@ -396,6 +430,7 @@ const quizBuilder = {
     },
 
     addOption(qIdx) {
+        this.syncFromDOM();
         const q = this.questions[qIdx];
         const nextNum = (q.options ? q.options.length : 0) + 1;
         const optId = 'opt_' + Date.now() + '_' + nextNum;
@@ -404,6 +439,7 @@ const quizBuilder = {
     },
 
     removeOption(qIdx, optIdx) {
+        this.syncFromDOM();
         const q = this.questions[qIdx];
         if (q.options.length <= 2) {
             alert('A question must have at least 2 options.');
@@ -418,11 +454,79 @@ const quizBuilder = {
         this.render();
     },
 
+    syncFromDOM() {
+        const cardElements = document.querySelectorAll('#quiz-questions-list .quiz-q-card');
+        cardElements.forEach((card, qIdx) => {
+            if (!this.questions[qIdx]) return;
+            const q = this.questions[qIdx];
+
+            // Question Statement
+            const questionInput = card.querySelector('.quiz-question-input');
+            if (questionInput) {
+                q.question = questionInput.value;
+            }
+
+            // Marks
+            const marksInput = card.querySelector('.quiz-marks-input');
+            if (marksInput) {
+                q.marks = parseInt(marksInput.value) || 5;
+            }
+
+            // Options Text & Checked Correct Answers
+            if (q.type === 'single_choice') {
+                const checkedRadio = card.querySelector('input[type="radio"].quiz-opt-correct:checked');
+                if (checkedRadio && checkedRadio.value) {
+                    q.correct_option_ids = [checkedRadio.value];
+                }
+                const optionInputs = card.querySelectorAll('.quiz-option-text-input');
+                optionInputs.forEach((optInp, oIdx) => {
+                    if (q.options && q.options[oIdx]) {
+                        q.options[oIdx].text = optInp.value;
+                    }
+                });
+            } else if (q.type === 'multiple_select') {
+                const checkedBoxes = card.querySelectorAll('input[type="checkbox"].quiz-opt-correct:checked');
+                const selectedIds = [];
+                checkedBoxes.forEach(cb => {
+                    if (cb.value) selectedIds.push(cb.value);
+                });
+                q.correct_option_ids = selectedIds;
+                const optionInputs = card.querySelectorAll('.quiz-option-text-input');
+                optionInputs.forEach((optInp, oIdx) => {
+                    if (q.options && q.options[oIdx]) {
+                        q.options[oIdx].text = optInp.value;
+                    }
+                });
+            } else if (q.type === 'true_false') {
+                const checkedTF = card.querySelector('input[type="radio"].quiz-tf-radio:checked');
+                if (checkedTF && checkedTF.value) {
+                    q.correct_option_ids = [checkedTF.value];
+                }
+            } else if (q.type === 'short_answer') {
+                const ansInput = card.querySelector('.quiz-accepted-answers-input');
+                if (ansInput) {
+                    q.accepted_answers = ansInput.value.split(',').map(s => s.trim()).filter(Boolean);
+                }
+                const caseBox = card.querySelector('.quiz-case-sensitive');
+                if (caseBox) q.case_sensitive = caseBox.checked;
+                const manualBox = card.querySelector('.quiz-manual-review');
+                if (manualBox) q.requires_manual_review = manualBox.checked;
+            }
+
+            // Explanation
+            const expInput = card.querySelector('.quiz-explanation-input');
+            if (expInput) {
+                q.explanation = expInput.value;
+            }
+        });
+    },
+
     syncJSON() {
-        const timeLimit = parseInt(document.getElementById('quiz_time_limit').value) || 0;
-        const maxAttempts = parseInt(document.getElementById('quiz_max_attempts').value) || 3;
-        const shuffleQ = document.getElementById('quiz_shuffle_q').checked;
-        const allowReview = document.getElementById('quiz_allow_review').checked;
+        this.syncFromDOM();
+        const timeLimit = parseInt(document.getElementById('quiz_time_limit')?.value) || 0;
+        const maxAttempts = parseInt(document.getElementById('quiz_max_attempts')?.value) || 3;
+        const shuffleQ = document.getElementById('quiz_shuffle_q')?.checked || false;
+        const allowReview = document.getElementById('quiz_allow_review')?.checked !== false;
 
         let totalMarks = 0;
         this.questions.forEach(q => {
@@ -485,17 +589,23 @@ const quizBuilder = {
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <label style="color: var(--admin-text-muted); font-size: 0.78rem;">Marks:</label>
-                            <input type="number" min="1" max="100" value="${q.marks || 5}" onchange="quizBuilder.questions[${idx}].marks = parseInt(this.value)||1; quizBuilder.syncJSON();" style="width: 60px; padding: 4px 8px; background: rgba(0,0,0,0.3); border: 1px solid var(--admin-border); border-radius: 4px; color: #FFFFFF; font-size: 0.85rem; text-align: center;">
+                            <input type="number" class="quiz-marks-input" min="1" max="100" value="${q.marks || 5}" oninput="if(quizBuilder.questions[${idx}]) { quizBuilder.questions[${idx}].marks = parseInt(this.value)||1; quizBuilder.syncJSON(); }" onchange="if(quizBuilder.questions[${idx}]) { quizBuilder.questions[${idx}].marks = parseInt(this.value)||1; quizBuilder.syncJSON(); }" style="width: 60px; padding: 4px 8px; background: rgba(0,0,0,0.3); border: 1px solid var(--admin-border); border-radius: 4px; color: #FFFFFF; font-size: 0.85rem; text-align: center;">
 
-                            <button type="button" class="admin-btn admin-btn-secondary" style="padding: 4px 8px;" onclick="quizBuilder.moveQuestion(${idx}, -1)" ${isFirst ? 'disabled style="opacity: 0.4;"' : ''}>▲</button>
-                            <button type="button" class="admin-btn admin-btn-secondary" style="padding: 4px 8px;" onclick="quizBuilder.moveQuestion(${idx}, 1)" ${isLast ? 'disabled style="opacity: 0.4;"' : ''}>▼</button>
-                            <button type="button" class="admin-btn admin-btn-danger" style="padding: 4px 8px;" onclick="quizBuilder.removeQuestion(${idx})">🗑️</button>
+                            <button type="button" class="admin-btn admin-btn-secondary" style="padding: 4px 8px;" onclick="quizBuilder.moveQuestion(${idx}, -1)" ${isFirst ? 'disabled style="opacity: 0.4;"' : ''} title="Move Up">
+                                <i data-lucide="chevron-up" style="width: 14px; height: 14px;"></i>
+                            </button>
+                            <button type="button" class="admin-btn admin-btn-secondary" style="padding: 4px 8px;" onclick="quizBuilder.moveQuestion(${idx}, 1)" ${isLast ? 'disabled style="opacity: 0.4;"' : ''} title="Move Down">
+                                <i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i>
+                            </button>
+                            <button type="button" class="admin-btn admin-btn-danger" style="padding: 4px 8px;" onclick="quizBuilder.removeQuestion(${idx})" title="Delete Question">
+                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                            </button>
                         </div>
                     </div>
 
                     <!-- Question Stem Input -->
                     <div style="margin-bottom: 14px;">
-                        <input type="text" class="admin-input" placeholder="Enter question statement..." value="${(q.question || '').replace(/"/g, '&quot;')}" onchange="quizBuilder.questions[${idx}].question = this.value; quizBuilder.syncJSON();" required>
+                        <input type="text" class="admin-input quiz-question-input" placeholder="Enter question statement..." value="${(q.question || '').replace(/"/g, '&quot;')}" oninput="if(quizBuilder.questions[${idx}]) { quizBuilder.questions[${idx}].question = this.value; quizBuilder.syncJSON(); }" onchange="if(quizBuilder.questions[${idx}]) { quizBuilder.questions[${idx}].question = this.value; quizBuilder.syncJSON(); }" required>
                     </div>
             `;
 
@@ -507,20 +617,31 @@ const quizBuilder = {
                     const inputType = q.type === 'single_choice' ? 'radio' : 'checkbox';
                     const inputName = `q_correct_${idx}`;
 
+                    const handlerAttr = q.type === 'single_choice'
+                        ? `onclick="quizBuilder.setCorrectSingle(${idx}, '${opt.id}')" onchange="quizBuilder.setCorrectSingle(${idx}, '${opt.id}')"`
+                        : `onclick="quizBuilder.toggleCorrectMultiple(${idx}, '${opt.id}', this.checked)" onchange="quizBuilder.toggleCorrectMultiple(${idx}, '${opt.id}', this.checked)"`;
+
                     html += `
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="${inputType}" name="${inputName}" ${isChecked ? 'checked' : ''} onchange="
-                                if ('${q.type}' === 'single_choice') {
-                                    quizBuilder.questions[${idx}].correct_option_ids = ['${opt.id}'];
-                                } else {
-                                    const set = new Set(quizBuilder.questions[${idx}].correct_option_ids || []);
-                                    if (this.checked) set.add('${opt.id}'); else set.delete('${opt.id}');
-                                    quizBuilder.questions[${idx}].correct_option_ids = Array.from(set);
-                                }
-                                quizBuilder.syncJSON();
-                            }" title="Mark as correct answer">
-                            <input type="text" class="admin-input" style="flex: 1; padding: 6px 12px; font-size: 0.88rem;" value="${(opt.text || '').replace(/"/g, '&quot;')}" onchange="quizBuilder.questions[${idx}].options[${oIdx}].text = this.value; quizBuilder.syncJSON();" required>
-                            <button type="button" class="admin-btn admin-btn-secondary" style="padding: 4px 8px; color: #EF4444;" onclick="quizBuilder.removeOption(${idx}, ${oIdx})">✕</button>
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 2px;" title="Mark as correct answer">
+                                <input type="${inputType}" 
+                                       name="${inputName}" 
+                                       class="quiz-opt-correct ${q.type === 'single_choice' ? 'quiz-opt-radio' : 'quiz-opt-checkbox'}" 
+                                       value="${opt.id}" 
+                                       ${isChecked ? 'checked' : ''} 
+                                       style="accent-color: #10B981; width: 18px; height: 18px; cursor: pointer;"
+                                       ${handlerAttr}>
+                            </label>
+                            <input type="text" 
+                                   class="admin-input quiz-option-text-input" 
+                                   style="flex: 1; padding: 6px 12px; font-size: 0.88rem;" 
+                                   value="${(opt.text || '').replace(/"/g, '&quot;')}" 
+                                   oninput="if(quizBuilder.questions[${idx}] && quizBuilder.questions[${idx}].options[${oIdx}]) { quizBuilder.questions[${idx}].options[${oIdx}].text = this.value; quizBuilder.syncJSON(); }"
+                                   onchange="if(quizBuilder.questions[${idx}] && quizBuilder.questions[${idx}].options[${oIdx}]) { quizBuilder.questions[${idx}].options[${oIdx}].text = this.value; quizBuilder.syncJSON(); }" 
+                                   required>
+                            <button type="button" class="admin-btn admin-btn-secondary" style="padding: 4px 8px; color: #EF4444;" onclick="quizBuilder.removeOption(${idx}, ${oIdx})" title="Delete Option">
+                                <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                            </button>
                         </div>
                     `;
                 });
@@ -537,11 +658,11 @@ const quizBuilder = {
                     <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 12px; padding: 8px 12px; background: rgba(0,0,0,0.2); border-radius: 6px;">
                         <span style="font-size: 0.85rem; color: var(--admin-text-muted);">Correct Answer:</span>
                         <label style="display: flex; align-items: center; gap: 6px; color: #FFFFFF; font-size: 0.88rem; cursor: pointer;">
-                            <input type="radio" name="tf_${idx}" value="true" ${isTrue ? 'checked' : ''} onchange="quizBuilder.questions[${idx}].correct_option_ids = ['true']; quizBuilder.syncJSON();">
+                            <input type="radio" name="tf_${idx}" class="quiz-tf-radio" value="true" ${isTrue ? 'checked' : ''} style="accent-color: #10B981; width: 18px; height: 18px; cursor: pointer;" onclick="quizBuilder.setTrueFalseCorrect(${idx}, 'true')" onchange="quizBuilder.setTrueFalseCorrect(${idx}, 'true')">
                             <span>True</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 6px; color: #FFFFFF; font-size: 0.88rem; cursor: pointer;">
-                            <input type="radio" name="tf_${idx}" value="false" ${!isTrue ? 'checked' : ''} onchange="quizBuilder.questions[${idx}].correct_option_ids = ['false']; quizBuilder.syncJSON();">
+                            <input type="radio" name="tf_${idx}" class="quiz-tf-radio" value="false" ${!isTrue ? 'checked' : ''} style="accent-color: #10B981; width: 18px; height: 18px; cursor: pointer;" onclick="quizBuilder.setTrueFalseCorrect(${idx}, 'false')" onchange="quizBuilder.setTrueFalseCorrect(${idx}, 'false')">
                             <span>False</span>
                         </label>
                     </div>
@@ -551,14 +672,14 @@ const quizBuilder = {
                 html += `
                     <div style="margin-bottom: 12px;">
                         <label class="admin-label" style="font-size: 0.78rem;">Accepted Answers (comma-separated, evaluated case-insensitively unless checked)</label>
-                        <input type="text" class="admin-input" placeholder="e.g. print(), console.log(), echo" value="${acceptedStr.replace(/"/g, '&quot;')}" onchange="quizBuilder.questions[${idx}].accepted_answers = this.value.split(',').map(s => s.trim()).filter(Boolean); quizBuilder.syncJSON();">
+                        <input type="text" class="admin-input quiz-accepted-answers-input" placeholder="e.g. print(), console.log(), echo" value="${acceptedStr.replace(/"/g, '&quot;')}" oninput="if(quizBuilder.questions[${idx}]) { quizBuilder.questions[${idx}].accepted_answers = this.value.split(',').map(s => s.trim()).filter(Boolean); quizBuilder.syncJSON(); }" onchange="if(quizBuilder.questions[${idx}]) { quizBuilder.questions[${idx}].accepted_answers = this.value.split(',').map(s => s.trim()).filter(Boolean); quizBuilder.syncJSON(); }">
                         <div style="display: flex; gap: 16px; margin-top: 8px;">
                             <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #E2E8F0; cursor: pointer;">
-                                <input type="checkbox" ${q.case_sensitive ? 'checked' : ''} onchange="quizBuilder.questions[${idx}].case_sensitive = this.checked; quizBuilder.syncJSON();">
+                                <input type="checkbox" class="quiz-case-sensitive" ${q.case_sensitive ? 'checked' : ''} onchange="if(quizBuilder.questions[${idx}]) { quizBuilder.questions[${idx}].case_sensitive = this.checked; quizBuilder.syncJSON(); }">
                                 <span>Case Sensitive</span>
                             </label>
                             <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #E2E8F0; cursor: pointer;">
-                                <input type="checkbox" ${q.requires_manual_review ? 'checked' : ''} onchange="quizBuilder.questions[${idx}].requires_manual_review = this.checked; quizBuilder.syncJSON();">
+                                <input type="checkbox" class="quiz-manual-review" ${q.requires_manual_review ? 'checked' : ''} onchange="if(quizBuilder.questions[${idx}]) { quizBuilder.questions[${idx}].requires_manual_review = this.checked; quizBuilder.syncJSON(); }">
                                 <span>Route to Admin Review Queue if no exact match</span>
                             </label>
                         </div>
@@ -569,7 +690,7 @@ const quizBuilder = {
             // Explanation / Solution Hint
             html += `
                     <div>
-                        <input type="text" class="admin-input" style="font-size: 0.82rem; color: var(--admin-text-muted);" placeholder="Optional explanation/solution revealed to students after assessment..." value="${(q.explanation || '').replace(/"/g, '&quot;')}" onchange="quizBuilder.questions[${idx}].explanation = this.value; quizBuilder.syncJSON();">
+                        <input type="text" class="admin-input quiz-explanation-input" style="font-size: 0.82rem; color: var(--admin-text-muted);" placeholder="Optional explanation/solution revealed to students after assessment..." value="${(q.explanation || '').replace(/"/g, '&quot;')}" oninput="if(quizBuilder.questions[${idx}]) { quizBuilder.questions[${idx}].explanation = this.value; quizBuilder.syncJSON(); }" onchange="if(quizBuilder.questions[${idx}]) { quizBuilder.questions[${idx}].explanation = this.value; quizBuilder.syncJSON(); }">
                     </div>
                 </div>
             `;
@@ -580,6 +701,8 @@ const quizBuilder = {
         if (window.lucide) window.lucide.createIcons();
     }
 };
+
+window.quizBuilder = quizBuilder;
 
 document.addEventListener('DOMContentLoaded', () => {
     quizBuilder.init();
