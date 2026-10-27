@@ -404,6 +404,7 @@ def enrol_course(course_id):
 
 
 @learning_bp.route("/progress/save", methods=["POST"])
+@learning_bp.route("/save-progress", methods=["POST"])
 @login_required
 def save_course_progress():
     """
@@ -438,12 +439,37 @@ def save_course_progress():
     except (ValueError, TypeError):
         video_duration = 0
 
+    now = datetime.now(timezone.utc)
     stored_max = int(getattr(enrollment, "max_watch_seconds", 0) or 0)
-    # Anti-skip guard: prevent client from jumping arbitrarily ahead to bypass 80% requirement
-    if stored_max > 0 and not getattr(enrollment, "video_completed", False):
-        if watch_seconds > stored_max + 30:
-            # Clamp to allowed incremental playback
-            watch_seconds = stored_max + 15
+    last_ping = getattr(enrollment, "last_progress_ping", None)
+
+    if last_ping:
+        if isinstance(last_ping, str):
+            try:
+                last_ping = datetime.fromisoformat(last_ping.replace("Z", "+00:00"))
+            except Exception:
+                last_ping = None
+        if last_ping and last_ping.tzinfo is None:
+            last_ping = last_ping.replace(tzinfo=timezone.utc)
+
+    # Time-dilation anti-cheat verification:
+    # A student watching naturally cannot advance faster than wall-clock time * max playback rate (1.5x) + network jitter allowance
+    if last_ping and stored_max > 0:
+        wall_elapsed = max(0.0, (now - last_ping).total_seconds())
+        # Max allowed advancement: wall_elapsed * 1.5 (playback speed cap) * 1.25 (drift/jitter allowance) + 5s buffer
+        max_allowed_delta = (wall_elapsed * 1.5 * 1.25) + 5.0
+    else:
+        # First progress ping: allow up to 30s initial progress
+        max_allowed_delta = 30.0
+
+    if not getattr(enrollment, "video_completed", False):
+        if watch_seconds > stored_max + max_allowed_delta:
+            logger.warning(
+                f"Anti-skip clamp triggered for student {current_user.id} on course {course_id}: "
+                f"attempted {watch_seconds}s, stored {stored_max}s, allowed delta {max_allowed_delta:.1f}s"
+            )
+            # Clamp to legitimate maximum advancement
+            watch_seconds = stored_max + int(max_allowed_delta)
 
     if watch_seconds > 0:
         enrollment.watch_seconds = watch_seconds
@@ -451,6 +477,8 @@ def save_course_progress():
 
     if video_duration > 0:
         enrollment.video_duration = video_duration
+
+    enrollment.last_progress_ping = now
 
     if enrollment.video_duration > 0:
         pct = min(100, int(round((enrollment.max_watch_seconds / enrollment.video_duration) * 100)))

@@ -1249,4 +1249,28 @@
   .cert-recipient-name {
     font-size: 1.35rem !important;
   }
+
+  /* SkillRock Custom Mobile Video Controls Optimization */
+  .skillrock-controls-bar {
+    padding: 10px 12px 10px 12px !important;
+    gap: 8px !important;
+  }
+
+  .unskippable-guard-pill {
+    display: none !important; /* Hide badge on narrow screens to prevent crowding */
+  }
+
+  .player-time-badge {
+    font-size: 0.75rem !important;
+  }
+
+  .unskippable-scrubber-wrapper {
+    padding: 6px 0 !important;
+  }
+
+  .btn-player-ctrl {
+    padding: 8px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+  }
 }

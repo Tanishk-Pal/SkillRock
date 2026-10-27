@@ -1451,10 +1451,11 @@ class Course:
         yt_id = self.youtube_video_id or extract_youtube_id(self.youtube_url)
         if not yt_id:
             return ""
+        params = "controls=0&disablekb=1&rel=0&modestbranding=1&enablejsapi=1&playsinline=1&iv_load_policy=3"
         if yt_id.startswith("playlist:"):
             playlist_id = yt_id.split(":", 1)[1]
-            return f"https://www.youtube.com/embed/videoseries?list={playlist_id}&rel=0&modestbranding=1&enablejsapi=1&playsinline=1"
-        return f"https://www.youtube.com/embed/{yt_id}?rel=0&modestbranding=1&enablejsapi=1&playsinline=1"
+            return f"https://www.youtube.com/embed/videoseries?list={playlist_id}&{params}"
+        return f"https://www.youtube.com/embed/{yt_id}?{params}"
 
     @property
     def fallback_thumbnail(self):
@@ -1929,6 +1930,7 @@ class Enrollment:
         self.video_duration = int(self._data.get("video_duration", 0))
         self.watch_percent = int(self._data.get("watch_percent", 0))
         self.video_completed = bool(self._data.get("video_completed", False) or self.watch_percent >= 80)
+        self.last_progress_ping = self._data.get("last_progress_ping")
         self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
         self.updated_at = self._data.get("updated_at") or datetime.now(timezone.utc)
 
@@ -1992,6 +1994,8 @@ class Enrollment:
         self._data["video_duration"] = int(self.video_duration)
         self._data["watch_percent"] = int(self.watch_percent)
         self._data["video_completed"] = bool(self.video_completed or self.watch_percent >= 80)
+        if getattr(self, "last_progress_ping", None):
+            self._data["last_progress_ping"] = self.last_progress_ping
         self._data["updated_at"] = datetime.now(timezone.utc)
 
         if self._id:
