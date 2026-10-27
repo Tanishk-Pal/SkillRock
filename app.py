@@ -231,9 +231,14 @@ def create_app(config_class=Config):
         content = (
             "User-agent: *\n"
             "Allow: /\n"
+            "Allow: /courses\n"
+            "Allow: /learning/\n"
+            "Allow: /static/\n"
+            "Allow: /verify/\n"
             "Disallow: /admin/\n"
             "Disallow: /chat/\n"
             "Disallow: /settings/\n"
+            "Disallow: /api/\n"
             f"Sitemap: {base_url}/sitemap.xml\n"
         )
         return Response(content, mimetype="text/plain")
@@ -244,13 +249,56 @@ def create_app(config_class=Config):
         base_url = request.url_root.rstrip('/')
         urls = [
             f"<url><loc>{base_url}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>",
-            f"<url><loc>{base_url}/discover</loc><changefreq>hourly</changefreq><priority>0.9</priority></url>",
-            f"<url><loc>{base_url}/ai-assistant</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>",
-            f"<url><loc>{base_url}/login</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>",
-            f"<url><loc>{base_url}/register</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>",
+            f"<url><loc>{base_url}/courses</loc><changefreq>daily</changefreq><priority>1.0</priority></url>",
+            f"<url><loc>{base_url}/discover</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>",
+            f"<url><loc>{base_url}/ai-assistant</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>",
+            f"<url><loc>{base_url}/login</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>",
+            f"<url><loc>{base_url}/register</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>",
         ]
+
+        # Dynamically append all published courses for rich search indexing
+        try:
+            published_courses = Course.get_published_courses() or []
+            for c in published_courses:
+                if c.slug:
+                    lastmod_str = ""
+                    if getattr(c, "updated_at", None):
+                        try:
+                            lastmod_str = f"<lastmod>{c.updated_at.strftime('%Y-%m-%d')}</lastmod>"
+                        except Exception:
+                            pass
+                    urls.append(
+                        f"<url><loc>{base_url}/learning/courses/{c.slug}</loc>{lastmod_str}<changefreq>weekly</changefreq><priority>0.9</priority></url>"
+                    )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Sitemap dynamic courses fetch: {e}")
+
         xml_content = f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{"".join(urls)}\n</urlset>'
         return Response(xml_content, mimetype="application/xml")
+
+    # PWA: Web App Manifest Endpoint
+    @app.route("/manifest.json")
+    def pwa_manifest():
+        from flask import send_from_directory
+        return send_from_directory(
+            os.path.join(app.root_path, "static"),
+            "manifest.json",
+            mimetype="application/manifest+json"
+        )
+
+    # PWA: Root-Scoped Service Worker Endpoint
+    @app.route("/sw.js")
+    def pwa_service_worker():
+        from flask import send_from_directory
+        response = send_from_directory(
+            os.path.join(app.root_path, "static"),
+            "sw.js",
+            mimetype="application/javascript"
+        )
+        response.headers["Service-Worker-Allowed"] = "/"
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return response
 
     # Native Favicon Endpoint (prevents 404 logs in browsers and search bots)
     @app.route("/favicon.ico")

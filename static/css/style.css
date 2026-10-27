@@ -1684,8 +1684,8 @@ html {
 }
 
 .live-content-wrapper.is-loading {
-  display: none !important;
-  animation: none !important;
+  display: block !important;
+  opacity: 1 !important;
 }
 
 /* Fluid navigation click state */
@@ -1696,7 +1696,7 @@ html {
 }
 
 .yt-skeleton-container {
-  display: block;
+  display: none !important;
   width: 100%;
   opacity: 1;
   transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
@@ -2343,4 +2343,20 @@ html {
   .yt-skeleton-container {
     transition: none !important;
   }
+}
+
+
+/* ==========================================================================
+   Mobile-Only Component Safeguards for Desktop/Laptop Viewports
+   Ensures laptop and PC experiences remain 100% pristine and unaltered.
+   ========================================================================== */
+.mobile-course-action-card,
+.btn-toggle-about-mobile,
+.pwa-install-banner {
+  display: none !important;
+}
+
+.course-about-container {
+  max-height: none !important;
+  overflow: visible !important;
 }

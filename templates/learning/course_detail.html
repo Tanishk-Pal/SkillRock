@@ -2,6 +2,43 @@
 
 {% block title %}{{ course.title }} — Skill Rock{% endblock %}
 
+{% block meta_description %}{{ (course.description or 'Learn free programming and real-world project skills on SkillRock.')[:160] }}{% endblock %}
+{% block og_title %}{{ course.title }} — Free Course with Project & Certificate | SkillRock{% endblock %}
+{% block og_description %}{{ (course.description or 'Learn free programming and real-world project skills on SkillRock.')[:200] }}{% endblock %}
+
+{% block head %}
+<!-- Google Schema.org Course Rich Snippet Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": {{ course.title | tojson }},
+  "description": {{ (course.description or '') | tojson }},
+  "provider": {
+    "@type": "Organization",
+    "name": "SkillRock Student Academy",
+    "sameAs": "{{ request.url_root }}"
+  },
+  "educationalCredentialAwarded": "Official Verified Certificate of Completion",
+  "hasCourseInstance": {
+    "@type": "CourseInstance",
+    "courseMode": "Online",
+    "instructor": {
+      "@type": "Person",
+      "name": {{ (course.instructor or 'SkillRock Academy') | tojson }}
+    }
+  },
+  "offers": {
+    "@type": "Offer",
+    "category": "Free",
+    "price": "0",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="course-detail-container" style="max-width: 1140px; margin: 0 auto; padding-bottom: 48px;">
 
@@ -138,6 +175,73 @@
                 </div>
             </div>
 
+            <!-- Mobile Dedicated Primary Action Card (Enroll / View Certificate / Submit Project) -->
+            <!-- Positioned directly below the video progress bar on mobile. Hidden on desktop! -->
+            <div class="card mobile-course-action-card" id="mobileCourseActionCard">
+                <div class="mobile-action-card-inner">
+                    {% if current_user.is_authenticated %}
+                        {% if certificate %}
+                            <div class="mobile-cert-unlocked-banner">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="award" style="width: 22px; height: 22px; color: #10B981;"></i>
+                                    <div>
+                                        <strong style="color: #10B981; font-size: 0.95rem;">You Are Certified! 🎉</strong>
+                                        <div style="font-size: 0.76rem; color: var(--text-muted);">Credential ID: {{ certificate.certificate_id }}</div>
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; margin-top: 10px; background: #10B981; border-color: #10B981; padding: 12px; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                                    <i data-lucide="award" style="width: 18px; height: 18px;"></i>
+                                    <span>View Official Certificate</span>
+                                </a>
+                            </div>
+                        {% elif enrollment %}
+                            <div class="mobile-enrolled-status-banner">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <span style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--primary-action); font-size: 0.9rem;">
+                                        <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                                        Enrolled & Active
+                                    </span>
+                                    <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: var(--primary-action); font-size: 0.8rem; font-weight: 700;">
+                                        {{ enrollment.watch_percent }}% Watched
+                                    </span>
+                                </div>
+                                {% if submission %}
+                                    <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-secondary" style="width: 100%; justify-content: center; font-weight: 700; padding: 11px;">
+                                        Update Project Submission
+                                    </a>
+                                {% elif assignment %}
+                                    {% if enrollment.video_completed or enrollment.watch_percent >= 80 %}
+                                        <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 12px; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);">
+                                            <i data-lucide="upload-cloud" style="width: 18px; height: 18px;"></i>
+                                            <span>Submit Milestone Assignment</span>
+                                        </a>
+                                    {% else %}
+                                        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; padding: 10px 12px; text-align: center; font-size: 0.82rem; color: #D97706; font-weight: 600;">
+                                            <i data-lucide="lock" style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px;"></i>
+                                            <span>Watch 80% to unlock certificate milestone ({{ enrollment.watch_percent }}% watched)</span>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <!-- Not Enrolled Yet (Authenticated) -->
+                            <form action="{{ url_for('learning.enrol_course', course_id=course.id) }}" method="POST" style="margin: 0;">
+                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);">
+                                    <i data-lucide="book-open" style="width: 18px; height: 18px;"></i>
+                                    <span>Enrol Free Now</span>
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <!-- Unauthenticated User -->
+                        <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);">
+                            <i data-lucide="log-in" style="width: 18px; height: 18px;"></i>
+                            <span>Sign In to Enrol Free</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- 4. Course Details & Learning Objectives -->
             <div class="card" style="padding: 24px; margin-bottom: 24px; border-radius: 14px;">
                 <h1 style="font-size: 1.65rem; font-weight: 800; line-height: 1.3; margin-bottom: 12px; color: var(--text-main);">
@@ -162,9 +266,14 @@
                 </div>
 
                 <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">About This Course</h3>
-                <p style="font-size: 0.94rem; color: var(--text-secondary); line-height: 1.65; white-space: pre-line; margin-bottom: 24px;">
-                    {{ course.description }}
-                </p>
+                <div id="courseAboutWrapper" class="course-about-container">
+                    <p style="font-size: 0.94rem; color: var(--text-secondary); line-height: 1.65; white-space: pre-line; margin-bottom: 8px;">
+                        {{ course.description }}
+                    </p>
+                </div>
+                <button type="button" id="btnToggleAboutMobile" class="btn-toggle-about-mobile" onclick="toggleAboutDescription()">
+                    <span id="btnToggleAboutText">Show more</span> ▾
+                </button>
 
                 <!-- Learning Objectives Checklist -->
                 {% if course.learning_objectives %}

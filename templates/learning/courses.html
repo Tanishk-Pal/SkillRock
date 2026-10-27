@@ -2,7 +2,37 @@
 
 {% block title %}Learn & Build — Free Courses & Real Projects — Skill Rock{% endblock %}
 
+{% block meta_description %}Explore free curated programming courses in Python, Java, DSA, Web Development, Kali Linux, and UI/UX. Build real software projects and earn authentic certificates on SkillRock.{% endblock %}
+{% block og_title %}Learn & Build — Free Courses & Real Projects | SkillRock{% endblock %}
+{% block og_description %}Master Python, Java, DSA, Web Development, Kali Linux, and UI/UX with verified practical projects and official credentials on SkillRock.{% endblock %}
+
 {% block head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "SkillRock Learn and Build Curated Courses",
+  "description": "Curated industry courses with automated and project-based certifications.",
+  "itemListElement": [
+    {% for c in courses[:15] %}
+    {
+      "@type": "ListItem",
+      "position": {{ loop.index }},
+      "item": {
+        "@type": "Course",
+        "name": {{ c.title | tojson }},
+        "description": {{ (c.description or '') | tojson }},
+        "provider": {
+          "@type": "Organization",
+          "name": "SkillRock Student Academy"
+        },
+        "url": "{{ request.url_root.rstrip('/') }}{{ url_for('learning.course_detail', slug=c.slug or c.id) }}"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
 <style>
     .learning-hero-card {
         padding: 34px 32px;
