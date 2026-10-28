@@ -174,7 +174,7 @@
                                 </div>
                                 
                                 <select id="playerPlaybackRate" class="player-speed-select" title="Playback speed (max 1.5x)">
-                                    <option value="1" selected>1.0x</option>
+                                    <option value="1" selected>1x</option>
                                     <option value="1.25">1.25x</option>
                                     <option value="1.5">1.5x</option>
                                 </select>
@@ -879,23 +879,44 @@
         updateCustomControlsUI(target, player.getDuration());
     }
 
-    function togglePlayerFullscreen() {
+    async function togglePlayerFullscreen() {
         const frame = document.getElementById("skillrockPlayerFrame");
         const fsIcon = document.getElementById("iconFullscreen");
         if (!frame) return;
 
-        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-            if (frame.requestFullscreen) {
-                frame.requestFullscreen().catch(err => console.warn(err));
-            } else if (frame.webkitRequestFullscreen) {
-                frame.webkitRequestFullscreen();
+        const isCurrentlyFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+
+        if (!isCurrentlyFullscreen) {
+            try {
+                if (frame.requestFullscreen) {
+                    await frame.requestFullscreen();
+                } else if (frame.webkitRequestFullscreen) {
+                    await frame.webkitRequestFullscreen();
+                }
+
+                // In mobile, automatically rotate screen to landscape on expand
+                if (screen.orientation && typeof screen.orientation.lock === "function") {
+                    try {
+                        await screen.orientation.lock("landscape");
+                    } catch(err) {
+                        console.log("Screen orientation lock info:", err);
+                    }
+                }
+            } catch(err) {
+                console.warn("Fullscreen request error:", err);
             }
             if (fsIcon) fsIcon.setAttribute("data-lucide", "minimize");
         } else {
+            // Restore natural orientation upon exit
+            if (screen.orientation && typeof screen.orientation.unlock === "function") {
+                try {
+                    screen.orientation.unlock();
+                } catch(err) {}
+            }
             if (document.exitFullscreen) {
-                document.exitFullscreen();
+                await document.exitFullscreen();
             } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
+                await document.webkitExitFullscreen();
             }
             if (fsIcon) fsIcon.setAttribute("data-lucide", "maximize");
         }
@@ -903,6 +924,25 @@
             window.lucide.createIcons();
         }
     }
+
+    // Handle ESC key or Android gesture exit
+    function onFullscreenChangeHandler() {
+        const fsIcon = document.getElementById("iconFullscreen");
+        const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+        if (!isFs) {
+            if (screen.orientation && typeof screen.orientation.unlock === "function") {
+                try { screen.orientation.unlock(); } catch(e) {}
+            }
+            if (fsIcon) fsIcon.setAttribute("data-lucide", "maximize");
+        } else {
+            if (fsIcon) fsIcon.setAttribute("data-lucide", "minimize");
+        }
+        if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+        }
+    }
+    document.addEventListener("fullscreenchange", onFullscreenChangeHandler);
+    document.addEventListener("webkitfullscreenchange", onFullscreenChangeHandler);
 
     function handleScrubberSeek(e) {
         if (!player || typeof player.getDuration !== "function") return;

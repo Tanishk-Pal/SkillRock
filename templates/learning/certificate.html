@@ -11,6 +11,43 @@
         padding: 0 16px;
     }
 
+    /* Certificate Responsive Scaler Viewport */
+    .cert-viewport {
+        width: 100%;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        position: relative;
+        margin: 0 auto 24px auto;
+    }
+
+    .cert-scaler {
+        width: 960px;
+        flex-shrink: 0;
+        transform-origin: top center;
+    }
+
+    .mobile-cert-hint-banner {
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        .mobile-cert-hint-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.76rem;
+            color: #64748B;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px dashed rgba(99, 102, 241, 0.25);
+            border-radius: 8px;
+            padding: 7px 12px;
+            margin-bottom: 14px;
+            text-align: center;
+        }
+    }
+
     .cert-frame {
         background: #FFFFFF;
         border: 12px solid #0F172A;
@@ -258,7 +295,44 @@
             padding: 0 !important;
             page-break-after: avoid;
         }
-        .cert-frame {
+        /* Certificate Responsive Scaler Viewport */
+    .cert-viewport {
+        width: 100%;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        position: relative;
+        margin: 0 auto 24px auto;
+    }
+
+    .cert-scaler {
+        width: 960px;
+        flex-shrink: 0;
+        transform-origin: top center;
+    }
+
+    .mobile-cert-hint-banner {
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        .mobile-cert-hint-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.76rem;
+            color: #64748B;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px dashed rgba(99, 102, 241, 0.25);
+            border-radius: 8px;
+            padding: 7px 12px;
+            margin-bottom: 14px;
+            text-align: center;
+        }
+    }
+
+    .cert-frame {
             box-shadow: none !important;
             border-width: 8px !important;
             padding: 28px 36px !important;
@@ -342,7 +416,16 @@
     </div>
 
     <!-- Official Certificate Frame (Print & PDF Canvas) -->
-    <div class="cert-frame" id="printableCertificate">
+        <!-- Mobile Landscape Orientation Hint -->
+    <div class="mobile-cert-hint-banner">
+        <i data-lucide="smartphone" style="width: 14px; height: 14px; color: #2563EB;"></i>
+        <span>Pro-Tip: Rotate your phone to landscape for full-size diploma view</span>
+    </div>
+
+    <!-- Official Certificate Viewport & Proportional Scaler -->
+    <div class="cert-viewport" id="certViewport">
+        <div class="cert-scaler" id="certScaler">
+            <div class="cert-frame" id="printableCertificate">
         <!-- Watermark Background -->
         <div class="cert-watermark">
             <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.5">
@@ -423,6 +506,8 @@
                 <div class="cert-sig-name">Skill Rock Directorate</div>
                 <div class="cert-sig-title">Academic & Project Review</div>
             </div>
+        </div>
+    </div>
         </div>
     </div>
 </div>
@@ -600,7 +685,8 @@
                 useCORS: true,
                 logging: false,
                 scrollX: 0,
-                scrollY: 0
+                scrollY: 0,
+                windowWidth: 1024
             },
             jsPDF: {
                 unit: 'mm',
@@ -633,5 +719,38 @@
             }, 3000);
         });
     }
+
+    // 5. Responsive Mathematical Diploma Scaler (Preserves 100% Laptop Proportions on Mobile)
+    function updateCertificateScale() {
+        const viewport = document.getElementById("certViewport");
+        const scaler = document.getElementById("certScaler");
+        const cert = document.getElementById("printableCertificate");
+        if (!viewport || !scaler || !cert) return;
+
+        scaler.style.transform = "none";
+        viewport.style.height = "auto";
+
+        const availableWidth = viewport.clientWidth;
+        const baseWidth = 960;
+
+        if (availableWidth < baseWidth && availableWidth > 0) {
+            const scale = availableWidth / baseWidth;
+            scaler.style.transform = `scale(${scale})`;
+            scaler.style.transformOrigin = "top center";
+            const trueHeight = cert.offsetHeight;
+            viewport.style.height = `${Math.ceil(trueHeight * scale)}px`;
+        } else {
+            scaler.style.transform = "none";
+            viewport.style.height = "auto";
+        }
+    }
+
+    window.addEventListener("resize", updateCertificateScale);
+    window.addEventListener("orientationchange", () => setTimeout(updateCertificateScale, 150));
+    document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(updateCertificateScale, 50);
+        setTimeout(updateCertificateScale, 300);
+    });
+
 </script>
 {% endblock %}
