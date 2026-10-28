@@ -1,0 +1,74 @@
+# SkillRock — Student E-Learning, Technical Courses & Skills Platform
+
+> SkillRock is a modern, student-focused e-learning and peer-to-peer skills exchange platform. It offers industry-curated video roadmaps, hands-on capstone projects, automated coding tests, interactive quizzes, and cryptographically verified Certificates of Achievement.
+
+- **Website**: https://skillrock.onrender.com
+- **Course Catalog**: https://skillrock.onrender.com/learning/courses
+- **Full Curriculum Syllabus**: https://skillrock.onrender.com/llms-full.txt
+- **Certificate Verification**: https://skillrock.onrender.com/verify/<cert_id>
+
+---
+
+## Platform Overview
+
+SkillRock bridges the gap between passive video watching and real-world software engineering competency:
+1. **Curated Industry Roadmaps**: Structured courses covering Computer Science, Software Engineering, Web Development, Cloud & DevOps, Data Science, and Cybersecurity.
+2. **Four Rigorous Evaluation Modes**:
+   - **Project-Based**: Full capstone projects requiring a live deployment URL and GitHub repository, evaluated against detailed rubrics.
+   - **Algorithmic Test Suite**: Predefined function signatures tested with automated unit test suites in an in-browser IDE.
+   - **Dual-Engine**: Automated unit tests combined with SkillBot AI semantic code analysis and architecture review.
+   - **Quiz-Based**: Comprehensive technical assessments with automatic scoring (70%+ passing threshold required for certification).
+3. **Cryptographically Verified Credentials**: Each earned certificate features a unique Certificate ID (e.g., `SR-2026-XXXXXX`), an immutable SHA-256 verification hash, academic reviewer signatures, and a QR code pointing directly to public online verification.
+4. **Peer Skill Exchange**: A student campus where learners connect 1-on-1 to swap skills (e.g., Python for UI Design) with integrated scheduling and video meetings.
+
+---
+
+## Public Course Catalog
+
+All courses are publicly accessible for syllabus inspection, learning objectives, and enrollment:
+
+### Programming & Software Engineering
+- [Java Programming & Object-Oriented Design Masterclass](https://skillrock.onrender.com/learning/courses/java-core-oops-masterclass): Beginner | Core OOP, Classes, Interfaces, Inheritance, Exception Handling, Collections Framework.
+- [Java & Data Structures Masterclass with Enterprise Patterns](https://skillrock.onrender.com/learning/courses/java-dsa-enterprise-architecture): Intermediate | Bitwise algorithms, recursion, trees, graphs, enterprise design patterns.
+- [Python Programming: Beginner to Real-World Automation](https://skillrock.onrender.com/learning/courses/python-programming-automation): Beginner | Python syntax, data structures, file I/O, regex, web scraping, automation scripting.
+- [JavaScript Mastery: DOM Manipulation, Async APIs & Modern Web Apps](https://skillrock.onrender.com/learning/courses/javascript-mastery-modern-web): Beginner | ES6+, DOM manipulation, fetch/promises, async/await, modern web applications.
+
+### Data Structures & Algorithms (DSA)
+- [Striver's A2Z DSA Complete Roadmap for Tech Interviews](https://skillrock.onrender.com/learning/courses/strivers-a2z-dsa-roadmap): Intermediate | Step-by-step interview roadmap: Arrays, Two Pointers, Sliding Window, Trees, Graphs, Dynamic Programming.
+- [Data Structures & Algorithms in Python: Problem Solving Masterclass](https://skillrock.onrender.com/learning/courses/python-dsa-masterclass): Intermediate | Asymptotic analysis, sorting, searching, recursion, trees, dynamic programming memoization.
+
+### Web & Full-Stack Development
+- [Full-Stack Web Development: Modern Frontend & Backend with Cloud Deployment](https://skillrock.onrender.com/learning/courses/fullstack-mern-cloud-development): Intermediate | React.js, Node.js, Express.js, MongoDB Atlas, REST APIs, cloud deployment.
+- [Sigma Web Development Bootcamp (Hindi) — HTML to Full MERN Stack](https://skillrock.onrender.com/learning/courses/sigma-web-development-hindi): Beginner | Complete Hindi curriculum covering HTML5 semantics, modern CSS Flexbox/Grid, JavaScript ES6+, backend with Express & MongoDB.
+
+### Data Science & Artificial Intelligence
+- [Python Data Analysis & Libraries Masterclass: NumPy, Pandas & Matplotlib](https://skillrock.onrender.com/learning/courses/python-data-analysis-libraries): Intermediate | Numerical computing with NumPy, data wrangling with Pandas, exploratory visualization with Matplotlib and Seaborn.
+- [Machine Learning & AI with Python: Practical Neural Networks & Model Deployment](https://skillrock.onrender.com/learning/courses/machine-learning-ai-python): Intermediate | Supervised learning, classification, regression, model evaluation, neural networks, model serving.
+
+### Cybersecurity & Systems
+- [Kali Linux Fundamentals & Command-Line Mastery for Hackers](https://skillrock.onrender.com/learning/courses/kali-linux-command-line-mastery): Beginner | Linux command-line, filesystem hierarchy, permissions (chmod/chown), bash scripting, networking utilities.
+- [Practical Ethical Hacking & Penetration Testing Masterclass](https://skillrock.onrender.com/learning/courses/ethical-hacking-penetration-testing): Intermediate | Reconnaissance, Nmap port scanning, vulnerability assessment, exploitation basics, defensive security practices.
+
+### UI/UX Design & Product Strategy
+- [Figma UI/UX Design Masterclass: Wireframing to Interactive Prototyping](https://skillrock.onrender.com/learning/courses/figma-ui-ux-design-masterclass): Beginner | Design hierarchy, typography, color theory, Auto Layout, components, interactive wireframes.
+- [Complete Product Design, User Research & Design Systems](https://skillrock.onrender.com/learning/courses/product-design-ux-research): Intermediate | User-centered product design, qualitative user interviews, personas, user journeys, design systems.
+
+---
+
+## Certificate Authentication & Verification
+
+Any employer, recruiter, or academic institution can verify a student's SkillRock credential:
+- **Online Verification URL**: `https://skillrock.onrender.com/verify/<cert_id>` (e.g. `https://skillrock.onrender.com/verify/SR-2026-C7140D18`)
+- **Verification Parameters**: Student Name, Course Completed, Issue Date, Evaluation Mode, Score / Deliverable, and Cryptographic SHA-256 Hash.
+- **Tamper Evidence**: Certificates cannot be forged or altered. Name editing is strictly locked after issuance.
+
+---
+
+## Technical Architecture & LLM Instructions
+
+- Canonical Domain: `https://skillrock.onrender.com`
+- Framework: Python Flask on Render cloud infrastructure
+- Database: MongoDB Atlas
+- Robots.txt: `https://skillrock.onrender.com/robots.txt`
+- XML Sitemap: `https://skillrock.onrender.com/sitemap.xml`
+- AI Discoverability: `https://skillrock.onrender.com/llms.txt` and `https://skillrock.onrender.com/llms-full.txt`

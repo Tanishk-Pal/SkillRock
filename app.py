@@ -158,6 +158,46 @@ def create_app(config_class=Config):
 
     threading.Thread(target=_startup_storage_clean, daemon=True).start()
 
+    # SEO: 301 Permanent Redirect to normalize trailing slashes (except root and static)
+    @app.before_request
+    def normalize_trailing_slash():
+        if request.method in ["GET", "HEAD"] and request.path != '/' and request.path.endswith('/'):
+            clean_path = request.path.rstrip('/')
+            if request.query_string:
+                return redirect(f"{clean_path}?{request.query_string.decode('utf-8')}", code=301)
+            return redirect(clean_path, code=301)
+
+    # SEO & Discoverability Context Processor: Canonical URL, OG defaults & robots directives
+    @app.context_processor
+    def inject_seo_data():
+        clean_path = request.path.rstrip('/') or '/'
+        canonical_url = f"https://skillrock.onrender.com{clean_path}" if clean_path != '/' else "https://skillrock.onrender.com/"
+        
+        # Identify non-public or user-private endpoints that must not be indexed
+        is_private_page = any([
+            request.path.startswith("/admin"),
+            request.path.startswith("/chat"),
+            request.path.startswith("/messages"),
+            request.path.startswith("/dashboard"),
+            request.path.startswith("/profile"),
+            request.path.startswith("/settings"),
+            request.path.startswith("/requests"),
+            request.path.startswith("/sessions"),
+            request.path.startswith("/skills"),
+            request.path.startswith("/learning/my-learning"),
+            request.path.startswith("/learning/assignment"),
+            request.path.startswith("/learning/submit"),
+            request.path.startswith("/learning/progress"),
+            request.path in ["/login", "/register", "/signin", "/logout"]
+        ])
+        
+        return {
+            "canonical_url": canonical_url,
+            "canonical_domain": "https://skillrock.onrender.com",
+            "is_private_page": is_private_page,
+            "default_og_image": "https://skillrock.onrender.com/static/img/skillrock-og-banner.png"
+        }
+
     # Context processor for global navbar badges, admin status, and platform settings
     @app.context_processor
     def inject_global_data():
@@ -224,36 +264,76 @@ def create_app(config_class=Config):
             return Response(status=200, mimetype="application/json")
         return Response('{"status":"ok","app":"SkillRock"}', status=200, mimetype="application/json")
 
-    # SEO: Robots.txt for Search Engines
+    # Google Search Console Verification Endpoint
+    @app.route("/google26078168ee5d1f7d.html")
+    def google_search_console_verification():
+        return Response("google-site-verification: google26078168ee5d1f7d.html", mimetype="text/html")
+
+    # AI & LLM Discoverability Endpoints (Standardized llms.txt & llms-full.txt)
+    @app.route("/llms.txt")
+    def llms_txt():
+        from flask import send_from_directory
+        return send_from_directory(
+            os.path.join(app.root_path, "static"),
+            "llms.txt",
+            mimetype="text/markdown; charset=utf-8"
+        )
+
+    @app.route("/llms-full.txt")
+    def llms_full_txt():
+        from flask import send_from_directory
+        return send_from_directory(
+            os.path.join(app.root_path, "static"),
+            "llms-full.txt",
+            mimetype="text/markdown; charset=utf-8"
+        )
+
+    # SEO: Robots.txt for Search Engines and AI Crawlers
     @app.route("/robots.txt")
     def robots_txt():
-        base_url = request.url_root.rstrip('/')
+        canonical_base = "https://skillrock.onrender.com"
         content = (
             "User-agent: *\n"
             "Allow: /\n"
-            "Allow: /courses\n"
-            "Allow: /learning/\n"
-            "Allow: /static/\n"
+            "Allow: /learning/courses\n"
+            "Allow: /learning/courses/\n"
+            "Allow: /learning/verify/\n"
             "Allow: /verify/\n"
+            "Allow: /static/\n"
+            "Allow: /llms.txt\n"
+            "Allow: /llms-full.txt\n"
             "Disallow: /admin/\n"
             "Disallow: /chat/\n"
+            "Disallow: /messages/\n"
             "Disallow: /settings/\n"
             "Disallow: /api/\n"
-            f"Sitemap: {base_url}/sitemap.xml\n"
+            "Disallow: /my-learning\n"
+            "Disallow: /learning/my-learning\n"
+            "Disallow: /learning/progress/\n"
+            "Disallow: /learning/save-progress\n"
+            "Disallow: /learning/enrol/\n"
+            "Disallow: /learning/submit/\n"
+            "Disallow: /learning/assignment/\n"
+            "Disallow: /dashboard\n"
+            "Disallow: /profile\n"
+            "Disallow: /requests\n"
+            "Disallow: /sessions\n"
+            "Disallow: /login\n"
+            "Disallow: /register\n"
+            "Disallow: /signin\n"
+            "Disallow: /logout\n"
+            "Disallow: /auth/\n"
+            f"Sitemap: {canonical_base}/sitemap.xml\n"
         )
         return Response(content, mimetype="text/plain")
 
-    # SEO: Dynamic XML Sitemap for Google & Bing Indexing
+    # SEO: Dynamic XML Sitemap for Google, Bing & Search Engine Indexing
     @app.route("/sitemap.xml")
     def sitemap_xml():
-        base_url = request.url_root.rstrip('/')
+        canonical_base = "https://skillrock.onrender.com"
         urls = [
-            f"<url><loc>{base_url}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>",
-            f"<url><loc>{base_url}/courses</loc><changefreq>daily</changefreq><priority>1.0</priority></url>",
-            f"<url><loc>{base_url}/discover</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>",
-            f"<url><loc>{base_url}/ai-assistant</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>",
-            f"<url><loc>{base_url}/login</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>",
-            f"<url><loc>{base_url}/register</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>",
+            f"<url><loc>{canonical_base}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>",
+            f"<url><loc>{canonical_base}/learning/courses</loc><changefreq>daily</changefreq><priority>0.9</priority></url>",
         ]
 
         # Dynamically append all published courses for rich search indexing
@@ -268,7 +348,7 @@ def create_app(config_class=Config):
                         except Exception:
                             pass
                     urls.append(
-                        f"<url><loc>{base_url}/learning/courses/{c.slug}</loc>{lastmod_str}<changefreq>weekly</changefreq><priority>0.9</priority></url>"
+                        f"<url><loc>{canonical_base}/learning/courses/{c.slug}</loc>{lastmod_str}<changefreq>weekly</changefreq><priority>0.8</priority></url>"
                     )
         except Exception as e:
             import logging

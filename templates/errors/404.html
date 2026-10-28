@@ -1,25 +1,26 @@
-{% extends "base.html" %}
-
-{% block title %}Page Not Found — Skill Rock{% endblock %}
-
-{% block content %}
-<div style="max-width: 600px; margin: 60px auto; text-align: center; padding: 40px 24px;">
-    <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--primary-purple-light); color: var(--primary-action); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-        <i data-lucide="compass" style="width: 36px; height: 36px;"></i>
-    </div>
-    <h1 style="font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 12px; letter-spacing: -0.02em;">
-        Page Not Found
-    </h1>
-    <p style="font-size: 1rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 28px;">
-        The page you are looking for doesn't exist, has been moved, or the link is expired.
-    </p>
-    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-        <a href="{{ url_for('learning.courses_list') }}" class="btn btn-primary" style="padding: 10px 22px; font-weight: 700; background: var(--primary-action);">
-            Explore Courses
-        </a>
-        <a href="{{ url_for('dashboard.dashboard') if current_user.is_authenticated else url_for('index') }}" class="btn btn-secondary" style="padding: 10px 22px; font-weight: 600;">
-            Return to Dashboard
-        </a>
-    </div>
-</div>
-{% endblock %}
+{% extends "base.html" %}
+
+{% block robots %}noindex, nofollow{% endblock %}
+{% block title %}Page Not Found — Skill Rock{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 60px auto; text-align: center; padding: 40px 24px;">
+    <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--primary-purple-light); color: var(--primary-action); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+        <i data-lucide="compass" style="width: 36px; height: 36px;"></i>
+    </div>
+    <h1 style="font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 12px; letter-spacing: -0.02em;">
+        Page Not Found
+    </h1>
+    <p style="font-size: 1rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 28px;">
+        The page you are looking for doesn't exist, has been moved, or the link is expired.
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <a href="{{ url_for('learning.courses_list') }}" class="btn btn-primary" style="padding: 10px 22px; font-weight: 700; background: var(--primary-action);">
+            Explore Courses
+        </a>
+        <a href="{{ url_for('dashboard.dashboard') if current_user.is_authenticated else url_for('index') }}" class="btn btn-secondary" style="padding: 10px 22px; font-weight: 600;">
+            Return to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

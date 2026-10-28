@@ -1,296 +1,299 @@
-{% extends "base.html" %}
-
-{% block title %}Verify Certificate Authenticity — SkillRock{% endblock %}
-
-{% block head %}
-<style>
-    .verify-card {
-        padding: 38px 32px;
-        text-align: center;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-    }
-
-    .spec-table {
-        background: rgba(15, 23, 42, 0.03);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 22px;
-        text-align: left;
-        margin-bottom: 24px;
-    }
-
-    .spec-row {
-        display: grid;
-        grid-template-columns: 150px 1fr;
-        gap: 12px;
-        font-size: 0.9rem;
-        padding: 6px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .spec-row:last-child {
-        border-bottom: none;
-    }
-
-    .scanner-container {
-        display: none;
-        margin-top: 24px;
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 20px;
-    }
-
-    #qrReader {
-        width: 100%;
-        max-width: 400px;
-        margin: 0 auto;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-</style>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-{% endblock %}
-
-{% block content %}
-<div class="verify-container" style="max-width: 720px; margin: 36px auto; padding: 0 16px;">
-
-    <!-- Navigation Header / Mode Switcher -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-        <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-sm" style="font-weight: 600;">
-            ← Explore Courses
-        </a>
-
-        <div style="display: flex; gap: 8px;">
-            <button onclick="toggleScanner(false)" class="btn btn-secondary btn-sm" id="btnTabDetails" style="font-weight: 700; background: var(--bg-card);">
-                <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
-                <span>Credential Ledger</span>
-            </button>
-            <button onclick="toggleScanner(true)" class="btn btn-secondary btn-sm" id="btnTabScanner" style="font-weight: 600;">
-                <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i>
-                <span>Scan QR Code</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Mode A: Interactive Camera QR Code Scanner -->
-    <div class="scanner-container" id="scannerSection">
-        <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; text-align: center;">
-            📷 Real-Time Certificate QR Scanner
-        </h2>
-        <p style="font-size: 0.86rem; color: var(--text-secondary); text-align: center; max-width: 480px; margin: 0 auto 18px auto;">
-            Point your camera at a SkillRock certificate QR code or upload an image to verify authenticity instantly.
-        </p>
-
-        <div id="qrReader"></div>
-
-        <div style="text-align: center; margin-top: 16px;">
-            <button onclick="stopScanner(); toggleScanner(false);" class="btn btn-secondary btn-sm" style="font-weight: 600;">
-                Close Camera Scanner
-            </button>
-        </div>
-    </div>
-
-    <!-- Mode B: Certificate Details / Verification View -->
-    <div id="detailsSection">
-        {% if is_valid and certificate %}
-            <!-- Verified State -->
-            <div class="card verify-card" style="border-top: 6px solid #10B981;">
-                <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10B981; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px auto; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);">
-                    <i data-lucide="shield-check" style="width: 44px; height: 44px;"></i>
-                </div>
-
-                <div style="display: inline-block; padding: 5px 14px; background: rgba(16, 185, 129, 0.15); color: #10B981; border-radius: 9999px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;">
-                    Verified Authentic Credential
-                </div>
-
-                <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">
-                    SkillRock Certificate Validated
-                </h1>
-                <p style="font-size: 0.92rem; color: var(--text-secondary); max-width: 540px; margin: 0 auto 24px auto; line-height: 1.5;">
-                    This certificate was officially issued by SkillRock following rigorous academic, project-based, and competency standards.
-                </p>
-
-                <!-- Credential Specifications Table -->
-                <div class="spec-table">
-                    <div class="spec-row">
-                        <div style="color: var(--text-muted); font-weight: 600;">Certificate ID:</div>
-                        <div style="font-family: monospace; font-weight: 800; color: var(--text-primary);">{{ certificate.certificate_id }}</div>
-                    </div>
-
-                    <div class="spec-row">
-                        <div style="color: var(--text-muted); font-weight: 600;">Awarded To:</div>
-                        <div style="font-weight: 800; color: var(--text-primary); font-size: 1rem;">
-                            {{ certificate.user_name }}
-                            {% if certificate.name_locked %}
-                                <span style="font-size: 0.75rem; color: #10B981; font-weight: 700; margin-left: 6px;">✓ Verified Legal Name</span>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="spec-row">
-                        <div style="color: var(--text-muted); font-weight: 600;">Course Mastery:</div>
-                        <div style="font-weight: 800; color: #2563EB;">{{ certificate.display_course_title }}</div>
-                    </div>
-
-                    <div class="spec-row">
-                        <div style="color: var(--text-muted); font-weight: 600;">Issue Date:</div>
-                        <div style="color: var(--text-secondary);">{{ certificate.formatted_date }}</div>
-                    </div>
-
-                    <!-- Contextual Assessment / Deliverable -->
-                    {% if certificate.submission and certificate.submission.evaluation_type == 'quiz_based' %}
-                        <div class="spec-row">
-                            <div style="color: var(--text-muted); font-weight: 600;">Assessment:</div>
-                            <div style="color: #10B981; font-weight: 700;">
-                                Comprehensive Knowledge Assessment (Passed with {{ certificate.submission.automated_score }}%)
-                            </div>
-                        </div>
-                    {% elif certificate.submission and certificate.submission.title %}
-                        <div class="spec-row">
-                            <div style="color: var(--text-muted); font-weight: 600;">Evaluated Project:</div>
-                            <div style="color: var(--text-primary); font-weight: 700;">
-                                {{ certificate.submission.title }}
-                                {% if certificate.submission.tech_stack %}
-                                    <span style="font-weight: 400; color: var(--text-muted); font-size: 0.85rem;">({{ certificate.submission.tech_stack }})</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    <div class="spec-row">
-                        <div style="color: var(--text-muted); font-weight: 600;">Verification Hash:</div>
-                        <div style="font-family: monospace; font-size: 0.78rem; color: #64748B; word-break: break-all;">
-                            {{ certificate.verification_hash }}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Controls -->
-                <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-                    <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="font-weight: 700; padding: 11px 26px;">
-                        <i data-lucide="award" style="width: 17px; height: 17px;"></i>
-                        <span>View Official Certificate</span>
-                    </a>
-                    <button onclick="shareVerification()" class="btn btn-secondary" style="font-weight: 600; padding: 11px 22px;">
-                        <i data-lucide="share-2" style="width: 16px; height: 16px;"></i>
-                        <span>Share Credential</span>
-                    </button>
-                </div>
-            </div>
-        {% else %}
-            <!-- Invalid / Not Found State -->
-            <div class="card verify-card" style="border-top: 6px solid #EF4444;">
-                <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #EF4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px auto;">
-                    <i data-lucide="shield-alert" style="width: 44px; height: 44px;"></i>
-                </div>
-
-                <div style="display: inline-block; padding: 5px 14px; background: rgba(239, 68, 68, 0.15); color: #EF4444; border-radius: 9999px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;">
-                    Certificate Not Found
-                </div>
-
-                <h1 style="font-size: 1.65rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">
-                    Invalid or Unverified Credential
-                </h1>
-                <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; max-width: 520px; margin: 0 auto 24px auto;">
-                    We could not locate an official certificate matching ID <strong style="color: var(--text-primary);">{{ cert_id }}</strong> in our verification ledger. Please verify the URL or scan the certificate QR code.
-                </p>
-
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button onclick="toggleScanner(true)" class="btn btn-primary" style="font-weight: 700;">
-                        <i data-lucide="qr-code" style="width: 16px; height: 16px;"></i>
-                        <span>Scan Certificate QR Code</span>
-                    </button>
-                    <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary" style="font-weight: 600;">
-                        Explore Courses
-                    </a>
-                </div>
-            </div>
-        {% endif %}
-    </div>
-</div>
-
-<script>
-    let html5QrCodeScanner = null;
-
-    function toggleScanner(show) {
-        const scannerSec = document.getElementById("scannerSection");
-        const detailsSec = document.getElementById("detailsSection");
-        const btnDetails = document.getElementById("btnTabDetails");
-        const btnScanner = document.getElementById("btnTabScanner");
-
-        if (show) {
-            scannerSec.style.display = "block";
-            detailsSec.style.display = "none";
-            btnScanner.classList.add("btn-primary");
-            btnScanner.classList.remove("btn-secondary");
-            btnDetails.classList.remove("btn-primary");
-            btnDetails.classList.add("btn-secondary");
-            startScanner();
-        } else {
-            stopScanner();
-            scannerSec.style.display = "none";
-            detailsSec.style.display = "block";
-            btnDetails.classList.add("btn-primary");
-            btnDetails.classList.remove("btn-secondary");
-            btnScanner.classList.remove("btn-primary");
-            btnScanner.classList.add("btn-secondary");
-        }
-    }
-
-    function startScanner() {
-        if (typeof Html5QrcodeScanner === "undefined") {
-            alert("QR Scanner library loading, please try again in a moment.");
-            return;
-        }
-
-        if (!html5QrCodeScanner) {
-            html5QrCodeScanner = new Html5QrcodeScanner("qrReader", {
-                fps: 10,
-                qrbox: { width: 250, height: 250 },
-                rememberLastUsedCamera: true
-            });
-
-            html5QrCodeScanner.render((decodedText) => {
-                stopScanner();
-                // If it's a URL to this or any verify endpoint, navigate there
-                if (decodedText.startsWith("http://") || decodedText.startsWith("https://")) {
-                    window.location.href = decodedText;
-                } else {
-                    // Extract ID
-                    const cleanId = decodedText.trim();
-                    window.location.href = `/verify/${cleanId}`;
-                }
-            }, (errorMessage) => {
-                // scanning frame error (ignore continuous scan ticks)
-            });
-        }
-    }
-
-    function stopScanner() {
-        if (html5QrCodeScanner) {
-            try {
-                html5QrCodeScanner.clear();
-            } catch (e) {
-                console.error("Scanner clear error:", e);
-            }
-            html5QrCodeScanner = null;
-        }
-    }
-
-    function shareVerification() {
-        if (navigator.share) {
-            navigator.share({
-                title: 'SkillRock Verified Certificate',
-                text: 'Verify my official credential on SkillRock Academy:',
-                url: window.location.href
-            }).catch(console.error);
-        } else {
-            navigator.clipboard.writeText(window.location.href).then(() => {
-                alert('Verification link copied to clipboard!');
-            });
-        }
-    }
-</script>
-{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Verify Certificate Authenticity — SkillRock Credential Verification{% endblock %}
+{% block meta_description %}Verify the authenticity of SkillRock student certificates of achievement. Real-time verification using SHA-256 cryptographic hashes and official credential IDs.{% endblock %}
+{% block og_title %}Verify Certificate Authenticity — SkillRock Official Credential Check{% endblock %}
+{% block og_description %}Instant online verification for SkillRock Certificates of Achievement. Validate student name, course mastery, issue date, and SHA-256 cryptographic proof.{% endblock %}
+
+{% block head %}
+<style>
+    .verify-card {
+        padding: 38px 32px;
+        text-align: center;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+
+    .spec-table {
+        background: rgba(15, 23, 42, 0.03);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 22px;
+        text-align: left;
+        margin-bottom: 24px;
+    }
+
+    .spec-row {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 12px;
+        font-size: 0.9rem;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .spec-row:last-child {
+        border-bottom: none;
+    }
+
+    .scanner-container {
+        display: none;
+        margin-top: 24px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+    }
+
+    #qrReader {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+</style>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="verify-container" style="max-width: 720px; margin: 36px auto; padding: 0 16px;">
+
+    <!-- Navigation Header / Mode Switcher -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-sm" style="font-weight: 600;">
+            ← Explore Courses
+        </a>
+
+        <div style="display: flex; gap: 8px;">
+            <button onclick="toggleScanner(false)" class="btn btn-secondary btn-sm" id="btnTabDetails" style="font-weight: 700; background: var(--bg-card);">
+                <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                <span>Credential Ledger</span>
+            </button>
+            <button onclick="toggleScanner(true)" class="btn btn-secondary btn-sm" id="btnTabScanner" style="font-weight: 600;">
+                <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i>
+                <span>Scan QR Code</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Mode A: Interactive Camera QR Code Scanner -->
+    <div class="scanner-container" id="scannerSection">
+        <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; text-align: center;">
+            📷 Real-Time Certificate QR Scanner
+        </h2>
+        <p style="font-size: 0.86rem; color: var(--text-secondary); text-align: center; max-width: 480px; margin: 0 auto 18px auto;">
+            Point your camera at a SkillRock certificate QR code or upload an image to verify authenticity instantly.
+        </p>
+
+        <div id="qrReader"></div>
+
+        <div style="text-align: center; margin-top: 16px;">
+            <button onclick="stopScanner(); toggleScanner(false);" class="btn btn-secondary btn-sm" style="font-weight: 600;">
+                Close Camera Scanner
+            </button>
+        </div>
+    </div>
+
+    <!-- Mode B: Certificate Details / Verification View -->
+    <div id="detailsSection">
+        {% if is_valid and certificate %}
+            <!-- Verified State -->
+            <div class="card verify-card" style="border-top: 6px solid #10B981;">
+                <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10B981; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px auto; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);">
+                    <i data-lucide="shield-check" style="width: 44px; height: 44px;"></i>
+                </div>
+
+                <div style="display: inline-block; padding: 5px 14px; background: rgba(16, 185, 129, 0.15); color: #10B981; border-radius: 9999px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;">
+                    Verified Authentic Credential
+                </div>
+
+                <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">
+                    SkillRock Certificate Validated
+                </h1>
+                <p style="font-size: 0.92rem; color: var(--text-secondary); max-width: 540px; margin: 0 auto 24px auto; line-height: 1.5;">
+                    This certificate was officially issued by SkillRock following rigorous academic, project-based, and competency standards.
+                </p>
+
+                <!-- Credential Specifications Table -->
+                <div class="spec-table">
+                    <div class="spec-row">
+                        <div style="color: var(--text-muted); font-weight: 600;">Certificate ID:</div>
+                        <div style="font-family: monospace; font-weight: 800; color: var(--text-primary);">{{ certificate.certificate_id }}</div>
+                    </div>
+
+                    <div class="spec-row">
+                        <div style="color: var(--text-muted); font-weight: 600;">Awarded To:</div>
+                        <div style="font-weight: 800; color: var(--text-primary); font-size: 1rem;">
+                            {{ certificate.user_name }}
+                            {% if certificate.name_locked %}
+                                <span style="font-size: 0.75rem; color: #10B981; font-weight: 700; margin-left: 6px;">✓ Verified Legal Name</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="spec-row">
+                        <div style="color: var(--text-muted); font-weight: 600;">Course Mastery:</div>
+                        <div style="font-weight: 800; color: #2563EB;">{{ certificate.display_course_title }}</div>
+                    </div>
+
+                    <div class="spec-row">
+                        <div style="color: var(--text-muted); font-weight: 600;">Issue Date:</div>
+                        <div style="color: var(--text-secondary);">{{ certificate.formatted_date }}</div>
+                    </div>
+
+                    <!-- Contextual Assessment / Deliverable -->
+                    {% if certificate.submission and certificate.submission.evaluation_type == 'quiz_based' %}
+                        <div class="spec-row">
+                            <div style="color: var(--text-muted); font-weight: 600;">Assessment:</div>
+                            <div style="color: #10B981; font-weight: 700;">
+                                Comprehensive Knowledge Assessment (Passed with {{ certificate.submission.automated_score }}%)
+                            </div>
+                        </div>
+                    {% elif certificate.submission and certificate.submission.title %}
+                        <div class="spec-row">
+                            <div style="color: var(--text-muted); font-weight: 600;">Evaluated Project:</div>
+                            <div style="color: var(--text-primary); font-weight: 700;">
+                                {{ certificate.submission.title }}
+                                {% if certificate.submission.tech_stack %}
+                                    <span style="font-weight: 400; color: var(--text-muted); font-size: 0.85rem;">({{ certificate.submission.tech_stack }})</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="spec-row">
+                        <div style="color: var(--text-muted); font-weight: 600;">Verification Hash:</div>
+                        <div style="font-family: monospace; font-size: 0.78rem; color: #64748B; word-break: break-all;">
+                            {{ certificate.verification_hash }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Controls -->
+                <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                    <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="font-weight: 700; padding: 11px 26px;">
+                        <i data-lucide="award" style="width: 17px; height: 17px;"></i>
+                        <span>View Official Certificate</span>
+                    </a>
+                    <button onclick="shareVerification()" class="btn btn-secondary" style="font-weight: 600; padding: 11px 22px;">
+                        <i data-lucide="share-2" style="width: 16px; height: 16px;"></i>
+                        <span>Share Credential</span>
+                    </button>
+                </div>
+            </div>
+        {% else %}
+            <!-- Invalid / Not Found State -->
+            <div class="card verify-card" style="border-top: 6px solid #EF4444;">
+                <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #EF4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px auto;">
+                    <i data-lucide="shield-alert" style="width: 44px; height: 44px;"></i>
+                </div>
+
+                <div style="display: inline-block; padding: 5px 14px; background: rgba(239, 68, 68, 0.15); color: #EF4444; border-radius: 9999px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;">
+                    Certificate Not Found
+                </div>
+
+                <h1 style="font-size: 1.65rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">
+                    Invalid or Unverified Credential
+                </h1>
+                <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; max-width: 520px; margin: 0 auto 24px auto;">
+                    We could not locate an official certificate matching ID <strong style="color: var(--text-primary);">{{ cert_id }}</strong> in our verification ledger. Please verify the URL or scan the certificate QR code.
+                </p>
+
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button onclick="toggleScanner(true)" class="btn btn-primary" style="font-weight: 700;">
+                        <i data-lucide="qr-code" style="width: 16px; height: 16px;"></i>
+                        <span>Scan Certificate QR Code</span>
+                    </button>
+                    <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary" style="font-weight: 600;">
+                        Explore Courses
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    let html5QrCodeScanner = null;
+
+    function toggleScanner(show) {
+        const scannerSec = document.getElementById("scannerSection");
+        const detailsSec = document.getElementById("detailsSection");
+        const btnDetails = document.getElementById("btnTabDetails");
+        const btnScanner = document.getElementById("btnTabScanner");
+
+        if (show) {
+            scannerSec.style.display = "block";
+            detailsSec.style.display = "none";
+            btnScanner.classList.add("btn-primary");
+            btnScanner.classList.remove("btn-secondary");
+            btnDetails.classList.remove("btn-primary");
+            btnDetails.classList.add("btn-secondary");
+            startScanner();
+        } else {
+            stopScanner();
+            scannerSec.style.display = "none";
+            detailsSec.style.display = "block";
+            btnDetails.classList.add("btn-primary");
+            btnDetails.classList.remove("btn-secondary");
+            btnScanner.classList.remove("btn-primary");
+            btnScanner.classList.add("btn-secondary");
+        }
+    }
+
+    function startScanner() {
+        if (typeof Html5QrcodeScanner === "undefined") {
+            alert("QR Scanner library loading, please try again in a moment.");
+            return;
+        }
+
+        if (!html5QrCodeScanner) {
+            html5QrCodeScanner = new Html5QrcodeScanner("qrReader", {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                rememberLastUsedCamera: true
+            });
+
+            html5QrCodeScanner.render((decodedText) => {
+                stopScanner();
+                // If it's a URL to this or any verify endpoint, navigate there
+                if (decodedText.startsWith("http://") || decodedText.startsWith("https://")) {
+                    window.location.href = decodedText;
+                } else {
+                    // Extract ID
+                    const cleanId = decodedText.trim();
+                    window.location.href = `/verify/${cleanId}`;
+                }
+            }, (errorMessage) => {
+                // scanning frame error (ignore continuous scan ticks)
+            });
+        }
+    }
+
+    function stopScanner() {
+        if (html5QrCodeScanner) {
+            try {
+                html5QrCodeScanner.clear();
+            } catch (e) {
+                console.error("Scanner clear error:", e);
+            }
+            html5QrCodeScanner = null;
+        }
+    }
+
+    function shareVerification() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'SkillRock Verified Certificate',
+                text: 'Verify my official credential on SkillRock Academy:',
+                url: window.location.href
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert('Verification link copied to clipboard!');
+            });
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,164 @@
+# SkillRock — Full Curriculum & Extended Syllabus Directory
+
+> Complete course syllabi, module breakdowns, evaluation benchmarks, and learning objectives across all technical domains on SkillRock.
+
+- Canonical Website: https://skillrock.onrender.com
+- Course Catalog: https://skillrock.onrender.com/learning/courses
+- Concise LLM Summary: https://skillrock.onrender.com/llms.txt
+- Certificate Verification Endpoint: https://skillrock.onrender.com/verify/<cert_id>
+
+---
+
+## 1. Java Programming & Object-Oriented Design Masterclass
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/java-core-oops-masterclass
+- **Category**: Programming
+- **Difficulty**: Beginner
+- **Duration**: Self-Paced
+- **Instructor**: Bro Code
+- **Evaluation Mode**: Project-Based
+- **Overview**: Master core Java from first principles: variables, operators, loops, arrays, methods, object-oriented programming (inheritance, polymorphism, abstraction, encapsulation), Java Collections, and file operations.
+
+---
+
+## 2. Java & Data Structures Masterclass with Enterprise Patterns
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/java-dsa-enterprise-architecture
+- **Category**: Programming
+- **Difficulty**: Intermediate
+- **Duration**: Self-Paced
+- **Instructor**: Kunal Kushwaha
+- **Evaluation Mode**: Project-Based
+- **Overview**: Comprehensive journey from foundational Java mechanics to advanced bitwise algorithms, recursive problem solving, tree traversals, graph algorithms, and enterprise architectural design.
+
+---
+
+## 3. Striver's A2Z DSA Complete Roadmap for Tech Interviews
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/strivers-a2z-dsa-roadmap
+- **Category**: Data Structures & Algorithms
+- **Difficulty**: Intermediate
+- **Duration**: Self-Paced
+- **Instructor**: take U forward (Striver)
+- **Evaluation Mode**: Project-Based
+- **Overview**: The gold standard interview curriculum covering step-by-step problem solving patterns: Two Pointers, Sliding Window, Prefix Sums, Binary Trees, Graphs, Disjoint Sets, and Dynamic Programming.
+
+---
+
+## 4. Data Structures & Algorithms in Python: Problem Solving Masterclass
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/python-dsa-masterclass
+- **Category**: Data Structures & Algorithms
+- **Difficulty**: Intermediate
+- **Duration**: Self-Paced
+- **Instructor**: Abdul Bari / Curated
+- **Evaluation Mode**: Project-Based
+- **Overview**: Master algorithmic complexity, asymptotic analysis, recursive trees, dynamic programming memoization, and custom data structure implementations using idiomatic Python.
+
+---
+
+## 5. Python Programming: Beginner to Real-World Automation
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/python-programming-automation
+- **Category**: Programming
+- **Difficulty**: Beginner
+- **Duration**: Self-Paced
+- **Instructor**: Programming with Mosh
+- **Evaluation Mode**: Project-Based
+- **Overview**: Master Python from fundamental variables and data structures up through object-oriented design and real-world scripting. Learn how to process files, automate spreadsheets, and build CLI utilities.
+
+---
+
+## 6. Python Data Analysis & Libraries Masterclass: NumPy, Pandas & Matplotlib
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/python-data-analysis-libraries
+- **Category**: Data Science
+- **Difficulty**: Intermediate
+- **Duration**: Self-Paced
+- **Instructor**: freeCodeCamp
+- **Evaluation Mode**: Project-Based
+- **Overview**: Learn real-world data science with Python's core analytical libraries: NumPy multi-dimensional arrays, Pandas DataFrames, and Matplotlib data visualization.
+
+---
+
+## 7. Full-Stack Web Development: Modern Frontend & Backend with Cloud Deployment
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/fullstack-mern-cloud-development
+- **Category**: Web Development
+- **Difficulty**: Intermediate
+- **Duration**: Self-Paced
+- **Instructor**: The Net Ninja / Traversy Media
+- **Evaluation Mode**: Project-Based
+- **Overview**: Build complete production web applications from scratch with React, Node.js, Express, and MongoDB Atlas. Master REST APIs, JWT authentication, responsive Tailwind layouts, and cloud deployment.
+
+---
+
+## 8. Sigma Web Development Bootcamp (Hindi) — HTML to Full MERN Stack
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/sigma-web-development-hindi
+- **Category**: Web Development
+- **Difficulty**: Beginner
+- **Duration**: Self-Paced
+- **Instructor**: CodeWithHarry
+- **Evaluation Mode**: Project-Based
+- **Overview**: Complete Hindi web development bootcamp covering HTML5 semantics, modern CSS Flexbox and Grid, JavaScript ES6+, DOM manipulation, and building real-world MERN web applications.
+
+---
+
+## 9. Kali Linux Fundamentals & Command-Line Mastery for Hackers
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/kali-linux-command-line-mastery
+- **Category**: Cybersecurity
+- **Difficulty**: Beginner
+- **Duration**: Self-Paced
+- **Instructor**: NetworkChuck
+- **Evaluation Mode**: Project-Based
+- **Overview**: Master the Linux command line, filesystem hierarchy, file permissions (chmod/chown), bash scripting, pipes, grep, networking commands, package management, and security tools on Kali Linux.
+
+---
+
+## 10. Practical Ethical Hacking & Penetration Testing Masterclass
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/ethical-hacking-penetration-testing
+- **Category**: Cybersecurity
+- **Difficulty**: Intermediate
+- **Duration**: Self-Paced
+- **Instructor**: Heath Adams / freeCodeCamp
+- **Evaluation Mode**: Project-Based
+- **Overview**: Learn practical offensive and defensive security: reconnaissance, network scanning with Nmap, vulnerability assessment, web application security (OWASP Top 10), and ethical penetration testing.
+
+---
+
+## 11. Figma UI/UX Design Masterclass: Wireframing to Interactive Prototyping
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/figma-ui-ux-design-masterclass
+- **Category**: Design
+- **Difficulty**: Beginner
+- **Duration**: Self-Paced
+- **Instructor**: Gary Simon (DesignCourse)
+- **Evaluation Mode**: Project-Based
+- **Overview**: Master modern UI/UX design in Figma. Learn design theory, typography hierarchy, whitespace, color contrast, autolayout, component variants, design tokens, micro-interactions, and accessibility standards.
+
+---
+
+## 12. Complete Product Design, User Research & Design Systems
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/product-design-ux-research
+- **Category**: Design
+- **Difficulty**: Intermediate
+- **Duration**: Self-Paced
+- **Instructor**: Adrian Twarog / freeCodeCamp
+- **Evaluation Mode**: Project-Based
+- **Overview**: Explore user-centered product design: qualitative user research, persona creation, user journey mapping, information architecture, wireframing, and building production design systems.
+
+---
+
+## 13. JavaScript Mastery: DOM Manipulation, Async APIs & Modern Web Apps
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/javascript-mastery-modern-web
+- **Category**: Web Development
+- **Difficulty**: Beginner
+- **Duration**: Self-Paced
+- **Instructor**: Per Harald Borgen / freeCodeCamp
+- **Evaluation Mode**: Project-Based
+- **Overview**: Master JavaScript from variables, conditionals, arrays, and objects through DOM manipulation, event listeners, promises, fetch API, and async/await for modern interactive web development.
+
+---
+
+## 14. Machine Learning & AI with Python: Practical Neural Networks & Model Deployment
+- **Canonical URL**: https://skillrock.onrender.com/learning/courses/machine-learning-ai-python
+- **Category**: AI & Machine Learning
+- **Difficulty**: Intermediate
+- **Duration**: Self-Paced
+- **Instructor**: freeCodeCamp / Andrew Ng
+- **Evaluation Mode**: Project-Based
+- **Overview**: Learn practical machine learning: supervised algorithms (regression, classification), model evaluation metrics, deep learning neural networks with TensorFlow/PyTorch, and deploying predictive ML models.
+
+---

@@ -1,1149 +1,1181 @@
-{% extends "base.html" %}
-
-{% block title %}{{ course.title }} — Skill Rock{% endblock %}
-
-{% block meta_description %}{{ (course.description or 'Learn free programming and real-world project skills on SkillRock.')[:160] }}{% endblock %}
-{% block og_title %}{{ course.title }} — Free Course with Project & Certificate | SkillRock{% endblock %}
-{% block og_description %}{{ (course.description or 'Learn free programming and real-world project skills on SkillRock.')[:200] }}{% endblock %}
-
-{% block head %}
-<!-- Google Schema.org Course Rich Snippet Data -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Course",
-  "name": {{ course.title | tojson }},
-  "description": {{ (course.description or '') | tojson }},
-  "provider": {
-    "@type": "Organization",
-    "name": "SkillRock Student Academy",
-    "sameAs": "{{ request.url_root }}"
-  },
-  "educationalCredentialAwarded": "Official Verified Certificate of Completion",
-  "hasCourseInstance": {
-    "@type": "CourseInstance",
-    "courseMode": "Online",
-    "instructor": {
-      "@type": "Person",
-      "name": {{ (course.instructor or 'SkillRock Academy') | tojson }}
-    }
-  },
-  "offers": {
-    "@type": "Offer",
-    "category": "Free",
-    "price": "0",
-    "priceCurrency": "USD",
-    "availability": "https://schema.org/InStock"
-  }
-}
-</script>
-{% endblock %}
-
-{% block content %}
-<div class="course-detail-container" style="max-width: 1140px; margin: 0 auto; padding-bottom: 48px;">
-
-    <!-- 1. Compact Learning Header -->
-    <div class="learning-compact-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color);">
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 6px 12px; border-radius: 8px;">
-                <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
-                <span>Courses</span>
-            </a>
-            <span style="color: var(--border-color);">|</span>
-            <span class="badge" style="background: rgba(81, 69, 205, 0.1); color: var(--primary-action); font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 9999px;">
-                {{ course.category }}
-            </span>
-            <span class="badge" style="background: var(--bg-hover); color: var(--text-secondary); font-weight: 600; font-size: 0.78rem; padding: 4px 10px; border-radius: 9999px; border: 1px solid var(--border-color);">
-                {{ course.difficulty }}
-            </span>
-        </div>
-
-        <!-- High-Visibility Header Progress Indicator -->
-        <div style="display: flex; align-items: center; gap: 12px;">
-            {% if current_user.is_authenticated and enrollment %}
-                <div style="display: flex; align-items: center; gap: 10px; font-size: 0.84rem;">
-                    <span style="color: var(--text-secondary); font-weight: 600;">Lecture Progress:</span>
-                    <span id="headerProgressPct" class="badge" style="font-weight: 800; font-size: 0.8rem; padding: 3px 10px; border-radius: 9999px;
-                        {% if enrollment.watch_percent >= 80 %}
-                            background: rgba(16, 185, 129, 0.18); color: #10B981;
-                        {% else %}
-                            background: rgba(99, 102, 241, 0.14); color: var(--primary-action);
-                        {% endif %}
-                    ">
-                        {{ enrollment.watch_percent }}%
-                    </span>
-                    <div style="width: 130px; height: 10px; background: rgba(99, 102, 241, 0.12); border: 1px solid var(--border-color); border-radius: 9999px; overflow: hidden; position: relative;">
-                        <div id="headerProgressBar" style="width: {{ enrollment.watch_percent }}%; height: 100%; background: {% if enrollment.watch_percent >= 80 %}#10B981{% else %}linear-gradient(90deg, #6366F1, #8B5CF6){% endif %}; border-radius: 9999px; transition: width 0.3s ease; min-width: {% if enrollment.watch_percent > 0 %}6px{% else %}0px{% endif %};"></div>
-                    </div>
-                </div>
-            {% else %}
-                <span style="font-size: 0.82rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;">
-                    <i data-lucide="clock" style="width: 14px; height: 14px;"></i> {{ course.estimated_duration }}
-                </span>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Main Layout: 2 Columns on desktop -->
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 28px; margin-bottom: 32px;" class="course-layout-grid">
-        
-        <!-- Left Column: Primary Video & Lesson Content -->
-        <div>
-            <!-- 2. Main Lecture Video Container (Clean & Focused) -->
-            <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 14px; background: #000000; box-shadow: var(--shadow-card);">
-                <!-- Responsive 16:9 Video Aspect Ratio -->
-                <div class="skillrock-player-frame paused" id="skillrockPlayerFrame">
-                    <!-- 1. The YouTube Iframe slot -->
-                    <div id="skillrockYtPlayer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
-
-                    <!-- 2. Top Shield: Blocks clicks to YouTube title, channel link, and share buttons -->
-                    <div class="player-top-shield" id="playerTopShield" title="SkillRock Secure Video Player"></div>
-
-                    <!-- 3. Main Pointer/Click Shield: Intercepts all clicks on the video -->
-                    <div class="player-click-shield" id="playerClickShield" title="Click to play or pause">
-                        <!-- Big Centered Play/Pause Indicator (briefly animates on click) -->
-                        <div class="player-center-play-indicator" id="playerCenterIndicator">
-                            <i data-lucide="play" id="centerPlayIcon" style="width: 32px; height: 32px; fill: #FFFFFF; margin-left: 4px;"></i>
-                        </div>
-                    </div>
-
-                    <!-- 4. Completion Overlay: Suppresses YouTube's end-screen recommendation grid -->
-                    <div class="skillrock-completion-overlay" id="skillrockCompletionOverlay">
-                        <div style="width: 58px; height: 58px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); border: 2px solid #10B981; display: flex; align-items: center; justify-content: center; color: #10B981; margin-bottom: 14px;">
-                            <i data-lucide="check-circle-2" style="width: 32px; height: 32px;"></i>
-                        </div>
-                        <h3 style="font-size: 1.35rem; font-weight: 800; color: #FFFFFF; margin-bottom: 8px;">Lecture Completed! 🎉</h3>
-                        <p style="font-size: 0.92rem; color: #94A3B8; max-width: 440px; line-height: 1.5; margin-bottom: 20px;">
-                            You have fully watched this masterclass lecture. Your milestone progress is 100% verified.
-                        </p>
-                        <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
-                            <button type="button" id="btnOverlayRewatch" class="btn btn-secondary" style="padding: 10px 20px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-                                <i data-lucide="rotate-ccw" style="width: 16px; height: 16px;"></i>
-                                <span>Rewatch Lecture</span>
-                            </button>
-                            {% if assignment %}
-                                <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="padding: 10px 22px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; background: #10B981; border-color: #10B981; text-decoration: none;">
-                                    <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
-                                    <span>Proceed to Milestone</span>
-                                </a>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- 5. Custom SkillRock Control Bar (Replaces YouTube's native controls) -->
-                    <div class="skillrock-controls-bar" id="skillrockControlsBar">
-                        <!-- Dual-Tone Unskippable Scrubber -->
-                        <div class="unskippable-scrubber-wrapper" id="scrubberWrapper" title="Seek within watched progress (fast-forwarding locked)">
-                            <div class="scrubber-track-bg"></div>
-                            <!-- Allowed Region (highlighted, clickable) -->
-                            <div class="scrubber-allowed-fill" id="scrubberAllowedFill" style="width: 0%;"></div>
-                            <!-- Current Playhead Fill -->
-                            <div class="scrubber-current-fill" id="scrubberCurrentFill" style="width: 0%;"></div>
-                            <!-- Scrubber Thumb -->
-                            <div class="scrubber-thumb" id="scrubberThumb" style="left: 0%;"></div>
-                            <!-- Locked Region Tooltip Tag -->
-                            <div class="scrubber-lock-tag" id="scrubberLockTag" style="display: none;">
-                                <i data-lucide="lock" style="width: 10px; height: 10px;"></i>
-                                <span>Watch to unlock</span>
-                            </div>
-                        </div>
-
-                        <!-- Controls Row -->
-                        <div class="controls-action-row">
-                            <!-- Left Controls: Play/Pause, Rewind 10s, Timecode -->
-                            <div class="controls-group-left">
-                                <button type="button" class="btn-player-ctrl" id="btnPlayPause" title="Play / Pause">
-                                    <i data-lucide="play" id="iconPlayPause" style="width: 18px; height: 18px;"></i>
-                                </button>
-                                <button type="button" class="btn-player-ctrl" id="btnRewind10" title="Rewind 10 seconds">
-                                    <i data-lucide="rotate-ccw" style="width: 17px; height: 17px;"></i>
-                                    <span style="font-size: 0.72rem; font-weight: 700; margin-left: 2px;">10s</span>
-                                </button>
-                                <div class="player-time-badge" id="playerTimeBadge">
-                                    <span id="customTimeElapsed">00:00</span>
-                                    <span style="opacity: 0.5;">/</span>
-                                    <span id="customTimeDuration">00:00</span>
-                                </div>
-                            </div>
-
-                            <!-- Right Controls: Anti-Skip Active Pill, Speed, Fullscreen -->
-                            <div class="controls-group-right">
-                                <div class="unskippable-guard-pill" title="Forward skipping is locked to prevent cheating on certificates">
-                                    <i data-lucide="shield-check" style="width: 13px; height: 13px; color: #10B981;"></i>
-                                    <span>Anti-Skip Active</span>
-                                </div>
-                                
-                                <select id="playerPlaybackRate" class="player-speed-select" title="Playback speed (max 1.5x)">
-                                    <option value="1" selected>1x</option>
-                                    <option value="1.25">1.25x</option>
-                                    <option value="1.5">1.5x</option>
-                                </select>
-
-                                <button type="button" class="btn-player-ctrl" id="btnPlayerFullscreen" title="Fullscreen">
-                                    <i data-lucide="maximize" id="iconFullscreen" style="width: 18px; height: 18px;"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {% if course.embed_url %}
-                        <noscript>
-                            <iframe 
-                                src="{{ course.embed_url }}" 
-                                title="{{ course.title }}"
-                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                allowfullscreen>
-                            </iframe>
-                        </noscript>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 3. Dedicated High-Visibility Lecture Progress & Certification Tracker Card -->
-            <div class="card" style="padding: 20px 24px; margin-bottom: 24px; border-left: 5px solid var(--primary-action); border-radius: 14px; background: var(--bg-card); box-shadow: var(--shadow-card);">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99, 102, 241, 0.12); display: flex; align-items: center; justify-content: center; color: var(--primary-action);">
-                            <i data-lucide="play-circle" style="width: 22px; height: 22px;"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight: 800; font-size: 1.05rem; color: var(--text-main);">
-                                Lecture Watch Progress
-                            </div>
-                            <div id="playerWatchTimeDisplay" style="font-size: 0.82rem; color: var(--text-muted); font-family: monospace;">
-                                Time Watched: <strong id="timeElapsedText" style="color: var(--text-main);">{{ enrollment.formatted_resume_time if enrollment else '00:00' }}</strong> / <span id="timeDurationText">{{ enrollment.formatted_duration if (enrollment and enrollment.video_duration) else course.estimated_duration }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                        <div id="mainWatchPercentBadge" class="badge" style="font-size: 0.92rem; font-weight: 800; padding: 6px 14px; border-radius: 9999px;
-                            {% if enrollment and enrollment.watch_percent >= 80 %}
-                                background: rgba(16, 185, 129, 0.18); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3);
-                            {% else %}
-                                background: rgba(99, 102, 241, 0.14); color: var(--primary-action); border: 1px solid rgba(99, 102, 241, 0.25);
-                            {% endif %}
-                        ">
-                            <span id="mainProgressPercentText">{{ enrollment.watch_percent if enrollment else 0 }}%</span> Watched
-                        </div>
-
-                        <div id="certificationGateBadge" style="font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;
-                            {% if enrollment and enrollment.watch_percent >= 80 %}
-                                color: #10B981;
-                            {% else %}
-                                color: #D97706;
-                            {% endif %}
-                        ">
-                            {% if enrollment and enrollment.watch_percent >= 80 %}
-                                <i data-lucide="unlock" style="width: 15px; height: 15px;"></i>
-                                <span>80% Reached — Capstone Unlocked!</span>
-                            {% else %}
-                                <i data-lucide="lock" style="width: 15px; height: 15px;"></i>
-                                <span>80% Required to Unlock Final Project</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Wide Progress Bar with 80% Benchmark Line -->
-                <div style="position: relative; width: 100%; height: 14px; background: rgba(99, 102, 241, 0.1); border: 1px solid var(--border-color); border-radius: 9999px; overflow: hidden; margin-bottom: 8px;">
-                    <!-- Filled Progress Track -->
-                    <div id="mainLectureProgressBar" style="position: absolute; top: 0; left: 0; height: 100%; width: {{ enrollment.watch_percent if enrollment else 0 }}%; background: {% if enrollment and enrollment.watch_percent >= 80 %}linear-gradient(90deg, #10B981, #059669){% else %}linear-gradient(90deg, #6366F1, #8B5CF6){% endif %}; border-radius: 9999px; transition: width 0.4s ease; min-width: {% if enrollment and enrollment.watch_percent > 0 %}8px{% else %}0px{% endif %};"></div>
-                    
-                    <!-- 80% Vertical Target Line -->
-                    <div style="position: absolute; top: 0; left: 80%; width: 3px; height: 100%; background: #EF4444; z-index: 2;" title="80% Completion Requirement"></div>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); flex-wrap: wrap; gap: 8px;">
-                    <span id="playerSaveStatusText" style="display: inline-flex; align-items: center; gap: 5px;">
-                        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--primary-action);"></i>
-                        <span id="saveStatusNarrative">Progress auto-saves continuously while watching.</span>
-                    </span>
-                    <span style="display: inline-flex; align-items: center; gap: 5px; color: #EF4444; font-weight: 700;">
-                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #EF4444;"></span>
-                        <span>Red Marker = 80% Certification Gate</span>
-                    </span>
-                </div>
-            </div>
-
-            <!-- Mobile Dedicated Primary Action Card (Enroll / View Certificate / Submit Project) -->
-            <!-- Positioned directly below the video progress bar on mobile. Hidden on desktop! -->
-            <div class="card mobile-course-action-card" id="mobileCourseActionCard">
-                <div class="mobile-action-card-inner">
-                    {% if current_user.is_authenticated %}
-                        {% if certificate %}
-                            <div class="mobile-cert-unlocked-banner">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <i data-lucide="award" style="width: 22px; height: 22px; color: #10B981;"></i>
-                                    <div>
-                                        <strong style="color: #10B981; font-size: 0.95rem;">You Are Certified! 🎉</strong>
-                                        <div style="font-size: 0.76rem; color: var(--text-muted);">Credential ID: {{ certificate.certificate_id }}</div>
-                                    </div>
-                                </div>
-                                <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; margin-top: 10px; background: #10B981; border-color: #10B981; padding: 12px; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
-                                    <i data-lucide="award" style="width: 18px; height: 18px;"></i>
-                                    <span>View Official Certificate</span>
-                                </a>
-                            </div>
-                        {% elif enrollment %}
-                            <div class="mobile-enrolled-status-banner">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                    <span style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--primary-action); font-size: 0.9rem;">
-                                        <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
-                                        Enrolled & Active
-                                    </span>
-                                    <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: var(--primary-action); font-size: 0.8rem; font-weight: 700;">
-                                        {{ enrollment.watch_percent }}% Watched
-                                    </span>
-                                </div>
-                                {% if submission %}
-                                    <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-secondary" style="width: 100%; justify-content: center; font-weight: 700; padding: 11px;">
-                                        Update Project Submission
-                                    </a>
-                                {% elif assignment %}
-                                    {% if enrollment.video_completed or enrollment.watch_percent >= 80 %}
-                                        <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 12px; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);">
-                                            <i data-lucide="upload-cloud" style="width: 18px; height: 18px;"></i>
-                                            <span>Submit Milestone Assignment</span>
-                                        </a>
-                                    {% else %}
-                                        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; padding: 10px 12px; text-align: center; font-size: 0.82rem; color: #D97706; font-weight: 600;">
-                                            <i data-lucide="lock" style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px;"></i>
-                                            <span>Watch 80% to unlock certificate milestone ({{ enrollment.watch_percent }}% watched)</span>
-                                        </div>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        {% else %}
-                            <!-- Not Enrolled Yet (Authenticated) -->
-                            <form action="{{ url_for('learning.enrol_course', course_id=course.id) }}" method="POST" style="margin: 0;">
-                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);">
-                                    <i data-lucide="book-open" style="width: 18px; height: 18px;"></i>
-                                    <span>Enrol Free Now</span>
-                                </button>
-                            </form>
-                        {% endif %}
-                    {% else %}
-                        <!-- Unauthenticated User -->
-                        <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);">
-                            <i data-lucide="log-in" style="width: 18px; height: 18px;"></i>
-                            <span>Sign In to Enrol Free</span>
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 4. Course Details & Learning Objectives -->
-            <div class="card" style="padding: 24px; margin-bottom: 24px; border-radius: 14px;">
-                <h1 style="font-size: 1.65rem; font-weight: 800; line-height: 1.3; margin-bottom: 12px; color: var(--text-main);">
-                    {{ course.title }}
-                </h1>
-
-                <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px; font-size: 0.88rem; color: var(--text-secondary); flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <i data-lucide="user" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
-                        <span>Instructor: <strong style="color: var(--text-main);">{{ course.instructor }}</strong></span>
-                    </div>
-                    <span>•</span>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <i data-lucide="clock" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
-                        <span>{{ course.estimated_duration }}</span>
-                    </div>
-                    <span>•</span>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
-                        <span>{{ course.enrolled_count }} students</span>
-                    </div>
-                </div>
-
-                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">About This Course</h3>
-                <div id="courseAboutWrapper" class="course-about-container">
-                    <p style="font-size: 0.94rem; color: var(--text-secondary); line-height: 1.65; white-space: pre-line; margin-bottom: 8px;">
-                        {{ course.description }}
-                    </p>
-                </div>
-                <button type="button" id="btnToggleAboutMobile" class="btn-toggle-about-mobile" onclick="toggleAboutDescription()">
-                    <span id="btnToggleAboutText">Show more</span> ▾
-                </button>
-
-                <!-- Learning Objectives Checklist -->
-                {% if course.learning_objectives %}
-                    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">What You Will Learn</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 10px;">
-                        {% for obj in course.learning_objectives %}
-                            <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.9rem; color: var(--text-secondary);">
-                                <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
-                                <span>{{ obj }}</span>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- 5. Practical Project Assignment Section -->
-            {% if assignment %}
-                <div class="card" id="project-assignment" style="padding: 24px; border: 2px solid rgba(81, 69, 205, 0.25); border-radius: 14px; background: linear-gradient(180deg, rgba(81, 69, 205, 0.03) 0%, var(--bg-card) 100%);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-                        <div style="display: inline-flex; align-items: center; gap: 10px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--primary-action); color: var(--primary-action-text); display: flex; align-items: center; justify-content: center;">
-                                <i data-lucide="code-2" style="width: 20px; height: 20px;"></i>
-                            </div>
-                            <div>
-                                <div style="font-size: 0.74rem; font-weight: 700; color: var(--primary-action); text-transform: uppercase; letter-spacing: 0.06em;">Course Assignment</div>
-                                <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin: 0;">{{ assignment.title }}</h2>
-                            </div>
-                        </div>
-
-                        {% if assignment.is_deployment_required %}
-                            <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #D97706; font-weight: 700; padding: 6px 12px; border-radius: 9999px;">
-                                <i data-lucide="globe" style="width: 13px; height: 13px; display: inline;"></i> Live Deployment Required
-                            </span>
-                        {% endif %}
-                    </div>
-
-                    <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">
-                        {{ assignment.problem_statement or assignment.short_description }}
-                    </p>
-
-                    <!-- Required Features List -->
-                    {% if assignment.required_features %}
-                        <div style="margin-bottom: 18px;">
-                            <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Mandatory Features To Build:</h4>
-                            <ul style="padding-left: 20px; margin: 0; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6;">
-                                {% for feat in assignment.required_features %}
-                                    <li style="margin-bottom: 4px;">{{ feat }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    {% endif %}
-
-                    <!-- Submission Requirements -->
-                    <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 22px;">
-                        <h4 style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Required Deliverables</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 0.85rem; color: var(--text-secondary);">
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <i data-lucide="github" style="width: 15px; height: 15px; color: var(--text-main);"></i>
-                                <span>Public GitHub Repo + Documentation</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <i data-lucide="link" style="width: 15px; height: 15px; color: var(--primary-action);"></i>
-                                <span>{% if assignment.is_deployment_required %}Live Working URL (Mandatory){% else %}Live URL (Optional){% endif %}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Call to action button -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-                        <a href="{{ url_for('learning.assignment_detail', assignment_id=assignment.id) }}" style="font-size: 0.86rem; color: var(--primary-action); font-weight: 600; text-decoration: none;">
-                            View Detailed Rubric & Specifications →
-                        </a>
-
-                        <div class="project-submit-slot">
-                            {% if current_user.is_authenticated %}
-                                {% if certificate %}
-                                    <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-secondary" style="background: rgba(16, 185, 129, 0.15); color: #059669; border-color: rgba(16, 185, 129, 0.3); font-weight: 700;">
-                                        <i data-lucide="award" style="width: 16px; height: 16px;"></i> View Earned Certificate
-                                    </a>
-                                {% elif submission %}
-                                    <a href="{{ url_for('learning.my_learning') }}" class="btn btn-secondary" style="font-weight: 600;">
-                                        View Submission Status ({{ submission.status_label }})
-                                    </a>
-                                {% elif enrollment and (enrollment.video_completed or enrollment.watch_percent >= 80) %}
-                                    <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 22px; display: inline-flex; align-items: center; gap: 8px;">
-                                        <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
-                                        <span>Submit Your Project</span>
-                                    </a>
-                                {% elif enrollment %}
-                                    <button type="button" class="btn btn-secondary" disabled style="opacity: 0.7; cursor: not-allowed; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 10px 20px;">
-                                        <i data-lucide="lock" style="width: 15px; height: 15px;"></i>
-                                        <span>Watch 80% to Unlock Project ({{ enrollment.watch_percent }}%)</span>
-                                    </button>
-                                {% else %}
-                                    <form action="{{ url_for('learning.enrol_course', course_id=course.id) }}" method="POST" style="margin: 0;">
-                                        <button type="submit" class="btn btn-primary" style="font-weight: 700; padding: 10px 22px;">
-                                            Enrol Free to Start
-                                        </button>
-                                    </form>
-                                {% endif %}
-                            {% else %}
-                                <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 20px;">
-                                    Sign In to Submit Project
-                                </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-        </div>
-
-        <!-- Right Column: Status / Enrolment Sticky Sidebar -->
-        <div>
-            <div class="card" style="padding: 24px; position: sticky; top: 80px; border-radius: 14px;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="font-size: 1.8rem; font-weight: 800; color: #10B981; margin-bottom: 4px;">
-                        FREE
-                    </div>
-                    <div style="font-size: 0.82rem; color: var(--text-muted);">
-                        Curated Learning & Project Certification
-                    </div>
-                </div>
-
-                <!-- Enrolment Status Box -->
-                <div style="border-top: 1px solid var(--border-color); padding-top: 18px; margin-bottom: 20px;">
-                    {% if current_user.is_authenticated %}
-                        {% if certificate %}
-                            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 14px; text-align: center; margin-bottom: 16px;">
-                                <i data-lucide="award" style="width: 32px; height: 32px; color: #10B981; margin-bottom: 6px;"></i>
-                                <div style="font-weight: 700; color: #065F46; font-size: 0.95rem;">You Are Certified!</div>
-                                <div style="font-size: 0.78rem; color: #047857; margin-top: 2px;">ID: {{ certificate.certificate_id }}</div>
-                            </div>
-                            <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; margin-bottom: 8px;">
-                                <i data-lucide="award" style="width: 16px; height: 16px;"></i>
-                                <span>View Certificate</span>
-                            </a>
-                        {% elif enrollment %}
-                            <div style="background: rgba(81, 69, 205, 0.08); border: 1px solid rgba(81, 69, 205, 0.2); border-radius: 10px; padding: 12px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-                                <i data-lucide="check-circle" style="width: 20px; height: 20px; color: var(--primary-action);"></i>
-                                <div style="font-size: 0.85rem;">
-                                    <div style="font-weight: 700; color: var(--text-main);">You are enrolled!</div>
-                                    <div style="color: var(--text-muted); font-size: 0.78rem;">Status: {{ enrollment.status_label }}</div>
-                                </div>
-                            </div>
-
-                            {% if submission %}
-                                <div style="padding: 12px; border-radius: 10px; margin-bottom: 16px; background: var(--bg-hover); font-size: 0.85rem;">
-                                    <div style="font-weight: 600; color: var(--text-main); margin-bottom: 4px;">Submission Status:</div>
-                                    <span class="badge {{ submission.status_badge_class }}">
-                                        {{ submission.status_label }}
-                                    </span>
-                                </div>
-                                <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-secondary" style="width: 100%; justify-content: center; font-weight: 600; margin-bottom: 8px;">
-                                    Update Submission
-                                </a>
-                            {% elif assignment %}
-                                <div class="project-submit-slot-sidebar">
-                                    {% if enrollment.video_completed or enrollment.watch_percent >= 80 %}
-                                        <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 8px;">
-                                            <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
-                                            <span>Submit Project</span>
-                                        </a>
-                                    {% else %}
-                                        <button type="button" class="btn btn-secondary" disabled style="width: 100%; justify-content: center; font-weight: 600; margin-bottom: 8px; opacity: 0.7; cursor: not-allowed; display: inline-flex; align-items: center; gap: 6px;">
-                                            <i data-lucide="lock" style="width: 15px; height: 15px;"></i>
-                                            <span>Watch 80% to Submit ({{ enrollment.watch_percent }}%)</span>
-                                        </button>
-                                    {% endif %}
-                                </div>
-                            {% endif %}
-                        {% else %}
-                            <!-- Not Enrolled Yet -->
-                            <form action="{{ url_for('learning.enrol_course', course_id=course.id) }}" method="POST">
-                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem;">
-                                    Enrol Free Now
-                                </button>
-                            </form>
-                        {% endif %}
-                    {% else %}
-                        <!-- Unauthenticated User -->
-                        <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem;">
-                            Sign In to Enrol Free
-                        </a>
-                    {% endif %}
-                </div>
-
-                <!-- Course Requirements Notice -->
-                <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.7; border-top: 1px solid var(--border-color); padding-top: 14px;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                        <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
-                        <span>Self-paced video learning</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                        <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
-                        <span>Practical real-world project</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                        <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
-                        <span>Instructor review on submission</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
-                        <span>Certificates earned upon approval</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script src="https://www.youtube.com/iframe_api"></script>
-<script>
-(function() {
-    let player = null;
-    let watchdogTimer = null;
-    let progressTimer = null;
-    let controlsFadeTimeout = null;
-    const courseId = "{{ course.id }}";
-    const initialWatchSeconds = {{ enrollment.watch_seconds if enrollment else 0 }};
-    let maxWatchedSeconds = Math.max(initialWatchSeconds, {{ enrollment.max_watch_seconds if enrollment else 0 }});
-    let currentPercent = {{ enrollment.watch_percent if enrollment else 0 }};
-    let videoCompleted = {{ 'true' if (enrollment and (enrollment.video_completed or enrollment.watch_percent >= 80)) else 'false' }};
-    const youtubeVideoId = "{{ course.youtube_video_id or '' }}";
-    const submitProjectUrl = "{{ url_for('learning.submit_project', assignment_id=assignment.id) if assignment else '#' }}";
-
-    function formatTime(secs) {
-        if (!secs || isNaN(secs)) return "00:00";
-        const h = Math.floor(secs / 3600);
-        const m = Math.floor((secs % 3600) / 60);
-        const s = Math.floor(secs % 60);
-        if (h > 0) {
-            return `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-        }
-        return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-    }
-
-    // Initialize clean YouTube IFrame Player with official API
-    function initYouTubePlayer() {
-        if (!youtubeVideoId || youtubeVideoId.startsWith("playlist:")) {
-            return;
-        }
-
-        if (typeof YT !== "undefined" && YT.Player) {
-            createPlayer();
-        } else {
-            window.onYouTubeIframeAPIReady = createPlayer;
-        }
-    }
-
-    function createPlayer() {
-        if (player) return;
-        try {
-            player = new YT.Player('skillrockYtPlayer', {
-                videoId: youtubeVideoId,
-                playerVars: {
-                    controls: 0,        // Hide native controls & "Watch on YouTube" button
-                    disablekb: 1,       // Disable keyboard shortcuts (arrow keys, J/K/L, 0-9)
-                    rel: 0,             // Confine related videos to same channel
-                    fs: 0,              // Disable native fullscreen (use container fullscreen)
-                    playsinline: 1,     // Force inline playback on iOS Safari
-                    iv_load_policy: 3,  // Disable video annotations
-                    modestbranding: 1,
-                    enablejsapi: 1,
-                    origin: window.location.origin
-                },
-                events: {
-                    onReady: onPlayerReady,
-                    onStateChange: onPlayerStateChange,
-                    onError: onPlayerError
-                }
-            });
-        } catch(err) {
-            console.warn("Could not create YouTube player:", err);
-            renderErrorFallback();
-        }
-    }
-
-    function onPlayerReady(event) {
-        if (initialWatchSeconds > 0) {
-            try {
-                player.seekTo(initialWatchSeconds, true);
-            } catch(e) {
-                console.warn("Could not resume player position:", e);
-            }
-        }
-        setupCustomControls();
-        updateTimeDisplays();
-    }
-
-    function onPlayerStateChange(event) {
-        const frame = document.getElementById("skillrockPlayerFrame");
-        const playIcon = document.getElementById("iconPlayPause");
-
-        if (event.data === YT.PlayerState.PLAYING) {
-            if (frame) {
-                frame.classList.remove("paused");
-                frame.classList.add("playing");
-            }
-            if (playIcon) playIcon.setAttribute("data-lucide", "pause");
-
-            if (!progressTimer) {
-                progressTimer = setInterval(() => syncPlaybackProgress(), 10000); // Auto-save progress every 10 seconds while playing
-            }
-            if (!watchdogTimer) {
-                watchdogTimer = setInterval(checkPlaybackWatchdog, 250); // 250ms anti-cheat & live UI watchdog
-            }
-            scheduleControlsFade();
-        } else {
-            if (frame) {
-                frame.classList.add("paused");
-                frame.classList.remove("playing");
-            }
-            if (playIcon) playIcon.setAttribute("data-lucide", "play");
-
-            if (progressTimer) {
-                clearInterval(progressTimer);
-                progressTimer = null;
-            }
-            if (watchdogTimer) {
-                clearInterval(watchdogTimer);
-                watchdogTimer = null;
-            }
-            updateTimeDisplays();
-
-            if (event.data === YT.PlayerState.PAUSED) {
-                syncPlaybackProgress();
-            } else if (event.data === YT.PlayerState.ENDED) {
-                onLectureEnded();
-            }
-        }
-
-        if (window.lucide && window.lucide.createIcons) {
-            window.lucide.createIcons();
-        }
-    }
-
-    // High-frequency watchdog enforcing unskippable playback and updating progress
-    function checkPlaybackWatchdog() {
-        if (!player || typeof player.getCurrentTime !== "function") return;
-        const state = player.getPlayerState();
-        if (state !== YT.PlayerState.PLAYING) return;
-
-        const currentSecs = player.getCurrentTime() || 0;
-        const durationSecs = player.getDuration() || 0;
-
-        // Anti-skip enforcement:
-        // If current time jumped ahead of max watched by more than 1.25s (seeking ahead attempted)
-        if (currentSecs > maxWatchedSeconds + 1.25) {
-            console.warn("Anti-skip: Jump ahead prevented. Reverting to", maxWatchedSeconds);
-            player.seekTo(maxWatchedSeconds, true);
-            showScrubberLockTooltip();
-            return;
-        }
-
-        // Legitimate forward advancement
-        if (currentSecs > maxWatchedSeconds) {
-            maxWatchedSeconds = currentSecs;
-        }
-
-        // End-screen interception: before YouTube triggers related videos / playlists
-        if (durationSecs > 0 && currentSecs >= durationSecs - 0.5) {
-            onLectureEnded();
-            return;
-        }
-
-        updateCustomControlsUI(currentSecs, durationSecs);
-        updateTimeDisplays();
-    }
-
-    function onLectureEnded() {
-        if (player && typeof player.pauseVideo === "function") {
-            player.pauseVideo();
-        }
-        const overlay = document.getElementById("skillrockCompletionOverlay");
-        if (overlay) {
-            overlay.classList.add("active");
-        }
-        if (player && typeof player.getDuration === "function") {
-            const dur = Math.floor(player.getDuration() || 0);
-            maxWatchedSeconds = dur;
-            syncPlaybackProgress(dur, dur);
-        }
-    }
-
-    function onPlayerError(event) {
-        console.warn("YouTube player error encountered:", event.data);
-        renderErrorFallback();
-    }
-
-    function renderErrorFallback() {
-        const frame = document.getElementById("skillrockPlayerFrame");
-        if (!frame) return;
-        const ytWatchUrl = `https://www.youtube.com/watch?v=${youtubeVideoId}`;
-
-        frame.innerHTML = `
-            <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0F172A; color: #F8FAFC; padding: 24px; text-align: center;">
-                <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(99, 102, 241, 0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
-                </div>
-                <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; color: #FFFFFF;">External Video Playback</h3>
-                <p style="font-size: 0.88rem; color: #94A3B8; max-width: 460px; line-height: 1.5; margin-bottom: 16px;">
-                    This video can be watched directly on YouTube. Your learning progress and certificate qualifications remain 100% active.
-                </p>
-                <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
-                    <a href="${ytWatchUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 10px 22px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                        <span>Open on YouTube ↗</span>
-                    </a>
-                </div>
-            </div>
-        `;
-    }
-
-    function setupCustomControls() {
-        const btnPlay = document.getElementById("btnPlayPause");
-        const btnRewind = document.getElementById("btnRewind10");
-        const speedSelect = document.getElementById("playerPlaybackRate");
-        const btnFs = document.getElementById("btnPlayerFullscreen");
-        const shield = document.getElementById("playerClickShield");
-        const scrubber = document.getElementById("scrubberWrapper");
-        const btnRewatch = document.getElementById("btnOverlayRewatch");
-        const frame = document.getElementById("skillrockPlayerFrame");
-
-        if (shield) {
-            shield.addEventListener("click", () => togglePlayPause());
-            shield.addEventListener("dblclick", () => togglePlayerFullscreen());
-        }
-
-        if (btnPlay) btnPlay.addEventListener("click", () => togglePlayPause());
-        if (btnRewind) btnRewind.addEventListener("click", () => rewind10Seconds());
-
-        if (speedSelect) {
-            speedSelect.addEventListener("change", (e) => {
-                const rate = parseFloat(e.target.value) || 1.0;
-                if (player && typeof player.setPlaybackRate === "function") {
-                    player.setPlaybackRate(Math.min(1.5, Math.max(0.5, rate)));
-                }
-            });
-        }
-
-        if (btnFs) btnFs.addEventListener("click", () => togglePlayerFullscreen());
-
-        if (btnRewatch) {
-            btnRewatch.addEventListener("click", () => {
-                const overlay = document.getElementById("skillrockCompletionOverlay");
-                if (overlay) overlay.classList.remove("active");
-                if (player && typeof player.seekTo === "function") {
-                    player.seekTo(0, true);
-                    player.playVideo();
-                }
-            });
-        }
-
-        // Scrubber seek interaction (supports click and touch)
-        if (scrubber) {
-            scrubber.addEventListener("click", (e) => handleScrubberSeek(e));
-        }
-
-        // Show/hide controls on mousemove or touch
-        if (frame) {
-            frame.addEventListener("mousemove", () => {
-                frame.classList.add("touch-active");
-                scheduleControlsFade();
-            });
-            frame.addEventListener("touchstart", () => {
-                frame.classList.add("touch-active");
-                scheduleControlsFade();
-            }, { passive: true });
-        }
-    }
-
-    function scheduleControlsFade() {
-        if (controlsFadeTimeout) clearTimeout(controlsFadeTimeout);
-        const frame = document.getElementById("skillrockPlayerFrame");
-        controlsFadeTimeout = setTimeout(() => {
-            if (frame && player && player.getPlayerState() === YT.PlayerState.PLAYING) {
-                frame.classList.remove("touch-active");
-            }
-        }, 3500);
-    }
-
-    function togglePlayPause() {
-        if (!player || typeof player.getPlayerState !== "function") return;
-        const state = player.getPlayerState();
-        const indicator = document.getElementById("playerCenterIndicator");
-        const centerIcon = document.getElementById("centerPlayIcon");
-
-        if (state === YT.PlayerState.PLAYING) {
-            player.pauseVideo();
-            if (centerIcon) centerIcon.setAttribute("data-lucide", "pause");
-        } else {
-            player.playVideo();
-            if (centerIcon) centerIcon.setAttribute("data-lucide", "play");
-        }
-
-        if (indicator) {
-            indicator.classList.add("active");
-            setTimeout(() => indicator.classList.remove("active"), 500);
-        }
-        if (window.lucide && window.lucide.createIcons) {
-            window.lucide.createIcons();
-        }
-    }
-
-    function rewind10Seconds() {
-        if (!player || typeof player.getCurrentTime !== "function") return;
-        const cur = player.getCurrentTime() || 0;
-        const target = Math.max(0, cur - 10);
-        player.seekTo(target, true);
-        updateCustomControlsUI(target, player.getDuration());
-    }
-
-    async function togglePlayerFullscreen() {
-        const frame = document.getElementById("skillrockPlayerFrame");
-        const fsIcon = document.getElementById("iconFullscreen");
-        if (!frame) return;
-
-        const isCurrentlyFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
-
-        if (!isCurrentlyFullscreen) {
-            try {
-                if (frame.requestFullscreen) {
-                    await frame.requestFullscreen();
-                } else if (frame.webkitRequestFullscreen) {
-                    await frame.webkitRequestFullscreen();
-                }
-
-                // In mobile, automatically rotate screen to landscape on expand
-                if (screen.orientation && typeof screen.orientation.lock === "function") {
-                    try {
-                        await screen.orientation.lock("landscape");
-                    } catch(err) {
-                        console.log("Screen orientation lock info:", err);
-                    }
-                }
-            } catch(err) {
-                console.warn("Fullscreen request error:", err);
-            }
-            if (fsIcon) fsIcon.setAttribute("data-lucide", "minimize");
-        } else {
-            // Restore natural orientation upon exit
-            if (screen.orientation && typeof screen.orientation.unlock === "function") {
-                try {
-                    screen.orientation.unlock();
-                } catch(err) {}
-            }
-            if (document.exitFullscreen) {
-                await document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                await document.webkitExitFullscreen();
-            }
-            if (fsIcon) fsIcon.setAttribute("data-lucide", "maximize");
-        }
-        if (window.lucide && window.lucide.createIcons) {
-            window.lucide.createIcons();
-        }
-    }
-
-    // Handle ESC key or Android gesture exit
-    function onFullscreenChangeHandler() {
-        const fsIcon = document.getElementById("iconFullscreen");
-        const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
-        if (!isFs) {
-            if (screen.orientation && typeof screen.orientation.unlock === "function") {
-                try { screen.orientation.unlock(); } catch(e) {}
-            }
-            if (fsIcon) fsIcon.setAttribute("data-lucide", "maximize");
-        } else {
-            if (fsIcon) fsIcon.setAttribute("data-lucide", "minimize");
-        }
-        if (window.lucide && window.lucide.createIcons) {
-            window.lucide.createIcons();
-        }
-    }
-    document.addEventListener("fullscreenchange", onFullscreenChangeHandler);
-    document.addEventListener("webkitfullscreenchange", onFullscreenChangeHandler);
-
-    function handleScrubberSeek(e) {
-        if (!player || typeof player.getDuration !== "function") return;
-        const durationSecs = player.getDuration() || 0;
-        if (durationSecs <= 0) return;
-
-        const scrubber = document.getElementById("scrubberWrapper");
-        if (!scrubber) return;
-        const rect = scrubber.getBoundingClientRect();
-        const clickRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        const targetSeconds = clickRatio * durationSecs;
-
-        // Backward seek: unconditionally permitted!
-        // Forward seek: clamped to maxWatchedSeconds
-        if (targetSeconds <= maxWatchedSeconds) {
-            player.seekTo(targetSeconds, true);
-        } else {
-            // Clamped to allowed watched boundary
-            player.seekTo(maxWatchedSeconds, true);
-            showScrubberLockTooltip(e.clientX - rect.left);
-        }
-        updateCustomControlsUI(player.getCurrentTime(), durationSecs);
-    }
-
-    function showScrubberLockTooltip(posX) {
-        const tag = document.getElementById("scrubberLockTag");
-        if (!tag) return;
-        if (posX !== undefined) {
-            tag.style.left = `${posX}px`;
-        }
-        tag.style.display = "inline-flex";
-        setTimeout(() => {
-            tag.style.display = "none";
-        }, 1800);
-    }
-
-    function updateCustomControlsUI(currentSecs, durationSecs) {
-        if (!durationSecs || durationSecs <= 0) return;
-        const currentPct = Math.max(0, Math.min(100, (currentSecs / durationSecs) * 100));
-        const allowedPct = Math.max(0, Math.min(100, (maxWatchedSeconds / durationSecs) * 100));
-
-        const allowedFill = document.getElementById("scrubberAllowedFill");
-        const currentFill = document.getElementById("scrubberCurrentFill");
-        const thumb = document.getElementById("scrubberThumb");
-        const customElapsed = document.getElementById("customTimeElapsed");
-        const customDuration = document.getElementById("customTimeDuration");
-
-        if (allowedFill) allowedFill.style.width = `${allowedPct}%`;
-        if (currentFill) currentFill.style.width = `${currentPct}%`;
-        if (thumb) thumb.style.left = `${currentPct}%`;
-        if (customElapsed) customElapsed.textContent = formatTime(Math.floor(currentSecs));
-        if (customDuration) customDuration.textContent = formatTime(Math.floor(durationSecs));
-    }
-
-    function updateTimeDisplays() {
-        if (!player || typeof player.getCurrentTime !== "function") return;
-        const currentSecs = Math.floor(player.getCurrentTime() || 0);
-        const durationSecs = Math.floor(player.getDuration() || 0);
-
-        const timeElapsed = document.getElementById("timeElapsedText");
-        const timeDuration = document.getElementById("timeDurationText");
-
-        if (timeElapsed && currentSecs >= 0) {
-            timeElapsed.textContent = formatTime(currentSecs);
-        }
-        if (timeDuration && durationSecs > 0) {
-            timeDuration.textContent = formatTime(durationSecs);
-        }
-
-        // Live smooth progress estimation
-        if (durationSecs > 0) {
-            const calculatedPct = Math.min(100, Math.round((maxWatchedSeconds / durationSecs) * 100));
-            if (calculatedPct > currentPercent) {
-                applyProgressUI(calculatedPct);
-            }
-        }
-    }
-
-    function applyProgressUI(pct) {
-        const headerPct = document.getElementById("headerProgressPct");
-        const headerBar = document.getElementById("headerProgressBar");
-        const mainBar = document.getElementById("mainLectureProgressBar");
-        const mainPctText = document.getElementById("mainProgressPercentText");
-        const mainBadge = document.getElementById("mainWatchPercentBadge");
-        const gateBadge = document.getElementById("certificationGateBadge");
-
-        if (headerPct) headerPct.textContent = `${pct}%`;
-        if (mainPctText) mainPctText.textContent = `${pct}%`;
-
-        if (headerBar) {
-            headerBar.style.width = `${pct}%`;
-            if (pct >= 80) headerBar.style.background = "#10B981";
-        }
-        if (mainBar) {
-            mainBar.style.width = `${pct}%`;
-            if (pct >= 80) mainBar.style.background = "linear-gradient(90deg, #10B981, #059669)";
-        }
-
-        if (pct >= 80) {
-            if (headerPct) {
-                headerPct.style.background = "rgba(16, 185, 129, 0.18)";
-                headerPct.style.color = "#10B981";
-            }
-            if (mainBadge) {
-                mainBadge.style.background = "rgba(16, 185, 129, 0.18)";
-                mainBadge.style.color = "#10B981";
-                mainBadge.style.borderColor = "rgba(16, 185, 129, 0.3)";
-            }
-            if (gateBadge) {
-                gateBadge.innerHTML = '<i data-lucide="unlock" style="width: 15px; height: 15px;"></i><span>80% Reached — Capstone Unlocked!</span>';
-                gateBadge.style.color = "#10B981";
-            }
-            unlockSubmitButtons();
-        }
-    }
-
-    async function syncPlaybackProgress(overrideSecs, overrideDur) {
-        let currentSecs = overrideSecs;
-        let durationSecs = overrideDur;
-
-        if (currentSecs === undefined) {
-            if (!player || typeof player.getCurrentTime !== "function") return;
-            currentSecs = Math.floor(player.getCurrentTime() || 0);
-            durationSecs = Math.floor(player.getDuration() || 0);
-        }
-
-        if (currentSecs <= 0) return;
-
-        try {
-            const res = await fetch("{{ url_for('learning.save_course_progress') }}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-Requested-With": "XMLHttpRequest"
-                },
-                body: JSON.stringify({
-                    course_id: courseId,
-                    watch_seconds: currentSecs,
-                    video_duration: durationSecs
-                })
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                currentPercent = data.watch_percent;
-                videoCompleted = data.video_completed;
-                maxWatchedSeconds = Math.max(maxWatchedSeconds, data.max_watch_seconds || 0);
-
-                applyProgressUI(currentPercent);
-
-                const saveNarrative = document.getElementById("saveStatusNarrative");
-                if (saveNarrative) {
-                    saveNarrative.textContent = "✓ Progress saved securely (Anti-Cheat Active).";
-                    setTimeout(() => { 
-                        if (saveNarrative) saveNarrative.textContent = "Progress auto-saves continuously while watching."; 
-                    }, 3000);
-                }
-
-                if (videoCompleted || currentPercent >= 80) {
-                    unlockSubmitButtons();
-                }
-            }
-        } catch(err) {
-            console.warn("Could not save playback progress:", err);
-        }
-    }
-
-    function unlockSubmitButtons() {
-        const slots = document.querySelectorAll(".project-submit-slot, .project-submit-slot-sidebar");
-        slots.forEach(slot => {
-            slot.innerHTML = `
-                <a href="${submitProjectUrl}" class="btn btn-primary" style="font-weight: 700; width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 8px;">
-                    <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
-                    <span>Submit Project</span>
-                </a>
-            `;
-        });
-        if (window.lucide && window.lucide.createIcons) {
-            window.lucide.createIcons();
-        }
-    }
-
-    // Save on tab close or navigation
-    window.addEventListener("beforeunload", () => {
-        if (player && typeof player.getCurrentTime === "function") {
-            const currentSecs = Math.floor(player.getCurrentTime() || 0);
-            const durationSecs = Math.floor(player.getDuration() || 0);
-            if (currentSecs > 0 && navigator.sendBeacon) {
-                const payload = JSON.stringify({
-                    course_id: courseId,
-                    watch_seconds: currentSecs,
-                    video_duration: durationSecs
-                });
-                const blob = new Blob([payload], { type: 'application/json' });
-                navigator.sendBeacon("{{ url_for('learning.save_course_progress') }}", blob);
-            }
-        }
-    });
-
-    // Start initialization
-    initYouTubePlayer();
-})();
-</script>
-{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}{{ course.title }} — Skill Rock{% endblock %}
+
+{% block meta_description %}{{ (course.description or 'Learn free programming and real-world project skills on SkillRock.')[:160] }}{% endblock %}
+{% block og_title %}{{ course.title }} — Free Course with Project & Certificate | SkillRock{% endblock %}
+{% block og_description %}{{ (course.description or 'Learn free programming and real-world project skills on SkillRock.')[:200] }}{% endblock %}
+
+{% block og_image %}{% if course.youtube_id %}https://img.youtube.com/vi/{{ course.youtube_id }}/maxresdefault.jpg{% else %}https://skillrock.onrender.com/static/img/skillrock-og-banner.png{% endif %}{% endblock %}
+{% block og_image_secure %}{% if course.youtube_id %}https://img.youtube.com/vi/{{ course.youtube_id }}/maxresdefault.jpg{% else %}https://skillrock.onrender.com/static/img/skillrock-og-banner.png{% endif %}{% endblock %}
+{% block twitter_image %}{% if course.youtube_id %}https://img.youtube.com/vi/{{ course.youtube_id }}/maxresdefault.jpg{% else %}https://skillrock.onrender.com/static/img/skillrock-og-banner.png{% endif %}{% endblock %}
+
+{% block head %}
+<!-- Schema.org Course & Breadcrumbs Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Course",
+      "@id": "https://skillrock.onrender.com/learning/courses/{{ course.slug or course.id }}#course",
+      "name": {{ course.title | tojson }},
+      "description": {{ (course.description or '') | tojson }},
+      "provider": {
+        "@type": "EducationalOrganization",
+        "name": "SkillRock",
+        "sameAs": "https://skillrock.onrender.com"
+      },
+      "educationalCredentialAwarded": "SkillRock Verified Certificate of Achievement",
+      "hasCourseInstance": {
+        "@type": "CourseInstance",
+        "courseMode": "Online",
+        "instructor": {
+          "@type": "Person",
+          "name": {{ (course.instructor or 'SkillRock Academy') | tojson }}
+        }
+      },
+      "offers": {
+        "@type": "Offer",
+        "category": "Free",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://skillrock.onrender.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Courses",
+          "item": "https://skillrock.onrender.com/learning/courses"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": {{ course.title | tojson }},
+          "item": "https://skillrock.onrender.com/learning/courses/{{ course.slug or course.id }}"
+        }
+      ]
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="course-detail-container" style="max-width: 1140px; margin: 0 auto; padding-bottom: 48px;">
+
+    <!-- 1. Compact Learning Header -->
+    <div class="learning-compact-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color);">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 6px 12px; border-radius: 8px;">
+                <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+                <span>Courses</span>
+            </a>
+            <span style="color: var(--border-color);">|</span>
+            <span class="badge" style="background: rgba(81, 69, 205, 0.1); color: var(--primary-action); font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 9999px;">
+                {{ course.category }}
+            </span>
+            <span class="badge" style="background: var(--bg-hover); color: var(--text-secondary); font-weight: 600; font-size: 0.78rem; padding: 4px 10px; border-radius: 9999px; border: 1px solid var(--border-color);">
+                {{ course.difficulty }}
+            </span>
+        </div>
+
+        <!-- High-Visibility Header Progress Indicator -->
+        <div style="display: flex; align-items: center; gap: 12px;">
+            {% if current_user.is_authenticated and enrollment %}
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 0.84rem;">
+                    <span style="color: var(--text-secondary); font-weight: 600;">Lecture Progress:</span>
+                    <span id="headerProgressPct" class="badge" style="font-weight: 800; font-size: 0.8rem; padding: 3px 10px; border-radius: 9999px;
+                        {% if enrollment.watch_percent >= 80 %}
+                            background: rgba(16, 185, 129, 0.18); color: #10B981;
+                        {% else %}
+                            background: rgba(99, 102, 241, 0.14); color: var(--primary-action);
+                        {% endif %}
+                    ">
+                        {{ enrollment.watch_percent }}%
+                    </span>
+                    <div style="width: 130px; height: 10px; background: rgba(99, 102, 241, 0.12); border: 1px solid var(--border-color); border-radius: 9999px; overflow: hidden; position: relative;">
+                        <div id="headerProgressBar" style="width: {{ enrollment.watch_percent }}%; height: 100%; background: {% if enrollment.watch_percent >= 80 %}#10B981{% else %}linear-gradient(90deg, #6366F1, #8B5CF6){% endif %}; border-radius: 9999px; transition: width 0.3s ease; min-width: {% if enrollment.watch_percent > 0 %}6px{% else %}0px{% endif %};"></div>
+                    </div>
+                </div>
+            {% else %}
+                <span style="font-size: 0.82rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;">
+                    <i data-lucide="clock" style="width: 14px; height: 14px;"></i> {{ course.estimated_duration }}
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Layout: 2 Columns on desktop -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 28px; margin-bottom: 32px;" class="course-layout-grid">
+        
+        <!-- Left Column: Primary Video & Lesson Content -->
+        <div>
+            <!-- 2. Main Lecture Video Container (Clean & Focused) -->
+            <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 14px; background: #000000; box-shadow: var(--shadow-card);">
+                <!-- Responsive 16:9 Video Aspect Ratio -->
+                <div class="skillrock-player-frame paused" id="skillrockPlayerFrame">
+                    <!-- 1. The YouTube Iframe slot -->
+                    <div id="skillrockYtPlayer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+
+                    <!-- 2. Top Shield: Blocks clicks to YouTube title, channel link, and share buttons -->
+                    <div class="player-top-shield" id="playerTopShield" title="SkillRock Secure Video Player"></div>
+
+                    <!-- 3. Main Pointer/Click Shield: Intercepts all clicks on the video -->
+                    <div class="player-click-shield" id="playerClickShield" title="Click to play or pause">
+                        <!-- Big Centered Play/Pause Indicator (briefly animates on click) -->
+                        <div class="player-center-play-indicator" id="playerCenterIndicator">
+                            <i data-lucide="play" id="centerPlayIcon" style="width: 32px; height: 32px; fill: #FFFFFF; margin-left: 4px;"></i>
+                        </div>
+                    </div>
+
+                    <!-- 4. Completion Overlay: Suppresses YouTube's end-screen recommendation grid -->
+                    <div class="skillrock-completion-overlay" id="skillrockCompletionOverlay">
+                        <div style="width: 58px; height: 58px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); border: 2px solid #10B981; display: flex; align-items: center; justify-content: center; color: #10B981; margin-bottom: 14px;">
+                            <i data-lucide="check-circle-2" style="width: 32px; height: 32px;"></i>
+                        </div>
+                        <h3 style="font-size: 1.35rem; font-weight: 800; color: #FFFFFF; margin-bottom: 8px;">Lecture Completed! 🎉</h3>
+                        <p style="font-size: 0.92rem; color: #94A3B8; max-width: 440px; line-height: 1.5; margin-bottom: 20px;">
+                            You have fully watched this masterclass lecture. Your milestone progress is 100% verified.
+                        </p>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+                            <button type="button" id="btnOverlayRewatch" class="btn btn-secondary" style="padding: 10px 20px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                                <i data-lucide="rotate-ccw" style="width: 16px; height: 16px;"></i>
+                                <span>Rewatch Lecture</span>
+                            </button>
+                            {% if assignment %}
+                                <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="padding: 10px 22px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; background: #10B981; border-color: #10B981; text-decoration: none;">
+                                    <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
+                                    <span>Proceed to Milestone</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- 5. Custom SkillRock Control Bar (Replaces YouTube's native controls) -->
+                    <div class="skillrock-controls-bar" id="skillrockControlsBar">
+                        <!-- Dual-Tone Unskippable Scrubber -->
+                        <div class="unskippable-scrubber-wrapper" id="scrubberWrapper" title="Seek within watched progress (fast-forwarding locked)">
+                            <div class="scrubber-track-bg"></div>
+                            <!-- Allowed Region (highlighted, clickable) -->
+                            <div class="scrubber-allowed-fill" id="scrubberAllowedFill" style="width: 0%;"></div>
+                            <!-- Current Playhead Fill -->
+                            <div class="scrubber-current-fill" id="scrubberCurrentFill" style="width: 0%;"></div>
+                            <!-- Scrubber Thumb -->
+                            <div class="scrubber-thumb" id="scrubberThumb" style="left: 0%;"></div>
+                            <!-- Locked Region Tooltip Tag -->
+                            <div class="scrubber-lock-tag" id="scrubberLockTag" style="display: none;">
+                                <i data-lucide="lock" style="width: 10px; height: 10px;"></i>
+                                <span>Watch to unlock</span>
+                            </div>
+                        </div>
+
+                        <!-- Controls Row -->
+                        <div class="controls-action-row">
+                            <!-- Left Controls: Play/Pause, Rewind 10s, Timecode -->
+                            <div class="controls-group-left">
+                                <button type="button" class="btn-player-ctrl" id="btnPlayPause" title="Play / Pause">
+                                    <i data-lucide="play" id="iconPlayPause" style="width: 18px; height: 18px;"></i>
+                                </button>
+                                <button type="button" class="btn-player-ctrl" id="btnRewind10" title="Rewind 10 seconds">
+                                    <i data-lucide="rotate-ccw" style="width: 17px; height: 17px;"></i>
+                                    <span style="font-size: 0.72rem; font-weight: 700; margin-left: 2px;">10s</span>
+                                </button>
+                                <div class="player-time-badge" id="playerTimeBadge">
+                                    <span id="customTimeElapsed">00:00</span>
+                                    <span style="opacity: 0.5;">/</span>
+                                    <span id="customTimeDuration">00:00</span>
+                                </div>
+                            </div>
+
+                            <!-- Right Controls: Anti-Skip Active Pill, Speed, Fullscreen -->
+                            <div class="controls-group-right">
+                                <div class="unskippable-guard-pill" title="Forward skipping is locked to prevent cheating on certificates">
+                                    <i data-lucide="shield-check" style="width: 13px; height: 13px; color: #10B981;"></i>
+                                    <span>Anti-Skip Active</span>
+                                </div>
+                                
+                                <select id="playerPlaybackRate" class="player-speed-select" title="Playback speed (max 1.5x)">
+                                    <option value="1" selected>1x</option>
+                                    <option value="1.25">1.25x</option>
+                                    <option value="1.5">1.5x</option>
+                                </select>
+
+                                <button type="button" class="btn-player-ctrl" id="btnPlayerFullscreen" title="Fullscreen">
+                                    <i data-lucide="maximize" id="iconFullscreen" style="width: 18px; height: 18px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if course.embed_url %}
+                        <noscript>
+                            <iframe 
+                                src="{{ course.embed_url }}" 
+                                title="{{ course.title }}"
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen>
+                            </iframe>
+                        </noscript>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 3. Dedicated High-Visibility Lecture Progress & Certification Tracker Card -->
+            <div class="card" style="padding: 20px 24px; margin-bottom: 24px; border-left: 5px solid var(--primary-action); border-radius: 14px; background: var(--bg-card); box-shadow: var(--shadow-card);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99, 102, 241, 0.12); display: flex; align-items: center; justify-content: center; color: var(--primary-action);">
+                            <i data-lucide="play-circle" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 800; font-size: 1.05rem; color: var(--text-main);">
+                                Lecture Watch Progress
+                            </div>
+                            <div id="playerWatchTimeDisplay" style="font-size: 0.82rem; color: var(--text-muted); font-family: monospace;">
+                                Time Watched: <strong id="timeElapsedText" style="color: var(--text-main);">{{ enrollment.formatted_resume_time if enrollment else '00:00' }}</strong> / <span id="timeDurationText">{{ enrollment.formatted_duration if (enrollment and enrollment.video_duration) else course.estimated_duration }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div id="mainWatchPercentBadge" class="badge" style="font-size: 0.92rem; font-weight: 800; padding: 6px 14px; border-radius: 9999px;
+                            {% if enrollment and enrollment.watch_percent >= 80 %}
+                                background: rgba(16, 185, 129, 0.18); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3);
+                            {% else %}
+                                background: rgba(99, 102, 241, 0.14); color: var(--primary-action); border: 1px solid rgba(99, 102, 241, 0.25);
+                            {% endif %}
+                        ">
+                            <span id="mainProgressPercentText">{{ enrollment.watch_percent if enrollment else 0 }}%</span> Watched
+                        </div>
+
+                        <div id="certificationGateBadge" style="font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;
+                            {% if enrollment and enrollment.watch_percent >= 80 %}
+                                color: #10B981;
+                            {% else %}
+                                color: #D97706;
+                            {% endif %}
+                        ">
+                            {% if enrollment and enrollment.watch_percent >= 80 %}
+                                <i data-lucide="unlock" style="width: 15px; height: 15px;"></i>
+                                <span>80% Reached — Capstone Unlocked!</span>
+                            {% else %}
+                                <i data-lucide="lock" style="width: 15px; height: 15px;"></i>
+                                <span>80% Required to Unlock Final Project</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wide Progress Bar with 80% Benchmark Line -->
+                <div style="position: relative; width: 100%; height: 14px; background: rgba(99, 102, 241, 0.1); border: 1px solid var(--border-color); border-radius: 9999px; overflow: hidden; margin-bottom: 8px;">
+                    <!-- Filled Progress Track -->
+                    <div id="mainLectureProgressBar" style="position: absolute; top: 0; left: 0; height: 100%; width: {{ enrollment.watch_percent if enrollment else 0 }}%; background: {% if enrollment and enrollment.watch_percent >= 80 %}linear-gradient(90deg, #10B981, #059669){% else %}linear-gradient(90deg, #6366F1, #8B5CF6){% endif %}; border-radius: 9999px; transition: width 0.4s ease; min-width: {% if enrollment and enrollment.watch_percent > 0 %}8px{% else %}0px{% endif %};"></div>
+                    
+                    <!-- 80% Vertical Target Line -->
+                    <div style="position: absolute; top: 0; left: 80%; width: 3px; height: 100%; background: #EF4444; z-index: 2;" title="80% Completion Requirement"></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); flex-wrap: wrap; gap: 8px;">
+                    <span id="playerSaveStatusText" style="display: inline-flex; align-items: center; gap: 5px;">
+                        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--primary-action);"></i>
+                        <span id="saveStatusNarrative">Progress auto-saves continuously while watching.</span>
+                    </span>
+                    <span style="display: inline-flex; align-items: center; gap: 5px; color: #EF4444; font-weight: 700;">
+                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #EF4444;"></span>
+                        <span>Red Marker = 80% Certification Gate</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Mobile Dedicated Primary Action Card (Enroll / View Certificate / Submit Project) -->
+            <!-- Positioned directly below the video progress bar on mobile. Hidden on desktop! -->
+            <div class="card mobile-course-action-card" id="mobileCourseActionCard">
+                <div class="mobile-action-card-inner">
+                    {% if current_user.is_authenticated %}
+                        {% if certificate %}
+                            <div class="mobile-cert-unlocked-banner">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="award" style="width: 22px; height: 22px; color: #10B981;"></i>
+                                    <div>
+                                        <strong style="color: #10B981; font-size: 0.95rem;">You Are Certified! 🎉</strong>
+                                        <div style="font-size: 0.76rem; color: var(--text-muted);">Credential ID: {{ certificate.certificate_id }}</div>
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; margin-top: 10px; background: #10B981; border-color: #10B981; padding: 12px; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                                    <i data-lucide="award" style="width: 18px; height: 18px;"></i>
+                                    <span>View Official Certificate</span>
+                                </a>
+                            </div>
+                        {% elif enrollment %}
+                            <div class="mobile-enrolled-status-banner">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <span style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--primary-action); font-size: 0.9rem;">
+                                        <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                                        Enrolled & Active
+                                    </span>
+                                    <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: var(--primary-action); font-size: 0.8rem; font-weight: 700;">
+                                        {{ enrollment.watch_percent }}% Watched
+                                    </span>
+                                </div>
+                                {% if submission %}
+                                    <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-secondary" style="width: 100%; justify-content: center; font-weight: 700; padding: 11px;">
+                                        Update Project Submission
+                                    </a>
+                                {% elif assignment %}
+                                    {% if enrollment.video_completed or enrollment.watch_percent >= 80 %}
+                                        <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 12px; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);">
+                                            <i data-lucide="upload-cloud" style="width: 18px; height: 18px;"></i>
+                                            <span>Submit Milestone Assignment</span>
+                                        </a>
+                                    {% else %}
+                                        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; padding: 10px 12px; text-align: center; font-size: 0.82rem; color: #D97706; font-weight: 600;">
+                                            <i data-lucide="lock" style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px;"></i>
+                                            <span>Watch 80% to unlock certificate milestone ({{ enrollment.watch_percent }}% watched)</span>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <!-- Not Enrolled Yet (Authenticated) -->
+                            <form action="{{ url_for('learning.enrol_course', course_id=course.id) }}" method="POST" style="margin: 0;">
+                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);">
+                                    <i data-lucide="book-open" style="width: 18px; height: 18px;"></i>
+                                    <span>Enrol Free Now</span>
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <!-- Unauthenticated User -->
+                        <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);">
+                            <i data-lucide="log-in" style="width: 18px; height: 18px;"></i>
+                            <span>Sign In to Enrol Free</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 4. Course Details & Learning Objectives -->
+            <div class="card" style="padding: 24px; margin-bottom: 24px; border-radius: 14px;">
+                <h1 style="font-size: 1.65rem; font-weight: 800; line-height: 1.3; margin-bottom: 12px; color: var(--text-main);">
+                    {{ course.title }}
+                </h1>
+
+                <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px; font-size: 0.88rem; color: var(--text-secondary); flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="user" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+                        <span>Instructor: <strong style="color: var(--text-main);">{{ course.instructor }}</strong></span>
+                    </div>
+                    <span>•</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="clock" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+                        <span>{{ course.estimated_duration }}</span>
+                    </div>
+                    <span>•</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+                        <span>{{ course.enrolled_count }} students</span>
+                    </div>
+                </div>
+
+                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">About This Course</h3>
+                <div id="courseAboutWrapper" class="course-about-container">
+                    <p style="font-size: 0.94rem; color: var(--text-secondary); line-height: 1.65; white-space: pre-line; margin-bottom: 8px;">
+                        {{ course.description }}
+                    </p>
+                </div>
+                <button type="button" id="btnToggleAboutMobile" class="btn-toggle-about-mobile" onclick="toggleAboutDescription()">
+                    <span id="btnToggleAboutText">Show more</span> ▾
+                </button>
+
+                <!-- Learning Objectives Checklist -->
+                {% if course.learning_objectives %}
+                    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">What You Will Learn</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 10px;">
+                        {% for obj in course.learning_objectives %}
+                            <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.9rem; color: var(--text-secondary);">
+                                <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
+                                <span>{{ obj }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- 5. Practical Project Assignment Section -->
+            {% if assignment %}
+                <div class="card" id="project-assignment" style="padding: 24px; border: 2px solid rgba(81, 69, 205, 0.25); border-radius: 14px; background: linear-gradient(180deg, rgba(81, 69, 205, 0.03) 0%, var(--bg-card) 100%);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: inline-flex; align-items: center; gap: 10px;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--primary-action); color: var(--primary-action-text); display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="code-2" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.74rem; font-weight: 700; color: var(--primary-action); text-transform: uppercase; letter-spacing: 0.06em;">Course Assignment</div>
+                                <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin: 0;">{{ assignment.title }}</h2>
+                            </div>
+                        </div>
+
+                        {% if assignment.is_deployment_required %}
+                            <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #D97706; font-weight: 700; padding: 6px 12px; border-radius: 9999px;">
+                                <i data-lucide="globe" style="width: 13px; height: 13px; display: inline;"></i> Live Deployment Required
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">
+                        {{ assignment.problem_statement or assignment.short_description }}
+                    </p>
+
+                    <!-- Required Features List -->
+                    {% if assignment.required_features %}
+                        <div style="margin-bottom: 18px;">
+                            <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Mandatory Features To Build:</h4>
+                            <ul style="padding-left: 20px; margin: 0; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6;">
+                                {% for feat in assignment.required_features %}
+                                    <li style="margin-bottom: 4px;">{{ feat }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- Submission Requirements -->
+                    <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 22px;">
+                        <h4 style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Required Deliverables</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 0.85rem; color: var(--text-secondary);">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="github" style="width: 15px; height: 15px; color: var(--text-main);"></i>
+                                <span>Public GitHub Repo + Documentation</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="link" style="width: 15px; height: 15px; color: var(--primary-action);"></i>
+                                <span>{% if assignment.is_deployment_required %}Live Working URL (Mandatory){% else %}Live URL (Optional){% endif %}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Call to action button -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                        <a href="{{ url_for('learning.assignment_detail', assignment_id=assignment.id) }}" style="font-size: 0.86rem; color: var(--primary-action); font-weight: 600; text-decoration: none;">
+                            View Detailed Rubric & Specifications →
+                        </a>
+
+                        <div class="project-submit-slot">
+                            {% if current_user.is_authenticated %}
+                                {% if certificate %}
+                                    <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-secondary" style="background: rgba(16, 185, 129, 0.15); color: #059669; border-color: rgba(16, 185, 129, 0.3); font-weight: 700;">
+                                        <i data-lucide="award" style="width: 16px; height: 16px;"></i> View Earned Certificate
+                                    </a>
+                                {% elif submission %}
+                                    <a href="{{ url_for('learning.my_learning') }}" class="btn btn-secondary" style="font-weight: 600;">
+                                        View Submission Status ({{ submission.status_label }})
+                                    </a>
+                                {% elif enrollment and (enrollment.video_completed or enrollment.watch_percent >= 80) %}
+                                    <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 22px; display: inline-flex; align-items: center; gap: 8px;">
+                                        <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
+                                        <span>Submit Your Project</span>
+                                    </a>
+                                {% elif enrollment %}
+                                    <button type="button" class="btn btn-secondary" disabled style="opacity: 0.7; cursor: not-allowed; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 10px 20px;">
+                                        <i data-lucide="lock" style="width: 15px; height: 15px;"></i>
+                                        <span>Watch 80% to Unlock Project ({{ enrollment.watch_percent }}%)</span>
+                                    </button>
+                                {% else %}
+                                    <form action="{{ url_for('learning.enrol_course', course_id=course.id) }}" method="POST" style="margin: 0;">
+                                        <button type="submit" class="btn btn-primary" style="font-weight: 700; padding: 10px 22px;">
+                                            Enrol Free to Start
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% else %}
+                                <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 20px;">
+                                    Sign In to Submit Project
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Status / Enrolment Sticky Sidebar -->
+        <div>
+            <div class="card" style="padding: 24px; position: sticky; top: 80px; border-radius: 14px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 1.8rem; font-weight: 800; color: #10B981; margin-bottom: 4px;">
+                        FREE
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--text-muted);">
+                        Curated Learning & Project Certification
+                    </div>
+                </div>
+
+                <!-- Enrolment Status Box -->
+                <div style="border-top: 1px solid var(--border-color); padding-top: 18px; margin-bottom: 20px;">
+                    {% if current_user.is_authenticated %}
+                        {% if certificate %}
+                            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 14px; text-align: center; margin-bottom: 16px;">
+                                <i data-lucide="award" style="width: 32px; height: 32px; color: #10B981; margin-bottom: 6px;"></i>
+                                <div style="font-weight: 700; color: #065F46; font-size: 0.95rem;">You Are Certified!</div>
+                                <div style="font-size: 0.78rem; color: #047857; margin-top: 2px;">ID: {{ certificate.certificate_id }}</div>
+                            </div>
+                            <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; margin-bottom: 8px;">
+                                <i data-lucide="award" style="width: 16px; height: 16px;"></i>
+                                <span>View Certificate</span>
+                            </a>
+                        {% elif enrollment %}
+                            <div style="background: rgba(81, 69, 205, 0.08); border: 1px solid rgba(81, 69, 205, 0.2); border-radius: 10px; padding: 12px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                                <i data-lucide="check-circle" style="width: 20px; height: 20px; color: var(--primary-action);"></i>
+                                <div style="font-size: 0.85rem;">
+                                    <div style="font-weight: 700; color: var(--text-main);">You are enrolled!</div>
+                                    <div style="color: var(--text-muted); font-size: 0.78rem;">Status: {{ enrollment.status_label }}</div>
+                                </div>
+                            </div>
+
+                            {% if submission %}
+                                <div style="padding: 12px; border-radius: 10px; margin-bottom: 16px; background: var(--bg-hover); font-size: 0.85rem;">
+                                    <div style="font-weight: 600; color: var(--text-main); margin-bottom: 4px;">Submission Status:</div>
+                                    <span class="badge {{ submission.status_badge_class }}">
+                                        {{ submission.status_label }}
+                                    </span>
+                                </div>
+                                <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-secondary" style="width: 100%; justify-content: center; font-weight: 600; margin-bottom: 8px;">
+                                    Update Submission
+                                </a>
+                            {% elif assignment %}
+                                <div class="project-submit-slot-sidebar">
+                                    {% if enrollment.video_completed or enrollment.watch_percent >= 80 %}
+                                        <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 8px;">
+                                            <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
+                                            <span>Submit Project</span>
+                                        </a>
+                                    {% else %}
+                                        <button type="button" class="btn btn-secondary" disabled style="width: 100%; justify-content: center; font-weight: 600; margin-bottom: 8px; opacity: 0.7; cursor: not-allowed; display: inline-flex; align-items: center; gap: 6px;">
+                                            <i data-lucide="lock" style="width: 15px; height: 15px;"></i>
+                                            <span>Watch 80% to Submit ({{ enrollment.watch_percent }}%)</span>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <!-- Not Enrolled Yet -->
+                            <form action="{{ url_for('learning.enrol_course', course_id=course.id) }}" method="POST">
+                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem;">
+                                    Enrol Free Now
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <!-- Unauthenticated User -->
+                        <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem;">
+                            Sign In to Enrol Free
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Course Requirements Notice -->
+                <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.7; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                        <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
+                        <span>Self-paced video learning</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                        <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
+                        <span>Practical real-world project</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                        <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
+                        <span>Instructor review on submission</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
+                        <span>Certificates earned upon approval</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+(function() {
+    let player = null;
+    let watchdogTimer = null;
+    let progressTimer = null;
+    let controlsFadeTimeout = null;
+    const courseId = "{{ course.id }}";
+    const initialWatchSeconds = {{ enrollment.watch_seconds if enrollment else 0 }};
+    let maxWatchedSeconds = Math.max(initialWatchSeconds, {{ enrollment.max_watch_seconds if enrollment else 0 }});
+    let currentPercent = {{ enrollment.watch_percent if enrollment else 0 }};
+    let videoCompleted = {{ 'true' if (enrollment and (enrollment.video_completed or enrollment.watch_percent >= 80)) else 'false' }};
+    const youtubeVideoId = "{{ course.youtube_video_id or '' }}";
+    const submitProjectUrl = "{{ url_for('learning.submit_project', assignment_id=assignment.id) if assignment else '#' }}";
+
+    function formatTime(secs) {
+        if (!secs || isNaN(secs)) return "00:00";
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = Math.floor(secs % 60);
+        if (h > 0) {
+            return `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+        return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    // Initialize clean YouTube IFrame Player with official API
+    function initYouTubePlayer() {
+        if (!youtubeVideoId || youtubeVideoId.startsWith("playlist:")) {
+            return;
+        }
+
+        if (typeof YT !== "undefined" && YT.Player) {
+            createPlayer();
+        } else {
+            window.onYouTubeIframeAPIReady = createPlayer;
+        }
+    }
+
+    function createPlayer() {
+        if (player) return;
+        try {
+            player = new YT.Player('skillrockYtPlayer', {
+                videoId: youtubeVideoId,
+                playerVars: {
+                    controls: 0,        // Hide native controls & "Watch on YouTube" button
+                    disablekb: 1,       // Disable keyboard shortcuts (arrow keys, J/K/L, 0-9)
+                    rel: 0,             // Confine related videos to same channel
+                    fs: 0,              // Disable native fullscreen (use container fullscreen)
+                    playsinline: 1,     // Force inline playback on iOS Safari
+                    iv_load_policy: 3,  // Disable video annotations
+                    modestbranding: 1,
+                    enablejsapi: 1,
+                    origin: window.location.origin
+                },
+                events: {
+                    onReady: onPlayerReady,
+                    onStateChange: onPlayerStateChange,
+                    onError: onPlayerError
+                }
+            });
+        } catch(err) {
+            console.warn("Could not create YouTube player:", err);
+            renderErrorFallback();
+        }
+    }
+
+    function onPlayerReady(event) {
+        if (initialWatchSeconds > 0) {
+            try {
+                player.seekTo(initialWatchSeconds, true);
+            } catch(e) {
+                console.warn("Could not resume player position:", e);
+            }
+        }
+        setupCustomControls();
+        updateTimeDisplays();
+    }
+
+    function onPlayerStateChange(event) {
+        const frame = document.getElementById("skillrockPlayerFrame");
+        const playIcon = document.getElementById("iconPlayPause");
+
+        if (event.data === YT.PlayerState.PLAYING) {
+            if (frame) {
+                frame.classList.remove("paused");
+                frame.classList.add("playing");
+            }
+            if (playIcon) playIcon.setAttribute("data-lucide", "pause");
+
+            if (!progressTimer) {
+                progressTimer = setInterval(() => syncPlaybackProgress(), 10000); // Auto-save progress every 10 seconds while playing
+            }
+            if (!watchdogTimer) {
+                watchdogTimer = setInterval(checkPlaybackWatchdog, 250); // 250ms anti-cheat & live UI watchdog
+            }
+            scheduleControlsFade();
+        } else {
+            if (frame) {
+                frame.classList.add("paused");
+                frame.classList.remove("playing");
+            }
+            if (playIcon) playIcon.setAttribute("data-lucide", "play");
+
+            if (progressTimer) {
+                clearInterval(progressTimer);
+                progressTimer = null;
+            }
+            if (watchdogTimer) {
+                clearInterval(watchdogTimer);
+                watchdogTimer = null;
+            }
+            updateTimeDisplays();
+
+            if (event.data === YT.PlayerState.PAUSED) {
+                syncPlaybackProgress();
+            } else if (event.data === YT.PlayerState.ENDED) {
+                onLectureEnded();
+            }
+        }
+
+        if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+        }
+    }
+
+    // High-frequency watchdog enforcing unskippable playback and updating progress
+    function checkPlaybackWatchdog() {
+        if (!player || typeof player.getCurrentTime !== "function") return;
+        const state = player.getPlayerState();
+        if (state !== YT.PlayerState.PLAYING) return;
+
+        const currentSecs = player.getCurrentTime() || 0;
+        const durationSecs = player.getDuration() || 0;
+
+        // Anti-skip enforcement:
+        // If current time jumped ahead of max watched by more than 1.25s (seeking ahead attempted)
+        if (currentSecs > maxWatchedSeconds + 1.25) {
+            console.warn("Anti-skip: Jump ahead prevented. Reverting to", maxWatchedSeconds);
+            player.seekTo(maxWatchedSeconds, true);
+            showScrubberLockTooltip();
+            return;
+        }
+
+        // Legitimate forward advancement
+        if (currentSecs > maxWatchedSeconds) {
+            maxWatchedSeconds = currentSecs;
+        }
+
+        // End-screen interception: before YouTube triggers related videos / playlists
+        if (durationSecs > 0 && currentSecs >= durationSecs - 0.5) {
+            onLectureEnded();
+            return;
+        }
+
+        updateCustomControlsUI(currentSecs, durationSecs);
+        updateTimeDisplays();
+    }
+
+    function onLectureEnded() {
+        if (player && typeof player.pauseVideo === "function") {
+            player.pauseVideo();
+        }
+        const overlay = document.getElementById("skillrockCompletionOverlay");
+        if (overlay) {
+            overlay.classList.add("active");
+        }
+        if (player && typeof player.getDuration === "function") {
+            const dur = Math.floor(player.getDuration() || 0);
+            maxWatchedSeconds = dur;
+            syncPlaybackProgress(dur, dur);
+        }
+    }
+
+    function onPlayerError(event) {
+        console.warn("YouTube player error encountered:", event.data);
+        renderErrorFallback();
+    }
+
+    function renderErrorFallback() {
+        const frame = document.getElementById("skillrockPlayerFrame");
+        if (!frame) return;
+        const ytWatchUrl = `https://www.youtube.com/watch?v=${youtubeVideoId}`;
+
+        frame.innerHTML = `
+            <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0F172A; color: #F8FAFC; padding: 24px; text-align: center;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(99, 102, 241, 0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                </div>
+                <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; color: #FFFFFF;">External Video Playback</h3>
+                <p style="font-size: 0.88rem; color: #94A3B8; max-width: 460px; line-height: 1.5; margin-bottom: 16px;">
+                    This video can be watched directly on YouTube. Your learning progress and certificate qualifications remain 100% active.
+                </p>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+                    <a href="${ytWatchUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 10px 22px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>Open on YouTube ↗</span>
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+
+    function setupCustomControls() {
+        const btnPlay = document.getElementById("btnPlayPause");
+        const btnRewind = document.getElementById("btnRewind10");
+        const speedSelect = document.getElementById("playerPlaybackRate");
+        const btnFs = document.getElementById("btnPlayerFullscreen");
+        const shield = document.getElementById("playerClickShield");
+        const scrubber = document.getElementById("scrubberWrapper");
+        const btnRewatch = document.getElementById("btnOverlayRewatch");
+        const frame = document.getElementById("skillrockPlayerFrame");
+
+        if (shield) {
+            shield.addEventListener("click", () => togglePlayPause());
+            shield.addEventListener("dblclick", () => togglePlayerFullscreen());
+        }
+
+        if (btnPlay) btnPlay.addEventListener("click", () => togglePlayPause());
+        if (btnRewind) btnRewind.addEventListener("click", () => rewind10Seconds());
+
+        if (speedSelect) {
+            speedSelect.addEventListener("change", (e) => {
+                const rate = parseFloat(e.target.value) || 1.0;
+                if (player && typeof player.setPlaybackRate === "function") {
+                    player.setPlaybackRate(Math.min(1.5, Math.max(0.5, rate)));
+                }
+            });
+        }
+
+        if (btnFs) btnFs.addEventListener("click", () => togglePlayerFullscreen());
+
+        if (btnRewatch) {
+            btnRewatch.addEventListener("click", () => {
+                const overlay = document.getElementById("skillrockCompletionOverlay");
+                if (overlay) overlay.classList.remove("active");
+                if (player && typeof player.seekTo === "function") {
+                    player.seekTo(0, true);
+                    player.playVideo();
+                }
+            });
+        }
+
+        // Scrubber seek interaction (supports click and touch)
+        if (scrubber) {
+            scrubber.addEventListener("click", (e) => handleScrubberSeek(e));
+        }
+
+        // Show/hide controls on mousemove or touch
+        if (frame) {
+            frame.addEventListener("mousemove", () => {
+                frame.classList.add("touch-active");
+                scheduleControlsFade();
+            });
+            frame.addEventListener("touchstart", () => {
+                frame.classList.add("touch-active");
+                scheduleControlsFade();
+            }, { passive: true });
+        }
+    }
+
+    function scheduleControlsFade() {
+        if (controlsFadeTimeout) clearTimeout(controlsFadeTimeout);
+        const frame = document.getElementById("skillrockPlayerFrame");
+        controlsFadeTimeout = setTimeout(() => {
+            if (frame && player && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                frame.classList.remove("touch-active");
+            }
+        }, 3500);
+    }
+
+    function togglePlayPause() {
+        if (!player || typeof player.getPlayerState !== "function") return;
+        const state = player.getPlayerState();
+        const indicator = document.getElementById("playerCenterIndicator");
+        const centerIcon = document.getElementById("centerPlayIcon");
+
+        if (state === YT.PlayerState.PLAYING) {
+            player.pauseVideo();
+            if (centerIcon) centerIcon.setAttribute("data-lucide", "pause");
+        } else {
+            player.playVideo();
+            if (centerIcon) centerIcon.setAttribute("data-lucide", "play");
+        }
+
+        if (indicator) {
+            indicator.classList.add("active");
+            setTimeout(() => indicator.classList.remove("active"), 500);
+        }
+        if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+        }
+    }
+
+    function rewind10Seconds() {
+        if (!player || typeof player.getCurrentTime !== "function") return;
+        const cur = player.getCurrentTime() || 0;
+        const target = Math.max(0, cur - 10);
+        player.seekTo(target, true);
+        updateCustomControlsUI(target, player.getDuration());
+    }
+
+    async function togglePlayerFullscreen() {
+        const frame = document.getElementById("skillrockPlayerFrame");
+        const fsIcon = document.getElementById("iconFullscreen");
+        if (!frame) return;
+
+        const isCurrentlyFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+
+        if (!isCurrentlyFullscreen) {
+            try {
+                if (frame.requestFullscreen) {
+                    await frame.requestFullscreen();
+                } else if (frame.webkitRequestFullscreen) {
+                    await frame.webkitRequestFullscreen();
+                }
+
+                // In mobile, automatically rotate screen to landscape on expand
+                if (screen.orientation && typeof screen.orientation.lock === "function") {
+                    try {
+                        await screen.orientation.lock("landscape");
+                    } catch(err) {
+                        console.log("Screen orientation lock info:", err);
+                    }
+                }
+            } catch(err) {
+                console.warn("Fullscreen request error:", err);
+            }
+            if (fsIcon) fsIcon.setAttribute("data-lucide", "minimize");
+        } else {
+            // Restore natural orientation upon exit
+            if (screen.orientation && typeof screen.orientation.unlock === "function") {
+                try {
+                    screen.orientation.unlock();
+                } catch(err) {}
+            }
+            if (document.exitFullscreen) {
+                await document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                await document.webkitExitFullscreen();
+            }
+            if (fsIcon) fsIcon.setAttribute("data-lucide", "maximize");
+        }
+        if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+        }
+    }
+
+    // Handle ESC key or Android gesture exit
+    function onFullscreenChangeHandler() {
+        const fsIcon = document.getElementById("iconFullscreen");
+        const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+        if (!isFs) {
+            if (screen.orientation && typeof screen.orientation.unlock === "function") {
+                try { screen.orientation.unlock(); } catch(e) {}
+            }
+            if (fsIcon) fsIcon.setAttribute("data-lucide", "maximize");
+        } else {
+            if (fsIcon) fsIcon.setAttribute("data-lucide", "minimize");
+        }
+        if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+        }
+    }
+    document.addEventListener("fullscreenchange", onFullscreenChangeHandler);
+    document.addEventListener("webkitfullscreenchange", onFullscreenChangeHandler);
+
+    function handleScrubberSeek(e) {
+        if (!player || typeof player.getDuration !== "function") return;
+        const durationSecs = player.getDuration() || 0;
+        if (durationSecs <= 0) return;
+
+        const scrubber = document.getElementById("scrubberWrapper");
+        if (!scrubber) return;
+        const rect = scrubber.getBoundingClientRect();
+        const clickRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        const targetSeconds = clickRatio * durationSecs;
+
+        // Backward seek: unconditionally permitted!
+        // Forward seek: clamped to maxWatchedSeconds
+        if (targetSeconds <= maxWatchedSeconds) {
+            player.seekTo(targetSeconds, true);
+        } else {
+            // Clamped to allowed watched boundary
+            player.seekTo(maxWatchedSeconds, true);
+            showScrubberLockTooltip(e.clientX - rect.left);
+        }
+        updateCustomControlsUI(player.getCurrentTime(), durationSecs);
+    }
+
+    function showScrubberLockTooltip(posX) {
+        const tag = document.getElementById("scrubberLockTag");
+        if (!tag) return;
+        if (posX !== undefined) {
+            tag.style.left = `${posX}px`;
+        }
+        tag.style.display = "inline-flex";
+        setTimeout(() => {
+            tag.style.display = "none";
+        }, 1800);
+    }
+
+    function updateCustomControlsUI(currentSecs, durationSecs) {
+        if (!durationSecs || durationSecs <= 0) return;
+        const currentPct = Math.max(0, Math.min(100, (currentSecs / durationSecs) * 100));
+        const allowedPct = Math.max(0, Math.min(100, (maxWatchedSeconds / durationSecs) * 100));
+
+        const allowedFill = document.getElementById("scrubberAllowedFill");
+        const currentFill = document.getElementById("scrubberCurrentFill");
+        const thumb = document.getElementById("scrubberThumb");
+        const customElapsed = document.getElementById("customTimeElapsed");
+        const customDuration = document.getElementById("customTimeDuration");
+
+        if (allowedFill) allowedFill.style.width = `${allowedPct}%`;
+        if (currentFill) currentFill.style.width = `${currentPct}%`;
+        if (thumb) thumb.style.left = `${currentPct}%`;
+        if (customElapsed) customElapsed.textContent = formatTime(Math.floor(currentSecs));
+        if (customDuration) customDuration.textContent = formatTime(Math.floor(durationSecs));
+    }
+
+    function updateTimeDisplays() {
+        if (!player || typeof player.getCurrentTime !== "function") return;
+        const currentSecs = Math.floor(player.getCurrentTime() || 0);
+        const durationSecs = Math.floor(player.getDuration() || 0);
+
+        const timeElapsed = document.getElementById("timeElapsedText");
+        const timeDuration = document.getElementById("timeDurationText");
+
+        if (timeElapsed && currentSecs >= 0) {
+            timeElapsed.textContent = formatTime(currentSecs);
+        }
+        if (timeDuration && durationSecs > 0) {
+            timeDuration.textContent = formatTime(durationSecs);
+        }
+
+        // Live smooth progress estimation
+        if (durationSecs > 0) {
+            const calculatedPct = Math.min(100, Math.round((maxWatchedSeconds / durationSecs) * 100));
+            if (calculatedPct > currentPercent) {
+                applyProgressUI(calculatedPct);
+            }
+        }
+    }
+
+    function applyProgressUI(pct) {
+        const headerPct = document.getElementById("headerProgressPct");
+        const headerBar = document.getElementById("headerProgressBar");
+        const mainBar = document.getElementById("mainLectureProgressBar");
+        const mainPctText = document.getElementById("mainProgressPercentText");
+        const mainBadge = document.getElementById("mainWatchPercentBadge");
+        const gateBadge = document.getElementById("certificationGateBadge");
+
+        if (headerPct) headerPct.textContent = `${pct}%`;
+        if (mainPctText) mainPctText.textContent = `${pct}%`;
+
+        if (headerBar) {
+            headerBar.style.width = `${pct}%`;
+            if (pct >= 80) headerBar.style.background = "#10B981";
+        }
+        if (mainBar) {
+            mainBar.style.width = `${pct}%`;
+            if (pct >= 80) mainBar.style.background = "linear-gradient(90deg, #10B981, #059669)";
+        }
+
+        if (pct >= 80) {
+            if (headerPct) {
+                headerPct.style.background = "rgba(16, 185, 129, 0.18)";
+                headerPct.style.color = "#10B981";
+            }
+            if (mainBadge) {
+                mainBadge.style.background = "rgba(16, 185, 129, 0.18)";
+                mainBadge.style.color = "#10B981";
+                mainBadge.style.borderColor = "rgba(16, 185, 129, 0.3)";
+            }
+            if (gateBadge) {
+                gateBadge.innerHTML = '<i data-lucide="unlock" style="width: 15px; height: 15px;"></i><span>80% Reached — Capstone Unlocked!</span>';
+                gateBadge.style.color = "#10B981";
+            }
+            unlockSubmitButtons();
+        }
+    }
+
+    async function syncPlaybackProgress(overrideSecs, overrideDur) {
+        let currentSecs = overrideSecs;
+        let durationSecs = overrideDur;
+
+        if (currentSecs === undefined) {
+            if (!player || typeof player.getCurrentTime !== "function") return;
+            currentSecs = Math.floor(player.getCurrentTime() || 0);
+            durationSecs = Math.floor(player.getDuration() || 0);
+        }
+
+        if (currentSecs <= 0) return;
+
+        try {
+            const res = await fetch("{{ url_for('learning.save_course_progress') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    watch_seconds: currentSecs,
+                    video_duration: durationSecs
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                currentPercent = data.watch_percent;
+                videoCompleted = data.video_completed;
+                maxWatchedSeconds = Math.max(maxWatchedSeconds, data.max_watch_seconds || 0);
+
+                applyProgressUI(currentPercent);
+
+                const saveNarrative = document.getElementById("saveStatusNarrative");
+                if (saveNarrative) {
+                    saveNarrative.textContent = "✓ Progress saved securely (Anti-Cheat Active).";
+                    setTimeout(() => { 
+                        if (saveNarrative) saveNarrative.textContent = "Progress auto-saves continuously while watching."; 
+                    }, 3000);
+                }
+
+                if (videoCompleted || currentPercent >= 80) {
+                    unlockSubmitButtons();
+                }
+            }
+        } catch(err) {
+            console.warn("Could not save playback progress:", err);
+        }
+    }
+
+    function unlockSubmitButtons() {
+        const slots = document.querySelectorAll(".project-submit-slot, .project-submit-slot-sidebar");
+        slots.forEach(slot => {
+            slot.innerHTML = `
+                <a href="${submitProjectUrl}" class="btn btn-primary" style="font-weight: 700; width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 8px;">
+                    <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
+                    <span>Submit Project</span>
+                </a>
+            `;
+        });
+        if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+        }
+    }
+
+    // Save on tab close or navigation
+    window.addEventListener("beforeunload", () => {
+        if (player && typeof player.getCurrentTime === "function") {
+            const currentSecs = Math.floor(player.getCurrentTime() || 0);
+            const durationSecs = Math.floor(player.getDuration() || 0);
+            if (currentSecs > 0 && navigator.sendBeacon) {
+                const payload = JSON.stringify({
+                    course_id: courseId,
+                    watch_seconds: currentSecs,
+                    video_duration: durationSecs
+                });
+                const blob = new Blob([payload], { type: 'application/json' });
+                navigator.sendBeacon("{{ url_for('learning.save_course_progress') }}", blob);
+            }
+        }
+    });
+
+    // Start initialization
+    initYouTubePlayer();
+})();
+</script>
+{% endblock %}
