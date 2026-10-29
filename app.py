@@ -53,10 +53,14 @@ def create_app(config_class=Config):
 
     # Initialize MongoDB connection, collections, and seed Super Admin & Default Courses
     with app.app_context():
-        get_db()
-        ensure_admin_user()
-        ensure_default_courses()
-        ensure_default_test_series()
+        try:
+            get_db()
+            ensure_admin_user()
+            ensure_default_courses()
+            ensure_default_test_series()
+        except Exception as e_init:
+            import logging
+            logging.getLogger(__name__).warning(f"Database initialization/seed notice: {e_init}")
 
     # Initialize Flask-Login
     login_manager = LoginManager()
@@ -98,7 +102,15 @@ def create_app(config_class=Config):
     def handle_500(e):
         import logging
         logging.getLogger(__name__).error(f"Global 500 Server Error: {e}", exc_info=True)
-        return render_template("errors/500.html", error=str(e)), 500
+        try:
+            return render_template("errors/500.html", error=str(e)), 500
+        except Exception as te:
+            logging.getLogger(__name__).error(f"Error rendering 500.html: {te}")
+            return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>SkillRock — Service Issue</title>
+            <style>body{background:#0F172A;color:#F8FAFC;font-family:-apple-system,BlinkMacSystemFont,sans-serif;text-align:center;padding:80px 20px;}
+            .btn{display:inline-block;background:#5B46F6;color:#FFF;text-decoration:none;padding:12px 28px;border-radius:9999px;font-weight:700;margin-top:20px;}</style></head><body>
+            <h1>SkillRock Platform Notice</h1><p style="color:#94A3B8;">A momentary server condition occurred. Please reload.</p>
+            <a href="/" class="btn">Return to SkillRock Home</a></body></html>""", 500
 
     @app.errorhandler(404)
     def handle_404(e):
@@ -107,10 +119,17 @@ def create_app(config_class=Config):
     # HTTP Security Hardening, Response Gzip Compression & Static Asset Caching
     @app.after_request
     def set_security_headers(response):
+        # OWASP Recommended Core Security Headers
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
+
+        # HTTP Strict Transport Security (HSTS) on HTTPS / Reverse-Proxy
+        if request.is_secure or request.headers.get("X-Forwarded-Proto", "").lower() == "https":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
         
         # Cache static assets (CSS, JS, images, fonts) for high performance
         if request.path.startswith("/static/"):
@@ -164,6 +183,22 @@ def create_app(config_class=Config):
             logging.getLogger(__name__).warning(f"Startup storage optimization note: {e}")
 
     threading.Thread(target=_startup_storage_clean, daemon=True).start()
+
+    # Automated Student Reminders Daemon: Periodically scans for students with pending lectures or waiting certificates
+    def _student_reminders_worker():
+        import time
+        time.sleep(45)  # Wait for app & DB connection to stabilize
+        while True:
+            try:
+                from services.reminder_service import scan_and_send_student_reminders
+                scan_and_send_student_reminders(app=app)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Student reminders background job notice: {e}")
+            # Check every 12 hours (43200 seconds)
+            time.sleep(43200)
+
+    threading.Thread(target=_student_reminders_worker, daemon=True).start()
 
     # SEO: 301 Permanent Redirect to normalize trailing slashes (except root and static)
     @app.before_request

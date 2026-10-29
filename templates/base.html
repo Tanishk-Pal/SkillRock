@@ -1,1266 +1,2532 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SkillRock — Learn, Build & Certify with Industry Courses{% endblock %}</title>
-    
-    <!-- Search Engine Optimization (SEO) & Social Meta Tags -->
-    <meta name="description" content="{% block meta_description %}SkillRock is a student-focused e-learning and skills platform offering free industry courses, automated code testing, quizzes, and verified certificates.{% endblock %}">
-    <meta name="keywords" content="Skill Rock, SkillRock, technical courses, coding assignments, Python, Java, DSA, Web Development, certificates, peer learning, TanxPal">
-    <meta name="author" content="TanxPal">
-    {% if is_private_page %}
-    <meta name="robots" content="noindex, nofollow">
-    {% else %}
-    <meta name="robots" content="{% block robots %}index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1{% endblock %}">
-    {% endif %}
-    <meta name="theme-color" content="#6366F1">
-
-    <!-- Progressive Web App (PWA) & Mobile Web Capability -->
-    <link rel="manifest" href="{{ url_for('pwa_manifest') }}">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="SkillRock">
-    <meta name="application-name" content="SkillRock">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
-
-    <!-- Canonical URL (Strict HTTPS Canonical Domain) -->
-    <link rel="canonical" href="{% block canonical_url %}{{ canonical_url }}{% endblock %}">
-
-    <!-- Open Graph (Facebook / LinkedIn / WhatsApp) -->
-    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
-    <meta property="og:title" content="{% block og_title %}SkillRock — Learn, Build & Certify with Industry Courses{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Master software engineering, Python, Java, DSA, Web Dev, AI, and Cybersecurity with hands-on projects, automated code testing, and authentic credentials.{% endblock %}">
-    <meta property="og:url" content="{% block og_url %}{{ canonical_url }}{% endblock %}">
-    <meta property="og:site_name" content="SkillRock">
-
-    <!-- Twitter / X Cards -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{% block twitter_title %}{{ self.og_title() }}{% endblock %}">
-    <meta name="twitter:description" content="{% block twitter_description %}{{ self.og_description() }}{% endblock %}">
-
-    <!-- High-Resolution 1200x630 Open Graph & Social Sharing Banner -->
-    <meta property="og:image" content="{% block og_image %}https://skillrock.onrender.com/static/img/skillrock-og-banner.png{% endblock %}">
-    <meta property="og:image:secure_url" content="{% block og_image_secure %}https://skillrock.onrender.com/static/img/skillrock-og-banner.png{% endblock %}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="{% block og_image_alt %}SkillRock — Learn, Build & Certify with Industry Courses{% endblock %}">
-    <meta name="twitter:image" content="{% block twitter_image %}https://skillrock.onrender.com/static/img/skillrock-og-banner.png{% endblock %}">
-
-    <!-- Favicon (Brand Logo & PWA Icons) -->
-    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='img/icon-192.png') }}">
-    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/logo.jpg') }}">
-
-    <!-- Schema.org EducationalOrganization & WebSite JSON-LD -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "EducationalOrganization",
-          "@id": "https://skillrock.onrender.com/#organization",
-          "name": "SkillRock",
-          "alternateName": "Skill Rock",
-          "url": "https://skillrock.onrender.com",
-          "logo": {
-            "@type": "ImageObject",
-            "url": "https://skillrock.onrender.com/static/img/icon-512.png",
-            "width": 512,
-            "height": 512
-          },
-          "description": "Student-focused e-learning platform offering technical courses, structured learning roadmaps, automated code evaluation, and verified certificates."
-        },
-        {
-          "@type": "WebSite",
-          "@id": "https://skillrock.onrender.com/#website",
-          "name": "SkillRock",
-          "url": "https://skillrock.onrender.com",
-          "publisher": {
-            "@id": "https://skillrock.onrender.com/#organization"
-          },
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": {
-              "@type": "EntryPoint",
-              "urlTemplate": "https://skillrock.onrender.com/learning/courses?q={search_term_string}"
-            },
-            "query-input": "required name=search_term_string"
-          }
-        }
-      ]
-    }
-    </script>
-    {% block structured_data %}{% endblock %}
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Lucide Icons (Pinned version & deferred to eliminate render-blocking delay) -->
-    <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
-
-    <!-- Immediate Theme Initialization (Synchronous execution prevents FOUT / flash of wrong theme) -->
-    <script>
-        (function() {
-            try {
-                var userTheme = "{{ current_user.theme if current_user.is_authenticated else '' }}";
-                var savedTheme = localStorage.getItem("skillrock_theme");
-                var theme = userTheme || savedTheme || "light";
-                if (theme !== "dark" && theme !== "light") theme = "light";
-                document.documentElement.setAttribute("data-theme", theme);
-            } catch(e) {
-                document.documentElement.setAttribute("data-theme", "light");
-            }
-        })();
-    </script>
-
-    <!-- Custom SaaS Stylesheet Preload & Link -->
-    <link rel="preload" href="{{ url_for('static', filename='css/style.css') }}" as="style">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
-    
-    <style>
-        /* Instant Client-Side Navigation Feedback Bar (P95 < 50ms visual response) */
-        #topProgressBar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 0%;
-            height: 3px;
-            background: linear-gradient(90deg, #6366F1 0%, #8B5CF6 35%, #EC4899 70%, #38BDF8 100%);
-            z-index: 999999;
-            opacity: 0;
-            pointer-events: none;
-            transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.75), 0 0 4px rgba(56, 189, 248, 0.6);
-        }
-    </style>
-    
-    <noscript>
-        <style>
-            #youtubeSkeleton { display: none !important; }
-            #livePageContent { display: block !important; opacity: 1 !important; }
-        </style>
-    </noscript>
-    
-    {% block head %}{% endblock %}
-</head>
-<body>
-    <!-- PWA Smart Install Banner (Mobile & Desktop App Experience) -->
-    <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none;">
-        <div class="pwa-install-left">
-            <img src="/static/img/icon-192.png" alt="SkillRock" class="pwa-install-icon">
-            <div>
-                <div class="pwa-install-title">SkillRock App</div>
-                <div class="pwa-install-sub">Install on your home screen for fast fullscreen learning</div>
-            </div>
-        </div>
-        <div class="pwa-install-right">
-            <button type="button" id="pwaInstallBtn" class="btn btn-primary btn-sm pwa-install-btn">
-                <i data-lucide="download" style="width: 14px; height: 14px;"></i>
-                <span>Install</span>
-            </button>
-            <button type="button" id="pwaDismissBtn" class="pwa-dismiss-btn" aria-label="Dismiss">&times;</button>
-        </div>
-    </div>
-
-    <!-- iOS Add to Home Screen Instructions Modal -->
-    <div id="pwaIosModal" class="modal-overlay" style="display: none;">
-        <div class="modal-box" style="max-width: 360px; text-align: center; padding: 24px;">
-            <img src="/static/img/icon-192.png" alt="SkillRock" style="width: 54px; height: 54px; border-radius: 12px; margin: 0 auto 12px auto; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Install SkillRock on iOS</h3>
-            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">
-                Tap the <strong style="color: var(--primary-action);">Share</strong> button <svg style="display: inline-block; vertical-align: -2px; width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> in Safari, then select <strong style="color: var(--text-main);">Add to Home Screen ⊞</strong>.
-            </p>
-            <button type="button" class="btn btn-primary" style="width: 100%;" onclick="document.getElementById('pwaIosModal').style.display='none'">Got it!</button>
-        </div>
-    </div>
-    <!-- Top Instant Navigation Progress Bar -->
-    <div id="topProgressBar" aria-hidden="true"></div>
-
-    <!-- Small Centered Blue Wheel Loader for Functions/Actions (Add Skill, Enroll, Submit, etc.) -->
-    <div id="actionWheelLoader" class="action-wheel-overlay" style="display: none;" role="status" aria-live="polite">
-        <div class="action-wheel-box">
-            <div class="small-blue-wheel-spinner"></div>
-        </div>
-    </div>
-
-    {% if announcement_enabled and announcement_text %}
-    <!-- System Announcement Ribbon -->
-    <div style="background: linear-gradient(90deg, #0f172a, #1e293b); color: #f8fafc; font-size: 0.84rem; padding: 7px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; gap: 8px;">
-        <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
-        <span>{{ announcement_text }}</span>
-    </div>
-    {% endif %}
-
-    <!-- Top Navigation Bar (Physics Wallah Dark SaaS Nav) -->
-    <header class="navbar-pw">
-        <div class="navbar-pw-content">
-            <!-- Brand Logo & Author Credit -->
-            <div style="display: flex; align-items: center; gap: 12px;">
-                {% if current_user.is_authenticated %}
-                <button type="button" class="pw-mobile-toggle-btn" id="mobileSidebarToggleBtn" aria-label="Toggle Navigation Menu">
-                    <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
-                </button>
-                {% endif %}
-                <a href="{{ url_for('index') if not current_user.is_authenticated else url_for('learning.courses_list') }}" class="pw-brand" aria-label="SkillRock Home">
-                    <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="SkillRock" class="pw-brand-img">
-                    <span class="pw-brand-text">Skill<span class="pw-brand-highlight">Rock</span></span>
-                </a>
-            </div>
-
-            <!-- Right Controls: Profile Dropdown (PW Style with Logout merged inside) -->
-            <div class="pw-nav-right">
-                {% if current_user.is_authenticated %}
-                    <!-- User XP Badge -->
-                    <span class="pw-xp-badge" data-tooltip="Learning Experience Points">
-                        <i data-lucide="zap" style="width: 14px; height: 14px; fill: #FBBF24;"></i>
-                        <span>{{ current_user.xp }} XP</span>
-                    </span>
-
-                    <!-- Hi, User Greeting -->
-                    <span class="pw-user-greeting">Hi, {{ current_user.name.split()[0] }}</span>
-
-                    <!-- Profile Dropdown Menu Trigger (PW Style) -->
-                    <div class="pw-profile-dropdown-wrap" id="profileDropdownWrap">
-                        <button type="button" class="pw-avatar-trigger" id="avatarDropdownBtn" aria-expanded="false" aria-haspopup="true" aria-label="Open User Menu">
-                            <img src="{{ current_user.avatar_url }}" alt="avatar" class="pw-avatar-img">
-                            <i data-lucide="chevron-down" class="pw-chevron-icon"></i>
-                        </button>
-                        <!-- PW Dropdown Menu with Merged Logout -->
-                        <div class="pw-dropdown-menu" id="profileDropdownMenu" role="menu">
-                            <div class="pw-dropdown-header">
-                                <div class="pw-dropdown-name">{{ current_user.name }}</div>
-                                <div class="pw-dropdown-email">{{ current_user.email }}</div>
-                            </div>
-                            <a href="{{ url_for('profile.profile') }}" class="pw-dropdown-item" role="menuitem">
-                                <i data-lucide="user"></i>
-                                <span>My Profile</span>
-                            </a>
-                            <a href="{{ url_for('dashboard.dashboard') }}" class="pw-dropdown-item" role="menuitem">
-                                <i data-lucide="layout-dashboard"></i>
-                                <span>Dashboard</span>
-                            </a>
-                            <a href="{{ url_for('learning.my_learning') }}" class="pw-dropdown-item" role="menuitem">
-                                <i data-lucide="layers"></i>
-                                <span>My Learning & Projects</span>
-                            </a>
-                            <a href="{{ url_for('learning.onboarding_interests') }}" class="pw-dropdown-item" role="menuitem">
-                                <i data-lucide="compass"></i>
-                                <span>Study Interests</span>
-                            </a>
-                            <button type="button" class="pw-dropdown-item" id="openAppearanceModalBtn" role="menuitem" style="width: 100%; text-align: left; background: none; border: none; font-size: inherit; font-family: inherit; cursor: pointer;">
-                                <i data-lucide="sun-moon"></i>
-                                <span>Appearance</span>
-                            </button>
-                            {% if current_user.is_admin %}
-                            <a href="{{ url_for('admin.admin_dashboard') }}" class="pw-dropdown-item pw-admin-item" role="menuitem">
-                                <i data-lucide="shield-check"></i>
-                                <span>Admin Console</span>
-                            </a>
-                            <a href="{{ url_for('admin.test_series_list') }}" class="pw-dropdown-item" role="menuitem">
-                                <i data-lucide="layers"></i>
-                                <span>Manage Tests</span>
-                            </a>
-                            {% endif %}
-                            <div class="pw-dropdown-divider"></div>
-                            <!-- Clean Merged Logout with Exit Icon -->
-                            <a href="{{ url_for('auth.logout') }}" class="pw-dropdown-item pw-logout-item" role="menuitem">
-                                <i data-lucide="power"></i>
-                                <span>Logout</span>
-                            </a>
-                        </div>
-                    </div>
-                {% else %}
-                    <!-- Unauthenticated Visitor -->
-                    <button type="button" class="btn btn-secondary btn-sm" id="visitorThemeToggleBtn" style="border-radius: 9999px; padding: 6px 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" title="Toggle Theme" aria-label="Toggle Light and Dark Mode">
-                        <i data-lucide="sun-moon" style="width: 14px; height: 14px;"></i>
-                    </button>
-                    <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #FFFFFF; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
-                        <i data-lucide="book-open" style="width: 14px; height: 14px;"></i>
-                        <span>Courses</span>
-                    </a>
-                    <a href="{{ url_for('test_series.landing') }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #FFFFFF; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
-                        <i data-lucide="file-check-2" style="width: 14px; height: 14px;"></i>
-                        <span>Test Series</span>
-                    </a>
-                    <a href="{{ url_for('ai.assistant_page') }}" class="btn btn-secondary btn-sm" style="background: rgba(91, 70, 246, 0.25); border-color: rgba(139, 92, 246, 0.4); color: #C4B5FD; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
-                        <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
-                        <span>SkillBot</span>
-                    </a>
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm" style="background: #5B46F6; border: none; padding: 7px 18px; border-radius: 9999px; font-weight: 700;">
-                        <i data-lucide="log-in" style="width: 14px; height: 14px;"></i>
-                        <span>Sign In</span>
-                    </a>
-                {% endif %}
-            </div>
-        </div>
-    </header>
-
-    {% if current_user.is_authenticated %}
-    <!-- Physics Wallah Left Sidebar Navigation -->
-    <aside class="pw-sidebar" id="appSidebar" aria-label="Main Navigation">
-        <div class="pw-sidebar-inner">
-            <!-- 1. LEARN ONLINE -->
-            <div class="pw-sidebar-group">
-                <div class="pw-group-title">LEARN ONLINE</div>
-                <a href="{{ url_for('learning.courses_list') }}" 
-                   class="pw-nav-item {% if request.endpoint and 'learning.course' in request.endpoint %}active{% endif %}">
-                    <i data-lucide="book-open"></i>
-                    <span>Learn & Build</span>
-                </a>
-                <a href="{{ url_for('ai.assistant_page') }}" 
-                   class="pw-nav-item {% if request.endpoint == 'ai.assistant_page' %}active{% endif %}">
-                    <i data-lucide="sparkles"></i>
-                    <span>SkillBot AI</span>
-                    <span class="pw-nav-badge">NEW</span>
-                </a>
-                <a href="{{ url_for('test_series.landing') }}"
-                   class="pw-nav-item {% if request.endpoint and 'test_series.' in request.endpoint %}active{% endif %}">
-                    <i data-lucide="file-check-2"></i>
-                    <span>Test Series</span>
-                    <span class="pw-nav-badge" style="background: #10B981; color: #FFFFFF;">HOT</span>
-                </a>
-            </div>
-
-            <!-- 2. STUDY & PROJECTS -->
-            <div class="pw-sidebar-group">
-                <div class="pw-group-title">STUDY & PROJECTS</div>
-                <a href="{{ url_for('learning.my_learning') }}" 
-                   class="pw-nav-item {% if request.endpoint == 'learning.my_learning' %}active{% endif %}">
-                    <i data-lucide="layers"></i>
-                    <span>My Learning</span>
-                </a>
-                <a href="{{ url_for('learning.onboarding_interests') }}" 
-                   class="pw-nav-item {% if request.endpoint == 'learning.onboarding_interests' %}active{% endif %}">
-                    <i data-lucide="compass"></i>
-                    <span>Study Interests</span>
-                </a>
-            </div>
-
-            <!-- 3. CAMPUS EXCHANGE (Merged Skill Swapping & Peer Discovery) -->
-            <div class="pw-sidebar-group">
-                <div class="pw-group-title">CAMPUS EXCHANGE</div>
-                <a href="{{ url_for('discover.discover') }}" 
-                   class="pw-nav-item {% if request.endpoint in ['discover.discover', 'swap.requests_list'] %}active{% endif %}">
-                    <i data-lucide="users"></i>
-                    <span>Skill Exchange</span>
-                    {% if pending_requests_count > 0 %}
-                    <span class="pw-count-badge">{{ pending_requests_count }}</span>
-                    {% endif %}
-                </a>
-                <a href="{{ url_for('chat.chat_inbox') }}" 
-                   class="pw-nav-item {% if request.endpoint and 'chat.' in request.endpoint %}active{% endif %}">
-                    <i data-lucide="send"></i>
-                    <span>Messages</span>
-                    {% if unread_messages_count and unread_messages_count > 0 %}
-                    <span class="pw-count-badge">{{ unread_messages_count }}</span>
-                    {% endif %}
-                </a>
-                <a href="{{ url_for('sessions.sessions_list') }}" 
-                   class="pw-nav-item {% if request.endpoint == 'sessions.sessions_list' %}active{% endif %}">
-                    <i data-lucide="calendar"></i>
-                    <span>Sessions</span>
-                </a>
-            </div>
-
-            <!-- 4. ACCOUNT -->
-            <div class="pw-sidebar-group">
-                <div class="pw-group-title">ACCOUNT</div>
-                <a href="{{ url_for('profile.profile') }}" 
-                   class="pw-nav-item {% if request.endpoint == 'profile.profile' %}active{% endif %}">
-                    <i data-lucide="user"></i>
-                    <span>My Profile</span>
-                </a>
-                {% if current_user.is_admin %}
-                <a href="{{ url_for('admin.admin_dashboard') }}" 
-                   class="pw-nav-item {% if request.endpoint and 'admin.' in request.endpoint %}active{% endif %}"
-                   style="color: #D97706;">
-                    <i data-lucide="shield-check"></i>
-                    <span>Admin Console</span>
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    </aside>
-    <div class="pw-sidebar-backdrop" id="sidebarBackdrop"></div>
-    {% endif %}
-
-    <!-- Main Content Container with YouTube-Style Skeleton Loading Screen -->
-    <main class="main-wrapper-pw {% if current_user.is_authenticated %}with-sidebar{% endif %}">
-        <div class="container">
-            <!-- YouTube-Style Skeleton Loading Template -->
-            <div id="youtubeSkeleton" class="yt-skeleton-container" aria-hidden="true">
-                {% if request.endpoint in ['learning.courses_list', 'learning.courses', 'learning.index'] %}
-                    <!-- Complete Full-Page Learn & Build Skeleton -->
-                    <div class="learning-container" id="learnBuildSkeleton">
-                        <!-- 1. Hero Banner Skeleton (Matches .learning-hero-card dark gradient & structure) -->
-                        <div class="learning-hero-card" style="margin-bottom: 24px; position: relative; overflow: hidden; pointer-events: none;">
-                            <div style="max-width: 740px;">
-                                <!-- Badge -->
-                                <div class="sk-pill sk-dark" style="width: 240px; height: 28px; border-radius: 9999px; margin-bottom: 16px; background: rgba(91, 70, 246, 0.28); border: 1px solid rgba(139, 92, 246, 0.4);"></div>
-                                <!-- Title: 2 lines -->
-                                <div class="sk-line sk-dark" style="width: 82%; height: 38px; border-radius: 8px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.12);"></div>
-                                <div class="sk-line sk-dark" style="width: 58%; height: 38px; border-radius: 8px; margin-bottom: 16px; background: rgba(255, 255, 255, 0.12);"></div>
-                                <!-- Description: 2 lines -->
-                                <div class="sk-line sk-dark" style="width: 96%; height: 16px; border-radius: 6px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.08);"></div>
-                                <div class="sk-line sk-dark" style="width: 75%; height: 16px; border-radius: 6px; margin-bottom: 24px; background: rgba(255, 255, 255, 0.08);"></div>
-                                <!-- 3 Feature items -->
-                                <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <div class="sk-circle sk-dark" style="width: 18px; height: 18px; background: rgba(16, 185, 129, 0.3);"></div>
-                                        <div class="sk-line sk-dark" style="width: 140px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.09);"></div>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <div class="sk-circle sk-dark" style="width: 18px; height: 18px; background: rgba(129, 140, 248, 0.3);"></div>
-                                        <div class="sk-line sk-dark" style="width: 190px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.09);"></div>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <div class="sk-circle sk-dark" style="width: 18px; height: 18px; background: rgba(245, 158, 11, 0.3);"></div>
-                                        <div class="sk-line sk-dark" style="width: 150px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.09);"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 2. Focus Topics Banner Skeleton (Matches .personalized-banner) -->
-                        <div class="personalized-banner" style="margin-bottom: 24px; pointer-events: none;">
-                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                <div class="sk-pill" style="width: 130px; height: 26px; border-radius: 9999px; background: #DDD6FE;"></div>
-                                <div class="sk-pill" style="width: 90px; height: 26px; border-radius: 9999px; background: #FFFFFF;"></div>
-                                <div class="sk-pill" style="width: 110px; height: 26px; border-radius: 9999px; background: #FFFFFF;"></div>
-                                <div class="sk-pill" style="width: 100px; height: 26px; border-radius: 9999px; background: #FFFFFF;"></div>
-                            </div>
-                            <div class="sk-line" style="width: 120px; height: 16px; border-radius: 6px;"></div>
-                        </div>
-
-                        <!-- 3. Category Filter Chips (Bubbles) Skeleton (Matches .bubble-filter-scroll) -->
-                        <div class="bubble-filter-scroll" style="margin-bottom: 22px; pointer-events: none;">
-                            <div class="sk-pill" style="width: 110px; height: 38px; border-radius: 9999px; background: #EDE9FE;"></div>
-                            <div class="sk-pill" style="width: 100px; height: 38px; border-radius: 9999px;"></div>
-                            <div class="sk-pill" style="width: 130px; height: 38px; border-radius: 9999px;"></div>
-                            <div class="sk-pill" style="width: 115px; height: 38px; border-radius: 9999px;"></div>
-                            <div class="sk-pill" style="width: 95px; height: 38px; border-radius: 9999px;"></div>
-                            <div class="sk-pill" style="width: 125px; height: 38px; border-radius: 9999px;"></div>
-                        </div>
-
-                        <!-- 4. Search, Language & Difficulty Filter Bar Skeleton -->
-                        <div class="card" style="padding: 16px 20px; margin-bottom: 28px; border-radius: 14px; pointer-events: none;">
-                            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: flex-end;" class="course-filter-grid">
-                                <div>
-                                    <div class="sk-line" style="width: 110px; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
-                                    <div class="sk-box" style="width: 100%; height: 42px; border-radius: 10px;"></div>
-                                </div>
-                                <div>
-                                    <div class="sk-line" style="width: 80px; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
-                                    <div class="sk-box" style="width: 100%; height: 42px; border-radius: 10px;"></div>
-                                </div>
-                                <div>
-                                    <div class="sk-line" style="width: 80px; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
-                                    <div class="sk-box" style="width: 100%; height: 42px; border-radius: 10px;"></div>
-                                </div>
-                                <div>
-                                    <div class="sk-box" style="width: 90px; height: 42px; border-radius: 10px;"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 5. Section Header Skeleton -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div class="sk-circle" style="width: 24px; height: 24px;"></div>
-                                <div class="sk-line" style="width: 200px; height: 24px; border-radius: 6px;"></div>
-                            </div>
-                            <div class="sk-line" style="width: 90px; height: 14px; border-radius: 4px;"></div>
-                        </div>
-
-                        <!-- 6. Course Cards Grid Skeleton (Matches .grid-3 with 6 cards) -->
-                        <div class="grid-3" style="gap: 24px;">
-                            {% for i in range(6) %}
-                            <div class="card course-card-custom" style="padding: 0; border-radius: 16px; overflow: hidden; pointer-events: none;">
-                                <!-- Thumbnail Placeholder -->
-                                <div style="position: relative; height: 180px; width: 100%; background: #0F172A; overflow: hidden;">
-                                    <div class="sk-box sk-dark" style="width: 100%; height: 100%; background: rgba(255, 255, 255, 0.06);"></div>
-                                    <div style="position: absolute; top: 12px; left: 12px; display: flex; gap: 6px;">
-                                        <div class="sk-pill sk-dark" style="width: 85px; height: 22px; border-radius: 9999px; background: rgba(196, 181, 253, 0.25);"></div>
-                                        <div class="sk-pill sk-dark" style="width: 65px; height: 22px; border-radius: 9999px; background: rgba(59, 130, 246, 0.35);"></div>
-                                    </div>
-                                    <div style="position: absolute; bottom: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between;">
-                                        <div class="sk-line sk-dark" style="width: 70px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.15);"></div>
-                                        <div class="sk-line sk-dark" style="width: 60px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.15);"></div>
-                                    </div>
-                                </div>
-
-                                <!-- Card Body Placeholder -->
-                                <div style="padding: 20px;">
-                                    <!-- Instructor -->
-                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px;">
-                                        <div class="sk-circle" style="width: 14px; height: 14px;"></div>
-                                        <div class="sk-line" style="width: 100px; height: 12px; border-radius: 4px;"></div>
-                                    </div>
-                                    <!-- Title -->
-                                    <div class="sk-line" style="width: 95%; height: 20px; border-radius: 6px; margin-bottom: 6px;"></div>
-                                    <div class="sk-line" style="width: 70%; height: 20px; border-radius: 6px; margin-bottom: 14px;"></div>
-                                    <!-- Description -->
-                                    <div class="sk-line" style="width: 100%; height: 13px; border-radius: 4px; margin-bottom: 6px;"></div>
-                                    <div class="sk-line" style="width: 85%; height: 13px; border-radius: 4px; margin-bottom: 18px;"></div>
-                                    <!-- Project Teaser Box -->
-                                    <div style="background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px; padding: 12px; margin-bottom: 18px;">
-                                        <div class="sk-line" style="width: 50%; height: 12px; border-radius: 4px; margin-bottom: 6px;"></div>
-                                        <div class="sk-line" style="width: 85%; height: 14px; border-radius: 4px;"></div>
-                                    </div>
-                                    <!-- Action Button Footer -->
-                                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F1F5F9; padding-top: 14px;">
-                                        <div class="sk-line" style="width: 80px; height: 16px; border-radius: 4px;"></div>
-                                        <div class="sk-btn" style="width: 110px; height: 36px; border-radius: 8px;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                {% elif request.endpoint == 'dashboard.dashboard' %}
-                    <!-- Dashboard Skeleton -->
-                    <div style="max-width: 960px; margin: 0 auto;">
-                        <div style="margin-bottom: 24px;">
-                            <div class="sk-line" style="width: 240px; height: 32px; border-radius: 8px; margin-bottom: 8px;"></div>
-                            <div class="sk-line" style="width: 170px; height: 16px; border-radius: 6px;"></div>
-                        </div>
-                        <div class="grid-4" style="margin-bottom: 32px;">
-                            {% for i in range(4) %}
-                            <div class="card" style="padding: 16px 20px;">
-                                <div class="sk-line" style="width: 50px; height: 12px; border-radius: 4px; margin-bottom: 8px;"></div>
-                                <div class="sk-line" style="width: 80px; height: 28px; border-radius: 6px;"></div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                            <div class="sk-line" style="width: 180px; height: 24px; border-radius: 6px;"></div>
-                            <div class="sk-line" style="width: 70px; height: 14px; border-radius: 4px;"></div>
-                        </div>
-                        <div class="grid-3">
-                            {% for i in range(3) %}
-                            <div class="card" style="padding: 20px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 14px;">
-                                    <div>
-                                        <div class="sk-line" style="width: 130px; height: 18px; border-radius: 6px; margin-bottom: 6px;"></div>
-                                        <div class="sk-line" style="width: 160px; height: 12px; border-radius: 4px;"></div>
-                                    </div>
-                                    <div class="sk-pill" style="width: 48px; height: 24px; border-radius: 999px;"></div>
-                                </div>
-                                <div style="margin-bottom: 12px;">
-                                    <div class="sk-line" style="width: 70px; height: 12px; border-radius: 4px; margin-bottom: 6px;"></div>
-                                    <div style="display: flex; gap: 6px;">
-                                        <div class="sk-pill" style="width: 60px; height: 22px; border-radius: 6px;"></div>
-                                        <div class="sk-pill" style="width: 75px; height: 22px; border-radius: 6px;"></div>
-                                    </div>
-                                </div>
-                                <div style="display: flex; gap: 8px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
-                                    <div class="sk-btn" style="flex: 1; height: 34px; border-radius: 8px;"></div>
-                                    <div class="sk-btn" style="flex: 1; height: 34px; border-radius: 8px;"></div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                {% elif request.endpoint == 'discover.discover' %}
-                    <!-- Discover Skeleton -->
-                    <div class="page-header">
-                        <div class="sk-line" style="width: 260px; height: 32px; border-radius: 8px; margin-bottom: 8px;"></div>
-                        <div class="sk-line" style="width: 420px; height: 16px; border-radius: 6px;"></div>
-                    </div>
-                    <div class="card" style="padding: 16px 20px; margin-bottom: 24px;">
-                        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 120px; gap: 12px;">
-                            <div class="sk-btn" style="height: 42px; border-radius: 8px;"></div>
-                            <div class="sk-btn" style="height: 42px; border-radius: 8px;"></div>
-                            <div class="sk-btn" style="height: 42px; border-radius: 8px;"></div>
-                            <div class="sk-btn" style="height: 42px; border-radius: 8px;"></div>
-                        </div>
-                    </div>
-                    <div class="grid-3">
-                        {% for i in range(6) %}
-                        <div class="card" style="padding: 20px;">
-                            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px;">
-                                <div class="sk-circle" style="width: 48px; height: 48px; border-radius: 50%;"></div>
-                                <div style="flex: 1;">
-                                    <div class="sk-line" style="width: 120px; height: 16px; border-radius: 6px; margin-bottom: 6px;"></div>
-                                    <div class="sk-line" style="width: 150px; height: 12px; border-radius: 4px;"></div>
-                                </div>
-                            </div>
-                            <div style="display: flex; gap: 6px; margin-bottom: 16px;">
-                                <div class="sk-pill" style="width: 65px; height: 22px; border-radius: 6px;"></div>
-                                <div class="sk-pill" style="width: 75px; height: 22px; border-radius: 6px;"></div>
-                                <div class="sk-pill" style="width: 55px; height: 22px; border-radius: 6px;"></div>
-                            </div>
-                            <div style="display: flex; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 14px;">
-                                <div class="sk-btn" style="flex: 1; height: 34px; border-radius: 8px;"></div>
-                                <div class="sk-btn" style="flex: 1; height: 34px; border-radius: 8px;"></div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                {% elif request.endpoint and 'chat.' in request.endpoint %}
-                    <!-- Chat Skeleton -->
-                    <div class="card" style="padding: 0; overflow: hidden; height: 600px; display: grid; grid-template-columns: 280px 1fr;">
-                        <div style="border-right: 1px solid var(--border-color); padding: 14px;">
-                            <div class="sk-line" style="width: 90px; height: 20px; border-radius: 6px; margin-bottom: 14px;"></div>
-                            <div class="sk-btn" style="height: 36px; border-radius: 8px; margin-bottom: 14px;"></div>
-                            {% for i in range(5) %}
-                            <div style="display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9;">
-                                <div class="sk-circle" style="width: 40px; height: 40px; border-radius: 50%;"></div>
-                                <div style="flex: 1;">
-                                    <div class="sk-line" style="width: 85px; height: 14px; border-radius: 4px; margin-bottom: 6px;"></div>
-                                    <div class="sk-line" style="width: 120px; height: 11px; border-radius: 4px;"></div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        <div style="display: flex; flex-direction: column; justify-content: space-between; padding: 16px; background: #fafafa;">
-                            <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
-                                <div class="sk-circle" style="width: 38px; height: 38px; border-radius: 50%;"></div>
-                                <div class="sk-line" style="width: 120px; height: 16px; border-radius: 4px;"></div>
-                            </div>
-                            <div style="display: flex; flex-direction: column; gap: 14px; padding: 20px 0;">
-                                <div class="sk-block" style="width: 55%; height: 44px; border-radius: 18px 18px 18px 4px; align-self: flex-start;"></div>
-                                <div class="sk-block" style="width: 45%; height: 40px; border-radius: 18px 18px 4px 18px; align-self: flex-end;"></div>
-                                <div class="sk-block" style="width: 60%; height: 50px; border-radius: 18px 18px 18px 4px; align-self: flex-start;"></div>
-                                <div class="sk-block" style="width: 38%; height: 38px; border-radius: 18px 18px 4px 18px; align-self: flex-end;"></div>
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <div class="sk-btn" style="flex: 1; height: 44px; border-radius: 999px;"></div>
-                                <div class="sk-circle" style="width: 44px; height: 44px; border-radius: 50%;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                {% elif request.endpoint in ['swap.requests_list', 'connections.connections_list', 'sessions.sessions_list'] %}
-                    <!-- Requests / Connections / Sessions Skeleton -->
-                    <div style="max-width: 860px; margin: 0 auto;">
-                        <div class="page-header">
-                            <div class="sk-line" style="width: 220px; height: 30px; border-radius: 8px; margin-bottom: 8px;"></div>
-                            <div class="sk-line" style="width: 360px; height: 16px; border-radius: 6px;"></div>
-                        </div>
-                        <div style="display: flex; flex-direction: column; gap: 14px;">
-                            {% for i in range(4) %}
-                            <div class="card" style="padding: 18px; display: flex; align-items: center; justify-content: space-between;">
-                                <div style="display: flex; gap: 14px; align-items: center; flex: 1;">
-                                    <div class="sk-circle" style="width: 48px; height: 48px; border-radius: 50%;"></div>
-                                    <div>
-                                        <div class="sk-line" style="width: 140px; height: 16px; border-radius: 6px; margin-bottom: 6px;"></div>
-                                        <div class="sk-line" style="width: 180px; height: 12px; border-radius: 4px;"></div>
-                                    </div>
-                                </div>
-                                <div style="display: flex; gap: 8px;">
-                                    <div class="sk-btn" style="width: 90px; height: 36px; border-radius: 8px;"></div>
-                                    <div class="sk-btn" style="width: 90px; height: 36px; border-radius: 8px;"></div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                {% elif request.endpoint and 'profile.' in request.endpoint %}
-                    <!-- Profile Skeleton -->
-                    <div style="max-width: 860px; margin: 0 auto;">
-                        <div class="card" style="padding: 28px; margin-bottom: 24px;">
-                            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
-                                <div class="sk-circle" style="width: 76px; height: 76px; border-radius: 50%;"></div>
-                                <div style="flex: 1;">
-                                    <div class="sk-line" style="width: 160px; height: 24px; border-radius: 6px; margin-bottom: 8px;"></div>
-                                    <div class="sk-line" style="width: 220px; height: 14px; border-radius: 4px;"></div>
-                                </div>
-                            </div>
-                            <div class="sk-line" style="width: 90%; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
-                            <div class="sk-line" style="width: 70%; height: 14px; border-radius: 4px;"></div>
-                        </div>
-                        <div class="grid-2">
-                            <div class="card" style="padding: 20px;">
-                                <div class="sk-line" style="width: 100px; height: 18px; border-radius: 6px; margin-bottom: 14px;"></div>
-                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                    <div class="sk-pill" style="width: 70px; height: 26px; border-radius: 6px;"></div>
-                                    <div class="sk-pill" style="width: 90px; height: 26px; border-radius: 6px;"></div>
-                                </div>
-                            </div>
-                            <div class="card" style="padding: 20px;">
-                                <div class="sk-line" style="width: 100px; height: 18px; border-radius: 6px; margin-bottom: 14px;"></div>
-                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                    <div class="sk-pill" style="width: 80px; height: 26px; border-radius: 6px;"></div>
-                                    <div class="sk-pill" style="width: 100px; height: 26px; border-radius: 6px;"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                {% elif request.endpoint == 'index' %}
-                    <!-- Landing Page Skeleton -->
-                    <div style="max-width: 820px; margin: 30px auto; text-align: center;">
-                        <div class="sk-circle" style="width: 76px; height: 76px; border-radius: 18px; margin: 0 auto 18px auto;"></div>
-                        <div class="sk-pill" style="width: 180px; height: 26px; margin: 0 auto 18px auto;"></div>
-                        <div class="sk-line" style="width: 65%; height: 42px; border-radius: 8px; margin: 0 auto 14px auto;"></div>
-                        <div class="sk-line" style="width: 50%; height: 20px; border-radius: 6px; margin: 0 auto 32px auto;"></div>
-                        <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 40px;">
-                            <div class="sk-btn" style="width: 190px; height: 48px; border-radius: 8px;"></div>
-                            <div class="sk-btn" style="width: 160px; height: 48px; border-radius: 8px;"></div>
-                        </div>
-                        <div class="grid-3" style="margin-top: 40px;">
-                            {% for i in range(3) %}
-                            <div class="card" style="padding: 22px;">
-                                <div class="sk-line" style="width: 30px; height: 18px; border-radius: 4px; margin-bottom: 12px;"></div>
-                                <div class="sk-line" style="width: 130px; height: 20px; border-radius: 6px; margin-bottom: 10px;"></div>
-                                <div class="sk-line" style="width: 90%; height: 14px; border-radius: 4px;"></div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                {% elif request.endpoint in ['auth.login', 'auth.register'] %}
-                    <!-- Auth Pages Skeleton -->
-                    <div style="max-width: 440px; margin: 40px auto;">
-                        <div class="card" style="padding: 32px;">
-                            <div class="sk-circle" style="width: 56px; height: 56px; border-radius: 14px; margin: 0 auto 16px auto;"></div>
-                            <div class="sk-line" style="width: 140px; height: 24px; border-radius: 6px; margin: 0 auto 8px auto;"></div>
-                            <div class="sk-line" style="width: 200px; height: 14px; border-radius: 4px; margin: 0 auto 24px auto;"></div>
-                            <div class="sk-btn" style="height: 44px; border-radius: 8px; margin-bottom: 18px;"></div>
-                            <div class="sk-line" style="width: 100%; height: 1px; margin-bottom: 18px;"></div>
-                            <div class="sk-btn" style="height: 42px; border-radius: 8px; margin-bottom: 14px;"></div>
-                            <div class="sk-btn" style="height: 42px; border-radius: 8px; margin-bottom: 18px;"></div>
-                            <div class="sk-btn" style="height: 44px; border-radius: 8px;"></div>
-                        </div>
-                    </div>
-
-                {% else %}
-                    <!-- Universal Fallback Skeleton -->
-                    <div style="max-width: 860px; margin: 0 auto;">
-                        <div style="margin-bottom: 24px;">
-                            <div class="sk-line" style="width: 220px; height: 30px; border-radius: 8px; margin-bottom: 8px;"></div>
-                            <div class="sk-line" style="width: 340px; height: 16px; border-radius: 6px;"></div>
-                        </div>
-                        <div class="grid-3" style="margin-top: 20px;">
-                            {% for i in range(3) %}
-                            <div class="card" style="padding: 22px;">
-                                <div class="sk-line" style="width: 120px; height: 18px; border-radius: 6px; margin-bottom: 12px;"></div>
-                                <div class="sk-line" style="width: 100%; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
-                                <div class="sk-line" style="width: 80%; height: 14px; border-radius: 4px; margin-bottom: 16px;"></div>
-                                <div class="sk-btn" style="height: 36px; border-radius: 8px;"></div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Live Page Content Wrapper -->
-            <div id="livePageContent" class="live-content-wrapper">
-                <!-- Flash Message Alerts -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <div class="flash-container">
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ category }}">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        {% if category == 'success' %}
-                                            <i data-lucide="check" style="width: 16px; height: 16px;"></i>
-                                        {% elif category == 'danger' %}
-                                            <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i>
-                                        {% else %}
-                                            <i data-lucide="info" style="width: 16px; height: 16px;"></i>
-                                        {% endif %}
-                                        <span>{{ message }}</span>
-                                    </div>
-                                    <button type="button" class="alert-dismiss" style="background:none; border:none; color:inherit; cursor:pointer;">
-                                        <i data-lucide="x" style="width: 14px; height: 14px;"></i>
-                                    </button>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                {% endwith %}
-
-                {% block content %}{% endblock %}
-            </div>
-        </div>
-    </main>
-
-    <!-- Follow & Connect Modal -->
-    <div id="requestSwapModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <div>
-                    <h3 style="font-size: 1.15rem;">Follow & Connect with <span id="modalReceiverName">Student</span></h3>
-                </div>
-                <button type="button" class="modal-close">&times;</button>
-            </div>
-            <form action="{{ url_for('swap.send_request') }}" method="POST">
-                <input type="hidden" name="receiver_id" id="modalReceiverId">
-
-                <div class="form-group">
-                    <label class="form-label">You will learn (Optional)</label>
-                    <select name="learn_skill_id" id="modalLearnSkill" class="form-select">
-                        <option value="">-- Choose what to learn (or default) --</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">You will teach (Optional)</label>
-                    <select name="teach_skill_id" id="modalTeachSkill" class="form-select">
-                        <option value="">-- Choose what you will teach (or default) --</option>
-                        {% if current_user.is_authenticated %}
-                            {% for ts in current_user.teaching_skills %}
-                                <option value="{{ ts.id }}">{{ ts.name }}</option>
-                            {% endfor %}
-                        {% endif %}
-                    </select>
-                    {% if current_user.is_authenticated and not current_user.teaching_skills %}
-                        <div style="font-size: 0.8rem; color: var(--warning); margin-top: 4px;">
-                            You have no teaching skills added. <a href="{{ url_for('profile.profile') }}">Add one to your profile</a>.
-                        </div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Message (Optional)</label>
-                    <textarea name="message" class="form-control" rows="2" placeholder="Say hi or mention what you'd like to collaborate on..."></textarea>
-                </div>
-
-                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
-                    <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
-                        <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i>
-                        <span>Follow & Connect</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Clean Professional Footer -->
-    <footer class="footer {% if current_user.is_authenticated %}with-sidebar{% endif %}">
-        <div class="container footer-content" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 22px 0;">
-            <div>
-                <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
-                    <span>Skill<span style="color: #FB8500; font-weight: 800;">Rock</span></span>
-                    <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">— Free Student Learning & Project Review Platform</span>
-                </div>
-                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">
-                    Learn • Build • Deploy • Submit • Get Reviewed • Earn Certificate
-                </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 0.84rem; font-weight: 600; color: var(--text-secondary); background: var(--bg-elevated); padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: inline-flex; align-items: center; gap: 6px;">
-                    <span>Crafted with</span>
-                    <span style="color: #EF4444;">❤️</span>
-                    <span>by</span>
-                    <strong style="color: var(--text-main);">TanxPal</strong>
-                </span>
-            </div>
-        </div>
-    </footer>
-
-    {% if current_user.is_authenticated %}
-    <!-- Mobile App-Style Bottom Tab Bar (Fixed at bottom on phones) -->
-    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
-        <a href="{{ url_for('learning.courses_list') }}" class="mobile-bottom-item {% if request.endpoint and 'learning.' in request.endpoint %}active{% endif %}" aria-label="Learn">
-            <i data-lucide="book-open"></i>
-            <span>Learn</span>
-        </a>
-        <a href="{{ url_for('discover.discover') }}" class="mobile-bottom-item {% if request.endpoint in ['discover.discover', 'swap.requests_list'] %}active{% endif %}" aria-label="Exchange">
-            <div class="nav-icon-wrapper">
-                <i data-lucide="users"></i>
-                {% if pending_requests_count > 0 %}
-                <span class="nav-icon-badge">{{ pending_requests_count }}</span>
-                {% endif %}
-            </div>
-            <span>Exchange</span>
-        </a>
-        <a href="{{ url_for('chat.chat_inbox') }}" class="mobile-bottom-item {% if request.endpoint and 'chat.' in request.endpoint %}active{% endif %}" aria-label="Messages">
-            <div class="nav-icon-wrapper">
-                <i data-lucide="message-square"></i>
-                {% if unread_messages_count and unread_messages_count > 0 %}
-                <span class="nav-icon-badge">{{ unread_messages_count }}</span>
-                {% endif %}
-            </div>
-            <span>Chat</span>
-        </a>
-        <a href="{{ url_for('sessions.sessions_list') }}" class="mobile-bottom-item {% if request.endpoint == 'sessions.sessions_list' %}active{% endif %}" aria-label="Sessions">
-            <i data-lucide="calendar"></i>
-            <span>Sessions</span>
-        </a>
-        <a href="{{ url_for('profile.profile') }}" class="mobile-bottom-item {% if request.endpoint == 'profile.profile' %}active{% endif %}" aria-label="Profile">
-            <i data-lucide="user"></i>
-            <span>Profile</span>
-        </a>
-    </nav>
-    {% endif %}
-
-    <!-- Appearance Settings Modal (Exactly Light and Dark Mode Options) -->
-    <div id="appearanceModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center;" role="dialog" aria-modal="true" aria-labelledby="appearanceModalTitle">
-        <div class="card modal-box" style="width: 100%; max-width: 500px; margin: 20px; padding: 28px; border-radius: 16px; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow-hover); position: relative;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(81, 69, 205, 0.12); color: var(--primary-action); display: flex; align-items: center; justify-content: center;">
-                        <i data-lucide="sun-moon" style="width: 20px; height: 20px;"></i>
-                    </div>
-                    <h3 id="appearanceModalTitle" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin: 0;">
-                        Appearance Settings
-                    </h3>
-                </div>
-                <button type="button" id="closeAppearanceModalBtn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" aria-label="Close Appearance Settings">
-                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
-                </button>
-            </div>
-            
-            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 22px; line-height: 1.5;">
-                Select your preferred viewing mode. Your setting applies immediately across all pages and persists on your device.
-            </p>
-
-            <!-- 2 Selectable Options: Light and Dark -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px;">
-                <!-- Light Theme Card -->
-                <button type="button" class="global-theme-btn" data-theme-target="light" style="padding: 18px 16px; border-radius: 12px; border: 2px solid var(--border-color); background: #FFFFFF; text-align: left; cursor: pointer; transition: all 0.15s ease; position: relative;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <div style="width: 32px; height: 32px; border-radius: 8px; background: #F6F7FB; border: 1px solid #E1E6EF; color: #172033; display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="sun" style="width: 18px; height: 18px; color: #D97706;"></i>
-                        </div>
-                        <span class="theme-active-check" style="display: none; width: 22px; height: 22px; border-radius: 50%; background: #5145CD; color: white; align-items: center; justify-content: center;">
-                            <i data-lucide="check" style="width: 13px; height: 13px;"></i>
-                        </span>
-                    </div>
-                    <div style="font-weight: 800; font-size: 0.98rem; color: #172033; margin-bottom: 2px;">Light</div>
-                    <div style="font-size: 0.78rem; color: #536176;">Clean daytime reading comfort</div>
-                </button>
-
-                <!-- Dark Theme Card -->
-                <button type="button" class="global-theme-btn" data-theme-target="dark" style="padding: 18px 16px; border-radius: 12px; border: 2px solid var(--border-color); background: #1F2937; text-align: left; cursor: pointer; transition: all 0.15s ease; position: relative;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <div style="width: 32px; height: 32px; border-radius: 8px; background: #111827; border: 1px solid #374151; color: #F3F4F6; display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="moon" style="width: 18px; height: 18px; color: #A5B4FC;"></i>
-                        </div>
-                        <span class="theme-active-check" style="display: none; width: 22px; height: 22px; border-radius: 50%; background: #A5B4FC; color: #1E1B4B; align-items: center; justify-content: center;">
-                            <i data-lucide="check" style="width: 13px; height: 13px;"></i>
-                        </span>
-                    </div>
-                    <div style="font-weight: 800; font-size: 0.98rem; color: #F3F4F6; margin-bottom: 2px;">Dark</div>
-                    <div style="font-size: 0.78rem; color: #C0CAD8;">Low-glare extended study mode</div>
-                </button>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <a href="{{ url_for('profile.appearance_settings') }}" style="font-size: 0.82rem; color: var(--primary-action); text-decoration: underline; font-weight: 600;">
-                    Open Full Appearance Page
-                </a>
-                <button type="button" id="doneAppearanceModalBtn" class="btn btn-primary" style="padding: 8px 22px; font-weight: 700; border-radius: 8px;">
-                    Done
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Initialize Lucide Icons & Theme Logic -->
-    <script>
-        function renderLucide() {
-            if (window.lucide && typeof window.lucide.createIcons === "function") {
-                window.lucide.createIcons();
-            }
-        }
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", renderLucide);
-        } else {
-            renderLucide();
-        }
-        window.addEventListener("load", renderLucide);
-
-        // Instant Client-Side Navigation Progress Indicator (< 30ms visual response)
-        (function initInstantNavFeedback() {
-            var bar = document.getElementById("topProgressBar");
-            if (!bar) return;
-
-            document.addEventListener("click", function(e) {
-                var link = e.target.closest("a");
-                if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
-                var href = link.getAttribute("href");
-                if (!href || href.startsWith("#") || href.startsWith("javascript:") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
-                if (link.origin && link.origin !== window.location.origin) return;
-
-                // Immediate visual response in < 30ms
-                bar.style.opacity = "1";
-                bar.style.width = "40%";
-
-                var lc = document.getElementById("livePageContent");
-                if (lc) lc.classList.add("page-navigating");
-
-                setTimeout(function() {
-                    if (bar.style.width === "40%") bar.style.width = "75%";
-                }, 200);
-            });
-
-            window.addEventListener("pageshow", function() {
-                var lc = document.getElementById("livePageContent");
-                if (lc) lc.classList.remove("page-navigating");
-                bar.style.width = "100%";
-                setTimeout(function() {
-                    bar.style.opacity = "0";
-                    setTimeout(function() { bar.style.width = "0%"; }, 200);
-                }, 150);
-            });
-        })();
-    </script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script>
-        // Centralized Theme Controller
-        (function initThemeController() {
-            window.setSkillRockTheme = function(theme) {
-                if (theme !== "dark" && theme !== "light") theme = "light";
-                document.documentElement.setAttribute("data-theme", theme);
-                try {
-                    localStorage.setItem("skillrock_theme", theme);
-                } catch(e) {}
-
-                // Update active UI cards in modal & settings
-                updateThemeUI(theme);
-
-                // Asynchronous sync to backend (persists to user's MongoDB profile)
-                {% if current_user.is_authenticated %}
-                fetch("{{ url_for('profile.appearance_settings') }}", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Requested-With": "XMLHttpRequest"
-                    },
-                    body: JSON.stringify({ theme: theme })
-                }).catch(function(err) {
-                    console.warn("Theme sync notice:", err);
-                });
-                {% endif %}
-            };
-
-            function updateThemeUI(theme) {
-                const current = theme || document.documentElement.getAttribute("data-theme") || "light";
-                document.querySelectorAll(".global-theme-btn, .theme-card-option").forEach(btn => {
-                    const target = btn.getAttribute("data-theme-target") || btn.getAttribute("data-theme-choice");
-                    const check = btn.querySelector(".theme-active-check, .theme-check-badge");
-                    if (target === current) {
-                        btn.style.borderColor = target === "dark" ? "#A5B4FC" : "#5145CD";
-                        if (check) check.style.display = "inline-flex";
-                    } else {
-                        btn.style.borderColor = "var(--border-color)";
-                        if (check) check.style.display = "none";
-                    }
-                });
-            }
-
-            // Bind Modal Triggers
-            const appearanceModal = document.getElementById("appearanceModal");
-            const openBtn = document.getElementById("openAppearanceModalBtn");
-            const closeBtn = document.getElementById("closeAppearanceModalBtn");
-            const doneBtn = document.getElementById("doneAppearanceModalBtn");
-            const visitorToggleBtn = document.getElementById("visitorThemeToggleBtn");
-
-            function showModal() {
-                if (!appearanceModal) return;
-                appearanceModal.style.display = "flex";
-                const current = document.documentElement.getAttribute("data-theme") || "light";
-                updateThemeUI(current);
-                if (window.lucide) lucide.createIcons();
-            }
-
-            function hideModal() {
-                if (!appearanceModal) return;
-                appearanceModal.style.display = "none";
-            }
-
-            if (openBtn) openBtn.addEventListener("click", showModal);
-            if (closeBtn) closeBtn.addEventListener("click", hideModal);
-            if (doneBtn) doneBtn.addEventListener("click", hideModal);
-            if (visitorToggleBtn) {
-                visitorToggleBtn.addEventListener("click", function() {
-                    const cur = document.documentElement.getAttribute("data-theme") || "light";
-                    const next = cur === "dark" ? "light" : "dark";
-                    window.setSkillRockTheme(next);
-                });
-            }
-
-            if (appearanceModal) {
-                appearanceModal.addEventListener("click", function(e) {
-                    if (e.target === appearanceModal) hideModal();
-                });
-                document.addEventListener("keydown", function(e) {
-                    if (e.key === "Escape" && appearanceModal.style.display === "flex") {
-                        hideModal();
-                    }
-                });
-            }
-
-            document.querySelectorAll(".global-theme-btn").forEach(btn => {
-                btn.addEventListener("click", function() {
-                    const target = this.getAttribute("data-theme-target");
-                    if (target) window.setSkillRockTheme(target);
-                });
-            });
-
-            // Initial UI sync
-            updateThemeUI(document.documentElement.getAttribute("data-theme") || "light");
-        })();
-    </script>
-    <script>
-        // Physics Wallah Profile Dropdown Interactive Handler
-        (function initPWProfileDropdown() {
-            const avatarDropdownBtn = document.getElementById("avatarDropdownBtn");
-            const profileDropdownMenu = document.getElementById("profileDropdownMenu");
-            if (avatarDropdownBtn && profileDropdownMenu) {
-                avatarDropdownBtn.addEventListener("click", function(e) {
-                    e.stopPropagation();
-                    const isOpen = profileDropdownMenu.classList.contains("show");
-                    profileDropdownMenu.classList.toggle("show");
-                    avatarDropdownBtn.classList.toggle("open", !isOpen);
-                    avatarDropdownBtn.setAttribute("aria-expanded", !isOpen ? "true" : "false");
-                });
-
-                document.addEventListener("click", function(e) {
-                    if (!profileDropdownMenu.contains(e.target) && !avatarDropdownBtn.contains(e.target)) {
-                        profileDropdownMenu.classList.remove("show");
-                        avatarDropdownBtn.classList.remove("open");
-                        avatarDropdownBtn.setAttribute("aria-expanded", "false");
-                    }
-                });
-
-                document.addEventListener("keydown", function(e) {
-                    if (e.key === "Escape") {
-                        profileDropdownMenu.classList.remove("show");
-                        avatarDropdownBtn.classList.remove("open");
-                        avatarDropdownBtn.setAttribute("aria-expanded", "false");
-                    }
-                });
-            }
-
-            // Mobile Left Sidebar Drawer Toggle
-            const mobileToggle = document.getElementById("mobileSidebarToggleBtn");
-            const sidebar = document.getElementById("appSidebar");
-            const backdrop = document.getElementById("sidebarBackdrop");
-            if (mobileToggle && sidebar) {
-                mobileToggle.addEventListener("click", function() {
-                    sidebar.classList.toggle("mobile-open");
-                    if (backdrop) backdrop.classList.toggle("active");
-                });
-                if (backdrop) {
-                    backdrop.addEventListener("click", function() {
-                        sidebar.classList.remove("mobile-open");
-                        backdrop.classList.remove("active");
-                    });
-                }
-            }
-        })();
-    </script>
-    <script>
-        // Fail-safe immediate reveal once DOM content is parsed
-        (function() {
-            function reveal() {
-                var sk = document.getElementById("youtubeSkeleton") || document.getElementById("pageSkeletonWrapper");
-                var lc = document.getElementById("livePageContent");
-                if (lc && lc.classList.contains("is-loading")) {
-                    lc.classList.remove("is-loading");
-                    lc.style.display = "";
-                }
-                if (sk && !sk.classList.contains("fade-out")) {
-                    sk.classList.add("fade-out");
-                    setTimeout(function() {
-                        sk.style.display = "none";
-                    }, 180);
-                }
-            }
-            if (document.readyState === "interactive" || document.readyState === "complete") {
-                reveal();
-            } else {
-                document.addEventListener("DOMContentLoaded", reveal);
-            }
-        })();
-    </script>
-        <!-- In-Browser Keep-Alive Heartbeat (Prevents Render spin-down while user has tab open) -->
-    <script>
-        (function initClientKeepAlive() {
-            var PING_INTERVAL_MS = 7 * 60 * 1000; // Ping every 7 minutes while active tab open
-            var lastPulse = Date.now();
-            function sendKeepAlivePulse() {
-                var now = Date.now();
-                if (now - lastPulse >= 60000) {
-                    lastPulse = now;
-                    fetch("/healthz", { method: "GET", credentials: "same-origin", cache: "no-store" })
-                        .catch(function() {});
-                }
-            }
-            setInterval(sendKeepAlivePulse, PING_INTERVAL_MS);
-            document.addEventListener("visibilitychange", function() {
-                if (document.visibilityState === "visible" && (Date.now() - lastPulse > 5 * 60 * 1000)) {
-                    sendKeepAlivePulse();
-                }
-            });
-        })();
-    </script>
-        <!-- PWA Service Worker & Install Prompt Registration -->
-    <script>
-        (function initPWAEngine() {
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('/sw.js', { scope: '/' })
-                        .then(function(reg) {
-                            console.log('[SkillRock PWA] Registered with scope:', reg.scope);
-                        })
-                        .catch(function(err) {
-                            console.warn('[SkillRock PWA] Registration note:', err);
-                        });
-                });
-            }
-
-            var deferredPrompt = null;
-            var banner = document.getElementById('pwaInstallBanner');
-            var installBtn = document.getElementById('pwaInstallBtn');
-            var dismissBtn = document.getElementById('pwaDismissBtn');
-            var iosModal = document.getElementById('pwaIosModal');
-
-            // Listen for native Android / Chrome beforeinstallprompt
-            window.addEventListener('beforeinstallprompt', function(e) {
-                e.preventDefault();
-                deferredPrompt = e;
-                if (banner && !localStorage.getItem('skillrock_pwa_dismissed')) {
-                    banner.style.display = 'flex';
-                }
-            });
-
-            if (installBtn) {
-                installBtn.addEventListener('click', async function() {
-                    if (deferredPrompt) {
-                        deferredPrompt.prompt();
-                        var choice = await deferredPrompt.userChoice;
-                        deferredPrompt = null;
-                        if (banner) banner.style.display = 'none';
-                    } else {
-                        // Check if on iOS Safari
-                        var isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-                        if (isIos && iosModal) {
-                            iosModal.style.display = 'flex';
-                        }
-                    }
-                });
-            }
-
-            if (dismissBtn && banner) {
-                dismissBtn.addEventListener('click', function() {
-                    banner.style.display = 'none';
-                    localStorage.setItem('skillrock_pwa_dismissed', '1');
-                });
-            }
-
-            window.addEventListener('appinstalled', function() {
-                console.log('[SkillRock PWA] App installed to home screen successfully.');
-                if (banner) banner.style.display = 'none';
-                localStorage.setItem('skillrock_pwa_installed', '1');
-            });
-        })();
-    </script>
-    {% block scripts %}{% endblock %}
-</body>
-</html>
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}SkillRock — Learn, Build & Certify with Industry Courses{% endblock %}</title>
+
+    
+
+    <!-- Search Engine Optimization (SEO) & Social Meta Tags -->
+
+    <meta name="description" content="{% block meta_description %}SkillRock is a student-focused e-learning and skills platform offering free industry courses, automated code testing, quizzes, and verified certificates.{% endblock %}">
+
+    <meta name="keywords" content="Skill Rock, SkillRock, technical courses, coding assignments, Python, Java, DSA, Web Development, certificates, peer learning, TanxPal">
+
+    <meta name="author" content="TanxPal">
+
+    {% if is_private_page %}
+
+    <meta name="robots" content="noindex, nofollow">
+
+    {% else %}
+
+    <meta name="robots" content="{% block robots %}index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1{% endblock %}">
+
+    {% endif %}
+
+    <meta name="theme-color" content="#6366F1">
+
+
+
+    <!-- Progressive Web App (PWA) & Mobile Web Capability -->
+
+    <link rel="manifest" href="{{ url_for('pwa_manifest') }}">
+
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <meta name="apple-mobile-web-app-title" content="SkillRock">
+
+    <meta name="application-name" content="SkillRock">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+
+
+
+    <!-- Canonical URL (Strict HTTPS Canonical Domain) -->
+
+    <link rel="canonical" href="{% block canonical_url %}{{ canonical_url }}{% endblock %}">
+
+
+
+    <!-- Open Graph (Facebook / LinkedIn / WhatsApp) -->
+
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+
+    <meta property="og:title" content="{% block og_title %}SkillRock — Learn, Build & Certify with Industry Courses{% endblock %}">
+
+    <meta property="og:description" content="{% block og_description %}Master software engineering, Python, Java, DSA, Web Dev, AI, and Cybersecurity with hands-on projects, automated code testing, and authentic credentials.{% endblock %}">
+
+    <meta property="og:url" content="{% block og_url %}{{ canonical_url }}{% endblock %}">
+
+    <meta property="og:site_name" content="SkillRock">
+
+
+
+    <!-- Twitter / X Cards -->
+
+    <meta name="twitter:card" content="summary_large_image">
+
+    <meta name="twitter:title" content="{% block twitter_title %}{{ self.og_title() }}{% endblock %}">
+
+    <meta name="twitter:description" content="{% block twitter_description %}{{ self.og_description() }}{% endblock %}">
+
+
+
+    <!-- High-Resolution 1200x630 Open Graph & Social Sharing Banner -->
+
+    <meta property="og:image" content="{% block og_image %}https://skillrock.onrender.com/static/img/skillrock-og-banner.png{% endblock %}">
+
+    <meta property="og:image:secure_url" content="{% block og_image_secure %}https://skillrock.onrender.com/static/img/skillrock-og-banner.png{% endblock %}">
+
+    <meta property="og:image:width" content="1200">
+
+    <meta property="og:image:height" content="630">
+
+    <meta property="og:image:alt" content="{% block og_image_alt %}SkillRock — Learn, Build & Certify with Industry Courses{% endblock %}">
+
+    <meta name="twitter:image" content="{% block twitter_image %}https://skillrock.onrender.com/static/img/skillrock-og-banner.png{% endblock %}">
+
+
+
+    <!-- Favicon (Brand Logo & PWA Icons) -->
+
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='img/icon-192.png') }}">
+
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/logo.jpg') }}">
+
+
+
+    <!-- Schema.org EducationalOrganization & WebSite JSON-LD -->
+
+    <script type="application/ld+json">
+
+    {
+
+      "@context": "https://schema.org",
+
+      "@graph": [
+
+        {
+
+          "@type": "EducationalOrganization",
+
+          "@id": "https://skillrock.onrender.com/#organization",
+
+          "name": "SkillRock",
+
+          "alternateName": "Skill Rock",
+
+          "url": "https://skillrock.onrender.com",
+
+          "logo": {
+
+            "@type": "ImageObject",
+
+            "url": "https://skillrock.onrender.com/static/img/icon-512.png",
+
+            "width": 512,
+
+            "height": 512
+
+          },
+
+          "description": "Student-focused e-learning platform offering technical courses, structured learning roadmaps, automated code evaluation, and verified certificates."
+
+        },
+
+        {
+
+          "@type": "WebSite",
+
+          "@id": "https://skillrock.onrender.com/#website",
+
+          "name": "SkillRock",
+
+          "url": "https://skillrock.onrender.com",
+
+          "publisher": {
+
+            "@id": "https://skillrock.onrender.com/#organization"
+
+          },
+
+          "potentialAction": {
+
+            "@type": "SearchAction",
+
+            "target": {
+
+              "@type": "EntryPoint",
+
+              "urlTemplate": "https://skillrock.onrender.com/learning/courses?q={search_term_string}"
+
+            },
+
+            "query-input": "required name=search_term_string"
+
+          }
+
+        }
+
+      ]
+
+    }
+
+    </script>
+
+    {% block structured_data %}{% endblock %}
+
+
+
+    <!-- Google Fonts -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    
+
+    <!-- Lucide Icons (Pinned version & deferred to eliminate render-blocking delay) -->
+
+    <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
+
+
+
+    <!-- Immediate Theme Initialization (Synchronous execution prevents FOUT / flash of wrong theme) -->
+
+    <script>
+
+        (function() {
+
+            try {
+
+                var userTheme = "{{ current_user.theme if current_user.is_authenticated else '' }}";
+
+                var savedTheme = localStorage.getItem("skillrock_theme");
+
+                var theme = userTheme || savedTheme || "light";
+
+                if (theme !== "dark" && theme !== "light") theme = "light";
+
+                document.documentElement.setAttribute("data-theme", theme);
+
+            } catch(e) {
+
+                document.documentElement.setAttribute("data-theme", "light");
+
+            }
+
+        })();
+
+    </script>
+
+
+
+    <!-- Custom SaaS Stylesheet Preload & Link -->
+
+    <link rel="preload" href="{{ url_for('static', filename='css/style.css') }}" as="style">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
+
+    
+
+    <style>
+
+        /* Instant Client-Side Navigation Feedback Bar (P95 < 50ms visual response) */
+
+        #topProgressBar {
+
+            position: fixed;
+
+            top: 0;
+
+            left: 0;
+
+            width: 0%;
+
+            height: 3px;
+
+            background: linear-gradient(90deg, #6366F1 0%, #8B5CF6 35%, #EC4899 70%, #38BDF8 100%);
+
+            z-index: 999999;
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.75), 0 0 4px rgba(56, 189, 248, 0.6);
+
+        }
+
+    </style>
+
+    
+
+    <noscript>
+
+        <style>
+
+            #youtubeSkeleton { display: none !important; }
+
+            #livePageContent { display: block !important; opacity: 1 !important; }
+
+        </style>
+
+    </noscript>
+
+    
+
+    {% block head %}{% endblock %}
+
+</head>
+
+<body>
+
+    <!-- PWA Smart Install Banner (Mobile & Desktop App Experience) -->
+
+    <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none;">
+
+        <div class="pwa-install-left">
+
+            <img src="/static/img/icon-192.png" alt="SkillRock" class="pwa-install-icon">
+
+            <div>
+
+                <div class="pwa-install-title">SkillRock App</div>
+
+                <div class="pwa-install-sub">Install on your home screen for fast fullscreen learning</div>
+
+            </div>
+
+        </div>
+
+        <div class="pwa-install-right">
+
+            <button type="button" id="pwaInstallBtn" class="btn btn-primary btn-sm pwa-install-btn">
+
+                <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+
+                <span>Install</span>
+
+            </button>
+
+            <button type="button" id="pwaDismissBtn" class="pwa-dismiss-btn" aria-label="Dismiss">&times;</button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- iOS Add to Home Screen Instructions Modal -->
+
+    <div id="pwaIosModal" class="modal-overlay" style="display: none;">
+
+        <div class="modal-box" style="max-width: 360px; text-align: center; padding: 24px;">
+
+            <img src="/static/img/icon-192.png" alt="SkillRock" style="width: 54px; height: 54px; border-radius: 12px; margin: 0 auto 12px auto; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Install SkillRock on iOS</h3>
+
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">
+
+                Tap the <strong style="color: var(--primary-action);">Share</strong> button <svg style="display: inline-block; vertical-align: -2px; width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> in Safari, then select <strong style="color: var(--text-main);">Add to Home Screen ⊞</strong>.
+
+            </p>
+
+            <button type="button" class="btn btn-primary" style="width: 100%;" onclick="document.getElementById('pwaIosModal').style.display='none'">Got it!</button>
+
+        </div>
+
+    </div>
+
+    <!-- Top Instant Navigation Progress Bar -->
+
+    <div id="topProgressBar" aria-hidden="true"></div>
+
+
+
+    <!-- Small Centered Blue Wheel Loader for Functions/Actions (Add Skill, Enroll, Submit, etc.) -->
+
+    <div id="actionWheelLoader" class="action-wheel-overlay" style="display: none;" role="status" aria-live="polite">
+
+        <div class="action-wheel-box">
+
+            <div class="small-blue-wheel-spinner"></div>
+
+        </div>
+
+    </div>
+
+
+
+    {% if announcement_enabled and announcement_text %}
+
+    <!-- System Announcement Ribbon -->
+
+    <div style="background: linear-gradient(90deg, #0f172a, #1e293b); color: #f8fafc; font-size: 0.84rem; padding: 7px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; gap: 8px;">
+
+        <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
+
+        <span>{{ announcement_text }}</span>
+
+    </div>
+
+    {% endif %}
+
+
+
+    <!-- Top Navigation Bar (Physics Wallah Dark SaaS Nav) -->
+
+    <header class="navbar-pw">
+
+        <div class="navbar-pw-content">
+
+            <!-- Brand Logo & Author Credit -->
+
+            <div style="display: flex; align-items: center; gap: 12px;">
+
+                {% if current_user.is_authenticated %}
+
+                <button type="button" class="pw-mobile-toggle-btn" id="mobileSidebarToggleBtn" aria-label="Toggle Navigation Menu">
+
+                    <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
+
+                </button>
+
+                {% endif %}
+
+                <a href="{{ url_for('index') if not current_user.is_authenticated else url_for('learning.courses_list') }}" class="pw-brand" aria-label="SkillRock Home">
+
+                    <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="SkillRock" class="pw-brand-img">
+
+                    <span class="pw-brand-text">Skill<span class="pw-brand-highlight">Rock</span></span>
+
+                </a>
+
+            </div>
+
+
+
+            <!-- Right Controls: Profile Dropdown (PW Style with Logout merged inside) -->
+
+            <div class="pw-nav-right">
+
+                {% if current_user.is_authenticated %}
+
+                    <!-- User XP Badge -->
+
+                    <span class="pw-xp-badge" data-tooltip="Learning Experience Points">
+
+                        <i data-lucide="zap" style="width: 14px; height: 14px; fill: #FBBF24;"></i>
+
+                        <span>{{ current_user.xp }} XP</span>
+
+                    </span>
+
+
+
+                    <!-- Hi, User Greeting -->
+
+                    <span class="pw-user-greeting">Hi, {{ current_user.name.split()[0] }}</span>
+
+
+
+                    <!-- Profile Dropdown Menu Trigger (PW Style) -->
+
+                    <div class="pw-profile-dropdown-wrap" id="profileDropdownWrap">
+
+                        <button type="button" class="pw-avatar-trigger" id="avatarDropdownBtn" aria-expanded="false" aria-haspopup="true" aria-label="Open User Menu">
+
+                            <img src="{{ current_user.avatar_url }}" alt="avatar" class="pw-avatar-img">
+
+                            <i data-lucide="chevron-down" class="pw-chevron-icon"></i>
+
+                        </button>
+
+                        <!-- PW Dropdown Menu with Merged Logout -->
+
+                        <div class="pw-dropdown-menu" id="profileDropdownMenu" role="menu">
+
+                            <div class="pw-dropdown-header">
+
+                                <div class="pw-dropdown-name">{{ current_user.name }}</div>
+
+                                <div class="pw-dropdown-email">{{ current_user.email }}</div>
+
+                            </div>
+
+                            <a href="{{ url_for('profile.profile') }}" class="pw-dropdown-item" role="menuitem">
+
+                                <i data-lucide="user"></i>
+
+                                <span>My Profile</span>
+
+                            </a>
+
+                            <a href="{{ url_for('dashboard.dashboard') }}" class="pw-dropdown-item" role="menuitem">
+
+                                <i data-lucide="layout-dashboard"></i>
+
+                                <span>Dashboard</span>
+
+                            </a>
+
+                            <a href="{{ url_for('learning.my_learning') }}" class="pw-dropdown-item" role="menuitem">
+
+                                <i data-lucide="layers"></i>
+
+                                <span>My Learning & Projects</span>
+
+                            </a>
+
+                            <a href="{{ url_for('learning.onboarding_interests') }}" class="pw-dropdown-item" role="menuitem">
+
+                                <i data-lucide="compass"></i>
+
+                                <span>Study Interests</span>
+
+                            </a>
+
+                            <button type="button" class="pw-dropdown-item" id="openAppearanceModalBtn" role="menuitem" style="width: 100%; text-align: left; background: none; border: none; font-size: inherit; font-family: inherit; cursor: pointer;">
+
+                                <i data-lucide="sun-moon"></i>
+
+                                <span>Appearance</span>
+
+                            </button>
+
+                            {% if current_user.is_admin %}
+
+                            <a href="{{ url_for('admin.admin_dashboard') }}" class="pw-dropdown-item pw-admin-item" role="menuitem">
+
+                                <i data-lucide="shield-check"></i>
+
+                                <span>Admin Console</span>
+
+                            </a>
+
+                            <a href="{{ url_for('admin.test_series_tests_list') }}" class="pw-dropdown-item" role="menuitem">
+
+                                <i data-lucide="layers"></i>
+
+                                <span>Manage Tests</span>
+
+                            </a>
+
+                            {% endif %}
+
+                            <div class="pw-dropdown-divider"></div>
+
+                            <!-- Clean Merged Logout with Exit Icon -->
+
+                            <a href="{{ url_for('auth.logout') }}" class="pw-dropdown-item pw-logout-item" role="menuitem">
+
+                                <i data-lucide="power"></i>
+
+                                <span>Logout</span>
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                {% else %}
+
+                    <!-- Unauthenticated Visitor -->
+
+                    <button type="button" class="btn btn-secondary btn-sm" id="visitorThemeToggleBtn" style="border-radius: 9999px; padding: 6px 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" title="Toggle Theme" aria-label="Toggle Light and Dark Mode">
+
+                        <i data-lucide="sun-moon" style="width: 14px; height: 14px;"></i>
+
+                    </button>
+
+                    <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #FFFFFF; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
+
+                        <i data-lucide="book-open" style="width: 14px; height: 14px;"></i>
+
+                        <span>Courses</span>
+
+                    </a>
+
+                    <a href="{{ url_for('test_series.landing') }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #FFFFFF; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
+
+                        <i data-lucide="file-check-2" style="width: 14px; height: 14px;"></i>
+
+                        <span>Test Series</span>
+
+                    </a>
+
+                    <a href="{{ url_for('ai.assistant_page') }}" class="btn btn-secondary btn-sm" style="background: rgba(91, 70, 246, 0.25); border-color: rgba(139, 92, 246, 0.4); color: #C4B5FD; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
+
+                        <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+
+                        <span>SkillBot</span>
+
+                    </a>
+
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm" style="background: #5B46F6; border: none; padding: 7px 18px; border-radius: 9999px; font-weight: 700;">
+
+                        <i data-lucide="log-in" style="width: 14px; height: 14px;"></i>
+
+                        <span>Sign In</span>
+
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+
+    {% if current_user.is_authenticated %}
+
+    <!-- Physics Wallah Left Sidebar Navigation -->
+
+    <aside class="pw-sidebar" id="appSidebar" aria-label="Main Navigation">
+
+        <div class="pw-sidebar-inner">
+
+            <!-- 1. LEARN ONLINE -->
+
+            <div class="pw-sidebar-group">
+
+                <div class="pw-group-title">LEARN ONLINE</div>
+
+                <a href="{{ url_for('learning.courses_list') }}" 
+
+                   class="pw-nav-item {% if request.endpoint and 'learning.course' in request.endpoint %}active{% endif %}">
+
+                    <i data-lucide="book-open"></i>
+
+                    <span>Learn & Build</span>
+
+                </a>
+
+                <a href="{{ url_for('ai.assistant_page') }}" 
+
+                   class="pw-nav-item {% if request.endpoint == 'ai.assistant_page' %}active{% endif %}">
+
+                    <i data-lucide="sparkles"></i>
+
+                    <span>SkillBot AI</span>
+
+                    <span class="pw-nav-badge">NEW</span>
+
+                </a>
+
+                <a href="{{ url_for('test_series.landing') }}"
+
+                   class="pw-nav-item {% if request.endpoint and 'test_series.' in request.endpoint %}active{% endif %}">
+
+                    <i data-lucide="file-check-2"></i>
+
+                    <span>Test Series</span>
+
+                    <span class="pw-nav-badge" style="background: #10B981; color: #FFFFFF;">HOT</span>
+
+                </a>
+
+            </div>
+
+
+
+            <!-- 2. STUDY & PROJECTS -->
+
+            <div class="pw-sidebar-group">
+
+                <div class="pw-group-title">STUDY & PROJECTS</div>
+
+                <a href="{{ url_for('learning.my_learning') }}" 
+
+                   class="pw-nav-item {% if request.endpoint == 'learning.my_learning' %}active{% endif %}">
+
+                    <i data-lucide="layers"></i>
+
+                    <span>My Learning</span>
+
+                </a>
+
+                <a href="{{ url_for('learning.onboarding_interests') }}" 
+
+                   class="pw-nav-item {% if request.endpoint == 'learning.onboarding_interests' %}active{% endif %}">
+
+                    <i data-lucide="compass"></i>
+
+                    <span>Study Interests</span>
+
+                </a>
+
+            </div>
+
+
+
+            <!-- 3. CAMPUS EXCHANGE (Merged Skill Swapping & Peer Discovery) -->
+
+            <div class="pw-sidebar-group">
+
+                <div class="pw-group-title">CAMPUS EXCHANGE</div>
+
+                <a href="{{ url_for('discover.discover') }}" 
+
+                   class="pw-nav-item {% if request.endpoint in ['discover.discover', 'swap.requests_list'] %}active{% endif %}">
+
+                    <i data-lucide="users"></i>
+
+                    <span>Skill Exchange</span>
+
+                    {% if pending_requests_count > 0 %}
+
+                    <span class="pw-count-badge">{{ pending_requests_count }}</span>
+
+                    {% endif %}
+
+                </a>
+
+                <a href="{{ url_for('chat.chat_inbox') }}" 
+
+                   class="pw-nav-item {% if request.endpoint and 'chat.' in request.endpoint %}active{% endif %}">
+
+                    <i data-lucide="send"></i>
+
+                    <span>Messages</span>
+
+                    {% if unread_messages_count and unread_messages_count > 0 %}
+
+                    <span class="pw-count-badge">{{ unread_messages_count }}</span>
+
+                    {% endif %}
+
+                </a>
+
+                <a href="{{ url_for('sessions.sessions_list') }}" 
+
+                   class="pw-nav-item {% if request.endpoint == 'sessions.sessions_list' %}active{% endif %}">
+
+                    <i data-lucide="calendar"></i>
+
+                    <span>Sessions</span>
+
+                </a>
+
+            </div>
+
+
+
+            <!-- 4. ACCOUNT -->
+
+            <div class="pw-sidebar-group">
+
+                <div class="pw-group-title">ACCOUNT</div>
+
+                <a href="{{ url_for('profile.profile') }}" 
+
+                   class="pw-nav-item {% if request.endpoint == 'profile.profile' %}active{% endif %}">
+
+                    <i data-lucide="user"></i>
+
+                    <span>My Profile</span>
+
+                </a>
+
+                {% if current_user.is_admin %}
+
+                <a href="{{ url_for('admin.admin_dashboard') }}" 
+
+                   class="pw-nav-item {% if request.endpoint and 'admin.' in request.endpoint %}active{% endif %}"
+
+                   style="color: #D97706;">
+
+                    <i data-lucide="shield-check"></i>
+
+                    <span>Admin Console</span>
+
+                </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </aside>
+
+    <div class="pw-sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    {% endif %}
+
+
+
+    <!-- Main Content Container with YouTube-Style Skeleton Loading Screen -->
+
+    <main class="main-wrapper-pw {% if current_user.is_authenticated %}with-sidebar{% endif %}">
+
+        <div class="container">
+
+            <!-- YouTube-Style Skeleton Loading Template -->
+
+            <div id="youtubeSkeleton" class="yt-skeleton-container" aria-hidden="true">
+
+                {% if request.endpoint in ['learning.courses_list', 'learning.courses', 'learning.index'] %}
+
+                    <!-- Complete Full-Page Learn & Build Skeleton -->
+
+                    <div class="learning-container" id="learnBuildSkeleton">
+
+                        <!-- 1. Hero Banner Skeleton (Matches .learning-hero-card dark gradient & structure) -->
+
+                        <div class="learning-hero-card" style="margin-bottom: 24px; position: relative; overflow: hidden; pointer-events: none;">
+
+                            <div style="max-width: 740px;">
+
+                                <!-- Badge -->
+
+                                <div class="sk-pill sk-dark" style="width: 240px; height: 28px; border-radius: 9999px; margin-bottom: 16px; background: rgba(91, 70, 246, 0.28); border: 1px solid rgba(139, 92, 246, 0.4);"></div>
+
+                                <!-- Title: 2 lines -->
+
+                                <div class="sk-line sk-dark" style="width: 82%; height: 38px; border-radius: 8px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.12);"></div>
+
+                                <div class="sk-line sk-dark" style="width: 58%; height: 38px; border-radius: 8px; margin-bottom: 16px; background: rgba(255, 255, 255, 0.12);"></div>
+
+                                <!-- Description: 2 lines -->
+
+                                <div class="sk-line sk-dark" style="width: 96%; height: 16px; border-radius: 6px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.08);"></div>
+
+                                <div class="sk-line sk-dark" style="width: 75%; height: 16px; border-radius: 6px; margin-bottom: 24px; background: rgba(255, 255, 255, 0.08);"></div>
+
+                                <!-- 3 Feature items -->
+
+                                <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+
+                                        <div class="sk-circle sk-dark" style="width: 18px; height: 18px; background: rgba(16, 185, 129, 0.3);"></div>
+
+                                        <div class="sk-line sk-dark" style="width: 140px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.09);"></div>
+
+                                    </div>
+
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+
+                                        <div class="sk-circle sk-dark" style="width: 18px; height: 18px; background: rgba(129, 140, 248, 0.3);"></div>
+
+                                        <div class="sk-line sk-dark" style="width: 190px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.09);"></div>
+
+                                    </div>
+
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+
+                                        <div class="sk-circle sk-dark" style="width: 18px; height: 18px; background: rgba(245, 158, 11, 0.3);"></div>
+
+                                        <div class="sk-line sk-dark" style="width: 150px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.09);"></div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- 2. Focus Topics Banner Skeleton (Matches .personalized-banner) -->
+
+                        <div class="personalized-banner" style="margin-bottom: 24px; pointer-events: none;">
+
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+
+                                <div class="sk-pill" style="width: 130px; height: 26px; border-radius: 9999px; background: #DDD6FE;"></div>
+
+                                <div class="sk-pill" style="width: 90px; height: 26px; border-radius: 9999px; background: #FFFFFF;"></div>
+
+                                <div class="sk-pill" style="width: 110px; height: 26px; border-radius: 9999px; background: #FFFFFF;"></div>
+
+                                <div class="sk-pill" style="width: 100px; height: 26px; border-radius: 9999px; background: #FFFFFF;"></div>
+
+                            </div>
+
+                            <div class="sk-line" style="width: 120px; height: 16px; border-radius: 6px;"></div>
+
+                        </div>
+
+
+
+                        <!-- 3. Category Filter Chips (Bubbles) Skeleton (Matches .bubble-filter-scroll) -->
+
+                        <div class="bubble-filter-scroll" style="margin-bottom: 22px; pointer-events: none;">
+
+                            <div class="sk-pill" style="width: 110px; height: 38px; border-radius: 9999px; background: #EDE9FE;"></div>
+
+                            <div class="sk-pill" style="width: 100px; height: 38px; border-radius: 9999px;"></div>
+
+                            <div class="sk-pill" style="width: 130px; height: 38px; border-radius: 9999px;"></div>
+
+                            <div class="sk-pill" style="width: 115px; height: 38px; border-radius: 9999px;"></div>
+
+                            <div class="sk-pill" style="width: 95px; height: 38px; border-radius: 9999px;"></div>
+
+                            <div class="sk-pill" style="width: 125px; height: 38px; border-radius: 9999px;"></div>
+
+                        </div>
+
+
+
+                        <!-- 4. Search, Language & Difficulty Filter Bar Skeleton -->
+
+                        <div class="card" style="padding: 16px 20px; margin-bottom: 28px; border-radius: 14px; pointer-events: none;">
+
+                            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: flex-end;" class="course-filter-grid">
+
+                                <div>
+
+                                    <div class="sk-line" style="width: 110px; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
+
+                                    <div class="sk-box" style="width: 100%; height: 42px; border-radius: 10px;"></div>
+
+                                </div>
+
+                                <div>
+
+                                    <div class="sk-line" style="width: 80px; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
+
+                                    <div class="sk-box" style="width: 100%; height: 42px; border-radius: 10px;"></div>
+
+                                </div>
+
+                                <div>
+
+                                    <div class="sk-line" style="width: 80px; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
+
+                                    <div class="sk-box" style="width: 100%; height: 42px; border-radius: 10px;"></div>
+
+                                </div>
+
+                                <div>
+
+                                    <div class="sk-box" style="width: 90px; height: 42px; border-radius: 10px;"></div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- 5. Section Header Skeleton -->
+
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+
+                            <div style="display: flex; align-items: center; gap: 10px;">
+
+                                <div class="sk-circle" style="width: 24px; height: 24px;"></div>
+
+                                <div class="sk-line" style="width: 200px; height: 24px; border-radius: 6px;"></div>
+
+                            </div>
+
+                            <div class="sk-line" style="width: 90px; height: 14px; border-radius: 4px;"></div>
+
+                        </div>
+
+
+
+                        <!-- 6. Course Cards Grid Skeleton (Matches .grid-3 with 6 cards) -->
+
+                        <div class="grid-3" style="gap: 24px;">
+
+                            {% for i in range(6) %}
+
+                            <div class="card course-card-custom" style="padding: 0; border-radius: 16px; overflow: hidden; pointer-events: none;">
+
+                                <!-- Thumbnail Placeholder -->
+
+                                <div style="position: relative; height: 180px; width: 100%; background: #0F172A; overflow: hidden;">
+
+                                    <div class="sk-box sk-dark" style="width: 100%; height: 100%; background: rgba(255, 255, 255, 0.06);"></div>
+
+                                    <div style="position: absolute; top: 12px; left: 12px; display: flex; gap: 6px;">
+
+                                        <div class="sk-pill sk-dark" style="width: 85px; height: 22px; border-radius: 9999px; background: rgba(196, 181, 253, 0.25);"></div>
+
+                                        <div class="sk-pill sk-dark" style="width: 65px; height: 22px; border-radius: 9999px; background: rgba(59, 130, 246, 0.35);"></div>
+
+                                    </div>
+
+                                    <div style="position: absolute; bottom: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between;">
+
+                                        <div class="sk-line sk-dark" style="width: 70px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.15);"></div>
+
+                                        <div class="sk-line sk-dark" style="width: 60px; height: 14px; border-radius: 4px; background: rgba(255, 255, 255, 0.15);"></div>
+
+                                    </div>
+
+                                </div>
+
+
+
+                                <!-- Card Body Placeholder -->
+
+                                <div style="padding: 20px;">
+
+                                    <!-- Instructor -->
+
+                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px;">
+
+                                        <div class="sk-circle" style="width: 14px; height: 14px;"></div>
+
+                                        <div class="sk-line" style="width: 100px; height: 12px; border-radius: 4px;"></div>
+
+                                    </div>
+
+                                    <!-- Title -->
+
+                                    <div class="sk-line" style="width: 95%; height: 20px; border-radius: 6px; margin-bottom: 6px;"></div>
+
+                                    <div class="sk-line" style="width: 70%; height: 20px; border-radius: 6px; margin-bottom: 14px;"></div>
+
+                                    <!-- Description -->
+
+                                    <div class="sk-line" style="width: 100%; height: 13px; border-radius: 4px; margin-bottom: 6px;"></div>
+
+                                    <div class="sk-line" style="width: 85%; height: 13px; border-radius: 4px; margin-bottom: 18px;"></div>
+
+                                    <!-- Project Teaser Box -->
+
+                                    <div style="background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px; padding: 12px; margin-bottom: 18px;">
+
+                                        <div class="sk-line" style="width: 50%; height: 12px; border-radius: 4px; margin-bottom: 6px;"></div>
+
+                                        <div class="sk-line" style="width: 85%; height: 14px; border-radius: 4px;"></div>
+
+                                    </div>
+
+                                    <!-- Action Button Footer -->
+
+                                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F1F5F9; padding-top: 14px;">
+
+                                        <div class="sk-line" style="width: 80px; height: 16px; border-radius: 4px;"></div>
+
+                                        <div class="sk-btn" style="width: 110px; height: 36px; border-radius: 8px;"></div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+
+
+                {% elif request.endpoint == 'dashboard.dashboard' %}
+
+                    <!-- Dashboard Skeleton -->
+
+                    <div style="max-width: 960px; margin: 0 auto;">
+
+                        <div style="margin-bottom: 24px;">
+
+                            <div class="sk-line" style="width: 240px; height: 32px; border-radius: 8px; margin-bottom: 8px;"></div>
+
+                            <div class="sk-line" style="width: 170px; height: 16px; border-radius: 6px;"></div>
+
+                        </div>
+
+                        <div class="grid-4" style="margin-bottom: 32px;">
+
+                            {% for i in range(4) %}
+
+                            <div class="card" style="padding: 16px 20px;">
+
+                                <div class="sk-line" style="width: 50px; height: 12px; border-radius: 4px; margin-bottom: 8px;"></div>
+
+                                <div class="sk-line" style="width: 80px; height: 28px; border-radius: 6px;"></div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+
+                            <div class="sk-line" style="width: 180px; height: 24px; border-radius: 6px;"></div>
+
+                            <div class="sk-line" style="width: 70px; height: 14px; border-radius: 4px;"></div>
+
+                        </div>
+
+                        <div class="grid-3">
+
+                            {% for i in range(3) %}
+
+                            <div class="card" style="padding: 20px;">
+
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 14px;">
+
+                                    <div>
+
+                                        <div class="sk-line" style="width: 130px; height: 18px; border-radius: 6px; margin-bottom: 6px;"></div>
+
+                                        <div class="sk-line" style="width: 160px; height: 12px; border-radius: 4px;"></div>
+
+                                    </div>
+
+                                    <div class="sk-pill" style="width: 48px; height: 24px; border-radius: 999px;"></div>
+
+                                </div>
+
+                                <div style="margin-bottom: 12px;">
+
+                                    <div class="sk-line" style="width: 70px; height: 12px; border-radius: 4px; margin-bottom: 6px;"></div>
+
+                                    <div style="display: flex; gap: 6px;">
+
+                                        <div class="sk-pill" style="width: 60px; height: 22px; border-radius: 6px;"></div>
+
+                                        <div class="sk-pill" style="width: 75px; height: 22px; border-radius: 6px;"></div>
+
+                                    </div>
+
+                                </div>
+
+                                <div style="display: flex; gap: 8px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+
+                                    <div class="sk-btn" style="flex: 1; height: 34px; border-radius: 8px;"></div>
+
+                                    <div class="sk-btn" style="flex: 1; height: 34px; border-radius: 8px;"></div>
+
+                                </div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+
+
+                {% elif request.endpoint == 'discover.discover' %}
+
+                    <!-- Discover Skeleton -->
+
+                    <div class="page-header">
+
+                        <div class="sk-line" style="width: 260px; height: 32px; border-radius: 8px; margin-bottom: 8px;"></div>
+
+                        <div class="sk-line" style="width: 420px; height: 16px; border-radius: 6px;"></div>
+
+                    </div>
+
+                    <div class="card" style="padding: 16px 20px; margin-bottom: 24px;">
+
+                        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 120px; gap: 12px;">
+
+                            <div class="sk-btn" style="height: 42px; border-radius: 8px;"></div>
+
+                            <div class="sk-btn" style="height: 42px; border-radius: 8px;"></div>
+
+                            <div class="sk-btn" style="height: 42px; border-radius: 8px;"></div>
+
+                            <div class="sk-btn" style="height: 42px; border-radius: 8px;"></div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="grid-3">
+
+                        {% for i in range(6) %}
+
+                        <div class="card" style="padding: 20px;">
+
+                            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px;">
+
+                                <div class="sk-circle" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+
+                                <div style="flex: 1;">
+
+                                    <div class="sk-line" style="width: 120px; height: 16px; border-radius: 6px; margin-bottom: 6px;"></div>
+
+                                    <div class="sk-line" style="width: 150px; height: 12px; border-radius: 4px;"></div>
+
+                                </div>
+
+                            </div>
+
+                            <div style="display: flex; gap: 6px; margin-bottom: 16px;">
+
+                                <div class="sk-pill" style="width: 65px; height: 22px; border-radius: 6px;"></div>
+
+                                <div class="sk-pill" style="width: 75px; height: 22px; border-radius: 6px;"></div>
+
+                                <div class="sk-pill" style="width: 55px; height: 22px; border-radius: 6px;"></div>
+
+                            </div>
+
+                            <div style="display: flex; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+
+                                <div class="sk-btn" style="flex: 1; height: 34px; border-radius: 8px;"></div>
+
+                                <div class="sk-btn" style="flex: 1; height: 34px; border-radius: 8px;"></div>
+
+                            </div>
+
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+
+                {% elif request.endpoint and 'chat.' in request.endpoint %}
+
+                    <!-- Chat Skeleton -->
+
+                    <div class="card" style="padding: 0; overflow: hidden; height: 600px; display: grid; grid-template-columns: 280px 1fr;">
+
+                        <div style="border-right: 1px solid var(--border-color); padding: 14px;">
+
+                            <div class="sk-line" style="width: 90px; height: 20px; border-radius: 6px; margin-bottom: 14px;"></div>
+
+                            <div class="sk-btn" style="height: 36px; border-radius: 8px; margin-bottom: 14px;"></div>
+
+                            {% for i in range(5) %}
+
+                            <div style="display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9;">
+
+                                <div class="sk-circle" style="width: 40px; height: 40px; border-radius: 50%;"></div>
+
+                                <div style="flex: 1;">
+
+                                    <div class="sk-line" style="width: 85px; height: 14px; border-radius: 4px; margin-bottom: 6px;"></div>
+
+                                    <div class="sk-line" style="width: 120px; height: 11px; border-radius: 4px;"></div>
+
+                                </div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; justify-content: space-between; padding: 16px; background: #fafafa;">
+
+                            <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+
+                                <div class="sk-circle" style="width: 38px; height: 38px; border-radius: 50%;"></div>
+
+                                <div class="sk-line" style="width: 120px; height: 16px; border-radius: 4px;"></div>
+
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 14px; padding: 20px 0;">
+
+                                <div class="sk-block" style="width: 55%; height: 44px; border-radius: 18px 18px 18px 4px; align-self: flex-start;"></div>
+
+                                <div class="sk-block" style="width: 45%; height: 40px; border-radius: 18px 18px 4px 18px; align-self: flex-end;"></div>
+
+                                <div class="sk-block" style="width: 60%; height: 50px; border-radius: 18px 18px 18px 4px; align-self: flex-start;"></div>
+
+                                <div class="sk-block" style="width: 38%; height: 38px; border-radius: 18px 18px 4px 18px; align-self: flex-end;"></div>
+
+                            </div>
+
+                            <div style="display: flex; gap: 10px;">
+
+                                <div class="sk-btn" style="flex: 1; height: 44px; border-radius: 999px;"></div>
+
+                                <div class="sk-circle" style="width: 44px; height: 44px; border-radius: 50%;"></div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                {% elif request.endpoint in ['swap.requests_list', 'connections.connections_list', 'sessions.sessions_list'] %}
+
+                    <!-- Requests / Connections / Sessions Skeleton -->
+
+                    <div style="max-width: 860px; margin: 0 auto;">
+
+                        <div class="page-header">
+
+                            <div class="sk-line" style="width: 220px; height: 30px; border-radius: 8px; margin-bottom: 8px;"></div>
+
+                            <div class="sk-line" style="width: 360px; height: 16px; border-radius: 6px;"></div>
+
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 14px;">
+
+                            {% for i in range(4) %}
+
+                            <div class="card" style="padding: 18px; display: flex; align-items: center; justify-content: space-between;">
+
+                                <div style="display: flex; gap: 14px; align-items: center; flex: 1;">
+
+                                    <div class="sk-circle" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+
+                                    <div>
+
+                                        <div class="sk-line" style="width: 140px; height: 16px; border-radius: 6px; margin-bottom: 6px;"></div>
+
+                                        <div class="sk-line" style="width: 180px; height: 12px; border-radius: 4px;"></div>
+
+                                    </div>
+
+                                </div>
+
+                                <div style="display: flex; gap: 8px;">
+
+                                    <div class="sk-btn" style="width: 90px; height: 36px; border-radius: 8px;"></div>
+
+                                    <div class="sk-btn" style="width: 90px; height: 36px; border-radius: 8px;"></div>
+
+                                </div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+
+
+                {% elif request.endpoint and 'profile.' in request.endpoint %}
+
+                    <!-- Profile Skeleton -->
+
+                    <div style="max-width: 860px; margin: 0 auto;">
+
+                        <div class="card" style="padding: 28px; margin-bottom: 24px;">
+
+                            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
+
+                                <div class="sk-circle" style="width: 76px; height: 76px; border-radius: 50%;"></div>
+
+                                <div style="flex: 1;">
+
+                                    <div class="sk-line" style="width: 160px; height: 24px; border-radius: 6px; margin-bottom: 8px;"></div>
+
+                                    <div class="sk-line" style="width: 220px; height: 14px; border-radius: 4px;"></div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="sk-line" style="width: 90%; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
+
+                            <div class="sk-line" style="width: 70%; height: 14px; border-radius: 4px;"></div>
+
+                        </div>
+
+                        <div class="grid-2">
+
+                            <div class="card" style="padding: 20px;">
+
+                                <div class="sk-line" style="width: 100px; height: 18px; border-radius: 6px; margin-bottom: 14px;"></div>
+
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+
+                                    <div class="sk-pill" style="width: 70px; height: 26px; border-radius: 6px;"></div>
+
+                                    <div class="sk-pill" style="width: 90px; height: 26px; border-radius: 6px;"></div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="card" style="padding: 20px;">
+
+                                <div class="sk-line" style="width: 100px; height: 18px; border-radius: 6px; margin-bottom: 14px;"></div>
+
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+
+                                    <div class="sk-pill" style="width: 80px; height: 26px; border-radius: 6px;"></div>
+
+                                    <div class="sk-pill" style="width: 100px; height: 26px; border-radius: 6px;"></div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                {% elif request.endpoint == 'index' %}
+
+                    <!-- Landing Page Skeleton -->
+
+                    <div style="max-width: 820px; margin: 30px auto; text-align: center;">
+
+                        <div class="sk-circle" style="width: 76px; height: 76px; border-radius: 18px; margin: 0 auto 18px auto;"></div>
+
+                        <div class="sk-pill" style="width: 180px; height: 26px; margin: 0 auto 18px auto;"></div>
+
+                        <div class="sk-line" style="width: 65%; height: 42px; border-radius: 8px; margin: 0 auto 14px auto;"></div>
+
+                        <div class="sk-line" style="width: 50%; height: 20px; border-radius: 6px; margin: 0 auto 32px auto;"></div>
+
+                        <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 40px;">
+
+                            <div class="sk-btn" style="width: 190px; height: 48px; border-radius: 8px;"></div>
+
+                            <div class="sk-btn" style="width: 160px; height: 48px; border-radius: 8px;"></div>
+
+                        </div>
+
+                        <div class="grid-3" style="margin-top: 40px;">
+
+                            {% for i in range(3) %}
+
+                            <div class="card" style="padding: 22px;">
+
+                                <div class="sk-line" style="width: 30px; height: 18px; border-radius: 4px; margin-bottom: 12px;"></div>
+
+                                <div class="sk-line" style="width: 130px; height: 20px; border-radius: 6px; margin-bottom: 10px;"></div>
+
+                                <div class="sk-line" style="width: 90%; height: 14px; border-radius: 4px;"></div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+
+
+                {% elif request.endpoint in ['auth.login', 'auth.register'] %}
+
+                    <!-- Auth Pages Skeleton -->
+
+                    <div style="max-width: 440px; margin: 40px auto;">
+
+                        <div class="card" style="padding: 32px;">
+
+                            <div class="sk-circle" style="width: 56px; height: 56px; border-radius: 14px; margin: 0 auto 16px auto;"></div>
+
+                            <div class="sk-line" style="width: 140px; height: 24px; border-radius: 6px; margin: 0 auto 8px auto;"></div>
+
+                            <div class="sk-line" style="width: 200px; height: 14px; border-radius: 4px; margin: 0 auto 24px auto;"></div>
+
+                            <div class="sk-btn" style="height: 44px; border-radius: 8px; margin-bottom: 18px;"></div>
+
+                            <div class="sk-line" style="width: 100%; height: 1px; margin-bottom: 18px;"></div>
+
+                            <div class="sk-btn" style="height: 42px; border-radius: 8px; margin-bottom: 14px;"></div>
+
+                            <div class="sk-btn" style="height: 42px; border-radius: 8px; margin-bottom: 18px;"></div>
+
+                            <div class="sk-btn" style="height: 44px; border-radius: 8px;"></div>
+
+                        </div>
+
+                    </div>
+
+
+
+                {% else %}
+
+                    <!-- Universal Fallback Skeleton -->
+
+                    <div style="max-width: 860px; margin: 0 auto;">
+
+                        <div style="margin-bottom: 24px;">
+
+                            <div class="sk-line" style="width: 220px; height: 30px; border-radius: 8px; margin-bottom: 8px;"></div>
+
+                            <div class="sk-line" style="width: 340px; height: 16px; border-radius: 6px;"></div>
+
+                        </div>
+
+                        <div class="grid-3" style="margin-top: 20px;">
+
+                            {% for i in range(3) %}
+
+                            <div class="card" style="padding: 22px;">
+
+                                <div class="sk-line" style="width: 120px; height: 18px; border-radius: 6px; margin-bottom: 12px;"></div>
+
+                                <div class="sk-line" style="width: 100%; height: 14px; border-radius: 4px; margin-bottom: 8px;"></div>
+
+                                <div class="sk-line" style="width: 80%; height: 14px; border-radius: 4px; margin-bottom: 16px;"></div>
+
+                                <div class="sk-btn" style="height: 36px; border-radius: 8px;"></div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+
+            <!-- Live Page Content Wrapper -->
+
+            <div id="livePageContent" class="live-content-wrapper">
+
+                <!-- Flash Message Alerts -->
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+
+                    {% if messages %}
+
+                        <div class="flash-container">
+
+                            {% for category, message in messages %}
+
+                                <div class="alert alert-{{ category }}">
+
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+
+                                        {% if category == 'success' %}
+
+                                            <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+
+                                        {% elif category == 'danger' %}
+
+                                            <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i>
+
+                                        {% else %}
+
+                                            <i data-lucide="info" style="width: 16px; height: 16px;"></i>
+
+                                        {% endif %}
+
+                                        <span>{{ message }}</span>
+
+                                    </div>
+
+                                    <button type="button" class="alert-dismiss" style="background:none; border:none; color:inherit; cursor:pointer;">
+
+                                        <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+
+                                    </button>
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                {% endwith %}
+
+
+
+                {% block content %}{% endblock %}
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+
+    <!-- Follow & Connect Modal -->
+
+    <div id="requestSwapModal" class="modal-overlay">
+
+        <div class="modal-box">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h3 style="font-size: 1.15rem;">Follow & Connect with <span id="modalReceiverName">Student</span></h3>
+
+                </div>
+
+                <button type="button" class="modal-close">&times;</button>
+
+            </div>
+
+            <form action="{{ url_for('swap.send_request') }}" method="POST">
+
+                <input type="hidden" name="receiver_id" id="modalReceiverId">
+
+
+
+                <div class="form-group">
+
+                    <label class="form-label">You will learn (Optional)</label>
+
+                    <select name="learn_skill_id" id="modalLearnSkill" class="form-select">
+
+                        <option value="">-- Choose what to learn (or default) --</option>
+
+                    </select>
+
+                </div>
+
+
+
+                <div class="form-group">
+
+                    <label class="form-label">You will teach (Optional)</label>
+
+                    <select name="teach_skill_id" id="modalTeachSkill" class="form-select">
+
+                        <option value="">-- Choose what you will teach (or default) --</option>
+
+                        {% if current_user.is_authenticated %}
+
+                            {% for ts in current_user.teaching_skills %}
+
+                                <option value="{{ ts.id }}">{{ ts.name }}</option>
+
+                            {% endfor %}
+
+                        {% endif %}
+
+                    </select>
+
+                    {% if current_user.is_authenticated and not current_user.teaching_skills %}
+
+                        <div style="font-size: 0.8rem; color: var(--warning); margin-top: 4px;">
+
+                            You have no teaching skills added. <a href="{{ url_for('profile.profile') }}">Add one to your profile</a>.
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+
+                <div class="form-group">
+
+                    <label class="form-label">Message (Optional)</label>
+
+                    <textarea name="message" class="form-control" rows="2" placeholder="Say hi or mention what you'd like to collaborate on..."></textarea>
+
+                </div>
+
+
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+
+                    <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+
+                    <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+
+                        <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i>
+
+                        <span>Follow & Connect</span>
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Clean Professional Footer -->
+
+    <footer class="footer {% if current_user.is_authenticated %}with-sidebar{% endif %}">
+
+        <div class="container footer-content" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 22px 0;">
+
+            <div>
+
+                <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+
+                    <span>Skill<span style="color: #FB8500; font-weight: 800;">Rock</span></span>
+
+                    <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">— Free Student Learning & Project Review Platform</span>
+
+                </div>
+
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">
+
+                    Learn • Build • Deploy • Submit • Get Reviewed • Earn Certificate
+
+                </div>
+
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 12px;">
+
+                <span style="font-size: 0.84rem; font-weight: 600; color: var(--text-secondary); background: var(--bg-elevated); padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: inline-flex; align-items: center; gap: 6px;">
+
+                    <span>Crafted with</span>
+
+                    <span style="color: #EF4444;">❤️</span>
+
+                    <span>by</span>
+
+                    <strong style="color: var(--text-main);">TanxPal</strong>
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </footer>
+
+
+
+    {% if current_user.is_authenticated %}
+
+    <!-- Mobile App-Style Bottom Tab Bar (Fixed at bottom on phones) -->
+
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+
+        <a href="{{ url_for('learning.courses_list') }}" class="mobile-bottom-item {% if request.endpoint and 'learning.' in request.endpoint %}active{% endif %}" aria-label="Learn">
+
+            <i data-lucide="book-open"></i>
+
+            <span>Learn</span>
+
+        </a>
+
+        <a href="{{ url_for('discover.discover') }}" class="mobile-bottom-item {% if request.endpoint in ['discover.discover', 'swap.requests_list'] %}active{% endif %}" aria-label="Exchange">
+
+            <div class="nav-icon-wrapper">
+
+                <i data-lucide="users"></i>
+
+                {% if pending_requests_count > 0 %}
+
+                <span class="nav-icon-badge">{{ pending_requests_count }}</span>
+
+                {% endif %}
+
+            </div>
+
+            <span>Exchange</span>
+
+        </a>
+
+        <a href="{{ url_for('chat.chat_inbox') }}" class="mobile-bottom-item {% if request.endpoint and 'chat.' in request.endpoint %}active{% endif %}" aria-label="Messages">
+
+            <div class="nav-icon-wrapper">
+
+                <i data-lucide="message-square"></i>
+
+                {% if unread_messages_count and unread_messages_count > 0 %}
+
+                <span class="nav-icon-badge">{{ unread_messages_count }}</span>
+
+                {% endif %}
+
+            </div>
+
+            <span>Chat</span>
+
+        </a>
+
+        <a href="{{ url_for('sessions.sessions_list') }}" class="mobile-bottom-item {% if request.endpoint == 'sessions.sessions_list' %}active{% endif %}" aria-label="Sessions">
+
+            <i data-lucide="calendar"></i>
+
+            <span>Sessions</span>
+
+        </a>
+
+        <a href="{{ url_for('profile.profile') }}" class="mobile-bottom-item {% if request.endpoint == 'profile.profile' %}active{% endif %}" aria-label="Profile">
+
+            <i data-lucide="user"></i>
+
+            <span>Profile</span>
+
+        </a>
+
+    </nav>
+
+    {% endif %}
+
+
+
+    <!-- Appearance Settings Modal (Exactly Light and Dark Mode Options) -->
+
+    <div id="appearanceModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center;" role="dialog" aria-modal="true" aria-labelledby="appearanceModalTitle">
+
+        <div class="card modal-box" style="width: 100%; max-width: 500px; margin: 20px; padding: 28px; border-radius: 16px; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow-hover); position: relative;">
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+
+                <div style="display: flex; align-items: center; gap: 10px;">
+
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(81, 69, 205, 0.12); color: var(--primary-action); display: flex; align-items: center; justify-content: center;">
+
+                        <i data-lucide="sun-moon" style="width: 20px; height: 20px;"></i>
+
+                    </div>
+
+                    <h3 id="appearanceModalTitle" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin: 0;">
+
+                        Appearance Settings
+
+                    </h3>
+
+                </div>
+
+                <button type="button" id="closeAppearanceModalBtn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" aria-label="Close Appearance Settings">
+
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+
+                </button>
+
+            </div>
+
+            
+
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 22px; line-height: 1.5;">
+
+                Select your preferred viewing mode. Your setting applies immediately across all pages and persists on your device.
+
+            </p>
+
+
+
+            <!-- 2 Selectable Options: Light and Dark -->
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px;">
+
+                <!-- Light Theme Card -->
+
+                <button type="button" class="global-theme-btn" data-theme-target="light" style="padding: 18px 16px; border-radius: 12px; border: 2px solid var(--border-color); background: #FFFFFF; text-align: left; cursor: pointer; transition: all 0.15s ease; position: relative;">
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+
+                        <div style="width: 32px; height: 32px; border-radius: 8px; background: #F6F7FB; border: 1px solid #E1E6EF; color: #172033; display: flex; align-items: center; justify-content: center;">
+
+                            <i data-lucide="sun" style="width: 18px; height: 18px; color: #D97706;"></i>
+
+                        </div>
+
+                        <span class="theme-active-check" style="display: none; width: 22px; height: 22px; border-radius: 50%; background: #5145CD; color: white; align-items: center; justify-content: center;">
+
+                            <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+
+                        </span>
+
+                    </div>
+
+                    <div style="font-weight: 800; font-size: 0.98rem; color: #172033; margin-bottom: 2px;">Light</div>
+
+                    <div style="font-size: 0.78rem; color: #536176;">Clean daytime reading comfort</div>
+
+                </button>
+
+
+
+                <!-- Dark Theme Card -->
+
+                <button type="button" class="global-theme-btn" data-theme-target="dark" style="padding: 18px 16px; border-radius: 12px; border: 2px solid var(--border-color); background: #1F2937; text-align: left; cursor: pointer; transition: all 0.15s ease; position: relative;">
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+
+                        <div style="width: 32px; height: 32px; border-radius: 8px; background: #111827; border: 1px solid #374151; color: #F3F4F6; display: flex; align-items: center; justify-content: center;">
+
+                            <i data-lucide="moon" style="width: 18px; height: 18px; color: #A5B4FC;"></i>
+
+                        </div>
+
+                        <span class="theme-active-check" style="display: none; width: 22px; height: 22px; border-radius: 50%; background: #A5B4FC; color: #1E1B4B; align-items: center; justify-content: center;">
+
+                            <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+
+                        </span>
+
+                    </div>
+
+                    <div style="font-weight: 800; font-size: 0.98rem; color: #F3F4F6; margin-bottom: 2px;">Dark</div>
+
+                    <div style="font-size: 0.78rem; color: #C0CAD8;">Low-glare extended study mode</div>
+
+                </button>
+
+            </div>
+
+
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+
+                <a href="{{ url_for('profile.appearance_settings') }}" style="font-size: 0.82rem; color: var(--primary-action); text-decoration: underline; font-weight: 600;">
+
+                    Open Full Appearance Page
+
+                </a>
+
+                <button type="button" id="doneAppearanceModalBtn" class="btn btn-primary" style="padding: 8px 22px; font-weight: 700; border-radius: 8px;">
+
+                    Done
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Initialize Lucide Icons & Theme Logic -->
+
+    <script>
+
+        function renderLucide() {
+
+            if (window.lucide && typeof window.lucide.createIcons === "function") {
+
+                window.lucide.createIcons();
+
+            }
+
+        }
+
+        if (document.readyState === "loading") {
+
+            document.addEventListener("DOMContentLoaded", renderLucide);
+
+        } else {
+
+            renderLucide();
+
+        }
+
+        window.addEventListener("load", renderLucide);
+
+
+
+        // Instant Client-Side Navigation Progress Indicator (< 30ms visual response)
+
+        (function initInstantNavFeedback() {
+
+            var bar = document.getElementById("topProgressBar");
+
+            if (!bar) return;
+
+
+
+            document.addEventListener("click", function(e) {
+
+                var link = e.target.closest("a");
+
+                if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
+
+                var href = link.getAttribute("href");
+
+                if (!href || href.startsWith("#") || href.startsWith("javascript:") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+
+                if (link.origin && link.origin !== window.location.origin) return;
+
+
+
+                // Immediate visual response in < 30ms
+
+                bar.style.opacity = "1";
+
+                bar.style.width = "40%";
+
+
+
+                var lc = document.getElementById("livePageContent");
+
+                if (lc) lc.classList.add("page-navigating");
+
+
+
+                setTimeout(function() {
+
+                    if (bar.style.width === "40%") bar.style.width = "75%";
+
+                }, 200);
+
+            });
+
+
+
+            window.addEventListener("pageshow", function() {
+
+                var lc = document.getElementById("livePageContent");
+
+                if (lc) lc.classList.remove("page-navigating");
+
+                bar.style.width = "100%";
+
+                setTimeout(function() {
+
+                    bar.style.opacity = "0";
+
+                    setTimeout(function() { bar.style.width = "0%"; }, 200);
+
+                }, 150);
+
+            });
+
+        })();
+
+    </script>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <script>
+
+        // Centralized Theme Controller
+
+        (function initThemeController() {
+
+            window.setSkillRockTheme = function(theme) {
+
+                if (theme !== "dark" && theme !== "light") theme = "light";
+
+                document.documentElement.setAttribute("data-theme", theme);
+
+                try {
+
+                    localStorage.setItem("skillrock_theme", theme);
+
+                } catch(e) {}
+
+
+
+                // Update active UI cards in modal & settings
+
+                updateThemeUI(theme);
+
+
+
+                // Asynchronous sync to backend (persists to user's MongoDB profile)
+
+                {% if current_user.is_authenticated %}
+
+                fetch("{{ url_for('profile.appearance_settings') }}", {
+
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type": "application/json",
+
+                        "X-Requested-With": "XMLHttpRequest"
+
+                    },
+
+                    body: JSON.stringify({ theme: theme })
+
+                }).catch(function(err) {
+
+                    console.warn("Theme sync notice:", err);
+
+                });
+
+                {% endif %}
+
+            };
+
+
+
+            function updateThemeUI(theme) {
+
+                const current = theme || document.documentElement.getAttribute("data-theme") || "light";
+
+                document.querySelectorAll(".global-theme-btn, .theme-card-option").forEach(btn => {
+
+                    const target = btn.getAttribute("data-theme-target") || btn.getAttribute("data-theme-choice");
+
+                    const check = btn.querySelector(".theme-active-check, .theme-check-badge");
+
+                    if (target === current) {
+
+                        btn.style.borderColor = target === "dark" ? "#A5B4FC" : "#5145CD";
+
+                        if (check) check.style.display = "inline-flex";
+
+                    } else {
+
+                        btn.style.borderColor = "var(--border-color)";
+
+                        if (check) check.style.display = "none";
+
+                    }
+
+                });
+
+            }
+
+
+
+            // Bind Modal Triggers
+
+            const appearanceModal = document.getElementById("appearanceModal");
+
+            const openBtn = document.getElementById("openAppearanceModalBtn");
+
+            const closeBtn = document.getElementById("closeAppearanceModalBtn");
+
+            const doneBtn = document.getElementById("doneAppearanceModalBtn");
+
+            const visitorToggleBtn = document.getElementById("visitorThemeToggleBtn");
+
+
+
+            function showModal() {
+
+                if (!appearanceModal) return;
+
+                appearanceModal.style.display = "flex";
+
+                const current = document.documentElement.getAttribute("data-theme") || "light";
+
+                updateThemeUI(current);
+
+                if (window.lucide) lucide.createIcons();
+
+            }
+
+
+
+            function hideModal() {
+
+                if (!appearanceModal) return;
+
+                appearanceModal.style.display = "none";
+
+            }
+
+
+
+            if (openBtn) openBtn.addEventListener("click", showModal);
+
+            if (closeBtn) closeBtn.addEventListener("click", hideModal);
+
+            if (doneBtn) doneBtn.addEventListener("click", hideModal);
+
+            if (visitorToggleBtn) {
+
+                visitorToggleBtn.addEventListener("click", function() {
+
+                    const cur = document.documentElement.getAttribute("data-theme") || "light";
+
+                    const next = cur === "dark" ? "light" : "dark";
+
+                    window.setSkillRockTheme(next);
+
+                });
+
+            }
+
+
+
+            if (appearanceModal) {
+
+                appearanceModal.addEventListener("click", function(e) {
+
+                    if (e.target === appearanceModal) hideModal();
+
+                });
+
+                document.addEventListener("keydown", function(e) {
+
+                    if (e.key === "Escape" && appearanceModal.style.display === "flex") {
+
+                        hideModal();
+
+                    }
+
+                });
+
+            }
+
+
+
+            document.querySelectorAll(".global-theme-btn").forEach(btn => {
+
+                btn.addEventListener("click", function() {
+
+                    const target = this.getAttribute("data-theme-target");
+
+                    if (target) window.setSkillRockTheme(target);
+
+                });
+
+            });
+
+
+
+            // Initial UI sync
+
+            updateThemeUI(document.documentElement.getAttribute("data-theme") || "light");
+
+        })();
+
+    </script>
+
+    <script>
+
+        // Physics Wallah Profile Dropdown Interactive Handler
+
+        (function initPWProfileDropdown() {
+
+            const avatarDropdownBtn = document.getElementById("avatarDropdownBtn");
+
+            const profileDropdownMenu = document.getElementById("profileDropdownMenu");
+
+            if (avatarDropdownBtn && profileDropdownMenu) {
+
+                avatarDropdownBtn.addEventListener("click", function(e) {
+
+                    e.stopPropagation();
+
+                    const isOpen = profileDropdownMenu.classList.contains("show");
+
+                    profileDropdownMenu.classList.toggle("show");
+
+                    avatarDropdownBtn.classList.toggle("open", !isOpen);
+
+                    avatarDropdownBtn.setAttribute("aria-expanded", !isOpen ? "true" : "false");
+
+                });
+
+
+
+                document.addEventListener("click", function(e) {
+
+                    if (!profileDropdownMenu.contains(e.target) && !avatarDropdownBtn.contains(e.target)) {
+
+                        profileDropdownMenu.classList.remove("show");
+
+                        avatarDropdownBtn.classList.remove("open");
+
+                        avatarDropdownBtn.setAttribute("aria-expanded", "false");
+
+                    }
+
+                });
+
+
+
+                document.addEventListener("keydown", function(e) {
+
+                    if (e.key === "Escape") {
+
+                        profileDropdownMenu.classList.remove("show");
+
+                        avatarDropdownBtn.classList.remove("open");
+
+                        avatarDropdownBtn.setAttribute("aria-expanded", "false");
+
+                    }
+
+                });
+
+            }
+
+
+
+            // Mobile Left Sidebar Drawer Toggle
+
+            const mobileToggle = document.getElementById("mobileSidebarToggleBtn");
+
+            const sidebar = document.getElementById("appSidebar");
+
+            const backdrop = document.getElementById("sidebarBackdrop");
+
+            if (mobileToggle && sidebar) {
+
+                mobileToggle.addEventListener("click", function() {
+
+                    sidebar.classList.toggle("mobile-open");
+
+                    if (backdrop) backdrop.classList.toggle("active");
+
+                });
+
+                if (backdrop) {
+
+                    backdrop.addEventListener("click", function() {
+
+                        sidebar.classList.remove("mobile-open");
+
+                        backdrop.classList.remove("active");
+
+                    });
+
+                }
+
+            }
+
+        })();
+
+    </script>
+
+    <script>
+
+        // Fail-safe immediate reveal once DOM content is parsed
+
+        (function() {
+
+            function reveal() {
+
+                var sk = document.getElementById("youtubeSkeleton") || document.getElementById("pageSkeletonWrapper");
+
+                var lc = document.getElementById("livePageContent");
+
+                if (lc && lc.classList.contains("is-loading")) {
+
+                    lc.classList.remove("is-loading");
+
+                    lc.style.display = "";
+
+                }
+
+                if (sk && !sk.classList.contains("fade-out")) {
+
+                    sk.classList.add("fade-out");
+
+                    setTimeout(function() {
+
+                        sk.style.display = "none";
+
+                    }, 180);
+
+                }
+
+            }
+
+            if (document.readyState === "interactive" || document.readyState === "complete") {
+
+                reveal();
+
+            } else {
+
+                document.addEventListener("DOMContentLoaded", reveal);
+
+            }
+
+        })();
+
+    </script>
+
+        <!-- In-Browser Keep-Alive Heartbeat (Prevents Render spin-down while user has tab open) -->
+
+    <script>
+
+        (function initClientKeepAlive() {
+
+            var PING_INTERVAL_MS = 7 * 60 * 1000; // Ping every 7 minutes while active tab open
+
+            var lastPulse = Date.now();
+
+            function sendKeepAlivePulse() {
+
+                var now = Date.now();
+
+                if (now - lastPulse >= 60000) {
+
+                    lastPulse = now;
+
+                    fetch("/healthz", { method: "GET", credentials: "same-origin", cache: "no-store" })
+
+                        .catch(function() {});
+
+                }
+
+            }
+
+            setInterval(sendKeepAlivePulse, PING_INTERVAL_MS);
+
+            document.addEventListener("visibilitychange", function() {
+
+                if (document.visibilityState === "visible" && (Date.now() - lastPulse > 5 * 60 * 1000)) {
+
+                    sendKeepAlivePulse();
+
+                }
+
+            });
+
+        })();
+
+    </script>
+
+        <!-- PWA Service Worker & Install Prompt Registration -->
+
+    <script>
+
+        (function initPWAEngine() {
+
+            if ('serviceWorker' in navigator) {
+
+                window.addEventListener('load', function() {
+
+                    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+
+                        .then(function(reg) {
+
+                            console.log('[SkillRock PWA] Registered with scope:', reg.scope);
+
+                        })
+
+                        .catch(function(err) {
+
+                            console.warn('[SkillRock PWA] Registration note:', err);
+
+                        });
+
+                });
+
+            }
+
+
+
+            var deferredPrompt = null;
+
+            var banner = document.getElementById('pwaInstallBanner');
+
+            var installBtn = document.getElementById('pwaInstallBtn');
+
+            var dismissBtn = document.getElementById('pwaDismissBtn');
+
+            var iosModal = document.getElementById('pwaIosModal');
+
+
+
+            // Listen for native Android / Chrome beforeinstallprompt
+
+            window.addEventListener('beforeinstallprompt', function(e) {
+
+                e.preventDefault();
+
+                deferredPrompt = e;
+
+                if (banner && !localStorage.getItem('skillrock_pwa_dismissed')) {
+
+                    banner.style.display = 'flex';
+
+                }
+
+            });
+
+
+
+            if (installBtn) {
+
+                installBtn.addEventListener('click', async function() {
+
+                    if (deferredPrompt) {
+
+                        deferredPrompt.prompt();
+
+                        var choice = await deferredPrompt.userChoice;
+
+                        deferredPrompt = null;
+
+                        if (banner) banner.style.display = 'none';
+
+                    } else {
+
+                        // Check if on iOS Safari
+
+                        var isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+
+                        if (isIos && iosModal) {
+
+                            iosModal.style.display = 'flex';
+
+                        }
+
+                    }
+
+                });
+
+            }
+
+
+
+            if (dismissBtn && banner) {
+
+                dismissBtn.addEventListener('click', function() {
+
+                    banner.style.display = 'none';
+
+                    localStorage.setItem('skillrock_pwa_dismissed', '1');
+
+                });
+
+            }
+
+
+
+            window.addEventListener('appinstalled', function() {
+
+                console.log('[SkillRock PWA] App installed to home screen successfully.');
+
+                if (banner) banner.style.display = 'none';
+
+                localStorage.setItem('skillrock_pwa_installed', '1');
+
+            });
+
+        })();
+
+    </script>
+
+    {% block scripts %}{% endblock %}
+
+</body>
+
+</html>
+

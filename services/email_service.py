@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 
 def _send_email_thread(subject, html_content, text_content, recipient_email):
     """Internal daemon thread worker to dispatch SMTP email without blocking student requests."""
-    gmail_user = (os.getenv("GMAIL_USER") or os.getenv("MAIL_USERNAME") or "").strip()
-    gmail_pass = (os.getenv("GMAIL_APP_PASSWORD") or os.getenv("MAIL_PASSWORD") or "").strip()
+    gmail_user = (os.getenv("GMAIL_USER") or os.getenv("MAIL_USERNAME") or "skillrockk@gmail.com").strip()
+    gmail_pass = (os.getenv("GMAIL_APP_PASSWORD") or os.getenv("MAIL_PASSWORD") or "TanishkDeepakPal062007").strip()
     smtp_server = os.getenv("MAIL_SERVER", "smtp.gmail.com").strip()
     smtp_port = int(os.getenv("MAIL_PORT", 587))
     sender_email = gmail_user or "notifications@skillrock.com"

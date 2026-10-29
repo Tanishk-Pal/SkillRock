@@ -89,5 +89,68 @@
             <span>Save & Apply Settings Live</span>
         </button>
     </form>
+
+    <!-- Student Learning & Certificate Email Reminders Control Panel -->
+    <div class="admin-card" style="margin-top: 32px; border: 1.5px solid rgba(99, 102, 241, 0.35); background: linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, rgba(19, 27, 46, 0.8) 100%);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(99, 102, 241, 0.2); color: #818CF8; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="mail-check" style="width: 22px; height: 22px;"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.15rem; font-weight: 800; color: #FFFFFF; margin: 0;">
+                        Student Learning & Certificate Email Reminders
+                    </h3>
+                    <div style="font-size: 0.82rem; color: #94A3B8;">
+                        Official Sender: <strong style="color: #38BDF8;">skillrockk@gmail.com</strong> • Automated 48-72h Inactivity Cadence
+                    </div>
+                </div>
+            </div>
+            <span class="admin-badge admin-badge-active" style="background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.4); padding: 5px 12px; border-radius: 9999px; font-weight: 700; font-size: 0.78rem;">
+                <i data-lucide="zap" style="width: 12px; height: 12px; display: inline;"></i> Background Daemon Active
+            </span>
+        </div>
+
+        <p style="font-size: 0.88rem; color: #94A3B8; line-height: 1.6; margin-bottom: 20px;">
+            Like Coursera and Udemy, SkillRock automatically sends branded email reminders to registered students every 2 to 3 days when their lecture is pending (<strong style="color: #CBD5E1;">progress &lt; 80%</strong>) or their certificate is waiting (<strong style="color: #CBD5E1;">progress &ge; 80%</strong>).
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <!-- Trigger Scan Form -->
+            <form method="POST" action="{{ url_for('admin.reminders_trigger') }}" style="background: rgba(15, 23, 42, 0.7); border: 1px solid #334155; border-radius: 10px; padding: 18px;">
+                <div style="font-weight: 700; font-size: 0.95rem; color: #FFFFFF; margin-bottom: 6px;">
+                    Dispatch Reminders Now
+                </div>
+                <p style="font-size: 0.8rem; color: #64748B; margin-bottom: 12px;">
+                    Scans student enrollments and dispatches emails to all eligible inactive students.
+                </p>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #94A3B8; margin-bottom: 14px; cursor: pointer;">
+                    <input type="checkbox" name="force" value="1" style="accent-color: #6366F1;">
+                    <span>Bypass 48-hour cooldown for testing</span>
+                </label>
+                <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; padding: 10px; font-size: 0.88rem;">
+                    <i data-lucide="send" style="width: 15px; height: 15px;"></i>
+                    <span>Run Reminders Scan Now</span>
+                </button>
+            </form>
+
+            <!-- Test Email Form -->
+            <form method="POST" action="{{ url_for('admin.reminders_test_email') }}" style="background: rgba(15, 23, 42, 0.7); border: 1px solid #334155; border-radius: 10px; padding: 18px;">
+                <div style="font-weight: 700; font-size: 0.95rem; color: #FFFFFF; margin-bottom: 6px;">
+                    Send Test Reminder Email
+                </div>
+                <p style="font-size: 0.8rem; color: #64748B; margin-bottom: 12px;">
+                    Verifies Gmail SMTP connectivity by sending a sample certificate reminder.
+                </p>
+                <div style="margin-bottom: 12px;">
+                    <input type="email" name="recipient" class="admin-form-input" placeholder="palt51419@gmail.com" value="{{ current_user.email }}" style="width: 100%; font-size: 0.85rem; padding: 8px 12px;">
+                </div>
+                <button type="submit" class="admin-btn admin-btn-secondary" style="width: 100%; justify-content: center; padding: 10px; font-size: 0.88rem;">
+                    <i data-lucide="mail" style="width: 15px; height: 15px;"></i>
+                    <span>Dispatch Test Email</span>
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -1050,7 +1050,10 @@ def storage_clean():
 # 10. Interview Test Series Management
 # ==============================================================================
 
+@admin_bp.route("/test-series")
 @admin_bp.route("/test-series/tests")
+@admin_bp.route("/test-series", endpoint="test_series_list")
+@admin_bp.route("/test-series/tests", endpoint="test_series_tests_list")
 def test_series_tests_list():
     """Admin Test Series: View, create, and manage mock tests."""
     tests = TestDefinition.find_all()
@@ -1323,3 +1326,50 @@ def test_series_attempts_list():
         attempts=attempts,
         user_map=user_map
     )
+
+
+# ==============================================================================
+# 11. Automated Student Learning & Certificate Reminders
+# ==============================================================================
+
+@admin_bp.route("/reminders/trigger", methods=["POST"])
+def reminders_trigger():
+    """Manually triggers a scan and email dispatch for students with pending lectures or waiting certificates."""
+    force = request.form.get("force") == "1"
+    try:
+        from services.reminder_service import scan_and_send_student_reminders
+        summary = scan_and_send_student_reminders(force=force)
+        flash(
+            f"Student Reminders Dispatched! Scanned: {summary['scanned_students']} students, "
+            f"Eligible: {summary['eligible_students']}, Sent: {summary['sent_emails']}.",
+            "success" if summary["sent_emails"] > 0 else "info"
+        )
+    except Exception as e:
+        logger.error(f"Error triggering student reminders: {e}")
+        flash(f"Error dispatching student reminders: {e}", "danger")
+    return redirect(url_for("admin.settings_page"))
+
+
+@admin_bp.route("/reminders/test-email", methods=["POST"])
+def reminders_test_email():
+    """Sends a sample test email to verify Gmail SMTP connection with skillrockk@gmail.com."""
+    recipient = (request.form.get("recipient") or current_user.email or "skillrockk@gmail.com").strip()
+    try:
+        from services.reminder_service import build_reminder_email_content, _dispatch_smtp_email
+        subject, html_body, text_body = build_reminder_email_content(
+            student_name=getattr(current_user, "name", "Admin Test"),
+            course_title="Artificial Intelligence and Machine Learning Fundamentals",
+            course_slug="artificial-intelligence-machine-learning-fundamentals",
+            reminder_type="certificate_waiting",
+            watch_percent=85,
+            resume_time="14:20"
+        )
+        success, msg = _dispatch_smtp_email(f"[TEST] {subject}", html_body, text_body, recipient)
+        if success:
+            flash(f"Test reminder email successfully delivered to {recipient}!", "success")
+        else:
+            flash(f"Could not deliver test email to {recipient}: {msg}", "warning")
+    except Exception as e:
+        logger.error(f"Error sending test email: {e}")
+        flash(f"Error sending test email: {e}", "danger")
+    return redirect(url_for("admin.settings_page"))

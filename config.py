@@ -52,3 +52,12 @@ class Config:
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SAMESITE = "Lax"
     REMEMBER_COOKIE_SECURE = is_prod or os.getenv("SESSION_COOKIE_SECURE", "False").lower() in ("true", "1", "yes")
+
+    # Official Gmail & SMTP Mail Delivery (Student Learning & Certificate Reminders)
+    MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com").strip()
+    MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
+    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True").lower() in ("true", "1", "yes")
+    MAIL_USERNAME = (os.getenv("GMAIL_USER") or os.getenv("MAIL_USERNAME") or "skillrockk@gmail.com").strip()
+    MAIL_PASSWORD = (os.getenv("GMAIL_APP_PASSWORD") or os.getenv("MAIL_PASSWORD") or "TanishkDeepakPal062007").strip()
+    MAIL_DEFAULT_SENDER = ("SkillRock Student Academy", "skillrockk@gmail.com")
+    ADMIN_NOTIFICATION_EMAIL = os.getenv("ADMIN_NOTIFICATION_EMAIL", "palt51419@gmail.com").strip()
