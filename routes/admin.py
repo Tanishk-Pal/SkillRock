@@ -22,6 +22,13 @@ from flask import (
 )
 from flask_login import login_user, logout_user, login_required, current_user
 from bson import ObjectId
+from models.test_series import (
+    Question,
+    TestDefinition,
+    TestPack,
+    TestAttempt,
+    UserEntitlement
+)
 from models import (
     get_db,
     User,
@@ -1037,3 +1044,282 @@ def storage_clean():
     return redirect(url_for("admin.dashboard"))
 
 
+
+
+# ==============================================================================
+# 10. Interview Test Series Management
+# ==============================================================================
+
+@admin_bp.route("/test-series/tests")
+def test_series_tests_list():
+    """Admin Test Series: View, create, and manage mock tests."""
+    tests = TestDefinition.find_all()
+    db = get_db()
+    # Compute attempt metrics for each test
+    test_metrics = {}
+    for t in tests:
+        attempts_count = db[TestAttempt.collection_name].count_documents({"test_id": t.id})
+        completed_count = db[TestAttempt.collection_name].count_documents({"test_id": t.id, "status": TestAttempt.STATUS_COMPLETED})
+        test_metrics[t.id] = {
+            "attempts": attempts_count,
+            "completed": completed_count,
+            "questions_count": len(t.question_ids)
+        }
+    return render_template(
+        "admin/test_series/tests_list.html",
+        tests=tests,
+        metrics=test_metrics
+    )
+
+@admin_bp.route("/test-series/tests/new", methods=["GET", "POST"])
+def test_series_test_new():
+    """Create a new mock test with configurable questions, duration, and focus loss thresholds."""
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        slug = request.form.get("slug", "").strip() or slugify(title)
+        category = request.form.get("category", "Quantitative Aptitude").strip()
+        difficulty = request.form.get("difficulty", "Beginner").strip()
+        description = request.form.get("description", "").strip()
+        duration_minutes = int(request.form.get("duration_minutes", 30))
+        total_questions_count = int(request.form.get("total_questions_count", 30))
+        passing_percentage = float(request.form.get("passing_percentage", 50.0))
+        is_free = request.form.get("is_free") == "1"
+        is_published = request.form.get("is_published") == "1"
+        max_warnings = int(request.form.get("max_warnings", 3))
+        selected_question_ids = request.form.getlist("question_ids")
+
+        # Optional attached video resources
+        video_title = request.form.get("video_title", "").strip()
+        video_url = request.form.get("video_url", "").strip()
+        video_resources = []
+        if video_title and video_url:
+            video_resources.append({
+                "title": video_title,
+                "youtube_url": video_url,
+                "topic": category,
+                "description": "Preparation video guide"
+            })
+
+        test = TestDefinition({
+            "title": title,
+            "slug": slug,
+            "category": category,
+            "difficulty": difficulty,
+            "description": description,
+            "duration_minutes": duration_minutes,
+            "total_questions_count": total_questions_count or len(selected_question_ids),
+            "passing_percentage": passing_percentage,
+            "is_free": is_free,
+            "is_published": is_published,
+            "question_ids": selected_question_ids,
+            "video_resources": video_resources,
+            "focus_loss_policy": {
+                "enabled": True,
+                "max_warnings": max_warnings,
+                "warning_cooldown_seconds": 5
+            }
+        }).save()
+
+        flash(f"Test '{title}' created successfully!", "success")
+        return redirect(url_for("admin.test_series_tests_list"))
+
+    # GET: fetch questions for manual picker
+    available_questions = Question.find_all(limit=100)
+    return render_template(
+        "admin/test_series/test_form.html",
+        test=None,
+        questions=available_questions
+    )
+
+@admin_bp.route("/test-series/tests/<test_id>/edit", methods=["GET", "POST"])
+def test_series_test_edit(test_id):
+    """Edit an existing mock test configuration."""
+    test = TestDefinition.get_by_id(test_id)
+    if not test:
+        flash("Test not found.", "danger")
+        return redirect(url_for("admin.test_series_tests_list"))
+
+    if request.method == "POST":
+        test.title = request.form.get("title", "").strip()
+        test.slug = request.form.get("slug", "").strip() or slugify(test.title)
+        test.category = request.form.get("category", test.category).strip()
+        test.difficulty = request.form.get("difficulty", test.difficulty).strip()
+        test.description = request.form.get("description", "").strip()
+        test.duration_minutes = int(request.form.get("duration_minutes", test.duration_minutes))
+        test.total_questions_count = int(request.form.get("total_questions_count", test.total_questions_count))
+        test.passing_percentage = float(request.form.get("passing_percentage", test.passing_percentage))
+        test.is_free = request.form.get("is_free") == "1"
+        test.is_published = request.form.get("is_published") == "1"
+        test.focus_loss_policy["max_warnings"] = int(request.form.get("max_warnings", 3))
+
+        selected_qids = request.form.getlist("question_ids")
+        if selected_qids:
+            test.question_ids = selected_qids
+
+        # Video update
+        video_title = request.form.get("video_title", "").strip()
+        video_url = request.form.get("video_url", "").strip()
+        if video_title and video_url:
+            test.video_resources = [{
+                "title": video_title,
+                "youtube_url": video_url,
+                "topic": test.category,
+                "description": "Preparation video guide"
+            }]
+
+        test.save()
+        flash(f"Test '{test.title}' updated successfully!", "success")
+        return redirect(url_for("admin.test_series_tests_list"))
+
+    available_questions = Question.find_all(limit=150)
+    return render_template(
+        "admin/test_series/test_form.html",
+        test=test,
+        questions=available_questions
+    )
+
+@admin_bp.route("/test-series/tests/<test_id>/toggle", methods=["POST"])
+def test_series_test_toggle(test_id):
+    """Toggle publish status of a test."""
+    test = TestDefinition.get_by_id(test_id)
+    if not test:
+        flash("Test not found.", "danger")
+        return redirect(url_for("admin.test_series_tests_list"))
+
+    test.is_published = not test.is_published
+    test.save()
+    status_str = "Published" if test.is_published else "Drafted"
+    flash(f"Test '{test.title}' is now {status_str}.", "info")
+    return redirect(url_for("admin.test_series_tests_list"))
+
+@admin_bp.route("/test-series/tests/<test_id>/delete", methods=["POST"])
+def test_series_test_delete(test_id):
+    """Permanently deletes a test definition."""
+    test = TestDefinition.get_by_id(test_id)
+    if test:
+        title = test.title
+        test.delete()
+        flash(f"Test '{title}' has been deleted.", "warning")
+    return redirect(url_for("admin.test_series_tests_list"))
+
+@admin_bp.route("/test-series/packs")
+def test_series_packs_list():
+    """Admin view for test packs and configurable pricing."""
+    packs = TestPack.find_all()
+    return render_template("admin/test_series/packs_list.html", packs=packs)
+
+@admin_bp.route("/test-series/packs/<pack_id>/edit", methods=["POST"])
+def test_series_pack_edit(pack_id):
+    """Updates configurable pricing, status, and features of a test pack."""
+    pack = TestPack.get_by_id(pack_id)
+    if not pack:
+        flash("Test pack not found.", "danger")
+        return redirect(url_for("admin.test_series_packs_list"))
+
+    try:
+        pack.price_inr = int(request.form.get("price_inr", pack.price_inr))
+        pack.is_free = (pack.price_inr == 0)
+    except ValueError:
+        pass
+    pack.status = request.form.get("status", pack.status).strip()
+    pack.badge_text = request.form.get("badge_text", pack.badge_text).strip()
+    pack.short_description = request.form.get("short_description", pack.short_description).strip()
+    pack.save()
+    flash(f"Test pack '{pack.title}' updated (Price: ₹{pack.price_inr}, Status: {pack.status}).", "success")
+    return redirect(url_for("admin.test_series_packs_list"))
+
+@admin_bp.route("/test-series/questions")
+def test_series_questions_list():
+    """Question Bank Management: Filter, search, and add questions."""
+    category = request.args.get("category", "").strip()
+    difficulty = request.args.get("difficulty", "").strip()
+    search = request.args.get("q", "").strip()
+
+    query = {}
+    if category:
+        query["category"] = category
+    if difficulty:
+        query["difficulty"] = difficulty
+    if search:
+        query["question_text"] = {"$regex": search, "$options": "i"}
+
+    questions = Question.find_all(query, limit=100)
+    total_count = Question.count()
+
+    return render_template(
+        "admin/test_series/questions_list.html",
+        questions=questions,
+        total_count=total_count,
+        selected_category=category,
+        selected_difficulty=difficulty,
+        search=search
+    )
+
+@admin_bp.route("/test-series/questions/new", methods=["GET", "POST"])
+def test_series_question_new():
+    """Add a new question with choices, code snippet, and explanation."""
+    if request.method == "POST":
+        q_text = request.form.get("question_text", "").strip()
+        q_type = request.form.get("question_type", Question.TYPE_SINGLE_CHOICE)
+        category = request.form.get("category", "Quantitative Aptitude").strip()
+        subtopic = request.form.get("subtopic", "General").strip()
+        difficulty = request.form.get("difficulty", "Beginner").strip()
+        code_snippet = request.form.get("code_snippet", "").strip()
+        language = request.form.get("language", "").strip()
+        marks = float(request.form.get("marks", 1.0))
+        negative_marks = float(request.form.get("negative_marks", 0.0))
+        explanation = request.form.get("explanation", "").strip()
+
+        # Parse options
+        options = []
+        for i in range(1, 5):
+            opt_text = request.form.get(f"option_{i}", "").strip()
+            if opt_text:
+                options.append({"id": f"opt_{i}", "text": opt_text})
+
+        correct_ans = request.form.getlist("correct_answers")
+
+        Question({
+            "question_text": q_text,
+            "question_type": q_type,
+            "category": category,
+            "subtopic": subtopic,
+            "difficulty": difficulty,
+            "options": options,
+            "correct_answers": correct_ans,
+            "explanation": explanation,
+            "code_snippet": code_snippet,
+            "language": language,
+            "marks": marks,
+            "negative_marks": negative_marks,
+            "is_published": True
+        }).save()
+
+        flash("Question added to question bank successfully!", "success")
+        return redirect(url_for("admin.test_series_questions_list"))
+
+    return render_template("admin/test_series/question_form.html", question=None)
+
+@admin_bp.route("/test-series/questions/<question_id>/delete", methods=["POST"])
+def test_series_question_delete(question_id):
+    """Deletes a question from the question bank."""
+    q = Question.get_by_id(question_id)
+    if q:
+        q.delete()
+        flash("Question deleted from bank.", "info")
+    return redirect(url_for("admin.test_series_questions_list"))
+
+@admin_bp.route("/test-series/attempts")
+def test_series_attempts_list():
+    """Audit log of student test attempts, scores, and focus-loss violation records."""
+    attempts = TestAttempt.find_all(limit=100)
+    db = get_db()
+    # Pre-fetch user names
+    user_ids = list({_to_obj_id(a.user_id) for a in attempts if _to_obj_id(a.user_id)})
+    user_map = {str(u["_id"]): u.get("name", "Student") for u in db[User.collection_name].find({"_id": {"$in": user_ids}})}
+
+    return render_template(
+        "admin/test_series/attempts_list.html",
+        attempts=attempts,
+        user_map=user_map
+    )

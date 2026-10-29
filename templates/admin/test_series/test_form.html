@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}{% if test %}Edit Test: {{ test.title }}{% else %}New Test{% endif %} — Admin — SkillRock{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto; padding-bottom: 60px;">
+
+    <!-- Navigation -->
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('admin.test_series_tests_list') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+            <span>Back to Tests List</span>
+        </a>
+    </div>
+
+    <div class="card" style="padding: 32px; border-radius: 18px;">
+        <h1 style="font-size: 1.65rem; font-weight: 800; color: var(--text-main); margin-bottom: 24px;">
+            {% if test %}Edit Mock Test: {{ test.title }}{% else %}Create New Mock Test{% endif %}
+        </h1>
+
+        <form method="POST">
+            <!-- Title -->
+            <div class="form-group" style="margin-bottom: 18px;">
+                <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Test Title *</label>
+                <input type="text" name="title" value="{{ test.title if test else '' }}" class="form-control" required placeholder="e.g. Quantitative Aptitude & Data Interpretation Mock">
+            </div>
+
+            <!-- Slug -->
+            <div class="form-group" style="margin-bottom: 18px;">
+                <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Slug (URL Identifier)</label>
+                <input type="text" name="slug" value="{{ test.slug if test else '' }}" class="form-control" placeholder="Leave blank to auto-generate from title">
+            </div>
+
+            <!-- Category & Difficulty -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;">
+                <div class="form-group">
+                    <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Category</label>
+                    <select name="category" class="form-control">
+                        {% for cat in ["Quantitative Aptitude", "Logical Reasoning", "Programming Fundamentals", "Data Structures and Algorithms", "Coding and Output Prediction", "Database and SQL", "Computer Science Fundamentals", "Technical Interviews", "Company-Style Placement Preparation"] %}
+                        <option value="{{ cat }}" {% if test and test.category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Difficulty</label>
+                    <select name="difficulty" class="form-control">
+                        <option value="Beginner" {% if test and test.difficulty == 'Beginner' %}selected{% endif %}>Beginner</option>
+                        <option value="Intermediate" {% if test and test.difficulty == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+                        <option value="Advanced" {% if test and test.difficulty == 'Advanced' %}selected{% endif %}>Advanced</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group" style="margin-bottom: 18px;">
+                <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Description & Instructions</label>
+                <textarea name="description" rows="3" class="form-control" placeholder="Brief summary of test scope and learning objectives">{{ test.description if test else '' }}</textarea>
+            </div>
+
+            <!-- Duration, Total Qs, Pass Benchmark -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+                <div class="form-group">
+                    <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Duration (Minutes)</label>
+                    <input type="number" name="duration_minutes" value="{{ test.duration_minutes if test else 30 }}" min="5" max="180" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Question Count</label>
+                    <input type="number" name="total_questions_count" value="{{ test.total_questions_count if test else 30 }}" min="1" max="100" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Passing Benchmark (%)</label>
+                    <input type="number" name="passing_percentage" value="{{ test.passing_percentage|int if test else 50 }}" min="1" max="100" class="form-control" required>
+                </div>
+            </div>
+
+            <!-- Anti-Cheat Focus Loss Settings -->
+            <div style="padding: 16px; background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; margin-bottom: 20px;">
+                <label style="font-weight: 700; font-size: 0.88rem; color: #D97706; margin-bottom: 6px; display: block;">
+                    Anti-Cheat Focus Loss Warning Threshold
+                </label>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="number" name="max_warnings" value="{{ test.focus_loss_policy.get('max_warnings', 3) if test else 3 }}" min="1" max="10" class="form-control" style="width: 120px;">
+                    <span style="font-size: 0.84rem; color: var(--text-secondary);">
+                        warnings allowed before the test is automatically cancelled on the next qualifying violation.
+                    </span>
+                </div>
+            </div>
+
+            <!-- Video Attachment -->
+            {% set v0 = test.video_resources[0] if (test and test.video_resources) else {} %}
+            <div style="padding: 16px; background: rgba(15,23,42,0.02); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 22px;">
+                <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Attached Preparation Video</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <input type="text" name="video_title" value="{{ v0.get('title', '') }}" class="form-control" placeholder="Video Title (e.g. Masterclass Shortcuts)">
+                    <input type="url" name="video_url" value="{{ v0.get('youtube_url', '') }}" class="form-control" placeholder="YouTube URL (https://www.youtube.com/...)">
+                </div>
+            </div>
+
+            <!-- Question Picker (Select from Question Bank) -->
+            <div style="margin-bottom: 24px;">
+                <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 8px; display: block;">
+                    Select Questions from Question Bank (Total selected: <span id="selCount">0</span>)
+                </label>
+                <div style="max-height: 240px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                    {% for q in questions %}
+                    {% set is_checked = test and (q.id in test.question_ids) %}
+                    <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.84rem; cursor: pointer; padding: 6px 8px; border-radius: 6px; background: var(--bg-hover);">
+                        <input type="checkbox" name="question_ids" value="{{ q.id }}" {% if is_checked %}checked{% endif %} onchange="updateSelCount()" style="margin-top: 3px;">
+                        <div>
+                            <strong>[{{ q.category }} - {{ q.difficulty }}]</strong> {{ q.question_text[:110] }}...
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Flags -->
+            <div style="display: flex; gap: 24px; margin-bottom: 26px;">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">
+                    <input type="checkbox" name="is_free" value="1" {% if not test or test.is_free %}checked{% endif %}>
+                    <span>Free Test (₹0 - Accessible to all students)</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">
+                    <input type="checkbox" name="is_published" value="1" {% if not test or test.is_published %}checked{% endif %}>
+                    <span>Publish Immediately</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="font-weight: 700; padding: 10px 28px;">
+                {% if test %}Update Mock Test{% else %}Create Mock Test{% endif %}
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    function updateSelCount() {
+        const checked = document.querySelectorAll('input[name="question_ids"]:checked');
+        document.getElementById("selCount").innerText = checked.length;
+    }
+    window.addEventListener("DOMContentLoaded", updateSelCount);
+</script>
+{% endblock %}

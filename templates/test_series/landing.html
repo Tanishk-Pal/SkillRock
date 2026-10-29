@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Test Series — Placement Aptitude & Technical Screening — SkillRock{% endblock %}
+{% block meta_description %}Prepare for campus placements and technical screening tests with SkillRock's Interview Test Series. Full-length mock tests in Aptitude, Logical Reasoning, Coding Fundamentals, and System Design with detailed solutions.{% endblock %}
+{% block og_title %}Interview Test Series — Placement & Technical Screening | SkillRock{% endblock %}
+{% block og_description %}Practice 90+ verified placement screening questions across Aptitude, Reasoning, and Coding. Timed tests, anti-cheat assessment engine, and instant step-by-step solutions.{% endblock %}
+
+{% block content %}
+<div class="test-series-container" style="max-width: 1200px; margin: 0 auto; padding-bottom: 50px;">
+
+    <!-- 1. Hero Banner -->
+    <div class="test-series-hero" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 40px 32px; color: #FFFFFF; margin-bottom: 30px; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.25);">
+        <div style="position: absolute; top: -50px; right: -50px; width: 280px; height: 280px; background: radial-gradient(circle, rgba(99,102,241,0.22) 0%, rgba(99,102,241,0) 70%); border-radius: 50%; pointer-events: none;"></div>
+        
+        <div style="max-width: 780px; position: relative; z-index: 2;">
+            <div style="display: inline-flex; align-items: center; gap: 7px; background: rgba(99,102,241,0.18); border: 1px solid rgba(129,140,248,0.35); padding: 5px 14px; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; color: #A5B4FC; margin-bottom: 16px;">
+                <i data-lucide="award" style="width: 15px; height: 15px;"></i>
+                <span>Campus Placement & Interview Accelerator</span>
+            </div>
+            
+            <h1 style="font-size: 2.3rem; font-weight: 800; line-height: 1.25; margin-bottom: 14px; letter-spacing: -0.02em;">
+                Interview Test Series
+            </h1>
+            
+            <p style="font-size: 1.05rem; color: #94A3B8; line-height: 1.6; margin-bottom: 24px;">
+                Master campus placements, company screening rounds, aptitude tests, and technical coding interviews with timed, server-evaluated assessments, anti-cheating monitoring, and verified step-by-step solutions.
+            </p>
+
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <a href="#free-tests-section" class="btn btn-primary" style="background: var(--primary-action, #6366F1); border-color: var(--primary-action, #6366F1); padding: 10px 22px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                    <i data-lucide="zap" style="width: 18px; height: 18px;"></i>
+                    <span>Take Free Mock Test</span>
+                </a>
+                <a href="#test-packs-section" class="btn btn-secondary" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.18); color: #FFFFFF; padding: 10px 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                    <i data-lucide="package" style="width: 18px; height: 18px;"></i>
+                    <span>Explore Placement Packs</span>
+                </a>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('test_series.my_attempts') }}" class="btn btn-secondary" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.18); color: #FFFFFF; padding: 10px 18px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                    <i data-lucide="history" style="width: 18px; height: 18px;"></i>
+                    <span>My Attempts</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Search & Dynamic Category Filters -->
+    <div class="card" style="padding: 20px; margin-bottom: 28px; border-radius: 14px;">
+        <form method="GET" action="{{ url_for('test_series.landing') }}" style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 240px; position: relative;">
+                    <i data-lucide="search" style="position: absolute; left: 14px; top: 12px; width: 18px; height: 18px; color: var(--text-secondary);"></i>
+                    <input type="text" name="q" value="{{ search_q }}" placeholder="Search by test name, aptitude, DSA, SQL, company pattern..." class="form-control" style="padding-left: 42px; height: 44px; border-radius: 10px;">
+                </div>
+                <select name="difficulty" class="form-control" style="width: 160px; height: 44px; border-radius: 10px;">
+                    <option value="">All Difficulties</option>
+                    <option value="Beginner" {% if selected_difficulty == 'Beginner' %}selected{% endif %}>Beginner</option>
+                    <option value="Intermediate" {% if selected_difficulty == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+                    <option value="Advanced" {% if selected_difficulty == 'Advanced' %}selected{% endif %}>Advanced</option>
+                </select>
+                <select name="price" class="form-control" style="width: 150px; height: 44px; border-radius: 10px;">
+                    <option value="all" {% if selected_price == 'all' %}selected{% endif %}>All Prices</option>
+                    <option value="free" {% if selected_price == 'free' %}selected{% endif %}>Free Tests (₹0)</option>
+                    <option value="paid" {% if selected_price == 'paid' %}selected{% endif %}>Premium Packs</option>
+                </select>
+                <button type="submit" class="btn btn-primary" style="height: 44px; padding: 0 20px; font-weight: 600; border-radius: 10px;">
+                    Filter
+                </button>
+                {% if search_q or selected_category or selected_difficulty or selected_price != 'all' %}
+                <a href="{{ url_for('test_series.landing') }}" class="btn btn-secondary" style="height: 44px; display: inline-flex; align-items: center; border-radius: 10px;">
+                    Reset
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Category Pills Scroll -->
+            <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;">
+                <a href="{{ url_for('test_series.landing', q=search_q, difficulty=selected_difficulty, price=selected_price) }}" 
+                   class="badge {% if not selected_category %}badge-primary{% else %}badge-secondary{% endif %}"
+                   style="padding: 8px 14px; font-size: 0.82rem; border-radius: 9999px; text-decoration: none; white-space: nowrap; cursor: pointer;">
+                    All Categories
+                </a>
+                {% for cat in categories %}
+                <a href="{{ url_for('test_series.landing', category=cat, q=search_q, difficulty=selected_difficulty, price=selected_price) }}" 
+                   class="badge {% if selected_category == cat %}badge-primary{% else %}badge-secondary{% endif %}"
+                   style="padding: 8px 14px; font-size: 0.82rem; border-radius: 9999px; text-decoration: none; white-space: nowrap; cursor: pointer;">
+                    {{ cat }}
+                </a>
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+
+    <!-- 3. Prominent Free Tests Section -->
+    <div id="free-tests-section" style="margin-bottom: 42px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">
+                    Featured Free Placement Tests
+                </h2>
+                <p style="font-size: 0.92rem; color: var(--text-secondary); margin: 0;">
+                    100% Free full-length timed tests. No credit card required. Immediate solutions and topic analysis.
+                </p>
+            </div>
+            <span class="badge" style="background: rgba(34, 197, 94, 0.12); color: #16A34A; border: 1px solid rgba(34, 197, 94, 0.3); font-weight: 700; padding: 6px 14px; border-radius: 9999px; font-size: 0.82rem;">
+                Free Starter Pack (₹0)
+            </span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px;">
+            {% for t in tests if t.is_free %}
+            <div class="card test-card" style="padding: 24px; border-radius: 16px; display: flex; flex-direction: column; justify-content: space-between; position: relative; border: 1.5px solid var(--border-color); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                <div>
+                    <!-- Badges -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                        <span class="badge" style="background: rgba(37, 99, 235, 0.1); color: #2563EB; font-weight: 700; font-size: 0.76rem; padding: 4px 10px; border-radius: 9999px;">
+                            {{ t.category }}
+                        </span>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <span class="badge" style="background: var(--bg-hover); color: var(--text-secondary); font-size: 0.76rem; padding: 3px 8px; border-radius: 6px;">
+                                {{ t.difficulty }}
+                            </span>
+                            <span class="badge" style="background: #22C55E; color: #FFFFFF; font-weight: 700; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px;">
+                                FREE
+                            </span>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 1.18rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; line-height: 1.35;">
+                        <a href="{{ url_for('test_series.test_detail', test_slug=t.slug) }}" style="color: inherit; text-decoration: none;">
+                            {{ t.title }}
+                        </a>
+                    </h3>
+
+                    <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: 18px; min-height: 42px;">
+                        {{ t.description[:130] }}...
+                    </p>
+
+                    <!-- Meta specs -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px; background: rgba(15, 23, 42, 0.02); border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 18px; font-size: 0.84rem;">
+                        <div style="display: flex; align-items: center; gap: 7px; color: var(--text-secondary);">
+                            <i data-lucide="clock" style="width: 15px; height: 15px; color: #6366F1;"></i>
+                            <span>{{ t.duration_minutes }} Minutes</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 7px; color: var(--text-secondary);">
+                            <i data-lucide="help-circle" style="width: 15px; height: 15px; color: #6366F1;"></i>
+                            <span>{{ t.total_questions_count }} Questions</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 7px; color: var(--text-secondary);">
+                            <i data-lucide="check-circle" style="width: 15px; height: 15px; color: #10B981;"></i>
+                            <span>Pass: {{ t.passing_percentage|int }}%</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 7px; color: var(--text-secondary);">
+                            <i data-lucide="shield-alert" style="width: 15px; height: 15px; color: #F59E0B;"></i>
+                            <span>Anti-Cheat ON</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Indicator for authenticated user -->
+                    {% if user_test_stats.get(t.id) %}
+                    {% set st = user_test_stats[t.id] %}
+                    <div style="background: rgba(99, 102, 241, 0.06); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; padding: 8px 12px; margin-bottom: 16px; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-secondary);">
+                            Attempts: <strong>{{ st.attempts_count }}</strong>
+                        </span>
+                        {% if st.best_percentage > 0 %}
+                        <span style="font-weight: 700; color: {% if st.is_passed %}#16A34A{% else %}#D97706{% endif %};">
+                            Best: {{ st.best_percentage }}% {% if st.is_passed %}(Passed){% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- CTA Actions -->
+                <div style="display: flex; gap: 10px;">
+                    {% if user_test_stats.get(t.id, {}).get('has_active') %}
+                    <a href="{{ url_for('test_series.exam_room', attempt_id=user_test_stats[t.id]['active_attempt_id']) }}" class="btn btn-warning" style="flex: 1; font-weight: 700; justify-content: center; display: inline-flex; align-items: center; gap: 6px;">
+                        <i data-lucide="play" style="width: 16px; height: 16px;"></i>
+                        <span>Resume Test</span>
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('test_series.test_detail', test_slug=t.slug) }}" class="btn btn-primary" style="flex: 1; font-weight: 700; justify-content: center; display: inline-flex; align-items: center; gap: 6px;">
+                        <i data-lucide="play" style="width: 16px; height: 16px;"></i>
+                        <span>Start Test</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="card" style="grid-column: 1 / -1; padding: 40px; text-align: center;">
+                <i data-lucide="inbox" style="width: 48px; height: 48px; color: var(--text-secondary); margin: 0 auto 12px;"></i>
+                <h3 style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 6px;">No tests matched your filters</h3>
+                <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 16px;">Try adjusting your search keywords or clearing filters.</p>
+                <a href="{{ url_for('test_series.landing') }}" class="btn btn-secondary">Clear Filters</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 4. Premium Placement Packs & Pricing -->
+    <div id="test-packs-section" style="margin-bottom: 40px;">
+        <div style="margin-bottom: 22px;">
+            <div style="display: inline-flex; align-items: center; gap: 6px; color: #6366F1; font-weight: 700; font-size: 0.82rem; margin-bottom: 6px;">
+                <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>
+                <span>STRUCTURED PREPARATION PACKS</span>
+            </div>
+            <h2 style="font-size: 1.55rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">
+                Comprehensive Interview Test Packs
+            </h2>
+            <p style="font-size: 0.94rem; color: var(--text-secondary); margin: 0;">
+                Configurable topic-wise practice, company-pattern simulations, and preparation video masterclasses.
+            </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 20px;">
+            {% for pack in packs %}
+            <div class="card pack-card" style="padding: 26px 22px; border-radius: 18px; display: flex; flex-direction: column; justify-content: space-between; position: relative; border: {% if pack.slug == 'placement-practice' %}2px solid #6366F1{% else %}1.5px solid var(--border-color){% endif %};">
+                
+                {% if pack.badge_text %}
+                <div style="position: absolute; top: 16px; right: 16px;">
+                    <span class="badge" style="background: {% if pack.is_free %}#22C55E{% elif pack.badge_text == 'Popular' %}#6366F1{% else %}#0EA5E9{% endif %}; color: #FFFFFF; font-weight: 700; font-size: 0.72rem; padding: 4px 10px; border-radius: 9999px;">
+                        {{ pack.badge_text }}
+                    </span>
+                </div>
+                {% endif %}
+
+                <div>
+                    <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">
+                        {{ pack.title }}
+                    </h3>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; min-height: 38px;">
+                        {{ pack.short_description }}
+                    </p>
+
+                    <!-- Price -->
+                    <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+                        <span style="font-size: 2.2rem; font-weight: 800; color: var(--text-main);">
+                            ₹{{ pack.price_inr }}
+                        </span>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">
+                            {% if pack.is_free %}forever free{% else %}one-time access{% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Features List -->
+                    <ul style="list-style: none; padding: 0; margin: 0 0 24px 0; display: flex; flex-direction: column; gap: 10px; font-size: 0.86rem; color: var(--text-secondary);">
+                        {% for feat in pack.features %}
+                        <li style="display: flex; align-items: flex-start; gap: 8px; line-height: 1.4;">
+                            <i data-lucide="check" style="width: 16px; height: 16px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
+                            <span>{{ feat }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- CTA -->
+                <div>
+                    {% if pack.is_free %}
+                    <a href="{{ url_for('test_series.pack_detail', pack_slug=pack.slug) }}" class="btn btn-primary" style="width: 100%; font-weight: 700; justify-content: center;">
+                        View Included Tests (Free)
+                    </a>
+                    {% else %}
+                    <button type="button" class="btn btn-secondary" style="width: 100%; font-weight: 600; justify-content: center; background: rgba(99,102,241,0.08); color: #6366F1; border-color: rgba(99,102,241,0.25);" onclick="alert('Paid purchases are coming soon! Enjoy our 3 complete free placement tests in the meantime.');">
+                        <i data-lucide="lock" style="width: 15px; height: 15px; margin-right: 6px;"></i>
+                        <span>Coming Soon (₹{{ pack.price_inr }})</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 5. Placement Preparation Advice Strip -->
+    <div class="card" style="padding: 24px 28px; border-radius: 16px; background: rgba(99,102,241,0.04); border: 1px dashed rgba(99,102,241,0.3); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: #6366F1; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
+            </div>
+            <div>
+                <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 2px;">
+                    Fair Proctoring & Honest Assessment
+                </h4>
+                <p style="font-size: 0.84rem; color: var(--text-secondary); margin: 0;">
+                    Assessments are timed and monitor focus loss. You are allowed 3 tab-switch warnings; a 4th violation automatically cancels the test to maintain evaluation integrity.
+                </p>
+            </div>
+        </div>
+        <a href="#free-tests-section" class="btn btn-secondary btn-sm" style="font-weight: 600;">
+            Start Free Practice
+        </a>
+    </div>
+
+</div>
+{% endblock %}

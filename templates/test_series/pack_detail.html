@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}{{ pack.title }} — Placement Test Pack — SkillRock{% endblock %}
+{% block meta_description %}{{ pack.short_description }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 980px; margin: 0 auto; padding-bottom: 50px;">
+
+    <!-- Back Navigation -->
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('test_series.landing') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+            <span>Back to All Test Series</span>
+        </a>
+    </div>
+
+    <!-- Pack Header Card -->
+    <div class="card" style="padding: 34px 28px; border-radius: 18px; margin-bottom: 28px; background: linear-gradient(135deg, rgba(15,23,42,0.03) 0%, rgba(99,102,241,0.04) 100%);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+            <div>
+                {% if pack.badge_text %}
+                <span class="badge" style="background: #6366F1; color: white; font-weight: 700; font-size: 0.76rem; padding: 4px 10px; border-radius: 9999px; margin-bottom: 8px; display: inline-block;">
+                    {{ pack.badge_text }}
+                </span>
+                {% endif %}
+                <h1 style="font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+                    {{ pack.title }}
+                </h1>
+                <p style="font-size: 1rem; color: var(--text-secondary); line-height: 1.6; max-width: 680px; margin: 0;">
+                    {{ pack.description }}
+                </p>
+            </div>
+
+            <div style="text-align: right;">
+                <div style="font-size: 2.2rem; font-weight: 800; color: var(--text-main);">
+                    ₹{{ pack.price_inr }}
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                    {% if pack.is_free %}Free forever{% else %}One-time access{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Meta specs bar -->
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; padding-top: 18px; border-top: 1px solid var(--border-color); font-size: 0.88rem; color: var(--text-secondary);">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="layers" style="width: 16px; height: 16px; color: #6366F1;"></i>
+                <span><strong>{{ tests|length }}</strong> Full Tests</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="help-circle" style="width: 16px; height: 16px; color: #6366F1;"></i>
+                <span><strong>{{ pack.total_questions_count }}</strong> Questions</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="award" style="width: 16px; height: 16px; color: #10B981;"></i>
+                <span>Verified Step-by-Step Solutions</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Included Tests List -->
+    <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-bottom: 16px;">
+        Included Tests in this Pack
+    </h2>
+
+    <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 34px;">
+        {% for t in tests %}
+        <div class="card" style="padding: 20px 24px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div style="flex: 1; min-width: 260px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span class="badge" style="background: rgba(37, 99, 235, 0.1); color: #2563EB; font-weight: 700; font-size: 0.72rem; padding: 2px 8px; border-radius: 9999px;">
+                        {{ t.category }}
+                    </span>
+                    <span class="badge" style="background: var(--bg-hover); color: var(--text-secondary); font-size: 0.72rem; padding: 2px 6px; border-radius: 4px;">
+                        {{ t.difficulty }}
+                    </span>
+                </div>
+                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">
+                    {{ t.title }}
+                </h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; line-height: 1.45;">
+                    {{ t.description }}
+                </p>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="font-size: 0.84rem; color: var(--text-secondary); text-align: right;">
+                    <div>{{ t.duration_minutes }} mins • {{ t.total_questions_count }} Qs</div>
+                    <div style="color: #10B981; font-weight: 600;">Pass: {{ t.passing_percentage|int }}%</div>
+                </div>
+
+                {% if pack.is_free or t.is_free %}
+                <a href="{{ url_for('test_series.test_detail', test_slug=t.slug) }}" class="btn btn-primary btn-sm" style="font-weight: 700;">
+                    Start Test
+                </a>
+                {% else %}
+                <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.65;">
+                    Coming Soon
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

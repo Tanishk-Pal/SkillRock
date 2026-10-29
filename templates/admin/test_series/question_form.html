@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Add Question — Admin — SkillRock{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding-bottom: 60px;">
+
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('admin.test_series_questions_list') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+            <span>Back to Question Bank</span>
+        </a>
+    </div>
+
+    <div class="card" style="padding: 32px; border-radius: 18px;">
+        <h1 style="font-size: 1.65rem; font-weight: 800; color: var(--text-main); margin-bottom: 24px;">
+            Add New Question to Question Bank
+        </h1>
+
+        <form method="POST">
+            <div class="form-group" style="margin-bottom: 18px;">
+                <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Question Text *</label>
+                <textarea name="question_text" rows="3" class="form-control" required placeholder="Enter the problem statement or question"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+                <div class="form-group">
+                    <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Question Type</label>
+                    <select name="question_type" class="form-control">
+                        <option value="single_choice">Single Choice (MCQ)</option>
+                        <option value="multiple_select">Multiple Select</option>
+                        <option value="true_false">True / False</option>
+                        <option value="code_output">Code Output Prediction</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Category</label>
+                    <select name="category" class="form-control">
+                        <option value="Quantitative Aptitude">Quantitative Aptitude</option>
+                        <option value="Logical Reasoning">Logical Reasoning</option>
+                        <option value="Programming Fundamentals">Programming Fundamentals</option>
+                        <option value="Data Structures and Algorithms">Data Structures and Algorithms</option>
+                        <option value="Database and SQL">Database and SQL</option>
+                        <option value="Computer Science Fundamentals">Computer Science Fundamentals</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Difficulty</label>
+                    <select name="difficulty" class="form-control">
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+                <div class="form-group">
+                    <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Subtopic / Topic</label>
+                    <input type="text" name="subtopic" placeholder="e.g. Percentages, BST, Pointers" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Marks</label>
+                    <input type="number" step="0.25" name="marks" value="1.0" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Negative Marks</label>
+                    <input type="number" step="0.05" name="negative_marks" value="0.25" class="form-control" required>
+                </div>
+            </div>
+
+            <!-- Optional Code Snippet -->
+            <div class="form-group" style="margin-bottom: 18px;">
+                <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">Code Snippet (Optional)</label>
+                <textarea name="code_snippet" rows="3" class="form-control" style="font-family: monospace;" placeholder="# Optional code block or function snippet..."></textarea>
+            </div>
+
+            <!-- Options & Correct Answer -->
+            <div style="padding: 18px; background: rgba(15,23,42,0.02); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 20px;">
+                <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 10px; display: block;">
+                    Options & Correct Answer Selection
+                </label>
+                
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" name="correct_answers" value="opt_1" title="Mark as correct">
+                        <input type="text" name="option_1" placeholder="Option A text" class="form-control" required>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" name="correct_answers" value="opt_2" title="Mark as correct">
+                        <input type="text" name="option_2" placeholder="Option B text" class="form-control" required>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" name="correct_answers" value="opt_3" title="Mark as correct">
+                        <input type="text" name="option_3" placeholder="Option C text" class="form-control">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" name="correct_answers" value="opt_4" title="Mark as correct">
+                        <input type="text" name="option_4" placeholder="Option D text" class="form-control">
+                    </div>
+                </div>
+                <div style="font-size: 0.76rem; color: var(--text-secondary); margin-top: 8px;">
+                    * Check the checkbox next to the correct answer choice(s).
+                </div>
+            </div>
+
+            <!-- Detailed Explanation -->
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; display: block;">
+                    Step-by-Step Solution & Explanation *
+                </label>
+                <textarea name="explanation" rows="3" class="form-control" required placeholder="Explain why the answer is correct and provide mathematical/logical derivation."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="font-weight: 700; padding: 10px 28px;">
+                Save Question to Bank
+            </button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

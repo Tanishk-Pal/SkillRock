@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Test Packs & Pricing — Admin — SkillRock{% endblock %}
+
+{% block content %}
+<div style="max-width: 1050px; margin: 0 auto; padding-bottom: 50px;">
+
+    <!-- Navigation -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+        <div>
+            <div style="font-size: 0.82rem; color: #D97706; font-weight: 700; text-transform: uppercase;">
+                ADMINISTRATION PANEL
+            </div>
+            <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--text-main); margin: 0;">
+                Test Packs & Configurable Pricing
+            </h1>
+        </div>
+
+        <a href="{{ url_for('admin.test_series_tests_list') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+            <span>Back to Tests</span>
+        </a>
+    </div>
+
+    <!-- Packs Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+        {% for pack in packs %}
+        <div class="card" style="padding: 26px; border-radius: 16px; border: 1.5px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span class="badge" style="background: rgba(99,102,241,0.12); color: #6366F1; font-weight: 700; font-size: 0.76rem; padding: 4px 10px; border-radius: 9999px;">
+                        {{ pack.slug }}
+                    </span>
+                    <span class="badge" style="background: {% if pack.status == 'published' %}#22C55E{% else %}#F59E0B{% endif %}; color: white; font-weight: 700; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px;">
+                        {{ pack.status|upper }}
+                    </span>
+                </div>
+
+                <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+                    {{ pack.title }}
+                </h3>
+
+                <p style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">
+                    {{ pack.short_description }}
+                </p>
+
+                <!-- Current price and tests count -->
+                <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(15,23,42,0.02); border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 20px; font-size: 0.88rem;">
+                    <div>Price: <strong style="font-size: 1.2rem; color: var(--text-main);">₹{{ pack.price_inr }}</strong></div>
+                    <div>Tests: <strong>{{ pack.test_ids|length }}</strong></div>
+                </div>
+
+                <!-- Edit Configuration Form -->
+                <form method="POST" action="{{ url_for('admin.test_series_pack_edit', pack_id=pack.id) }}" style="display: flex; flex-direction: column; gap: 12px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; display: block;">Price (₹ INR)</label>
+                            <input type="number" name="price_inr" value="{{ pack.price_inr }}" class="form-control" style="height: 38px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; display: block;">Status</label>
+                            <select name="status" class="form-control" style="height: 38px;">
+                                <option value="published" {% if pack.status == 'published' %}selected{% endif %}>Published</option>
+                                <option value="coming_soon" {% if pack.status == 'coming_soon' %}selected{% endif %}>Coming Soon</option>
+                                <option value="unpublished" {% if pack.status == 'unpublished' %}selected{% endif %}>Unpublished</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; display: block;">Badge Text</label>
+                        <input type="text" name="badge_text" value="{{ pack.badge_text }}" class="form-control" placeholder="e.g. Free, Popular, Best Value" style="height: 38px;">
+                    </div>
+
+                    <div>
+                        <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; display: block;">Short Summary</label>
+                        <input type="text" name="short_description" value="{{ pack.short_description }}" class="form-control" style="height: 38px;">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-sm" style="font-weight: 700; height: 38px; margin-top: 6px;">
+                        Save Pack Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

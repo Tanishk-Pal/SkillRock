@@ -260,6 +260,10 @@
                                 <i data-lucide="shield-check"></i>
                                 <span>Admin Console</span>
                             </a>
+                            <a href="{{ url_for('admin.test_series_list') }}" class="pw-dropdown-item" role="menuitem">
+                                <i data-lucide="layers"></i>
+                                <span>Manage Tests</span>
+                            </a>
                             {% endif %}
                             <div class="pw-dropdown-divider"></div>
                             <!-- Clean Merged Logout with Exit Icon -->
@@ -277,6 +281,10 @@
                     <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #FFFFFF; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
                         <i data-lucide="book-open" style="width: 14px; height: 14px;"></i>
                         <span>Courses</span>
+                    </a>
+                    <a href="{{ url_for('test_series.landing') }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #FFFFFF; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
+                        <i data-lucide="file-check-2" style="width: 14px; height: 14px;"></i>
+                        <span>Test Series</span>
                     </a>
                     <a href="{{ url_for('ai.assistant_page') }}" class="btn btn-secondary btn-sm" style="background: rgba(91, 70, 246, 0.25); border-color: rgba(139, 92, 246, 0.4); color: #C4B5FD; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
                         <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
@@ -308,6 +316,12 @@
                     <i data-lucide="sparkles"></i>
                     <span>SkillBot AI</span>
                     <span class="pw-nav-badge">NEW</span>
+                </a>
+                <a href="{{ url_for('test_series.landing') }}"
+                   class="pw-nav-item {% if request.endpoint and 'test_series.' in request.endpoint %}active{% endif %}">
+                    <i data-lucide="file-check-2"></i>
+                    <span>Test Series</span>
+                    <span class="pw-nav-badge" style="background: #10B981; color: #FFFFFF;">HOT</span>
                 </a>
             </div>
 

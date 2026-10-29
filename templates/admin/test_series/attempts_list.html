@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Student Test Attempts Audit — Admin — SkillRock{% endblock %}
+
+{% block content %}
+<div style="max-width: 1100px; margin: 0 auto; padding-bottom: 50px;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+        <div>
+            <div style="font-size: 0.82rem; color: #D97706; font-weight: 700; text-transform: uppercase;">
+                ADMINISTRATION PANEL
+            </div>
+            <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--text-main); margin: 0;">
+                Student Test Series Attempts & Audit Log
+            </h1>
+        </div>
+
+        <a href="{{ url_for('admin.test_series_tests_list') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+            <span>Back to Tests</span>
+        </a>
+    </div>
+
+    <!-- Attempts Table -->
+    <div class="card" style="padding: 0; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+            <thead>
+                <tr style="background: rgba(15,23,42,0.03); border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-weight: 700;">
+                    <th style="padding: 14px 18px;">Student & Date</th>
+                    <th style="padding: 14px 18px;">Test Name</th>
+                    <th style="padding: 14px 18px;">Score & Accuracy</th>
+                    <th style="padding: 14px 18px;">Status</th>
+                    <th style="padding: 14px 18px;">Focus Warnings</th>
+                    <th style="padding: 14px 18px; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in attempts %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 14px 18px;">
+                        <strong style="color: var(--text-main);">{{ user_map.get(a.user_id, 'Student') }}</strong>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                            {{ a.started_at.strftime('%b %d, %Y %I:%M %p') }}
+                        </div>
+                    </td>
+                    <td style="padding: 14px 18px;">
+                        <div>{{ a.test_title }}</div>
+                    </td>
+                    <td style="padding: 14px 18px;">
+                        {% if a.status == 'completed' %}
+                        <div style="font-weight: 700; color: {% if a.is_passed %}#16A34A{% else %}#D97706{% endif %};">
+                            {{ a.score }}/{{ a.max_score }} ({{ a.percentage }}%)
+                        </div>
+                        <div style="font-size: 0.74rem; color: var(--text-secondary);">Acc: {{ a.accuracy_percentage }}%</div>
+                        {% else %}
+                        <span style="color: var(--text-secondary);">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 14px 18px;">
+                        <span class="badge" style="background: {% if a.status == 'completed' %}rgba(34,197,94,0.12){% elif a.status == 'cancelled' %}rgba(239,68,68,0.12){% else %}rgba(245,158,11,0.12){% endif %}; color: {% if a.status == 'completed' %}#16A34A{% elif a.status == 'cancelled' %}#DC2626{% else %}#D97706{% endif %}; font-weight: 700; font-size: 0.74rem;">
+                            {{ a.status|upper }}
+                        </span>
+                    </td>
+                    <td style="padding: 14px 18px;">
+                        {% if a.warning_count > 0 %}
+                        <span style="font-weight: 700; color: {% if a.warning_count >= 4 %}#EF4444{% else %}#F59E0B{% endif %};">
+                            {{ a.warning_count }} violations
+                        </span>
+                        {% else %}
+                        <span style="color: #16A34A; font-size: 0.78rem;">0 (Clean)</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 14px 18px; text-align: right;">
+                        <a href="{{ url_for('test_series.attempt_result', attempt_id=a.id) }}" class="btn btn-secondary btn-sm" target="_blank">
+                            Inspect
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

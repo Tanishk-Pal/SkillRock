@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Assessment Results: {{ test.title if test else attempt.test_title }} — SkillRock{% endblock %}
+{% block meta_description %}Performance scorecard and detailed question solutions on SkillRock.{% endblock %}
+
+{% block content %}
+<div style="max-width: 960px; margin: 0 auto; padding-bottom: 60px;">
+
+    <!-- Top Action Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+        <a href="{{ url_for('test_series.landing') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+            <span>Back to Test Series</span>
+        </a>
+
+        <div style="display: flex; gap: 10px;">
+            <a href="{{ url_for('test_series.my_attempts') }}" class="btn btn-secondary btn-sm" style="font-weight: 600;">
+                All My Attempts
+            </a>
+            {% if test and attempt.status == 'completed' %}
+            <a href="{{ url_for('test_series.test_detail', test_slug=test.slug) }}" class="btn btn-primary btn-sm" style="font-weight: 700;">
+                Retake Assessment
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 1. CANCELLED ATTEMPT BANNER -->
+    {% if attempt.status == 'cancelled' %}
+    <div class="card" style="padding: 32px 28px; border-radius: 18px; border: 2px solid #EF4444; background: rgba(239, 68, 68, 0.04); margin-bottom: 30px; text-align: center;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(239,68,68,0.12); color: #EF4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+            <i data-lucide="shield-x" style="width: 32px; height: 32px;"></i>
+        </div>
+        <h2 style="font-size: 1.6rem; font-weight: 800; color: #EF4444; margin-bottom: 8px;">
+            Assessment Cancelled Due to Focus Loss
+        </h2>
+        <p style="font-size: 1rem; color: var(--text-main); max-width: 650px; margin: 0 auto 18px; line-height: 1.6;">
+            {{ attempt.cancellation_reason }}
+        </p>
+
+        <!-- Violation Log Table -->
+        <div style="max-width: 650px; margin: 0 auto 24px; text-align: left; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;">
+            <h4 style="font-size: 0.88rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px; text-transform: uppercase;">
+                Recorded Anti-Cheat Incident Timeline
+            </h4>
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.84rem;">
+                {% for ev in attempt.focus_loss_events %}
+                <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(15,23,42,0.05);">
+                    <span style="font-weight: 600; color: #EF4444;">
+                        Violation {{ ev.warning_number }}: {{ ev.event_type }}
+                    </span>
+                    <span style="color: var(--text-secondary);">
+                        {{ ev.timestamp[:19].replace('T', ' ') if ev.timestamp else '' }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+            Encountered an accidental OS interruption or system glitch? 
+            <a href="mailto:support@skillrock.org?subject=Test%20Appeal%20{{ attempt.id }}" style="color: #6366F1; font-weight: 600; text-decoration: underline;">
+                Contact Support for Review
+            </a>
+        </div>
+    </div>
+
+    <!-- 2. NORMAL COMPLETED SCORECARD -->
+    {% else %}
+    <div class="card" style="padding: 36px 30px; border-radius: 20px; margin-bottom: 30px; background: linear-gradient(135deg, rgba(15,23,42,0.02) 0%, rgba(99,102,241,0.05) 100%); border: 1.5px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 24px;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span class="badge" style="background: rgba(99,102,241,0.12); color: #6366F1; font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 9999px;">
+                        {{ test.category if test else 'Test Series' }}
+                    </span>
+                    <span class="badge" style="background: {% if attempt.is_passed %}#22C55E{% else %}#EF4444{% endif %}; color: white; font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
+                        {% if attempt.is_passed %}PASSED BENCHMARK{% else %}NEEDS PRACTICE{% endif %}
+                    </span>
+                </div>
+                <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">
+                    {{ test.title if test else attempt.test_title }}
+                </h1>
+                <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0;">
+                    Completed on {{ attempt.submitted_at.strftime('%B %d, %Y at %I:%M %p') if attempt.submitted_at else 'Recent' }}
+                </p>
+            </div>
+
+            <!-- Circular / Large Score Badge -->
+            <div style="text-align: center; padding: 18px 28px; background: var(--bg-card); border: 2px solid {% if attempt.is_passed %}#22C55E{% else %}#F59E0B{% endif %}; border-radius: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+                <div style="font-size: 2.6rem; font-weight: 800; color: var(--text-main); line-height: 1;">
+                    {{ attempt.score }}
+                    <span style="font-size: 1.1rem; color: var(--text-secondary); font-weight: 600;">/ {{ attempt.max_score }}</span>
+                </div>
+                <div style="font-size: 1rem; font-weight: 700; color: {% if attempt.is_passed %}#16A34A{% else %}#D97706{% endif %}; margin-top: 4px;">
+                    {{ attempt.percentage }}% Score
+                </div>
+            </div>
+        </div>
+
+        <!-- 4-Metric Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+            <div style="padding: 14px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;">
+                <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 4px;">Accuracy</div>
+                <div style="font-size: 1.3rem; font-weight: 800; color: #2563EB;">{{ attempt.accuracy_percentage }}%</div>
+                <div style="font-size: 0.72rem; color: var(--text-secondary);">Correct / Answered</div>
+            </div>
+            <div style="padding: 14px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;">
+                <div style="font-size: 0.78rem; color: #16A34A; margin-bottom: 4px;">Correct</div>
+                <div style="font-size: 1.3rem; font-weight: 800; color: #16A34A;">{{ attempt.correct_count }}</div>
+                <div style="font-size: 0.72rem; color: var(--text-secondary);">+{{ attempt.score }} marks earned</div>
+            </div>
+            <div style="padding: 14px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;">
+                <div style="font-size: 0.78rem; color: #EF4444; margin-bottom: 4px;">Incorrect</div>
+                <div style="font-size: 1.3rem; font-weight: 800; color: #EF4444;">{{ attempt.incorrect_count }}</div>
+                <div style="font-size: 0.72rem; color: var(--text-secondary);">Negative deductions applied</div>
+            </div>
+            <div style="padding: 14px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;">
+                <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 4px;">Time Used</div>
+                <div style="font-size: 1.3rem; font-weight: 800; color: var(--text-main);">
+                    {{ (attempt.time_taken_seconds // 60) }}m {{ (attempt.time_taken_seconds % 60) }}s
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-secondary);">Of {{ attempt.duration_minutes }}m allowed</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. TOPIC BREAKDOWN & RECOMMENDATIONS -->
+    {% if attempt.topic_breakdown %}
+    <div class="card" style="padding: 28px; border-radius: 18px; margin-bottom: 30px;">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="bar-chart-2" style="width: 20px; height: 20px; color: #6366F1;"></i>
+            <span>Topic-Wise Proficiency Analysis</span>
+        </h3>
+
+        <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;">
+            {% for topic, stats in attempt.topic_breakdown.items() %}
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; margin-bottom: 6px;">
+                    <span style="font-weight: 600; color: var(--text-main);">{{ topic }}</span>
+                    <span style="color: var(--text-secondary);">
+                        {{ stats.correct }}/{{ stats.total }} ({{ stats.percentage }}%)
+                    </span>
+                </div>
+                <div style="height: 8px; width: 100%; background: var(--bg-hover); border-radius: 9999px; overflow: hidden;">
+                    <div style="height: 100%; width: {{ stats.percentage }}%; background: {% if stats.percentage >= 70 %}#22C55E{% elif stats.percentage >= 40 %}#F59E0B{% else %}#EF4444{% endif %}; border-radius: 9999px;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if recommended_topics %}
+        <div style="background: rgba(245, 158, 11, 0.06); border: 1px dashed rgba(245, 158, 11, 0.35); border-radius: 12px; padding: 18px;">
+            <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #D97706; margin-bottom: 6px; font-size: 0.92rem;">
+                <i data-lucide="target" style="width: 16px; height: 16px;"></i>
+                <span>Actionable Focus Areas for Revision</span>
+            </div>
+            <p style="font-size: 0.86rem; color: var(--text-secondary); margin: 0 0 10px 0;">
+                Based on your incorrect answers, we recommend focusing on these topics before retaking this assessment:
+            </p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                {% for r in recommended_topics %}
+                <span class="badge" style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 6px 12px; font-size: 0.82rem; font-weight: 600;">
+                    {{ r.topic }} ({{ r.percentage }}%)
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- 4. QUESTION-BY-QUESTION DETAILED SOLUTION REVIEW -->
+    {% if attempt.question_results %}
+    <div style="margin-bottom: 30px;">
+        <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="check-square" style="width: 22px; height: 22px; color: #10B981;"></i>
+            <span>Step-by-Step Question Solutions & Explanations</span>
+        </h3>
+
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            {% for qr in attempt.question_results %}
+            <div class="card" style="padding: 24px 26px; border-radius: 16px; border-left: 5px solid {% if qr.is_correct %}#22C55E{% elif qr.user_answer %}#EF4444{% else %}#94A3B8{% endif %};">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.82rem;">
+                    <span style="font-weight: 700; color: var(--text-secondary);">
+                        Question {{ loop.index }} • {{ qr.subtopic or qr.category }}
+                    </span>
+                    <span class="badge" style="background: {% if qr.is_correct %}rgba(34,197,94,0.12){% elif qr.user_answer %}rgba(239,68,68,0.12){% else %}rgba(148,163,184,0.12){% endif %}; color: {% if qr.is_correct %}#16A34A{% elif qr.user_answer %}#DC2626{% else %}#64748B{% endif %}; font-weight: 700;">
+                        {% if qr.is_correct %}CORRECT (+{{ qr.marks }} pts){% elif qr.user_answer %}INCORRECT ({{ qr.marks_awarded }} pts){% else %}UNANSWERED (0 pts){% endif %}
+                    </span>
+                </div>
+
+                <div style="font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin-bottom: 14px; line-height: 1.55;">
+                    {{ qr.question_text }}
+                </div>
+
+                {% if qr.code_snippet %}
+                <pre style="background: #0F172A; color: #F8FAFC; padding: 14px; border-radius: 10px; font-family: monospace; font-size: 0.88rem; overflow-x: auto; margin-bottom: 16px;"><code>{{ qr.code_snippet }}</code></pre>
+                {% endif %}
+
+                <!-- Options status -->
+                {% if qr.options %}
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                    {% for opt in qr.options %}
+                    {% set is_user_choice = (qr.user_answer == opt.id) or (qr.user_answer is iterable and opt.id in qr.user_answer) %}
+                    {% set is_correct_choice = opt.id in qr.correct_answers %}
+
+                    <div style="padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; justify-content: space-between; border: 1.5px solid {% if is_correct_choice %}#22C55E{% elif is_user_choice %}#EF4444{% else %}var(--border-color){% endif %}; background: {% if is_correct_choice %}rgba(34,197,94,0.06){% elif is_user_choice %}rgba(239,68,68,0.06){% else %}transparent{% endif %};">
+                        <span>{{ opt.text }}</span>
+                        <div>
+                            {% if is_correct_choice %}
+                            <span class="badge" style="background: #22C55E; color: white; font-weight: 700; font-size: 0.7rem;">CORRECT ANSWER</span>
+                            {% elif is_user_choice %}
+                            <span class="badge" style="background: #EF4444; color: white; font-weight: 700; font-size: 0.7rem;">YOUR CHOICE</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Detailed Explanation -->
+                {% if qr.explanation %}
+                <div style="padding: 14px 16px; background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; font-size: 0.88rem; line-height: 1.55;">
+                    <strong style="color: #6366F1;">Explanation & Concept:</strong>
+                    <div style="margin-top: 4px; color: var(--text-main);">
+                        {{ qr.explanation }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+</div>
+{% endblock %}

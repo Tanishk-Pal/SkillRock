@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ test.title }} — Timed Assessment — SkillRock</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='img/icon-192.png') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        :root {
+            --exam-bg: #F8FAFC;
+            --exam-card: #FFFFFF;
+            --exam-text: #0F172A;
+            --exam-border: #E2E8F0;
+            --exam-primary: #6366F1;
+        }
+        [data-theme="dark"] {
+            --exam-bg: #0B0F19;
+            --exam-card: #131A2A;
+            --exam-text: #F1F5F9;
+            --exam-border: rgba(255,255,255,0.08);
+            --exam-primary: #818CF8;
+        }
+        body {
+            background: var(--exam-bg);
+            color: var(--exam-text);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        .exam-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--exam-card);
+            border-bottom: 1.5px solid var(--exam-border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+        .timer-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.15rem;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 10px;
+            background: rgba(99,102,241,0.08);
+            color: var(--exam-primary);
+            border: 1px solid rgba(99,102,241,0.25);
+        }
+        .timer-warning {
+            background: rgba(239, 68, 68, 0.1) !important;
+            color: #EF4444 !important;
+            border-color: rgba(239, 68, 68, 0.3) !important;
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .exam-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+            max-width: 1300px;
+            margin: 24px auto;
+            padding: 0 20px;
+        }
+        @media (max-width: 900px) {
+            .exam-layout {
+                grid-template-columns: 1fr;
+            }
+            .palette-sidebar {
+                order: 2;
+            }
+        }
+        .question-card {
+            background: var(--exam-card);
+            border: 1.5px solid var(--exam-border);
+            border-radius: 18px;
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+            min-height: 480px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border: 1.5px solid var(--exam-border);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: var(--exam-card);
+        }
+        .option-item:hover {
+            border-color: var(--exam-primary);
+            background: rgba(99,102,241,0.03);
+        }
+        .option-item.selected {
+            border-color: var(--exam-primary);
+            background: rgba(99,102,241,0.08);
+            font-weight: 600;
+        }
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+        .pal-btn {
+            height: 38px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1.5px solid var(--exam-border);
+            background: var(--exam-card);
+            color: var(--exam-text);
+            transition: transform 0.1s ease;
+        }
+        .pal-btn:hover {
+            transform: scale(1.05);
+        }
+        .pal-btn.current {
+            border-color: #2563EB !important;
+            box-shadow: 0 0 0 2px rgba(37,99,235,0.4);
+        }
+        .pal-btn.answered {
+            background: #22C55E !important;
+            color: #FFFFFF !important;
+            border-color: #16A34A !important;
+        }
+        .pal-btn.review {
+            background: #8B5CF6 !important;
+            color: #FFFFFF !important;
+            border-color: #7C3AED !important;
+        }
+        .pal-btn.unanswered {
+            background: var(--exam-card);
+            color: var(--exam-text);
+        }
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-box {
+            background: var(--exam-card);
+            border: 1px solid var(--exam-border);
+            border-radius: 18px;
+            max-width: 480px;
+            width: 100%;
+            padding: 28px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        pre.code-block {
+            background: #0F172A;
+            color: #F8FAFC;
+            padding: 16px;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            text-align: left;
+            margin: 14px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header with Test Title, Status and Timer -->
+    <header class="exam-header">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: #6366F1; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                SR
+            </div>
+            <div>
+                <h1 style="font-size: 1.05rem; font-weight: 800; margin: 0; color: var(--exam-text);">
+                    {{ test.title }}
+                </h1>
+                <div style="font-size: 0.78rem; color: #64748B; display: flex; align-items: center; gap: 8px;">
+                    <span>{{ test.category }}</span>
+                    <span>•</span>
+                    <span id="autosaveIndicator" style="color: #10B981; display: inline-flex; align-items: center; gap: 4px;">
+                        <i data-lucide="check-circle" style="width: 12px; height: 12px;"></i>
+                        <span>Autosaved</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div id="timerDisplay" class="timer-badge">
+                <i data-lucide="clock" style="width: 18px; height: 18px;"></i>
+                <span id="timerText">--:--</span>
+            </div>
+
+            <button type="button" class="btn btn-primary" style="font-weight: 700; padding: 8px 18px;" onclick="confirmSubmitModal()">
+                Submit Test
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Exam Layout -->
+    <div class="exam-layout">
+
+        <!-- Question View Container -->
+        <main class="question-card" id="questionArea">
+            <div>
+                <!-- Question Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--exam-border);">
+                    <div style="font-size: 0.95rem; font-weight: 700; color: var(--exam-primary);">
+                        Question <span id="currentQNum">1</span> of {{ questions|length }}
+                    </div>
+                    <div style="font-size: 0.8rem; color: #64748B; display: flex; gap: 8px;">
+                        <span class="badge" id="qTopicBadge" style="background: rgba(15,23,42,0.04); border: 1px solid var(--exam-border);">Aptitude</span>
+                        <span class="badge" style="background: rgba(16,185,129,0.1); color: #10B981;">+<span id="qMarks">1.0</span> Marks</span>
+                        <span class="badge" style="background: rgba(239,68,68,0.1); color: #EF4444;">-<span id="qNegMarks">0.25</span> Marks</span>
+                    </div>
+                </div>
+
+                <!-- Question Text -->
+                <div id="qText" style="font-size: 1.15rem; font-weight: 600; line-height: 1.6; margin-bottom: 16px; color: var(--exam-text);">
+                    Loading question...
+                </div>
+
+                <!-- Optional Code Snippet -->
+                <div id="qCodeContainer" style="display: none;">
+                    <pre class="code-block"><code id="qCodeText"></code></pre>
+                </div>
+
+                <!-- Answer Choices -->
+                <div id="optionsContainer" style="margin-top: 20px;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Bottom Navigation Actions -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--exam-border); flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="clearBtn" onclick="clearCurrentAnswer()">
+                        Clear Response
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="reviewBtn" onclick="toggleMarkForReview()" style="color: #8B5CF6;">
+                        <i data-lucide="bookmark" style="width: 14px; height: 14px; margin-right: 4px;"></i>
+                        <span id="reviewBtnText">Mark for Review</span>
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" id="prevBtn" onclick="navigatePrev()">
+                        Previous
+                    </button>
+                    <button type="button" class="btn btn-primary" id="nextBtn" onclick="navigateNext()">
+                        Next
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar: Question Palette & Overview -->
+        <aside class="palette-sidebar">
+            <div class="card" style="padding: 22px; border-radius: 16px; background: var(--exam-card); border: 1.5px solid var(--exam-border); position: sticky; top: 80px;">
+                <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 14px; color: var(--exam-text);">
+                    Question Palette
+                </h3>
+
+                <!-- Legend -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.78rem; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--exam-border);">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 12px; height: 12px; border-radius: 3px; background: #22C55E;"></span>
+                        <span>Answered (<span id="countAnswered">0</span>)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 12px; height: 12px; border-radius: 3px; background: #8B5CF6;"></span>
+                        <span>Review (<span id="countReview">0</span>)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--exam-border); background: var(--exam-card);"></span>
+                        <span>Unanswered (<span id="countUnanswered">{{ questions|length }}</span>)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 12px; height: 12px; border-radius: 3px; border: 2px solid #2563EB;"></span>
+                        <span>Current</span>
+                    </div>
+                </div>
+
+                <!-- Palette Grid Numbers -->
+                <div class="palette-grid" id="paletteGrid">
+                    {% for q in questions %}
+                    <button type="button" class="pal-btn unanswered" id="pal_btn_{{ loop.index0 }}" onclick="goToQuestion({{ loop.index0 }})">
+                        {{ loop.index }}
+                    </button>
+                    {% endfor %}
+                </div>
+
+                <!-- Focus Loss Warning Counter -->
+                <div style="margin-top: 20px; padding: 12px; border-radius: 10px; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.25); font-size: 0.8rem; color: #D97706; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="shield-alert" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+                    <div>
+                        Focus Warnings: <strong id="warningDisplay">{{ attempt.warning_count }}</strong> / 3
+                        <div style="font-size: 0.72rem; color: #64748B;">4th violation auto-cancels test.</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- Focus Loss Warning Modal Overlay -->
+    <div id="focusWarningModal" class="modal-overlay">
+        <div class="modal-box" style="border: 2px solid #EF4444;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(239,68,68,0.12); color: #EF4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                <i data-lucide="alert-triangle" style="width: 30px; height: 30px;"></i>
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #EF4444; margin-bottom: 8px;">
+                Focus Loss Detected!
+            </h3>
+            <p style="font-size: 0.92rem; color: var(--exam-text); margin-bottom: 14px; line-height: 1.5;">
+                You navigated away or switched tabs. To maintain assessment fairness, focus loss is strictly tracked.
+            </p>
+            <div style="background: rgba(239,68,68,0.08); padding: 12px; border-radius: 10px; font-weight: 700; color: #EF4444; margin-bottom: 20px; font-size: 0.95rem;">
+                Warning <span id="modalWarningNum">1</span> of 3
+                <div style="font-size: 0.8rem; font-weight: 500; color: #64748B; margin-top: 4px;">
+                    One more violation after 3 warnings will permanently cancel your test.
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" style="width: 100%; font-weight: 700;" onclick="dismissFocusModal()">
+                I Understand — Return to Assessment
+            </button>
+        </div>
+    </div>
+
+    <!-- Submit Confirmation Modal Overlay -->
+    <div id="confirmSubmitModalBox" class="modal-overlay">
+        <div class="modal-box">
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(99,102,241,0.12); color: #6366F1; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                <i data-lucide="send" style="width: 26px; height: 26px;"></i>
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--exam-text); margin-bottom: 12px;">
+                Ready to Submit?
+            </h3>
+            <div style="text-align: left; background: rgba(15,23,42,0.03); border: 1px solid var(--exam-border); border-radius: 12px; padding: 16px; margin-bottom: 20px; font-size: 0.88rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Total Questions:</span> <strong>{{ questions|length }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #16A34A;">
+                    <span>Answered:</span> <strong id="modalAnsCount">0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #8B5CF6;">
+                    <span>Marked for Review:</span> <strong id="modalReviewCount">0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; color: #EF4444;">
+                    <span>Unanswered:</span> <strong id="modalUnansCount">{{ questions|length }}</strong>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="closeSubmitModal()">
+                    Keep Working
+                </button>
+                <button type="button" class="btn btn-primary" style="flex: 1; font-weight: 700;" onclick="executeFinalSubmit()">
+                    Confirm & Submit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Injection & Exam Engine JavaScript -->
+    <script>
+        const ATTEMPT_ID = "{{ attempt.id }}";
+        const QUESTIONS = {{ questions | tojson }};
+        const INITIAL_RESPONSES = {{ attempt.responses | tojson }};
+        let remainingSeconds = {{ remaining_seconds }};
+        let currentIndex = 0;
+        let warningCount = {{ attempt.warning_count }};
+        let isSubmitting = false;
+
+        // User responses map: question_id -> { answer: ..., marked_for_review: bool }
+        const userResponses = {};
+        QUESTIONS.forEach(q => {
+            const saved = INITIAL_RESPONSES[q.id];
+            if (saved && typeof saved === 'object') {
+                userResponses[q.id] = {
+                    answer: saved.answer,
+                    marked_for_review: Boolean(saved.marked_for_review)
+                };
+            } else {
+                userResponses[q.id] = {
+                    answer: saved || null,
+                    marked_for_review: false
+                };
+            }
+        });
+
+        // 1. Timer Engine
+        function startTimer() {
+            const timerText = document.getElementById("timerText");
+            const timerBadge = document.getElementById("timerDisplay");
+
+            const interval = setInterval(() => {
+                if (remainingSeconds <= 0) {
+                    clearInterval(interval);
+                    timerText.innerText = "00:00";
+                    timerBadge.classList.add("timer-warning");
+                    autoSubmitOnExpiry();
+                    return;
+                }
+                remainingSeconds--;
+                const mins = Math.floor(remainingSeconds / 60);
+                const secs = remainingSeconds % 60;
+                timerText.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+                if (remainingSeconds < 300) { // under 5 mins
+                    timerBadge.classList.add("timer-warning");
+                }
+            }, 1000);
+        }
+
+        // 2. Render Current Question
+        function renderQuestion(index) {
+            currentIndex = index;
+            const q = QUESTIONS[index];
+            const resp = userResponses[q.id];
+
+            document.getElementById("currentQNum").innerText = index + 1;
+            document.getElementById("qTopicBadge").innerText = q.subtopic || q.category;
+            document.getElementById("qMarks").innerText = q.marks;
+            document.getElementById("qNegMarks").innerText = q.negative_marks;
+            document.getElementById("qText").innerText = q.question_text;
+
+            // Optional code snippet
+            const codeBox = document.getElementById("qCodeContainer");
+            if (q.code_snippet) {
+                codeBox.style.display = "block";
+                document.getElementById("qCodeText").innerText = q.code_snippet;
+            } else {
+                codeBox.style.display = "none";
+            }
+
+            // Render options
+            const optsContainer = document.getElementById("optionsContainer");
+            optsContainer.innerHTML = "";
+
+            if (q.options && q.options.length > 0) {
+                q.options.forEach((opt, optIdx) => {
+                    const isSelected = q.question_type === 'multiple_select'
+                        ? (Array.isArray(resp.answer) && resp.answer.includes(opt.id))
+                        : (resp.answer === opt.id);
+
+                    const optDiv = document.createElement("div");
+                    optDiv.className = `option-item ${isSelected ? 'selected' : ''}`;
+                    optDiv.onclick = () => selectOption(opt.id, q.question_type);
+
+                    const keyChar = String.fromCharCode(65 + optIdx); // A, B, C, D
+                    optDiv.innerHTML = `
+                        <div style="width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid ${isSelected ? '#6366F1' : '#CBD5E1'}; background: ${isSelected ? '#6366F1' : 'transparent'}; color: ${isSelected ? '#FFF' : 'inherit'}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0;">
+                            ${keyChar}
+                        </div>
+                        <div style="flex: 1; font-size: 0.96rem;">${escapeHtml(opt.text)}</div>
+                    `;
+                    optsContainer.appendChild(optDiv);
+                });
+            }
+
+            // Review button text
+            const revBtnText = document.getElementById("reviewBtnText");
+            if (resp.marked_for_review) {
+                revBtnText.innerText = "Unmark Review";
+            } else {
+                revBtnText.innerText = "Mark for Review";
+            }
+
+            // Navigation buttons
+            document.getElementById("prevBtn").disabled = (index === 0);
+            const nextBtn = document.getElementById("nextBtn");
+            if (index === QUESTIONS.length - 1) {
+                nextBtn.innerText = "Finish & Review";
+            } else {
+                nextBtn.innerText = "Next";
+            }
+
+            updatePaletteUI();
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // 3. Select Option & Autosave
+        function selectOption(optionId, qType) {
+            const q = QUESTIONS[currentIndex];
+            if (qType === 'multiple_select') {
+                let ansList = Array.isArray(userResponses[q.id].answer) ? [...userResponses[q.id].answer] : [];
+                if (ansList.includes(optionId)) {
+                    ansList = ansList.filter(id => id !== optionId);
+                } else {
+                    ansList.push(optionId);
+                }
+                userResponses[q.id].answer = ansList;
+            } else {
+                userResponses[q.id].answer = optionId;
+            }
+            renderQuestion(currentIndex);
+            triggerAutosave(q.id);
+        }
+
+        function clearCurrentAnswer() {
+            const q = QUESTIONS[currentIndex];
+            userResponses[q.id].answer = null;
+            renderQuestion(currentIndex);
+            triggerAutosave(q.id);
+        }
+
+        function toggleMarkForReview() {
+            const q = QUESTIONS[currentIndex];
+            userResponses[q.id].marked_for_review = !userResponses[q.id].marked_for_review;
+            renderQuestion(currentIndex);
+            triggerAutosave(q.id);
+        }
+
+        // 4. Trigger Server Autosave
+        function triggerAutosave(questionId) {
+            const ind = document.getElementById("autosaveIndicator");
+            ind.innerHTML = `<span>Saving...</span>`;
+            ind.style.color = "#F59E0B";
+
+            fetch(`/test-series/attempts/${ATTEMPT_ID}/save-answer`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    question_id: questionId,
+                    answer: userResponses[questionId].answer,
+                    marked_for_review: userResponses[questionId].marked_for_review
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.expired && data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                    return;
+                }
+                ind.innerHTML = `<i data-lucide="check-circle" style="width:12px;height:12px;"></i><span>Autosaved</span>`;
+                ind.style.color = "#10B981";
+                if (window.lucide) lucide.createIcons();
+            })
+            .catch(err => {
+                ind.innerHTML = `<span style="color:#EF4444;">Offline - Retrying</span>`;
+            });
+        }
+
+        // 5. Palette & Summary Counter UI
+        function updatePaletteUI() {
+            let answered = 0;
+            let review = 0;
+
+            QUESTIONS.forEach((q, idx) => {
+                const btn = document.getElementById(`pal_btn_${idx}`);
+                if (!btn) return;
+
+                btn.className = "pal-btn";
+                if (idx === currentIndex) {
+                    btn.classList.add("current");
+                }
+
+                const resp = userResponses[q.id];
+                const hasAns = resp.answer !== null && resp.answer !== "" && (!Array.isArray(resp.answer) || resp.answer.length > 0);
+
+                if (resp.marked_for_review) {
+                    btn.classList.add("review");
+                    review++;
+                } else if (hasAns) {
+                    btn.classList.add("answered");
+                    answered++;
+                } else {
+                    btn.classList.add("unanswered");
+                }
+            });
+
+            document.getElementById("countAnswered").innerText = answered;
+            document.getElementById("countReview").innerText = review;
+            document.getElementById("countUnanswered").innerText = QUESTIONS.length - answered;
+        }
+
+        function navigatePrev() {
+            if (currentIndex > 0) renderQuestion(currentIndex - 1);
+        }
+
+        function navigateNext() {
+            if (currentIndex < QUESTIONS.length - 1) {
+                renderQuestion(currentIndex + 1);
+            } else {
+                confirmSubmitModal();
+            }
+        }
+
+        function goToQuestion(idx) {
+            renderQuestion(idx);
+        }
+
+        // 6. Focus Loss Anti-Cheat Listener
+        let lastFocusLossTime = 0;
+        function handleFocusLoss(eventType) {
+            if (isSubmitting) return;
+            const now = Date.now();
+            if (now - lastFocusLossTime < 5000) return; // 5s debounce
+            lastFocusLossTime = now;
+
+            fetch(`/test-series/attempts/${ATTEMPT_ID}/focus-loss`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    event_type: eventType,
+                    reason: "Assessment tab switched or browser minimized."
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.cancelled && data.redirect_url) {
+                    alert(data.cancellation_reason || "Test cancelled due to focus-loss violation limit.");
+                    window.location.href = data.redirect_url;
+                    return;
+                }
+                if (data.recorded) {
+                    warningCount = data.warning_count;
+                    document.getElementById("warningDisplay").innerText = warningCount;
+                    document.getElementById("modalWarningNum").innerText = warningCount;
+                    document.getElementById("focusWarningModal").style.display = "flex";
+                }
+            })
+            .catch(() => {});
+        }
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) handleFocusLoss("visibility_hidden");
+        });
+        window.addEventListener("blur", () => {
+            handleFocusLoss("window_blur");
+        });
+
+        function dismissFocusModal() {
+            document.getElementById("focusWarningModal").style.display = "none";
+        }
+
+        // 7. Final Submission Modal & Execution
+        function confirmSubmitModal() {
+            let answered = 0;
+            let review = 0;
+            QUESTIONS.forEach(q => {
+                const resp = userResponses[q.id];
+                const hasAns = resp.answer !== null && resp.answer !== "" && (!Array.isArray(resp.answer) || resp.answer.length > 0);
+                if (hasAns) answered++;
+                if (resp.marked_for_review) review++;
+            });
+            document.getElementById("modalAnsCount").innerText = answered;
+            document.getElementById("modalReviewCount").innerText = review;
+            document.getElementById("modalUnansCount").innerText = QUESTIONS.length - answered;
+            document.getElementById("confirmSubmitModalBox").style.display = "flex";
+        }
+
+        function closeSubmitModal() {
+            document.getElementById("confirmSubmitModalBox").style.display = "none";
+        }
+
+        function executeFinalSubmit() {
+            isSubmitting = true;
+            closeSubmitModal();
+            const btn = document.querySelector(".exam-header button");
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "Submitting...";
+            }
+
+            fetch(`/test-series/attempts/${ATTEMPT_ID}/submit`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ responses: userResponses })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            })
+            .catch(() => {
+                alert("Network error occurred during submission. Retrying...");
+                window.location.reload();
+            });
+        }
+
+        function autoSubmitOnExpiry() {
+            if (isSubmitting) return;
+            isSubmitting = true;
+            fetch(`/test-series/attempts/${ATTEMPT_ID}/submit`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ responses: userResponses })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.redirect_url) window.location.href = data.redirect_url;
+            })
+            .catch(() => {
+                window.location.reload();
+            });
+        }
+
+        // Helper: Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.innerText = text;
+            return div.innerHTML;
+        }
+
+        // Keyboard navigation
+        document.addEventListener("keydown", (e) => {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+            if (e.key === "ArrowLeft") navigatePrev();
+            if (e.key === "ArrowRight") navigateNext();
+        });
+
+        // Initialize exam engine
+        window.addEventListener("DOMContentLoaded", () => {
+            startTimer();
+            renderQuestion(0);
+        });
+    </script>
+</body>
+</html>

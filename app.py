@@ -23,7 +23,11 @@ from models import (
     Submission,
     Certificate,
     ensure_admin_user,
-    ensure_default_courses
+    ensure_default_courses,
+    ensure_default_test_series,
+    TestDefinition,
+    TestPack,
+    TestAttempt
 )
 from routes import (
     auth_bp,
@@ -36,7 +40,8 @@ from routes import (
     ai_bp,
     chat_bp,
     admin_bp,
-    learning_bp
+    learning_bp,
+    test_series_bp
 )
 
 def create_app(config_class=Config):
@@ -51,6 +56,7 @@ def create_app(config_class=Config):
         get_db()
         ensure_admin_user()
         ensure_default_courses()
+        ensure_default_test_series()
 
     # Initialize Flask-Login
     login_manager = LoginManager()
@@ -75,6 +81,7 @@ def create_app(config_class=Config):
     app.register_blueprint(chat_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(learning_bp)
+    app.register_blueprint(test_series_bp)
 
     # Provide global utilities & model classes safely in Jinja templates
     app.jinja_env.globals.update(
@@ -187,6 +194,7 @@ def create_app(config_class=Config):
             request.path.startswith("/learning/my-learning"),
             request.path.startswith("/learning/assignment"),
             request.path.startswith("/learning/submit"),
+            request.path.startswith("/test-series/attempts"),
             request.path.startswith("/learning/progress"),
             request.path in ["/login", "/register", "/signin", "/logout"]
         ])
