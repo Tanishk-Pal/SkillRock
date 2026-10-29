@@ -187,7 +187,7 @@ def create_app(config_class=Config):
     # Automated Student Reminders Daemon: Periodically scans for students with pending lectures or waiting certificates
     def _student_reminders_worker():
         import time
-        time.sleep(45)  # Wait for app & DB connection to stabilize
+        time.sleep(90)  # Wait for app & DB connection to stabilize before running background tasks
         while True:
             try:
                 from services.reminder_service import scan_and_send_student_reminders
@@ -195,8 +195,8 @@ def create_app(config_class=Config):
             except Exception as e:
                 import logging
                 logging.getLogger(__name__).warning(f"Student reminders background job notice: {e}")
-            # Check every 12 hours (43200 seconds)
-            time.sleep(43200)
+            # Check once daily (86400 seconds)
+            time.sleep(86400)
 
     threading.Thread(target=_student_reminders_worker, daemon=True).start()
 

@@ -1950,72 +1950,103 @@
 
 
 
-        // Instant Client-Side Navigation Progress Indicator (< 30ms visual response)
-
+        // Instant Mobile & Desktop Navigation Engine + Centered Action Wheel Loader (< 0ms visual response)
         (function initInstantNavFeedback() {
-
             var bar = document.getElementById("topProgressBar");
+            var wheel = document.getElementById("actionWheelLoader");
+            var wheelTimer = null;
 
-            if (!bar) return;
-
-
-
-            document.addEventListener("click", function(e) {
-
-                var link = e.target.closest("a");
-
+            function triggerNavProgress(link) {
                 if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
-
                 var href = link.getAttribute("href");
-
                 if (!href || href.startsWith("#") || href.startsWith("javascript:") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
-
                 if (link.origin && link.origin !== window.location.origin) return;
 
+                // 1. Speculative Prefetching on Touch: start DNS & HTTP connection before finger lifts!
+                if (!link.dataset.prefetched && href) {
+                    link.dataset.prefetched = "1";
+                    try {
+                        var pre = document.createElement("link");
+                        pre.rel = "prefetch";
+                        pre.href = href;
+                        document.head.appendChild(pre);
+                    } catch(e) {}
+                }
 
+                // 2. Instant Tactile Tab Feedback on Mobile Bottom Nav
+                if (link.classList.contains("mobile-bottom-item")) {
+                    document.querySelectorAll(".mobile-bottom-item").forEach(function(item) {
+                        item.classList.remove("active");
+                    });
+                    link.classList.add("active");
+                    link.style.transform = "scale(0.92)";
+                    setTimeout(function() { link.style.transform = ""; }, 140);
+                }
 
-                // Immediate visual response in < 30ms
+                // 3. Top Progress Bar
+                if (bar) {
+                    bar.style.opacity = "1";
+                    bar.style.width = "45%";
+                    setTimeout(function() {
+                        if (bar.style.width === "45%") bar.style.width = "80%";
+                    }, 120);
+                }
 
-                bar.style.opacity = "1";
-
-                bar.style.width = "40%";
-
-
+                // 4. Centered Wheel Loader: shows smoothly after 60ms to eliminate perceivable lag on redirects
+                if (wheel) {
+                    if (wheelTimer) clearTimeout(wheelTimer);
+                    wheelTimer = setTimeout(function() {
+                        wheel.style.display = "flex";
+                    }, 60);
+                }
 
                 var lc = document.getElementById("livePageContent");
-
                 if (lc) lc.classList.add("page-navigating");
+            }
 
+            // High-priority pointerdown / touchstart for 0ms mobile responsiveness
+            document.addEventListener("pointerdown", function(e) {
+                var link = e.target.closest("a");
+                if (link) triggerNavProgress(link);
+            }, { passive: true });
 
-
-                setTimeout(function() {
-
-                    if (bar.style.width === "40%") bar.style.width = "75%";
-
-                }, 200);
-
+            document.addEventListener("click", function(e) {
+                var link = e.target.closest("a");
+                if (link) triggerNavProgress(link);
             });
 
+            // Form Submissions Loader
+            document.addEventListener("submit", function(e) {
+                var form = e.target;
+                if (form && !form.target && form.method.toLowerCase() === "post") {
+                    if (bar) {
+                        bar.style.opacity = "1";
+                        bar.style.width = "60%";
+                    }
+                    if (wheel) {
+                        wheel.style.display = "flex";
+                    }
+                }
+            });
 
-
-            window.addEventListener("pageshow", function() {
-
+            // Cleanup & Reset when page displays (including back/forward bfcache)
+            function resetNavState() {
+                if (wheelTimer) clearTimeout(wheelTimer);
+                if (wheel) wheel.style.display = "none";
                 var lc = document.getElementById("livePageContent");
-
                 if (lc) lc.classList.remove("page-navigating");
+                if (bar) {
+                    bar.style.width = "100%";
+                    setTimeout(function() {
+                        bar.style.opacity = "0";
+                        setTimeout(function() { bar.style.width = "0%"; }, 200);
+                    }, 150);
+                }
+            }
 
-                bar.style.width = "100%";
-
-                setTimeout(function() {
-
-                    bar.style.opacity = "0";
-
-                    setTimeout(function() { bar.style.width = "0%"; }, 200);
-
-                }, 150);
-
-            });
-
+            window.addEventListener("pageshow", resetNavState);
+            window.addEventListener("popstate", resetNavState);
+            document.addEventListener("DOMContentLoaded", resetNavState);
         })();
 
     </script>

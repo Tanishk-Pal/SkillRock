@@ -1777,6 +1777,19 @@ html {
   100% { transform: rotate(360deg); }
 }
 
+[data-theme="dark"] .action-wheel-box {
+  background: #1E293B;
+  color: #F8FAFC;
+  border-color: #334155;
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .small-blue-wheel-spinner {
+  border-color: #1E3A8A;
+  border-top-color: #3B82F6;
+  border-right-color: #60A5FA;
+}
+
 .action-wheel-text {
   display: none !important;
 }

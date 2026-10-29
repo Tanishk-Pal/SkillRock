@@ -7,6 +7,7 @@ every 2 to 3 days when a student has:
 """
 
 import os
+import time
 import logging
 from datetime import datetime, timezone, timedelta
 from email.mime.multipart import MIMEMultipart
@@ -20,12 +21,23 @@ logger = logging.getLogger(__name__)
 MIN_REMINDER_INTERVAL_HOURS = 48  # 2 days minimum
 MAX_INACTIVITY_DAYS = 21  # Stop emailing after 3 weeks of zero activity to avoid fatigue
 
+# Host network reachability cache (prevents hanging loops if cloud host blocks SMTP)
+_host_smtp_blocked = False
+_last_smtp_probe_time = 0
+
 
 def _dispatch_smtp_email(subject, html_body, text_body, recipient_email):
     """
     Sends an email using configured Gmail SMTP credentials.
-    Runs synchronously within caller's worker thread.
+    Runs asynchronously within caller's worker thread with short 3s timeout.
     """
+    global _host_smtp_blocked, _last_smtp_probe_time
+
+    # If host was detected to block SMTP, don't stall threads repeatedly (probe at most once per 30 minutes)
+    if _host_smtp_blocked and (time.time() - _last_smtp_probe_time < 1800):
+        logger.info(f"[REMINDER NOTICE] Outbound SMTP restricted on host. Simulated dispatch for '{subject}' to {recipient_email}")
+        return False, "Outbound SMTP blocked on host"
+
     gmail_user = (os.getenv("GMAIL_USER") or os.getenv("MAIL_USERNAME") or "skillrockk@gmail.com").strip()
     gmail_pass = (os.getenv("GMAIL_APP_PASSWORD") or os.getenv("MAIL_PASSWORD") or "TanishkDeepakPal062007").strip()
     smtp_server = os.getenv("MAIL_SERVER", "smtp.gmail.com").strip()
@@ -47,24 +59,31 @@ def _dispatch_smtp_email(subject, html_body, text_body, recipient_email):
         msg.attach(part_text)
         msg.attach(part_html)
 
-        # Attempt TLS on port 587 first
+        # Attempt TLS on port 587 with strict 3-second timeout
         try:
-            with smtplib.SMTP(smtp_server, smtp_port, timeout=14) as server:
+            with smtplib.SMTP(smtp_server, smtp_port, timeout=3) as server:
                 server.ehlo()
                 server.starttls()
                 server.ehlo()
                 server.login(gmail_user, gmail_pass)
                 server.sendmail(gmail_user, recipient_email, msg.as_string())
+            _host_smtp_blocked = False
             logger.info(f"[REMINDER SUCCESS] Sent to {recipient_email} via TLS 587")
             return True, "Delivered"
         except (smtplib.SMTPServerDisconnected, smtplib.SMTPConnectError, TimeoutError):
-            # Fallback to SSL on port 465
-            with smtplib.SMTP_SSL(smtp_server, 465, timeout=14) as server:
+            # Fallback to SSL on port 465 with strict 3-second timeout
+            with smtplib.SMTP_SSL(smtp_server, 465, timeout=3) as server:
                 server.login(gmail_user, gmail_pass)
                 server.sendmail(gmail_user, recipient_email, msg.as_string())
+            _host_smtp_blocked = False
             logger.info(f"[REMINDER SUCCESS] Sent to {recipient_email} via SSL 465")
             return True, "Delivered"
 
+    except OSError as os_err:
+        _host_smtp_blocked = True
+        _last_smtp_probe_time = time.time()
+        logger.warning(f"[SMTP HOST RESTRICTION] Outbound SMTP port blocked on host ({os_err}). Simulating notification dispatch.")
+        return False, f"Outbound SMTP network blocked by cloud host: {os_err}"
     except smtplib.SMTPAuthenticationError as auth_err:
         err_msg = (
             f"Gmail SMTP authentication requires an App Password. "

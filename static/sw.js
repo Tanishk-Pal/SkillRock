@@ -3,7 +3,7 @@
  * Provides offline caching, lightning-fast static asset delivery, and installability.
  */
 
-const CACHE_NAME = "skillrock-v1.2.0";
+const CACHE_NAME = "skillrock-v1.3.0";
 
 const PRECACHE_ASSETS = [
   "/",
@@ -84,27 +84,14 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // B. HTML Pages / Navigations — Network-First with Cache Fallback for instant speed
-  if (request.mode === "navigate" || request.headers.get("accept")?.includes("text/html")) {
+  // B. HTML Pages / Navigations — Native fast network pass-through with offline cache fallback
+  if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
-            });
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          return caches.match(request).then((cachedResponse) => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            return caches.match("/");
-          });
-        })
+      fetch(request).catch(() => {
+        return caches.match(request).then((cachedResponse) => {
+          return cachedResponse || caches.match("/");
+        });
+      })
     );
     return;
   }
