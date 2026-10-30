@@ -249,29 +249,21 @@
         /* Instant Client-Side Navigation Feedback Bar (P95 < 50ms visual response) */
 
         #topProgressBar {
-
             position: fixed;
-
             top: 0;
-
             left: 0;
-
-            width: 0%;
-
+            width: 100%;
             height: 3px;
-
-            background: linear-gradient(90deg, #6366F1 0%, #8B5CF6 35%, #EC4899 70%, #38BDF8 100%);
-
-            z-index: 999999;
-
+            z-index: 2147483647;
+            pointer-events: none !important;
+            user-select: none;
             opacity: 0;
-
-            pointer-events: none;
-
-            transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
-
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.75), 0 0 4px rgba(56, 189, 248, 0.6);
-
+            transform: scaleX(0);
+            transform-origin: 0 0;
+            will-change: transform, opacity;
+            background: linear-gradient(90deg, #6366F1 0%, #8B5CF6 35%, #EC4899 70%, #38BDF8 100%);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.8), 0 0 6px rgba(56, 189, 248, 0.7);
+            transition: transform 200ms cubic-bezier(0.1, 0.5, 0.1, 1), opacity 150ms ease;
         }
 
     </style>
@@ -1950,13 +1942,67 @@
 
 
 
-        // Instant Mobile & Desktop Navigation Engine + Centered Action Wheel Loader (< 0ms visual response)
+        // Instant Non-Blocking Navigation Engine (YouTube / GitHub / Turbo Pattern)
         (function initInstantNavFeedback() {
             var bar = document.getElementById("topProgressBar");
-            var wheel = document.getElementById("actionWheelLoader");
-            var wheelTimer = null;
+            var currentProgress = 0;
+            var trickleTimer = null;
+            var safetyTimer = null;
 
-            function triggerNavProgress(link) {
+            function setProgress(val) {
+                currentProgress = Math.min(Math.max(val, 0), 1);
+                if (bar) {
+                    bar.style.transform = "scaleX(" + currentProgress + ")";
+                }
+            }
+
+            function startProgress() {
+                if (!bar) return;
+                resetProgress();
+                bar.style.transition = "transform 200ms cubic-bezier(0.1, 0.5, 0.1, 1), opacity 150ms ease";
+                bar.style.opacity = "1";
+                setProgress(0.25); // Immediate visual response on tap/click (<10ms)
+
+                // Smooth asymptotic trickle
+                trickleTimer = setInterval(function() {
+                    if (currentProgress < 0.85) {
+                        var remaining = 0.9 - currentProgress;
+                        setProgress(currentProgress + remaining * 0.18);
+                    }
+                }, 200);
+
+                // Safety timeout: auto-reset after 8s if navigation is aborted or downloads
+                safetyTimer = setTimeout(function() {
+                    finishProgress();
+                }, 8000);
+            }
+
+            function finishProgress() {
+                if (trickleTimer) { clearInterval(trickleTimer); trickleTimer = null; }
+                if (safetyTimer) { clearTimeout(safetyTimer); safetyTimer = null; }
+                if (!bar) return;
+                bar.style.transition = "transform 120ms ease-out, opacity 200ms ease 100ms";
+                setProgress(1);
+                bar.style.opacity = "0";
+                setTimeout(function() {
+                    if (currentProgress >= 1) {
+                        bar.style.transition = "none";
+                        setProgress(0);
+                    }
+                }, 320);
+            }
+
+            function resetProgress() {
+                if (trickleTimer) { clearInterval(trickleTimer); trickleTimer = null; }
+                if (safetyTimer) { clearTimeout(safetyTimer); safetyTimer = null; }
+                if (bar) {
+                    bar.style.transition = "none";
+                    bar.style.opacity = "0";
+                    setProgress(0);
+                }
+            }
+
+            function handleNav(link) {
                 if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
                 var href = link.getAttribute("href");
                 if (!href || href.startsWith("#") || href.startsWith("javascript:") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
@@ -1983,70 +2029,36 @@
                     setTimeout(function() { link.style.transform = ""; }, 140);
                 }
 
-                // 3. Top Progress Bar
-                if (bar) {
-                    bar.style.opacity = "1";
-                    bar.style.width = "45%";
-                    setTimeout(function() {
-                        if (bar.style.width === "45%") bar.style.width = "80%";
-                    }, 120);
-                }
-
-                // 4. Centered Wheel Loader: shows smoothly after 60ms to eliminate perceivable lag on redirects
-                if (wheel) {
-                    if (wheelTimer) clearTimeout(wheelTimer);
-                    wheelTimer = setTimeout(function() {
-                        wheel.style.display = "flex";
-                    }, 60);
-                }
-
-                var lc = document.getElementById("livePageContent");
-                if (lc) lc.classList.add("page-navigating");
+                // 3. Start non-blocking top progress bar (never captures/blocks pointer events)
+                startProgress();
             }
 
             // High-priority pointerdown / touchstart for 0ms mobile responsiveness
             document.addEventListener("pointerdown", function(e) {
                 var link = e.target.closest("a");
-                if (link) triggerNavProgress(link);
+                if (link) handleNav(link);
             }, { passive: true });
 
             document.addEventListener("click", function(e) {
+                if (e.defaultPrevented || e.button !== 0) return;
                 var link = e.target.closest("a");
-                if (link) triggerNavProgress(link);
+                if (link) handleNav(link);
             });
 
-            // Form Submissions Loader
+            // Form Submissions: start progress bar without blocking viewport
             document.addEventListener("submit", function(e) {
                 var form = e.target;
-                if (form && !form.target && form.method.toLowerCase() === "post") {
-                    if (bar) {
-                        bar.style.opacity = "1";
-                        bar.style.width = "60%";
-                    }
-                    if (wheel) {
-                        wheel.style.display = "flex";
-                    }
+                if (form && !form.target && (!form.method || form.method.toLowerCase() === "post")) {
+                    startProgress();
                 }
             });
 
-            // Cleanup & Reset when page displays (including back/forward bfcache)
-            function resetNavState() {
-                if (wheelTimer) clearTimeout(wheelTimer);
-                if (wheel) wheel.style.display = "none";
-                var lc = document.getElementById("livePageContent");
-                if (lc) lc.classList.remove("page-navigating");
-                if (bar) {
-                    bar.style.width = "100%";
-                    setTimeout(function() {
-                        bar.style.opacity = "0";
-                        setTimeout(function() { bar.style.width = "0%"; }, 200);
-                    }, 150);
-                }
-            }
-
-            window.addEventListener("pageshow", resetNavState);
-            window.addEventListener("popstate", resetNavState);
-            document.addEventListener("DOMContentLoaded", resetNavState);
+            // Cleanup & Reset when page displays (bfcache Back/Forward & initial load)
+            window.addEventListener("pageshow", function(e) {
+                finishProgress();
+            });
+            window.addEventListener("popstate", resetProgress);
+            document.addEventListener("DOMContentLoaded", finishProgress);
         })();
 
     </script>
