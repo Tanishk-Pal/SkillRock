@@ -39,6 +39,129 @@
     </div>
 </div>
 
+<!-- Academic Journey & Enrolled Courses -->
+<div class="admin-card" style="margin-bottom: 24px;">
+    <div class="admin-card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div class="admin-card-title">
+            <i data-lucide="graduation-cap"></i>
+            <span>Enrolled Courses & Academic Progress ({{ enrollments_data|length }})</span>
+        </div>
+        <span class="admin-badge admin-badge-blue">
+            {{ enrollments_data|length }} {% if enrollments_data|length == 1 %}Course Enrolled{% else %}Courses Enrolled{% endif %}
+        </span>
+    </div>
+
+    {% if enrollments_data %}
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+        {% for item in enrollments_data %}
+        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--admin-border); border-radius: 10px; padding: 18px;">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+                <div>
+                    <h3 style="font-size: 1.05rem; font-weight: 800; color: #FFFFFF; margin-bottom: 4px;">
+                        <a href="{{ url_for('learning.course_detail', slug=item.course_slug) }}" target="_blank" style="color: #60A5FA; text-decoration: none;">
+                            {{ item.course_title }}
+                        </a>
+                    </h3>
+                    <div style="font-size: 0.76rem; color: var(--admin-text-muted); display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <span>Enrolled on: <strong style="color: var(--admin-text-main);">{{ item.enrolled_at.strftime('%b %d, %Y') if item.enrolled_at else 'Active' }}</strong></span>
+                        <span>•</span>
+                        <span>Status: <strong style="color: #34D399; text-transform: capitalize;">{{ item.status }}</strong></span>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    {% if item.video_completed %}
+                    <span class="admin-badge admin-badge-green">
+                        <i data-lucide="check-circle-2" style="width: 12px; height: 12px;"></i>
+                        <span>Video Completed</span>
+                    </span>
+                    {% else %}
+                    <span class="admin-badge admin-badge-blue">
+                        <i data-lucide="play" style="width: 12px; height: 12px;"></i>
+                        <span>In Progress</span>
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Video Lecture Progress Bar -->
+            <div style="margin-bottom: 14px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; margin-bottom: 6px;">
+                    <span style="color: var(--admin-text-muted);">
+                        Video Lecture Progress: <strong>{{ item.formatted_watch_time }}</strong> / {{ item.formatted_duration }} ({{ item.watch_seconds }}s watched)
+                    </span>
+                    <strong style="color: {% if item.watch_percent >= 80 %}#10B981{% elif item.watch_percent >= 40 %}#60A5FA{% else %}#F59E0B{% endif %}; font-size: 0.85rem;">
+                        {{ item.watch_percent }}%
+                    </strong>
+                </div>
+                <div style="height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden;">
+                    <div style="width: {{ item.watch_percent }}%; height: 100%; background: {% if item.watch_percent >= 80 %}#10B981{% elif item.watch_percent >= 40 %}linear-gradient(90deg, #3B82F6, #60A5FA){% else %}#F59E0B{% endif %}; border-radius: 999px; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+                <!-- Capstone Project Submission -->
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--admin-border); border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 0.74rem; font-weight: 700; text-transform: uppercase; color: #9CA3AF; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="file-check" style="width: 14px; height: 14px; color: #60A5FA;"></i>
+                        <span>Capstone Project & Review</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span class="admin-badge {% if item.capstone_status|lower == 'approved' %}admin-badge-green{% elif item.capstone_status|lower in ['submitted', 'in_review'] %}admin-badge-gold{% else %}admin-badge-blue{% endif %}">
+                            {{ item.capstone_status }}
+                        </span>
+                        {% if item.capstone_score is not none %}
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #10B981;">
+                            Score: {{ item.capstone_score }} / 100
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% if item.capstone_feedback %}
+                    <div style="font-size: 0.75rem; color: var(--admin-text-muted); font-style: italic; margin-top: 4px;">
+                        "{{ item.capstone_feedback }}"
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Issued Certificate -->
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--admin-border); border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 0.74rem; font-weight: 700; text-transform: uppercase; color: #9CA3AF; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="award" style="width: 14px; height: 14px; color: #F59E0B;"></i>
+                        <span>Issued Certificate</span>
+                    </div>
+                    {% if item.certificate %}
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <code style="color: #F59E0B; font-weight: 800; font-size: 0.84rem;">{{ item.certificate.certificate_id }}</code>
+                            <a href="{{ url_for('learning.view_certificate', cert_id=item.certificate.certificate_id) }}" target="_blank" style="font-size: 0.72rem; color: #60A5FA; text-decoration: none; font-weight: 700;">
+                                View &rarr;
+                            </a>
+                        </div>
+                        <div style="font-size: 0.72rem; color: var(--admin-text-muted);">
+                            Issued: {{ item.certificate.issued_at.strftime('%b %d, %Y') if item.certificate.issued_at else 'Verified' }}
+                        </div>
+                        <div style="font-family: monospace; font-size: 0.68rem; color: #9CA3AF; word-break: break-all; background: rgba(0, 0, 0, 0.25); padding: 4px 6px; border-radius: 4px; margin-top: 2px;">
+                            SHA-256: {{ item.certificate.verification_hash }}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div style="font-size: 0.78rem; color: var(--admin-text-muted);">
+                        No certificate issued yet (requires 80% video + approved capstone)
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 30px; color: var(--admin-text-muted);">
+        <i data-lucide="book-x" style="width: 32px; height: 32px; margin-bottom: 8px; opacity: 0.5;"></i>
+        <p style="font-size: 0.88rem;">No course enrollments found for this student yet.</p>
+    </div>
+    {% endif %}
+</div>
+
 <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 24px;">
     <!-- Left Column: Edit Profile & Password Management -->
     <div>

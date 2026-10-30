@@ -333,6 +333,85 @@ def courses_list():
 # ==============================================================================
 # 2. Course Details & Learning Player Page
 # ==============================================================================
+# Auto-Enrollment Helper
+# ==============================================================================
+
+def auto_enroll_student_in_course(user, target_ref):
+    """
+    Auto-enrolls a user in a course specified by slug, ID, or course URL.
+    Idempotent: if already enrolled, preserves existing progress and returns course.
+    """
+    if not user or not user.is_authenticated or not target_ref:
+        return None
+
+    slug_or_id = str(target_ref).strip()
+    if "/courses/" in slug_or_id:
+        match = re.search(r'/courses/([^/?#]+)', slug_or_id)
+        if match:
+            slug_or_id = match.group(1).strip()
+
+    course = Course.get_by_slug(slug_or_id)
+    if not course:
+        try:
+            course = Course.get_by_id(slug_or_id)
+        except Exception:
+            course = None
+
+    if not course:
+        return None
+
+    user_id_str = str(user.id)
+    course_id_str = str(course.id)
+
+    enrollment = Enrollment.get_by_user_course(user_id_str, course_id_str)
+    if not enrollment:
+        try:
+            enrollment = Enrollment({
+                "user_id": user_id_str,
+                "course_id": course_id_str,
+                "status": "enrolled",
+                "created_at": datetime.now(timezone.utc)
+            })
+            enrollment.save()
+            Course.invalidate_published_cache()
+        except Exception:
+            enrollment = Enrollment.get_by_user_course(user_id_str, course_id_str)
+
+    return course
+
+
+# ==============================================================================
+# 2. Course Details & Learning Player Page
+# ==============================================================================
+
+@learning_bp.route("/courses/<slug>/start")
+def start_course(slug):
+    """
+    One-click Start Learning endpoint.
+    - If unauthenticated: redirects to /register?next=/learning/courses/<slug>.
+    - If authenticated: auto-enrolls student and redirects directly to the course player.
+    """
+    course = Course.get_by_slug(slug)
+    if not course:
+        try:
+            course = Course.get_by_id(slug)
+        except Exception:
+            course = None
+
+    if not course:
+        flash("The requested course could not be found.", "warning")
+        return redirect(url_for("learning.courses_list"))
+
+    course_slug = course.slug or slug
+
+    if not current_user.is_authenticated:
+        return redirect(url_for("auth.register", next=url_for("learning.course_detail", slug=course_slug)))
+
+    # Auto-enroll student if not yet enrolled
+    auto_enroll_student_in_course(current_user, course.id)
+
+    return redirect(url_for("learning.course_detail", slug=course_slug, player=1, _anchor="skillrockPlayerFrame"))
+
 
 @learning_bp.route("/courses/<slug>")
 def course_detail(slug):
@@ -355,6 +434,14 @@ def course_detail(slug):
     certificate = None
 
     if current_user.is_authenticated:
+        # Auto-enrollment via query parameter (e.g. ?start=1 or ?enrol=1)
+        is_start_request = request.args.get("start") in ["1", "true", "True"] or request.args.get("enrol") in ["1", "true", "True"]
+        if is_start_request:
+            existing = Enrollment.get_by_user_course(current_user.id, course.id)
+            if not existing:
+                auto_enroll_student_in_course(current_user, course.id)
+                flash(f"🎉 Enrolled in {course.title}! Your learning session has started.", "success")
+
         enrollment = Enrollment.get_by_user_course(current_user.id, course.id)
         if assignment:
             submission = Submission.get_latest(current_user.id, assignment.id)

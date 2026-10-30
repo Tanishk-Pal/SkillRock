@@ -241,17 +241,28 @@ def users_list():
     users_cursor = db.users.find(mongo_query).sort("created_at", -1).limit(200)
     users = [User(doc) for doc in users_cursor]
 
-    # Pre-calculate counts for each user (connections, messages)
+    # Pre-calculate counts for each user (connections, messages, course enrollments & progress)
     enriched_users = []
     for u in users:
         conn_count = Connection.count({"$or": [{"user1_id": u.id}, {"user2_id": u.id}]})
         has_local_password = bool(u.password_hash)
         has_google = bool(u.google_id or u.google_access_token)
+
+        # Enrolled courses and progress calculation
+        u_enrollments = list(db.enrollments.find({"user_id": str(u.id)}))
+        enrolled_count = len(u_enrollments)
+        if enrolled_count > 0:
+            avg_progress = round(sum(int(e.get("watch_percent", 0) or 0) for e in u_enrollments) / enrolled_count)
+        else:
+            avg_progress = 0
+
         enriched_users.append({
             "user": u,
             "connections_count": conn_count,
             "has_local_password": has_local_password,
-            "has_google": has_google
+            "has_google": has_google,
+            "enrolled_courses_count": enrolled_count,
+            "overall_progress": avg_progress
         })
 
     return render_template(
@@ -314,13 +325,84 @@ def user_detail(user_id):
         hash_algorithm = parts[0] if parts else "pbkdf2 / scrypt"
         hash_preview = f"{parts[0]}$...${password_hash[-8:]}" if len(parts) >= 2 else f"Hash length {len(password_hash)}"
 
+    # Enrolled Courses & Academic Progress Tracking
+    enrollment_docs = list(db.enrollments.find({"user_id": uid}).sort("created_at", -1))
+    enrollments_data = []
+    for ed in enrollment_docs:
+        cid = ed.get("course_id")
+        course = Course.get_by_id(cid) or Course.get_by_slug(cid)
+        c_title = course.title if course else f"Course #{cid}"
+        c_slug = course.slug if course else cid
+
+        watch_secs = int(ed.get("watch_seconds", 0) or 0)
+        mins = watch_secs // 60
+        secs = watch_secs % 60
+        formatted_watch_time = f"{mins:02d}:{secs:02d}"
+
+        duration_secs = int(ed.get("video_duration", 0) or 0)
+        d_mins = duration_secs // 60
+        d_secs = duration_secs % 60
+        formatted_duration = f"{d_mins:02d}:{d_secs:02d}" if duration_secs > 0 else (course.estimated_duration if course else "N/A")
+
+        # Capstone project submission & review
+        submission = db.submissions.find_one({"user_id": uid, "course_id": str(cid)})
+        if not submission:
+            course_assignments = list(db.assignments.find({"course_id": str(cid)}))
+            assign_ids = [str(a["_id"]) for a in course_assignments]
+            if assign_ids:
+                submission = db.submissions.find_one({"user_id": uid, "assignment_id": {"$in": assign_ids}})
+        if not submission:
+            submission = db.submissions.find_one({"user_id": uid})
+
+        capstone_status = "Not Submitted"
+        capstone_score = None
+        capstone_feedback = None
+        if submission:
+            raw_status = submission.get("status", "submitted")
+            capstone_status = raw_status.title() if isinstance(raw_status, str) else "Submitted"
+            review = db.reviews.find_one({"submission_id": str(submission["_id"])})
+            if review:
+                capstone_score = review.get("total_score")
+                capstone_feedback = review.get("feedback")
+
+        # Issued Certificate details
+        cert_doc = db.certificates.find_one({"user_id": uid, "course_id": str(cid)})
+        if not cert_doc:
+            cert_doc = db.certificates.find_one({"user_id": uid})
+
+        cert_data = None
+        if cert_doc:
+            cert_data = {
+                "certificate_id": cert_doc.get("certificate_id"),
+                "issued_at": cert_doc.get("issued_at") or cert_doc.get("created_at"),
+                "verification_hash": cert_doc.get("verification_hash")
+            }
+
+        enrollments_data.append({
+            "course": course,
+            "course_title": c_title,
+            "course_slug": c_slug,
+            "enrolled_at": ed.get("created_at"),
+            "status": ed.get("status", "enrolled"),
+            "watch_percent": int(ed.get("watch_percent", 0) or 0),
+            "video_completed": bool(ed.get("video_completed", False)),
+            "watch_seconds": watch_secs,
+            "formatted_watch_time": formatted_watch_time,
+            "formatted_duration": formatted_duration,
+            "capstone_status": capstone_status,
+            "capstone_score": capstone_score,
+            "capstone_feedback": capstone_feedback,
+            "certificate": cert_data
+        })
+
     return render_template(
         "admin/user_detail.html",
         target_user=user,
         connections=connections,
         messages=messages,
         hash_algorithm=hash_algorithm,
-        hash_preview=hash_preview
+        hash_preview=hash_preview,
+        enrollments_data=enrollments_data
     )
 
 

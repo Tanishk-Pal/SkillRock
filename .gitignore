@@ -7,5 +7,6 @@ __pycache__/
 venv/
 .venv/
 scratch/
+.agents/
 .DS_Store
 Thumbs.db

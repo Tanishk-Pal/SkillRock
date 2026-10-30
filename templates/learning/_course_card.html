@@ -92,10 +92,17 @@
             <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">
                 Free Course
             </span>
-            <a href="{{ url_for('learning.course_detail', slug=course.slug or course.id) }}" class="btn btn-primary btn-sm" style="padding: 6px 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; background: #5B46F6; border-radius: 8px;">
-                <span>Start Learning</span>
-                <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
-            </a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary btn-sm" style="padding: 6px 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; background: #5B46F6; border-radius: 8px; text-decoration: none;">
+                    <span>Start Learning</span>
+                    <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.register', next=url_for('learning.course_detail', slug=course.slug or course.id)) }}" class="btn btn-primary btn-sm" style="padding: 6px 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; background: #5B46F6; border-radius: 8px; text-decoration: none;">
+                    <span>Start Learning</span>
+                    <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+                </a>
+            {% endif %}
         {% endif %}
     </div>
 </div>

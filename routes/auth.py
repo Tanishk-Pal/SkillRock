@@ -6,6 +6,7 @@ Removes all fake demo accounts.
 
 import os
 import logging
+from urllib.parse import urlparse, urljoin
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, login_required, current_user
 from models import User, PlatformSettings
@@ -17,6 +18,26 @@ from services.google_auth import (
 
 logger = logging.getLogger(__name__)
 auth_bp = Blueprint("auth", __name__)
+
+
+def is_safe_url(target):
+    """
+    Validates that a redirection target is safe and strictly local.
+    Prevents open redirect vulnerabilities, protocol-relative bypasses (//),
+    and script/data schemes.
+    """
+    if not target or not isinstance(target, str):
+        return False
+    target = target.strip()
+    # Disallow protocol-relative URLs and backslash evasions
+    if target.startswith("//") or target.startswith("/\\") or "\\" in target:
+        return False
+    try:
+        ref_url = urlparse(request.host_url)
+        test_url = urlparse(urljoin(request.host_url, target))
+        return (test_url.scheme in ("http", "https") and ref_url.netloc == test_url.netloc)
+    except Exception:
+        return False
 
 # ==============================================================================
 # Google OAuth 2.0 Authentication
@@ -48,10 +69,11 @@ def google_login():
     """Initiates Google OAuth 2.0 login / sign up / account connection flow."""
     # Never redirect to login, register, or auth callback after authenticating
     raw_next = request.args.get("next") or request.referrer or ""
-    if not raw_next or any(x in str(raw_next).lower() for x in ["login", "register", "auth", "signin"]):
+    safe_next = raw_next if is_safe_url(raw_next) else None
+    if not safe_next or any(x in str(safe_next).lower() for x in ["login", "register", "auth", "signin"]):
         next_url = url_for("learning.courses_list")
     else:
-        next_url = raw_next
+        next_url = safe_next
     session["oauth_next"] = next_url
 
     if not is_google_auth_configured():
@@ -186,6 +208,18 @@ def google_callback():
     # Log in user with persistent remember cookie
     login_user(user, remember=True)
 
+    if next_url and "/courses/" in str(next_url):
+        from routes.learning import auto_enroll_student_in_course
+        course = auto_enroll_student_in_course(user, next_url)
+        if course:
+            target_url = str(next_url)
+            if "player" not in target_url:
+                base_url = target_url.split("#")[0]
+                sep = "&" if "?" in base_url else "?"
+                target_url = f"{base_url}{sep}player=1#skillrockPlayerFrame"
+            flash(f"Signed in as {user.name} via Google. Enrolled in '{course.title}'!", "success")
+            return redirect(target_url)
+
     if not user.has_interests:
         flash(f"Welcome to Skill Rock, {user.name}! Pick your study interests to customize your learning feed.", "success")
         return redirect(url_for("learning.onboarding_interests"))
@@ -209,7 +243,22 @@ def login():
     - If user is new: automatically creates account, logs in, and awards welcome XP.
     One single button ("Sign In") handles both seamlessly.
     """
+    raw_next = request.form.get("next") or request.args.get("next")
+    safe_next = raw_next if is_safe_url(raw_next) else None
+
     if current_user.is_authenticated:
+        if safe_next and "/courses/" in safe_next:
+            from routes.learning import auto_enroll_student_in_course
+            course = auto_enroll_student_in_course(current_user, safe_next)
+            if course:
+                target_url = safe_next
+                if "player" not in target_url:
+                    base_url = target_url.split("#")[0]
+                    sep = "&" if "?" in base_url else "?"
+                    target_url = f"{base_url}{sep}player=1#skillrockPlayerFrame"
+                return redirect(target_url)
+            return redirect(safe_next)
+
         if getattr(current_user, "is_admin", False):
             return redirect(url_for("admin.admin_dashboard"))
         if not current_user.has_interests:
@@ -223,7 +272,7 @@ def login():
 
         if not email or not password:
             flash("Please enter both email and password.", "danger")
-            return render_template("login.html", email=email, name=name)
+            return render_template("login.html", email=email, name=name, next=raw_next)
 
         user = User.get_by_email(email)
         if user:
@@ -231,19 +280,31 @@ def login():
             if not user.check_password(password):
                 if not user.password_hash and user.google_id:
                     flash("This email is registered via Google. Please click 'Continue with Google' above.", "info")
-                    return render_template("login.html", email=email, name=name)
+                    return render_template("login.html", email=email, name=name, next=raw_next)
                 flash("Incorrect password for this account. Please verify and try again.", "danger")
-                return render_template("login.html", email=email, name=name)
+                return render_template("login.html", email=email, name=name, next=raw_next)
 
             if getattr(user, "is_banned", False):
                 reason = getattr(user, "ban_reason", "") or "Terms violation or community guideline breach."
                 flash(f"Your account has been suspended: {reason}. Contact Palt51419@gmail.com for assistance.", "danger")
-                return render_template("login.html", email=email, name=name)
+                return render_template("login.html", email=email, name=name, next=raw_next)
 
             login_user(user, remember=True)
             flash(f"Welcome back, {user.name}!", "success")
-            raw_next = request.args.get("next")
-            if not raw_next or any(x in str(raw_next).lower() for x in ["login", "register", "signin", "auth", "dashboard"]):
+
+            if safe_next and "/courses/" in safe_next:
+                from routes.learning import auto_enroll_student_in_course
+                course = auto_enroll_student_in_course(user, safe_next)
+                if course:
+                    target_url = safe_next
+                    if "player" not in target_url:
+                        base_url = target_url.split("#")[0]
+                        sep = "&" if "?" in base_url else "?"
+                        target_url = f"{base_url}{sep}player=1#skillrockPlayerFrame"
+                    return redirect(target_url)
+                return redirect(safe_next)
+
+            if not safe_next or any(x in str(safe_next).lower() for x in ["login", "register", "signin", "auth", "dashboard"]):
                 if getattr(user, "is_admin", False):
                     next_page = url_for("admin.admin_dashboard")
                 elif not user.has_interests:
@@ -251,18 +312,18 @@ def login():
                 else:
                     next_page = url_for("learning.courses_list")
             else:
-                next_page = raw_next
+                next_page = safe_next
             return redirect(next_page)
         else:
             # New user sign-in flow -> Automatically create account & log in!
             settings = PlatformSettings.get_settings()
             if not settings.get("allow_registrations", True):
                 flash("New student registrations are currently paused by the platform administrator.", "warning")
-                return render_template("login.html", email=email, name=name)
+                return render_template("login.html", email=email, name=name, next=raw_next)
 
             if len(password) < 6:
                 flash("New account password must be at least 6 characters long.", "danger")
-                return render_template("login.html", email=email, name=name)
+                return render_template("login.html", email=email, name=name, next=raw_next)
 
             # Auto-generate friendly display name if not provided
             if not name:
@@ -289,22 +350,58 @@ def login():
             new_user.save()
 
             login_user(new_user, remember=True)
+
+            if safe_next and "/courses/" in safe_next:
+                from routes.learning import auto_enroll_student_in_course
+                course = auto_enroll_student_in_course(new_user, safe_next)
+                if course:
+                    flash(f"Welcome to Skill Rock, {new_user.name}! Enrolled in '{course.title}' (+{welcome_xp} Welcome XP). Let's start learning!", "success")
+                    target_url = safe_next
+                    if "player" not in target_url:
+                        base_url = target_url.split("#")[0]
+                        sep = "&" if "?" in base_url else "?"
+                        target_url = f"{base_url}{sep}player=1#skillrockPlayerFrame"
+                    return redirect(target_url)
+                return redirect(safe_next)
+
+            if safe_next and not any(x in str(safe_next).lower() for x in ["login", "register", "signin", "auth", "dashboard"]):
+                return redirect(safe_next)
+
             flash(f"Welcome to Skill Rock, {new_user.name}! Your account has been created (+{welcome_xp} Welcome XP). Let's pick what you're excited to learn.", "success")
             return redirect(url_for("learning.onboarding_interests"))
 
-    return render_template("login.html")
+    return render_template("login.html", next=raw_next)
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
-    """Redirects legacy registration links directly to the unified Sign In."""
+    """Redirects legacy registration links directly to the unified Sign In, preserving next target."""
+    raw_next = request.form.get("next") or request.args.get("next")
+    safe_next = raw_next if is_safe_url(raw_next) else None
+
     if current_user.is_authenticated:
+        if safe_next and "/courses/" in safe_next:
+            from routes.learning import auto_enroll_student_in_course
+            course = auto_enroll_student_in_course(current_user, safe_next)
+            if course:
+                target_url = safe_next
+                if "player" not in target_url:
+                    base_url = target_url.split("#")[0]
+                    sep = "&" if "?" in base_url else "?"
+                    target_url = f"{base_url}{sep}player=1#skillrockPlayerFrame"
+                return redirect(target_url)
+            return redirect(safe_next)
+
         if not current_user.has_interests:
             return redirect(url_for("learning.onboarding_interests"))
         return redirect(url_for("learning.courses_list"))
+
     if request.method == "POST":
         return login()
-    return redirect(url_for("auth.login"))
+
+    if safe_next:
+        return redirect(url_for("auth.login", next=safe_next))
+    return redirect(url_for("auth.login", **request.args) if request.args else url_for("auth.login"))
 
 
 @auth_bp.route("/logout")

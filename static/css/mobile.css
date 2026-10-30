@@ -406,9 +406,31 @@
     margin-top: 8px !important;
   }
 
-  .course-layout-grid > div:last-child > .card {
+  .course-layout-grid > div:last-child > .card,
+  .course-sidebar-column,
+  .course-sidebar-column .card,
+  #desktopCourseActionCard,
+  #certSampleSection,
+  .cert-sample-wrapper-card {
     position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
     margin-top: 14px !important;
+  }
+
+  .course-sidebar-column {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    margin-top: 14px !important;
+  }
+
+  .mini-cert-container,
+  .mini-cert-canvas {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   /* --------------------------------------------------------------------------

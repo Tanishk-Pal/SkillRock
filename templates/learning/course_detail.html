@@ -235,6 +235,7 @@
                 <!-- Responsive 16:9 Video Aspect Ratio -->
 
                 <div class="skillrock-player-frame paused" id="skillrockPlayerFrame">
+                    {% if current_user.is_authenticated %}
 
                     <!-- 1. The YouTube Iframe slot -->
 
@@ -426,6 +427,40 @@
 
                         </noscript>
 
+                    {% endif %}
+                    {% else %}
+                        <!-- Restricted Streaming Locked Preview Card for Unauthenticated Visitors -->
+                        <div class="skillrock-restricted-player-preview" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <!-- Darkened Course Thumbnail Background -->
+                            <img src="{{ course.fallback_thumbnail }}" 
+                                 alt="{{ course.title }}" 
+                                 onerror="this.src='https://img.youtube.com/vi/{{ course.youtube_video_id }}/hqdefault.jpg'; this.onerror=function(){this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80';};"
+                                 style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.24) blur(3px); transform: scale(1.05);">
+                            
+                            <!-- Radial Vignette Overlay -->
+                            <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(15, 23, 42, 0.72) 0%, rgba(15, 23, 42, 0.94) 100%);"></div>
+
+                            <!-- Centered Lock Card & Call to Action -->
+                            <div style="position: relative; z-index: 5; text-align: center; padding: 24px; max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+                                <div style="width: 58px; height: 58px; border-radius: 50%; background: rgba(245, 158, 11, 0.16); border: 2px solid rgba(245, 158, 11, 0.5); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; box-shadow: 0 0 24px rgba(245, 158, 11, 0.25);">
+                                    <i data-lucide="lock" style="width: 28px; height: 28px; color: #F59E0B;"></i>
+                                </div>
+                                <h3 style="font-size: 1.35rem; font-weight: 800; color: #FFFFFF; margin-bottom: 8px; letter-spacing: -0.01em;">
+                                    Restricted Course Content
+                                </h3>
+                                <p style="font-size: 0.9rem; color: #CBD5E1; line-height: 1.5; margin-bottom: 20px; max-width: 440px;">
+                                    Sign up free to stream masterclass video lectures, complete hands-on milestone projects, and earn your verified certificate.
+                                </p>
+                                <a href="{{ url_for('auth.register', next=request.path) }}" class="btn btn-primary" style="padding: 12px 24px; font-weight: 800; font-size: 0.96rem; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; background: #6366F1; box-shadow: 0 4px 18px rgba(99, 102, 241, 0.45); text-decoration: none;">
+                                    <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
+                                    <span>Start Learning — Sign Up Free to Stream Lessons</span>
+                                    <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+                                </a>
+                                <div style="margin-top: 12px; font-size: 0.8rem; color: #94A3B8;">
+                                    Already have an account? <a href="{{ url_for('auth.login', next=request.path) }}" style="color: #A5B4FC; font-weight: 600; text-decoration: underline;">Sign In</a>
+                                </div>
+                            </div>
+                        </div>
                     {% endif %}
 
                 </div>
@@ -656,17 +691,13 @@
 
                             <!-- Not Enrolled Yet (Authenticated) -->
 
-                            <form action="{{ url_for('learning.enrol_course', course_id=course.id) }}" method="POST" style="margin: 0;">
+                            <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
 
-                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);">
+                                <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
 
-                                    <i data-lucide="book-open" style="width: 18px; height: 18px;"></i>
+                                <span>Start Learning</span>
 
-                                    <span>Enrol Free Now</span>
-
-                                </button>
-
-                            </form>
+                            </a>
 
                         {% endif %}
 
@@ -674,11 +705,11 @@
 
                         <!-- Unauthenticated User -->
 
-                        <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);">
+                        <a href="{{ url_for('auth.register', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
 
-                            <i data-lucide="log-in" style="width: 18px; height: 18px;"></i>
+                            <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
 
-                            <span>Sign In to Enrol Free</span>
+                            <span>Start Learning</span>
 
                         </a>
 
@@ -686,190 +717,6 @@
 
                 </div>
 
-            </div>
-
-            <!-- 3.5. Official Certificate Preview & Motivation Card -->
-            <div class="card cert-sample-wrapper-card" id="certSampleSection" style="padding: 24px; margin-bottom: 24px; border-radius: 16px; border: 1.5px solid rgba(217, 119, 6, 0.35); background: linear-gradient(180deg, rgba(217, 119, 6, 0.04) 0%, var(--bg-card) 100%); position: relative; overflow: hidden;">
-                <!-- Header with Motivational Callout -->
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(217, 119, 6, 0.15); color: #D97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <i data-lucide="award" style="width: 24px; height: 24px;"></i>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.76rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #D97706;">
-                                Course Credential Preview
-                            </div>
-                            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin: 2px 0 0 0;">
-                                Earn Your SkillRock Verified Certificate
-                            </h2>
-                        </div>
-                    </div>
-                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; padding: 6px 14px; border-radius: 9999px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px;">
-                        <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
-                        <span>100% Free & Verifiable</span>
-                    </span>
-                </div>
-
-                <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: 18px;">
-                    Complete 80% of video lectures and pass the final project assignment or quiz (70%+ score) to receive this official, tamper-proof credential for your resume and LinkedIn.
-                </p>
-
-                <!-- Scaled Miniature Certificate Preview Canvas -->
-                <div class="mini-cert-container" style="position: relative; max-width: 640px; margin: 0 auto 18px auto; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);">
-                    <!-- Diagonal "SAMPLE PREVIEW" Ribbon -->
-                    <div style="position: absolute; top: 16px; right: -36px; transform: rotate(45deg); background: linear-gradient(135deg, #D97706, #B45309); color: #FFFFFF; font-size: 0.65rem; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 10;">
-                        SAMPLE
-                    </div>
-
-                    <!-- Mini Certificate Inner Canvas -->
-                    <div class="mini-cert-canvas" style="background: #FFFFFF; color: #0F172A; border: 8px solid #0F172A; outline: 2px solid #D97706; outline-offset: -5px; padding: 22px 24px; position: relative; font-family: 'Plus Jakarta Sans', sans-serif; text-align: center;">
-                        <!-- Top Logo & Academy Header -->
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                            <div style="width: 26px; height: 26px; border-radius: 6px; background: #0F172A; display: flex; align-items: center; justify-content: center; color: #D97706; font-weight: 900; font-size: 0.85rem; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
-                                S
-                            </div>
-                            <div style="font-size: 0.68rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: #2563EB;">
-                                SKILL ROCK STUDENT ACADEMY
-                            </div>
-                        </div>
-
-                        <!-- Certificate Title -->
-                        <div style="font-size: 1.15rem; font-weight: 900; letter-spacing: 0.02em; text-transform: uppercase; color: #0F172A; line-height: 1.15; margin-bottom: 2px;">
-                            CERTIFICATE OF ACHIEVEMENT
-                        </div>
-                        <div style="font-size: 0.58rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #64748B; margin-bottom: 12px;">
-                            OFFICIAL CREDENTIAL OF COMPETENCY & PROJECT VERIFICATION
-                        </div>
-
-                        <!-- Recipient Section -->
-                        <div style="font-size: 0.68rem; color: #64748B; font-style: italic; margin-bottom: 4px;">
-                            This certificate is proudly awarded to
-                        </div>
-                        <div style="font-size: 1.25rem; font-weight: 800; color: #0F172A; border-bottom: 1.5px solid #CBD5E1; display: inline-block; padding: 0 24px 3px 24px; margin-bottom: 10px; max-width: 90%;">
-                            {{ current_user.name if current_user.is_authenticated else 'Your Name Here' }}
-                        </div>
-
-                        <!-- Completion Statement -->
-                        <div style="font-size: 0.66rem; color: #475569; line-height: 1.45; margin-bottom: 8px; max-width: 520px; margin-left: auto; margin-right: auto;">
-                            for successfully completing the comprehensive curriculum, demonstrating practical competency, and fulfilling all rigorous assessment benchmarks for
-                        </div>
-
-                        <!-- Course Title -->
-                        <div style="font-size: 1.05rem; font-weight: 800; color: #2563EB; line-height: 1.3; margin-bottom: 10px;">
-                            {{ course.title }}
-                        </div>
-
-                        <!-- Verified Deliverable / Capstone Pill -->
-                        <div style="display: inline-block; background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 6px; padding: 5px 14px; font-size: 0.64rem; font-weight: 700; color: #334155; margin-bottom: 16px;">
-                            Verified Competency: Comprehensive Knowledge & Technical Assessment Passed
-                        </div>
-
-                        <!-- Verification Footer -->
-                        <div style="display: flex; align-items: flex-end; justify-content: space-between; border-top: 1px solid #E2E8F0; padding-top: 12px; font-size: 0.6rem; color: #64748B; text-align: left;">
-                            <!-- QR & Credential Metadata -->
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 36px; height: 36px; background: #0F172A; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #FFFFFF; font-size: 0.45rem; font-weight: 700;">
-                                    <i data-lucide="qr-code" style="width: 20px; height: 20px; color: #FFFFFF;"></i>
-                                    <span>QR</span>
-                                </div>
-                                <div style="line-height: 1.3;">
-                                    <div><strong>Certificate ID:</strong> SR-2026-SAMPLE</div>
-                                    <div style="font-family: monospace; font-size: 0.52rem; color: #94A3B8;">SHA-256: 74663e940b2c581d5a762b10</div>
-                                    <div style="color: #2563EB; font-weight: 700;">Scan QR or verify online &rarr;</div>
-                                </div>
-                            </div>
-
-                            <!-- Gold Verified Academy Seal -->
-                            <div style="text-align: center;">
-                                <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #F59E0B, #D97706); color: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4); margin: 0 auto;">
-                                    <i data-lucide="shield-check" style="width: 15px; height: 15px;"></i>
-                                    <span style="font-size: 0.38rem; font-weight: 900; letter-spacing: 0.05em; line-height: 1;">VERIFIED</span>
-                                </div>
-                            </div>
-
-                            <!-- Directorate Signature -->
-                            <div style="text-align: right; line-height: 1.25;">
-                                <div style="font-family: 'Brush Script MT', 'Dancing Script', cursive; font-size: 1.15rem; color: #0F172A; font-weight: 700;">
-                                    Tanishk Pal
-                                </div>
-                                <div style="font-weight: 800; color: #0F172A; font-size: 0.6rem;">Skill Rock Directorate</div>
-                                <div style="font-size: 0.52rem; text-transform: uppercase; color: #94A3B8;">ACADEMIC & PROJECT REVIEW</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Interactive Motivation Banner / Call to Action -->
-                {% if certificate %}
-                    <div style="background: rgba(16, 185, 129, 0.12); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <i data-lucide="check-circle" style="width: 22px; height: 22px; color: #10B981;"></i>
-                            <div>
-                                <strong style="color: #10B981; font-size: 0.95rem;">You Have Earned This Certificate! 🎉</strong>
-                                <div style="font-size: 0.78rem; color: var(--text-muted);">Credential ID: {{ certificate.certificate_id }}</div>
-                            </div>
-                        </div>
-                        <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="background: #10B981; border-color: #10B981; font-weight: 800; padding: 9px 20px; border-radius: 9999px;">
-                            <i data-lucide="award" style="width: 16px; height: 16px;"></i>
-                            <span>View & Download Official Certificate</span>
-                        </a>
-                    </div>
-                {% elif enrollment %}
-                    <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-                        <div>
-                            <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-main); margin-bottom: 3px;">
-                                {% if enrollment.watch_percent >= 80 %}
-                                    <span style="color: #10B981;">🎉 80% Milestone Reached!</span> Complete assessment below to unlock:
-                                {% else %}
-                                    Keep Watching! You are at <strong style="color: var(--primary-action);">{{ enrollment.watch_percent }}%</strong> / 80% required
-                                {% endif %}
-                            </div>
-                            <div style="font-size: 0.78rem; color: var(--text-muted);">
-                                {% if enrollment.watch_percent >= 80 %}
-                                    Your certificate will be issued immediately upon project approval or 70%+ quiz score.
-                                {% else %}
-                                    Watch {{ 80 - enrollment.watch_percent }}% more to unlock your project submission & certificate.
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% if enrollment.watch_percent >= 80 and assignment %}
-                            <a href="#project-assignment" class="btn btn-primary" style="padding: 8px 18px; border-radius: 9999px; font-weight: 700; font-size: 0.88rem;">
-                                <span>Go to Assignment &rarr;</span>
-                            </a>
-                        {% endif %}
-                    </div>
-                {% else %}
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 6px;">
-                        <div style="font-size: 0.82rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
-                            <i data-lucide="sparkles" style="width: 15px; height: 15px; color: #D97706;"></i>
-                            <span>Join {{ course.enrolled_count }} students learning and earning credentials on SkillRock.</span>
-                        </div>
-                        <a href="{{ url_for('auth.login', next=request.path) if not current_user.is_authenticated else '#' }}" class="btn btn-secondary btn-sm" style="border-radius: 9999px; font-weight: 700; padding: 7px 16px;">
-                            <span>Enrol Free to Start</span>
-                        </a>
-                    </div>
-                {% endif %}
-
-                <!-- Credential Benefits Bar -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 14px; font-size: 0.78rem; color: var(--text-secondary);">
-                    <div style="display: flex; align-items: center; gap: 7px;">
-                        <i data-lucide="check-circle-2" style="width: 15px; height: 15px; color: #10B981; flex-shrink: 0;"></i>
-                        <span>Cryptographic SHA-256 Hash</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 7px;">
-                        <i data-lucide="check-circle-2" style="width: 15px; height: 15px; color: #10B981; flex-shrink: 0;"></i>
-                        <span>Instant QR Code Verification</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 7px;">
-                        <i data-lucide="check-circle-2" style="width: 15px; height: 15px; color: #10B981; flex-shrink: 0;"></i>
-                        <span>Share on LinkedIn & Resume</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 7px;">
-                        <i data-lucide="check-circle-2" style="width: 15px; height: 15px; color: #10B981; flex-shrink: 0;"></i>
-                        <span>High-Res PDF Download</span>
-                    </div>
-                </div>
             </div>
 
             <!-- 4. Course Details & Learning Objectives -->
@@ -1104,23 +951,23 @@
 
                                 {% else %}
 
-                                    <form action="{{ url_for('learning.enrol_course', course_id=course.id) }}" method="POST" style="margin: 0;">
+                                    <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 22px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
 
-                                        <button type="submit" class="btn btn-primary" style="font-weight: 700; padding: 10px 22px;">
+                                        <i data-lucide="play-circle" style="width: 16px; height: 16px;"></i>
 
-                                            Enrol Free to Start
+                                        <span>Start Learning</span>
 
-                                        </button>
-
-                                    </form>
+                                    </a>
 
                                 {% endif %}
 
                             {% else %}
 
-                                <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 20px;">
+                                <a href="{{ url_for('auth.register', next=request.path) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 20px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
 
-                                    Sign In to Submit Project
+                                    <i data-lucide="play-circle" style="width: 16px; height: 16px;"></i>
+
+                                    <span>Start Learning</span>
 
                                 </a>
 
@@ -1138,9 +985,9 @@
 
         <!-- Right Column: Status / Enrolment Sticky Sidebar -->
 
-        <div>
+        <div class="course-sidebar-column col-lg-4" style="display: flex; flex-direction: column; gap: 20px;">
 
-            <div class="card" style="padding: 24px; position: sticky; top: 80px; border-radius: 14px;">
+            <div class="card course-action-card" id="desktopCourseActionCard" style="padding: 24px; border-radius: 14px;">
 
                 <div style="text-align: center; margin-bottom: 20px;">
 
@@ -1252,17 +1099,15 @@
 
                         {% else %}
 
-                            <!-- Not Enrolled Yet -->
+                            <!-- Not Enrolled Yet (Authenticated) -->
 
-                            <form action="{{ url_for('learning.enrol_course', course_id=course.id) }}" method="POST">
+                            <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
 
-                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem;">
+                                <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
 
-                                    Enrol Free Now
+                                <span>Start Learning</span>
 
-                                </button>
-
-                            </form>
+                            </a>
 
                         {% endif %}
 
@@ -1270,9 +1115,11 @@
 
                         <!-- Unauthenticated User -->
 
-                        <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem;">
+                        <a href="{{ url_for('auth.register', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
 
-                            Sign In to Enrol Free
+                            <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
+
+                            <span>Start Learning</span>
 
                         </a>
 
@@ -1320,6 +1167,196 @@
 
             </div>
 
+            <!-- 3.5. Official Certificate Preview & Motivation Card -->
+            <div class="card cert-sample-wrapper-card" id="certSampleSection" style="padding: 20px; border-radius: 14px; border: 1.5px solid rgba(217, 119, 6, 0.35); background: linear-gradient(180deg, rgba(217, 119, 6, 0.04) 0%, var(--bg-card) 100%); position: relative; overflow: hidden; width: 100%; box-sizing: border-box;">
+                <!-- Header with Motivational Callout -->
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(217, 119, 6, 0.15); color: #D97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i data-lucide="award" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #D97706;">
+                                Course Credential Preview
+                            </div>
+                            <h2 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 2px 0 0 0; line-height: 1.25;">
+                                Earn Your SkillRock Verified Certificate
+                            </h2>
+                        </div>
+                    </div>
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px;">
+                        <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i>
+                        <span>100% Free & Verifiable</span>
+                    </span>
+                </div>
+
+                <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px;">
+                    Complete 80% of video lectures and pass the final project assignment or quiz (70%+ score) to receive this official, tamper-proof credential for your resume and LinkedIn.
+                </p>
+
+                <!-- Scaled Miniature Certificate Preview Canvas -->
+                <div class="mini-cert-container" style="position: relative; width: 100%; max-width: 100%; margin: 0 auto 16px auto; border-radius: 8px; overflow: hidden; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22); box-sizing: border-box;">
+                    <!-- Diagonal "SAMPLE PREVIEW" Ribbon -->
+                    <div style="position: absolute; top: 14px; right: -32px; transform: rotate(45deg); background: linear-gradient(135deg, #D97706, #B45309); color: #FFFFFF; font-size: 0.6rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 36px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); z-index: 10;">
+                        SAMPLE
+                    </div>
+
+                    <!-- Mini Certificate Inner Canvas -->
+                    <div class="mini-cert-canvas" style="background: #FFFFFF; color: #0F172A; border: 6px solid #0F172A; outline: 2px solid #D97706; outline-offset: -4px; padding: 16px 14px; position: relative; font-family: 'Plus Jakarta Sans', sans-serif; text-align: center; box-sizing: border-box; width: 100%;">
+                        <!-- Top Logo & Academy Header -->
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 6px;">
+                            <div style="width: 22px; height: 22px; border-radius: 5px; background: #0F172A; display: flex; align-items: center; justify-content: center; color: #D97706; font-weight: 900; font-size: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                S
+                            </div>
+                            <div style="font-size: 0.6rem; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; color: #2563EB;">
+                                SKILL ROCK STUDENT ACADEMY
+                            </div>
+                        </div>
+
+                        <!-- Certificate Title -->
+                        <div style="font-size: 0.96rem; font-weight: 900; letter-spacing: 0.02em; text-transform: uppercase; color: #0F172A; line-height: 1.15; margin-bottom: 2px;">
+                            CERTIFICATE OF ACHIEVEMENT
+                        </div>
+                        <div style="font-size: 0.52rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #64748B; margin-bottom: 8px;">
+                            OFFICIAL CREDENTIAL OF COMPETENCY & PROJECT VERIFICATION
+                        </div>
+
+                        <!-- Recipient Section -->
+                        <div style="font-size: 0.62rem; color: #64748B; font-style: italic; margin-bottom: 2px;">
+                            This certificate is proudly awarded to
+                        </div>
+                        <div style="font-size: 1.05rem; font-weight: 800; color: #0F172A; border-bottom: 1.5px solid #CBD5E1; display: inline-block; padding: 0 16px 2px 16px; margin-bottom: 8px; max-width: 95%; word-break: break-word;">
+                            {{ current_user.name if current_user.is_authenticated else 'Your Name Here' }}
+                        </div>
+
+                        <!-- Completion Statement -->
+                        <div style="font-size: 0.6rem; color: #475569; line-height: 1.4; margin-bottom: 6px; max-width: 100%;">
+                            for successfully completing the comprehensive curriculum, demonstrating practical competency, and fulfilling all rigorous assessment benchmarks for
+                        </div>
+
+                        <!-- Course Title -->
+                        <div style="font-size: 0.88rem; font-weight: 800; color: #2563EB; line-height: 1.25; margin-bottom: 8px; word-break: break-word;">
+                            {{ course.title }}
+                        </div>
+
+                        <!-- Verified Deliverable / Capstone Pill -->
+                        <div style="display: inline-block; background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 5px; padding: 4px 10px; font-size: 0.58rem; font-weight: 700; color: #334155; margin-bottom: 12px; max-width: 100%;">
+                            Verified Competency: Assessment Benchmark Passed
+                        </div>
+
+                        <!-- Verification Footer -->
+                        <div style="display: flex; align-items: flex-end; justify-content: space-between; border-top: 1px solid #E2E8F0; padding-top: 10px; font-size: 0.54rem; color: #64748B; text-align: left; gap: 6px; flex-wrap: wrap;">
+                            <!-- QR & Credential Metadata -->
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <div style="width: 30px; height: 30px; background: #0F172A; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #FFFFFF; font-size: 0.4rem; font-weight: 700; flex-shrink: 0;">
+                                    <i data-lucide="qr-code" style="width: 16px; height: 16px; color: #FFFFFF;"></i>
+                                    <span>QR</span>
+                                </div>
+                                <div style="line-height: 1.25;">
+                                    <div><strong>Certificate ID:</strong> SR-2026-SAMPLE</div>
+                                    <div style="font-family: monospace; font-size: 0.48rem; color: #94A3B8;">SHA-256: 74663e940b2c581d</div>
+                                    <div style="color: #2563EB; font-weight: 700;">Scan QR or verify online &rarr;</div>
+                                </div>
+                            </div>
+
+                            <!-- Gold Verified Academy Seal -->
+                            <div style="text-align: center; flex-shrink: 0;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #F59E0B, #D97706); color: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(217, 119, 6, 0.4); margin: 0 auto;">
+                                    <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i>
+                                    <span style="font-size: 0.32rem; font-weight: 900; letter-spacing: 0.04em; line-height: 1;">VERIFIED</span>
+                                </div>
+                            </div>
+
+                            <!-- Directorate Signature -->
+                            <div style="text-align: right; line-height: 1.2; flex-shrink: 0;">
+                                <div style="font-family: 'Brush Script MT', 'Dancing Script', cursive; font-size: 1.05rem; color: #0F172A; font-weight: 700;">
+                                    Tanishk Pal
+                                </div>
+                                <div style="font-weight: 800; color: #0F172A; font-size: 0.54rem;">Skill Rock Directorate</div>
+                                <div style="font-size: 0.48rem; text-transform: uppercase; color: #94A3B8;">ACADEMIC REVIEW</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Motivation Banner / Call to Action -->
+                {% if certificate %}
+                    <div style="background: rgba(16, 185, 129, 0.12); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="check-circle" style="width: 18px; height: 18px; color: #10B981; flex-shrink: 0;"></i>
+                            <div>
+                                <strong style="color: #10B981; font-size: 0.88rem;">You Have Earned This Certificate! 🎉</strong>
+                                <div style="font-size: 0.74rem; color: var(--text-muted);">Credential ID: {{ certificate.certificate_id }}</div>
+                            </div>
+                        </div>
+                        <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="background: #10B981; border-color: #10B981; font-weight: 800; padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; text-align: center; text-decoration: none; justify-content: center;">
+                            <i data-lucide="award" style="width: 15px; height: 15px;"></i>
+                            <span>View & Download Official Certificate</span>
+                        </a>
+                    </div>
+                {% elif enrollment %}
+                    <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-main); margin-bottom: 2px;">
+                                {% if enrollment.watch_percent >= 80 %}
+                                    <span style="color: #10B981;">🎉 80% Milestone Reached!</span> Complete assessment to unlock:
+                                {% else %}
+                                    Keep Watching! You are at <strong style="color: var(--primary-action);">{{ enrollment.watch_percent }}%</strong> / 80% required
+                                {% endif %}
+                            </div>
+                            <div style="font-size: 0.74rem; color: var(--text-muted); line-height: 1.4;">
+                                {% if enrollment.watch_percent >= 80 %}
+                                    Your certificate will be issued immediately upon project approval or 70%+ quiz score.
+                                {% else %}
+                                    Watch {{ 80 - enrollment.watch_percent }}% more to unlock your project submission & certificate.
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if enrollment.watch_percent >= 80 and assignment %}
+                            <a href="#project-assignment" class="btn btn-primary" style="padding: 7px 14px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; text-align: center; text-decoration: none; justify-content: center;">
+                                <span>Go to Assignment &rarr;</span>
+                            </a>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 4px;">
+                        <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #D97706; flex-shrink: 0;"></i>
+                            <span>Join {{ course.enrolled_count }} students learning and earning credentials on SkillRock.</span>
+                        </div>
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-secondary btn-sm" style="border-radius: 8px; font-weight: 700; padding: 7px 14px; text-decoration: none; justify-content: center; font-size: 0.82rem;">
+                                <span>Start Learning</span>
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('auth.register', next=request.path) }}" class="btn btn-secondary btn-sm" style="border-radius: 8px; font-weight: 700; padding: 7px 14px; text-decoration: none; justify-content: center; font-size: 0.82rem;">
+                                <span>Start Learning</span>
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <!-- Credential Benefits Bar -->
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px; border-top: 1px solid var(--border-color); padding-top: 12px; font-size: 0.75rem; color: var(--text-secondary);">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #10B981; flex-shrink: 0;"></i>
+                        <span>Cryptographic SHA-256 Hash</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #10B981; flex-shrink: 0;"></i>
+                        <span>Instant QR Code Verification</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #10B981; flex-shrink: 0;"></i>
+                        <span>Share on LinkedIn & Resume</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #10B981; flex-shrink: 0;"></i>
+                        <span>High-Res PDF Download</span>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     </div>
@@ -1330,6 +1367,7 @@
 
 {% block scripts %}
 
+{% if current_user.is_authenticated %}
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
@@ -2335,6 +2373,8 @@
 })();
 
 </script>
+
+{% endif %}
 
 {% endblock %}
 

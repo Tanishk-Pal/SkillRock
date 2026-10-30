@@ -445,8 +445,18 @@
                 Log in or sign in with your email to access free courses, submit real projects, and swap skills.
             </p>
 
+            {% set current_next = request.args.get('next', '') or request.form.get('next', '') or next or '' %}
+            {% if 'course' in current_next %}
+            <div style="background: rgba(91, 70, 246, 0.1); border: 1px solid rgba(91, 70, 246, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="sparkles" style="width: 16px; height: 16px; color: #5B46F6; flex-shrink: 0;"></i>
+                <span style="font-size: 0.82rem; color: var(--text-main); font-weight: 600;">
+                    Sign in or register below to auto-enroll and launch your course player immediately!
+                </span>
+            </div>
+            {% endif %}
+
             <!-- 1-Click Google OAuth Sign In -->
-            <a href="{{ url_for('auth.google_login') }}" class="btn-google-auth" id="googleAuthBtn" title="Continue with Google">
+            <a href="{{ url_for('auth.google_login', next=current_next) if current_next else url_for('auth.google_login') }}" class="btn-google-auth" id="googleAuthBtn" title="Continue with Google">
                 <svg width="20" height="20" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
                     <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
@@ -461,7 +471,10 @@
             </div>
 
             <!-- Unified Single Sign In Form -->
-            <form action="{{ url_for('auth.login') }}" method="POST" autocomplete="on">
+            <form action="{{ url_for('auth.login', next=current_next) if current_next else url_for('auth.login') }}" method="POST" autocomplete="on">
+                {% if current_next %}
+                <input type="hidden" name="next" value="{{ current_next }}">
+                {% endif %}
                 <!-- Email Address -->
                 <div class="form-group-item">
                     <label class="simpli-label">Email Address *</label>
