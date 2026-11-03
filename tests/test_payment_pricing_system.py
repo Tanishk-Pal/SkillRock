@@ -150,7 +150,7 @@ class TestPaymentPricingSystem(unittest.TestCase):
             self.assertFalse(is_valid, f"Expected low-entropy UTR {utr} to be rejected")
 
     # --------------------------------------------------------------------------
-    # 2. In-Memory Dynamic UPI QR Generation Tests
+    # 2. In-Memory Dynamic UPI QR Generation Tests (5-Minute Expiry & 9243494968@nyes)
     # --------------------------------------------------------------------------
     def test_in_memory_upi_qr_generation(self):
         qr_info = generate_upi_qr_base64(
@@ -163,8 +163,24 @@ class TestPaymentPricingSystem(unittest.TestCase):
         self.assertTrue(qr_info["qr_data_uri"].startswith("data:image/png;base64,"))
         self.assertIn("am=699.00", qr_info["upi_uri"])
         self.assertIn("cu=INR", qr_info["upi_uri"])
-        self.assertIn("pa=", qr_info["upi_uri"])
+        self.assertIn("9243494968%40nyes", qr_info["upi_uri"])
+        self.assertEqual(qr_info["merchant_upi"], "9243494968@nyes")
         self.assertEqual(qr_info["amount"], 699.0)
+        self.assertEqual(qr_info["expires_in"], 300)  # Exactly 5 minutes
+        self.assertIn("gpay_uri", qr_info)
+        self.assertIn("phonepe_uri", qr_info)
+        self.assertIn("paytm_uri", qr_info)
+
+    def test_refresh_qr_endpoint(self):
+        self.login_user(self.student.email, "StudentPass123!")
+        res = self.client.get(f"/payment/refresh-qr/course/{self.paid_course.id}")
+        self.assertEqual(res.status_code, 200)
+        json_data = res.get_json()
+        self.assertTrue(json_data["success"])
+        self.assertTrue(json_data["qr_data_uri"].startswith("data:image/png;base64,"))
+        self.assertEqual(json_data["merchant_upi"], "9243494968@nyes")
+        self.assertEqual(json_data["expires_in"], 300)
+        self.assertIsNotNone(json_data["session_token"])
 
     # --------------------------------------------------------------------------
     # 3. Model Backward Compatibility

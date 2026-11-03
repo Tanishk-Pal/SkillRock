@@ -63,5 +63,5 @@ class Config:
     ADMIN_NOTIFICATION_EMAIL = os.getenv("ADMIN_NOTIFICATION_EMAIL", "palt51419@gmail.com").strip()
 
     # Dynamic UPI Payment Gateway Configuration
-    MERCHANT_UPI_ID = os.getenv("MERCHANT_UPI_ID", "palt51419@okaxis").strip() or "palt51419@okaxis"
+    MERCHANT_UPI_ID = os.getenv("MERCHANT_UPI_ID", "9243494968@nyes").strip() or "9243494968@nyes"
     MERCHANT_NAME = os.getenv("MERCHANT_NAME", "SkillRock").strip() or "SkillRock"

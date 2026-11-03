@@ -102,6 +102,50 @@ def checkout(item_type, item_id):
     )
 
 
+@payment_bp.route("/payment/refresh-qr/<item_type>/<item_id>")
+@login_required
+def refresh_qr(item_type, item_id):
+    """
+    Regenerates a fresh dynamic UPI QR code with a renewed 5-minute countdown window.
+    Called asynchronously from client via AJAX when the previous 5-minute timer expires.
+    """
+    if item_type not in ("course", "test_series"):
+        return jsonify({"success": False, "error": "Invalid item type"}), 400
+
+    item = get_item_by_type_and_id(item_type, item_id)
+    if not item:
+        return jsonify({"success": False, "error": "Item not found"}), 404
+
+    is_paid = getattr(item, "is_paid", False)
+    price = getattr(item, "price", 0.0)
+
+    if not is_paid or price <= 0:
+        return jsonify({"success": False, "error": "Item is free"}), 400
+
+    qr_data = generate_upi_qr_base64(
+        amount=price,
+        item_type=item_type,
+        item_id=str(item.id),
+        item_title=item.title,
+    )
+
+    return jsonify({
+        "success": True,
+        "qr_data_uri": qr_data["qr_data_uri"],
+        "upi_uri": qr_data["upi_uri"],
+        "gpay_uri": qr_data["gpay_uri"],
+        "phonepe_uri": qr_data["phonepe_uri"],
+        "paytm_uri": qr_data["paytm_uri"],
+        "merchant_upi": qr_data["merchant_upi"],
+        "merchant_name": qr_data["merchant_name"],
+        "ref_note": qr_data["ref_note"],
+        "amount": qr_data["amount"],
+        "session_token": qr_data["session_token"],
+        "expires_in": qr_data["expires_in"],
+        "expires_at": qr_data["expires_at"],
+    })
+
+
 # ==============================================================================
 # 2. UTR Submission & Anti-Replay Guard
 # ==============================================================================

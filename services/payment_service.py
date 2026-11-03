@@ -6,6 +6,8 @@ anti-replay duplicate protection, and unified student unlock verification.
 
 import io
 import re
+import time
+import secrets
 import base64
 import logging
 from datetime import datetime, timezone
@@ -68,12 +70,13 @@ def validate_utr(utr_number):
     return True, ""
 
 
-def generate_upi_qr_base64(amount, item_type, item_id, item_title=""):
+def generate_upi_qr_base64(amount, item_type, item_id, item_title="", session_token=None):
     """
     Generates an in-memory dynamic UPI QR code Base64 string for direct HTML rendering.
+    Includes a 5-minute (300 seconds) security expiration window and app-specific deep links.
     Zero disk writes or file caching.
     """
-    merchant_upi = Config.MERCHANT_UPI_ID or "palt51419@okaxis"
+    merchant_upi = Config.MERCHANT_UPI_ID or "9243494968@nyes"
     merchant_name = Config.MERCHANT_NAME or "SkillRock"
 
     try:
@@ -81,19 +84,32 @@ def generate_upi_qr_base64(amount, item_type, item_id, item_title=""):
     except (ValueError, TypeError):
         amt_float = 0.0
 
-    # Build standard NPCI UPI URI
+    if not session_token:
+        session_token = secrets.token_hex(4).upper()
+
+    now_ts = int(time.time())
+    expires_in = 300  # 5 minutes
+    expires_at = now_ts + expires_in
+
+    # Build standard NPCI UPI URI with dynamic session token
     short_type = "CRS" if item_type == "course" else "TST"
     short_id = str(item_id).replace("-", "")[:8].upper()
-    ref_note = f"SR-{short_type}-{short_id}"
+    ref_note = f"SR-{short_type}-{short_id}-{session_token}"
 
     # Parameters: pa (payee VPA), pn (payee name), am (amount), cu (currency), tn (transaction note)
-    upi_uri = (
-        f"upi://pay?pa={quote(merchant_upi)}"
+    upi_params = (
+        f"pa={quote(merchant_upi)}"
         f"&pn={quote(merchant_name)}"
         f"&am={amt_float:.2f}"
         f"&cu=INR"
         f"&tn={quote(ref_note)}"
     )
+    upi_uri = f"upi://pay?{upi_params}"
+    
+    # App-specific deep link intents for Mobile (Razorpay pattern)
+    gpay_uri = f"tez://upi/pay?{upi_params}"
+    phonepe_uri = f"phonepe://pay?{upi_params}"
+    paytm_uri = f"paytmmp://pay?{upi_params}"
 
     # In-memory QR generation
     qr = qrcode.QRCode(
@@ -115,10 +131,16 @@ def generate_upi_qr_base64(amount, item_type, item_id, item_title=""):
     return {
         "qr_data_uri": qr_data_uri,
         "upi_uri": upi_uri,
+        "gpay_uri": gpay_uri,
+        "phonepe_uri": phonepe_uri,
+        "paytm_uri": paytm_uri,
         "merchant_upi": merchant_upi,
         "merchant_name": merchant_name,
         "ref_note": ref_note,
         "amount": amt_float,
+        "session_token": session_token,
+        "expires_in": expires_in,
+        "expires_at": expires_at,
     }
 
 
