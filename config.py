@@ -61,3 +61,7 @@ class Config:
     MAIL_PASSWORD = (os.getenv("GMAIL_APP_PASSWORD") or os.getenv("MAIL_PASSWORD") or "TanishkDeepakPal062007").strip()
     MAIL_DEFAULT_SENDER = ("SkillRock Student Academy", "skillrockk@gmail.com")
     ADMIN_NOTIFICATION_EMAIL = os.getenv("ADMIN_NOTIFICATION_EMAIL", "palt51419@gmail.com").strip()
+
+    # Dynamic UPI Payment Gateway Configuration
+    MERCHANT_UPI_ID = os.getenv("MERCHANT_UPI_ID", "palt51419@okaxis").strip() or "palt51419@okaxis"
+    MERCHANT_NAME = os.getenv("MERCHANT_NAME", "SkillRock").strip() or "SkillRock"

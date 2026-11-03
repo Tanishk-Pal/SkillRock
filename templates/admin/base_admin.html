@@ -654,6 +654,15 @@
                 <i data-lucide="check-square"></i>
                 <span>Project Submissions</span>
             </a>
+            <a href="{{ url_for('admin.payments_list') }}" class="admin-nav-item {% if 'payment' in request.endpoint %}active{% endif %}">
+                <i data-lucide="credit-card"></i>
+                <span>UPI Payments & Access</span>
+                {% if pending_payments_count and pending_payments_count > 0 %}
+                <span style="margin-left: auto; background: #EF4444; color: #FFFFFF; font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 9999px;">
+                    {{ pending_payments_count }}
+                </span>
+                {% endif %}
+            </a>
 
             <div class="admin-nav-heading">Network & Safety</div>
             <a href="{{ url_for('admin.connections_list') }}" class="admin-nav-item {% if 'connections' in request.endpoint %}active{% endif %}">

@@ -1,0 +1,263 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}UPI Payments & Access Verification{% endblock %}
+{% block breadcrumb %}UPI Payments & Access Control{% endblock %}
+
+{% block content %}
+<!-- Metrics Summary -->
+<div class="admin-metrics-grid">
+    <div class="admin-metric-card">
+        <div class="admin-metric-icon" style="background: rgba(16, 185, 129, 0.15); color: #34D399;">
+            <i data-lucide="indian-rupee"></i>
+        </div>
+        <div class="admin-metric-label">Total Revenue Collected</div>
+        <div class="admin-metric-value">₹{{ total_revenue|int }}</div>
+    </div>
+    <div class="admin-metric-card">
+        <div class="admin-metric-icon" style="background: rgba(239, 68, 68, 0.15); color: #F87171;">
+            <i data-lucide="clock"></i>
+        </div>
+        <div class="admin-metric-label">Pending Verification</div>
+        <div class="admin-metric-value" style="color: #F87171;">{{ pending_count }}</div>
+    </div>
+    <div class="admin-metric-card">
+        <div class="admin-metric-icon" style="background: rgba(59, 130, 246, 0.15); color: #60A5FA;">
+            <i data-lucide="shield-check"></i>
+        </div>
+        <div class="admin-metric-label">Approved & Unlocked</div>
+        <div class="admin-metric-value">{{ approved_count }}</div>
+    </div>
+    <div class="admin-metric-card">
+        <div class="admin-metric-icon" style="background: rgba(148, 163, 184, 0.15); color: #94A3B8;">
+            <i data-lucide="shield-alert"></i>
+        </div>
+        <div class="admin-metric-label">Rejected / Invalid</div>
+        <div class="admin-metric-value">{{ rejected_count }}</div>
+    </div>
+</div>
+
+<!-- Payments Verification Table Card -->
+<div class="admin-card">
+    <div class="admin-card-header" style="flex-wrap: wrap; gap: 14px;">
+        <div>
+            <div class="admin-card-title">
+                <i data-lucide="credit-card"></i>
+                <span>Direct UPI Payments & Student Access Log</span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
+                Strict anti-replay verification: review student 12-digit bank UTR references and grant instant course or test series unlock.
+            </p>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <form method="GET" action="{{ url_for('admin.payments_list') }}" style="display: flex; gap: 8px; align-items: center;">
+                <input type="hidden" name="status" value="{{ status_filter }}">
+                <input type="text" name="q" value="{{ q }}" placeholder="Search UTR, student or item..." class="admin-input" style="padding: 7px 12px; font-size: 0.84rem; min-width: 220px;">
+                <button type="submit" class="admin-btn admin-btn-secondary" style="padding: 7px 12px;">
+                    <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Status Tabs -->
+    <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--admin-border); padding-bottom: 12px;">
+        <a href="{{ url_for('admin.payments_list', status='all', q=q) }}" class="admin-btn {% if status_filter == 'all' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}" style="padding: 6px 14px; font-size: 0.82rem;">
+            All ({{ payments|length }})
+        </a>
+        <a href="{{ url_for('admin.payments_list', status='pending', q=q) }}" class="admin-btn {% if status_filter == 'pending' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}" style="padding: 6px 14px; font-size: 0.82rem;">
+            Pending ({% if pending_count > 0 %}<span style="color: #F87171; font-weight: 800;">{{ pending_count }}</span>{% else %}0{% endif %})
+        </a>
+        <a href="{{ url_for('admin.payments_list', status='approved', q=q) }}" class="admin-btn {% if status_filter == 'approved' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}" style="padding: 6px 14px; font-size: 0.82rem;">
+            Approved ({{ approved_count }})
+        </a>
+        <a href="{{ url_for('admin.payments_list', status='rejected', q=q) }}" class="admin-btn {% if status_filter == 'rejected' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}" style="padding: 6px 14px; font-size: 0.82rem;">
+            Rejected ({{ rejected_count }})
+        </a>
+    </div>
+
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Payment ID & Date</th>
+                    <th>Student Details</th>
+                    <th>Target Item</th>
+                    <th>Price</th>
+                    <th>12-Digit Bank UTR</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Verification Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if payments %}
+                    {% for p in payments %}
+                    <tr>
+                        <td>
+                            <div style="font-family: monospace; font-weight: 700; color: #FFFFFF; font-size: 0.82rem;">
+                                {{ p.payment_id }}
+                            </div>
+                            <div style="font-size: 0.74rem; color: var(--admin-text-muted); margin-top: 2px;">
+                                {{ p.submitted_at.strftime('%d %b %Y, %I:%M %p') if p.submitted_at else 'N/A' }}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="color: #FFFFFF; font-weight: 600; font-size: 0.88rem;">
+                                {{ p.user_name }}
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--admin-text-muted);">
+                                {{ p.user_email }}
+                            </div>
+                            <a href="{{ url_for('admin.user_detail', user_id=p.user_id) }}" target="_blank" style="font-size: 0.72rem; color: #60A5FA; text-decoration: none;">
+                                View 360° Profile &rarr;
+                            </a>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                {% if p.item_type == 'course' %}
+                                <span class="admin-badge admin-badge-blue" style="font-size: 0.7rem;">Course</span>
+                                {% else %}
+                                <span class="admin-badge admin-badge-gold" style="font-size: 0.7rem;">Test Series</span>
+                                {% endif %}
+                            </div>
+                            <div style="color: #FFFFFF; font-weight: 600; font-size: 0.84rem; margin-top: 4px; max-width: 220px; white-space: normal;">
+                                {{ p.item_title }}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 0.95rem; font-weight: 800; color: #F59E0B;">
+                                ₹{{ p.amount|int }}
+                            </div>
+                            <div style="font-size: 0.7rem; color: var(--admin-text-muted);">
+                                Server Verified
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.15); padding: 4px 10px; border-radius: 6px;">
+                                <code style="font-family: monospace; font-size: 0.88rem; font-weight: 700; color: #38BDF8; letter-spacing: 0.5px;">
+                                    {{ p.utr_number }}
+                                </code>
+                                <button type="button" onclick="navigator.clipboard.writeText('{{ p.utr_number }}'); this.innerText='✓'; setTimeout(()=>this.innerText='📋', 1500);" title="Copy UTR" style="background: none; border: none; cursor: pointer; font-size: 0.75rem; color: #94A3B8;">
+                                    📋
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            {% if p.status == 'approved' %}
+                            <span class="admin-badge admin-badge-green" style="display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="check-circle-2" style="width: 12px; height: 12px;"></i>
+                                Approved
+                            </span>
+                            <div style="font-size: 0.7rem; color: var(--admin-text-muted); margin-top: 2px;">
+                                By {{ p.reviewed_by or 'Admin' }}
+                            </div>
+                            {% elif p.status == 'rejected' %}
+                            <span class="admin-badge" style="background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3);">
+                                Rejected
+                            </span>
+                            {% if p.rejection_reason %}
+                            <div style="font-size: 0.7rem; color: #F87171; margin-top: 2px; max-width: 140px;">
+                                {{ p.rejection_reason }}
+                            </div>
+                            {% endif %}
+                            {% else %}
+                            <span class="admin-badge" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
+                                Pending Check
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; align-items: center; gap: 6px; justify-content: flex-end;">
+                                {% if p.status == 'pending' %}
+                                <!-- One-Click Approve -->
+                                <form method="POST" action="{{ url_for('admin.payment_approve', payment_id=p.payment_id) }}" onsubmit="return confirm('Confirm approval of ₹{{ p.amount|int }} with UTR {{ p.utr_number }}? This will instantly unlock access for student {{ p.user_email }}.');">
+                                    <button type="submit" class="admin-btn admin-btn-primary" style="background: #10B981; border-color: #10B981; padding: 6px 12px; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+                                        <span>Approve & Unlock</span>
+                                    </button>
+                                </form>
+
+                                <!-- Reject -->
+                                <button type="button" class="admin-btn admin-btn-danger" style="padding: 6px 10px; font-size: 0.78rem;" onclick="openRejectModal('{{ p.payment_id }}', '{{ p.utr_number }}');">
+                                    <i data-lucide="x" style="width: 13px; height: 13px;"></i>
+                                    <span>Reject</span>
+                                </button>
+                                {% elif p.status == 'approved' %}
+                                <form method="POST" action="{{ url_for('admin.payment_reject', payment_id=p.payment_id) }}" onsubmit="return confirm('Revoke unlocked access for this approved payment?');">
+                                    <button type="submit" class="admin-btn admin-btn-secondary" style="padding: 5px 8px; font-size: 0.72rem; color: #F87171;">
+                                        Revoke Access
+                                    </button>
+                                </form>
+                                {% elif p.status == 'rejected' %}
+                                <form method="POST" action="{{ url_for('admin.payment_approve', payment_id=p.payment_id) }}" onsubmit="return confirm('Re-approve this previously rejected payment?');">
+                                    <button type="submit" class="admin-btn admin-btn-secondary" style="padding: 5px 8px; font-size: 0.72rem; color: #34D399;">
+                                        Re-Approve
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--admin-text-muted);">
+                            <i data-lucide="inbox" style="width: 36px; height: 36px; margin-bottom: 8px; opacity: 0.5;"></i>
+                            <div style="font-size: 0.95rem; font-weight: 600;">No payment records found</div>
+                            <div style="font-size: 0.8rem; margin-top: 4px;">Paid course and test series purchases will appear here for verification.</div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal for Rejection Reason -->
+<div id="rejectModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 14px; width: 100%; max-width: 440px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">
+            Reject Payment & Access
+        </h3>
+        <p style="font-size: 0.84rem; color: var(--admin-text-muted); margin-bottom: 16px;">
+            Please enter a reason for rejecting UTR <strong id="modalUtrSpan" style="color: #38BDF8;"></strong>. This will be recorded and student will be prompted to re-submit authentic proof.
+        </p>
+        <form id="rejectForm" method="POST" action="">
+            <div class="admin-form-group">
+                <label class="admin-label">Rejection Reason</label>
+                <select name="reason" class="admin-select" style="margin-bottom: 10px;">
+                    <option value="UTR reference does not match any incoming bank credit.">UTR reference not found in bank credits</option>
+                    <option value="Transferred amount does not match the required course price.">Transferred amount does not match course price</option>
+                    <option value="Duplicate or fraudulent transaction reference detected.">Duplicate / Replay transaction reference</option>
+                    <option value="Transaction failed or reversed by sender's bank.">Transaction reversed / failed</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px;">
+                <button type="button" class="admin-btn admin-btn-secondary" onclick="closeRejectModal();">
+                    Cancel
+                </button>
+                <button type="submit" class="admin-btn admin-btn-danger">
+                    Confirm Rejection
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openRejectModal(paymentId, utrNumber) {
+    const modal = document.getElementById('rejectModal');
+    const form = document.getElementById('rejectForm');
+    const span = document.getElementById('modalUtrSpan');
+    span.innerText = utrNumber;
+    form.action = `/admin/payments/${paymentId}/reject`;
+    modal.style.display = 'flex';
+}
+
+function closeRejectModal() {
+    document.getElementById('rejectModal').style.display = 'none';
+}
+</script>
+{% endblock %}

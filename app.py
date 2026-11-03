@@ -41,7 +41,8 @@ from routes import (
     chat_bp,
     admin_bp,
     learning_bp,
-    test_series_bp
+    test_series_bp,
+    payment_bp
 )
 
 def create_app(config_class=Config):
@@ -86,15 +87,18 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp)
     app.register_blueprint(learning_bp)
     app.register_blueprint(test_series_bp)
+    app.register_blueprint(payment_bp)
 
     # Provide global utilities & model classes safely in Jinja templates
+    from services.payment_service import verify_student_unlock
     app.jinja_env.globals.update(
         str=str,
         len=len,
         Certificate=Certificate,
         Course=Course,
         Assignment=Assignment,
-        Submission=Submission
+        Submission=Submission,
+        verify_student_unlock=verify_student_unlock
     )
 
     # Global Error Handlers (Prevents unhandled crashes and logs detailed tracebacks)
@@ -248,17 +252,24 @@ def create_app(config_class=Config):
         if not hasattr(g, "_cached_global_data"):
             pending_requests_count = 0
             unread_messages_count = 0
+            pending_payments_count = 0
             if current_user.is_authenticated and current_user.id:
                 pending_requests_count = SwapRequest.count({
                     "receiver_id": str(current_user.id),
                     "status": "pending"
                 })
                 unread_messages_count = Message.count_unread(current_user.id)
+                if getattr(current_user, "is_admin", False):
+                    try:
+                        pending_payments_count = get_db().payments.count_documents({"status": "pending"})
+                    except Exception:
+                        pending_payments_count = 0
 
             settings = PlatformSettings.get_settings()
             g._cached_global_data = {
                 "pending_requests_count": pending_requests_count,
                 "unread_messages_count": unread_messages_count,
+                "pending_payments_count": pending_payments_count,
                 "platform_settings": settings,
                 "announcement_enabled": settings.get("announcement_enabled", False),
                 "announcement_text": settings.get("announcement_text", ""),

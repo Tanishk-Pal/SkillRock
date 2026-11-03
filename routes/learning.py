@@ -407,6 +407,13 @@ def start_course(slug):
     if not current_user.is_authenticated:
         return redirect(url_for("auth.register", next=url_for("learning.course_detail", slug=course_slug)))
 
+    # Premium payment check
+    if getattr(course, "is_paid", False) and getattr(course, "price", 0) > 0:
+        from services.payment_service import verify_student_unlock
+        if not verify_student_unlock(current_user, "course", str(course.id)):
+            flash(f"'{course.title}' is a premium course (₹{int(course.price)}). Please complete checkout to unlock your lectures & certificate.", "info")
+            return redirect(url_for("payment.checkout", item_type="course", item_id=str(course.id)))
+
     # Auto-enroll student if not yet enrolled
     auto_enroll_student_in_course(current_user, course.id)
 
@@ -437,10 +444,15 @@ def course_detail(slug):
         # Auto-enrollment via query parameter (e.g. ?start=1 or ?enrol=1)
         is_start_request = request.args.get("start") in ["1", "true", "True"] or request.args.get("enrol") in ["1", "true", "True"]
         if is_start_request:
-            existing = Enrollment.get_by_user_course(current_user.id, course.id)
-            if not existing:
-                auto_enroll_student_in_course(current_user, course.id)
-                flash(f"🎉 Enrolled in {course.title}! Your learning session has started.", "success")
+            from services.payment_service import verify_student_unlock
+            if verify_student_unlock(current_user, "course", str(course.id)):
+                existing = Enrollment.get_by_user_course(current_user.id, course.id)
+                if not existing:
+                    auto_enroll_student_in_course(current_user, course.id)
+                    flash(f"🎉 Enrolled in {course.title}! Your learning session has started.", "success")
+            else:
+                flash(f"'{course.title}' is a premium course (₹{int(course.price)}). Please complete checkout to unlock access.", "info")
+                return redirect(url_for("payment.checkout", item_type="course", item_id=str(course.id)))
 
         enrollment = Enrollment.get_by_user_course(current_user.id, course.id)
         if assignment:
@@ -506,6 +518,12 @@ def save_course_progress():
     course = Course.get_by_id(course_id)
     if not course:
         return jsonify({"success": False, "error": "Course not found"}), 404
+
+    # Strict server guard: Paid courses require active student unlock
+    if getattr(course, "is_paid", False) and getattr(course, "price", 0) > 0:
+        from services.payment_service import verify_student_unlock
+        if not verify_student_unlock(current_user, "course", str(course.id)):
+            return jsonify({"success": False, "error": "Premium access required"}), 403
 
     enrollment = Enrollment.get_by_user_course(current_user.id, course.id)
     if not enrollment:

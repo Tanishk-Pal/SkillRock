@@ -235,7 +235,7 @@
                 <!-- Responsive 16:9 Video Aspect Ratio -->
 
                 <div class="skillrock-player-frame paused" id="skillrockPlayerFrame">
-                    {% if current_user.is_authenticated %}
+                    {% if current_user.is_authenticated and verify_student_unlock(current_user, 'course', course.id) %}
 
                     <!-- 1. The YouTube Iframe slot -->
 
@@ -429,7 +429,7 @@
 
                     {% endif %}
                     {% else %}
-                        <!-- Restricted Streaming Locked Preview Card for Unauthenticated Visitors -->
+                        <!-- Restricted Streaming Locked Preview Card -->
                         <div class="skillrock-restricted-player-preview" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center;">
                             <!-- Darkened Course Thumbnail Background -->
                             <img src="{{ course.fallback_thumbnail }}" 
@@ -445,6 +445,28 @@
                                 <div style="width: 58px; height: 58px; border-radius: 50%; background: rgba(245, 158, 11, 0.16); border: 2px solid rgba(245, 158, 11, 0.5); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; box-shadow: 0 0 24px rgba(245, 158, 11, 0.25);">
                                     <i data-lucide="lock" style="width: 28px; height: 28px; color: #F59E0B;"></i>
                                 </div>
+                                {% if course.is_paid and course.price > 0 %}
+                                <div style="display: inline-block; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #FBBF24; font-size: 0.78rem; font-weight: 800; padding: 4px 12px; border-radius: 9999px; margin-bottom: 10px;">
+                                    PREMIUM COURSE — ₹{{ course.price|int }}
+                                </div>
+                                <h3 style="font-size: 1.35rem; font-weight: 800; color: #FFFFFF; margin-bottom: 8px;">
+                                    Premium Video Lectures & Certification
+                                </h3>
+                                <p style="font-size: 0.88rem; color: #CBD5E1; line-height: 1.5; margin-bottom: 20px; max-width: 440px;">
+                                    Unlock full ad-free lecture streaming, hands-on capstone project review, and verifiable SkillRock certificate with instant UPI payment.
+                                </p>
+                                {% if current_user.is_authenticated %}
+                                <a href="{{ url_for('payment.checkout', item_type='course', item_id=course.id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; background: #D97706; border-color: #D97706; box-shadow: 0 4px 18px rgba(217, 119, 6, 0.45); text-decoration: none;">
+                                    <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
+                                    <span>Buy Now — ₹{{ course.price|int }} (Instant UPI Unlock)</span>
+                                </a>
+                                {% else %}
+                                <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='course', item_id=course.id)) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; background: #D97706; border-color: #D97706; box-shadow: 0 4px 18px rgba(217, 119, 6, 0.45); text-decoration: none;">
+                                    <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
+                                    <span>Sign In & Buy Now — ₹{{ course.price|int }}</span>
+                                </a>
+                                {% endif %}
+                                {% else %}
                                 <h3 style="font-size: 1.35rem; font-weight: 800; color: #FFFFFF; margin-bottom: 8px; letter-spacing: -0.01em;">
                                     Restricted Course Content
                                 </h3>
@@ -459,6 +481,7 @@
                                 <div style="margin-top: 12px; font-size: 0.8rem; color: #94A3B8;">
                                     Already have an account? <a href="{{ url_for('auth.login', next=request.path) }}" style="color: #A5B4FC; font-weight: 600; text-decoration: underline;">Sign In</a>
                                 </div>
+                                {% endif %}
                             </div>
                         </div>
                     {% endif %}
@@ -690,28 +713,34 @@
                         {% else %}
 
                             <!-- Not Enrolled Yet (Authenticated) -->
-
-                            <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-
-                                <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
-
-                                <span>Start Learning</span>
-
+                            {% if course.is_paid and course.price > 0 and not verify_student_unlock(current_user, 'course', course.id) %}
+                            <a href="{{ url_for('payment.checkout', item_type='course', item_id=course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; background: #D97706; border-color: #D97706; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
+                                <span>Buy Now — ₹{{ course.price|int }}</span>
                             </a>
+                            {% else %}
+                            <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
+                                <span>Start Learning (Free)</span>
+                            </a>
+                            {% endif %}
 
                         {% endif %}
 
                     {% else %}
 
                         <!-- Unauthenticated User -->
-
-                        <a href="{{ url_for('auth.register', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-
-                            <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
-
-                            <span>Start Learning</span>
-
+                        {% if course.is_paid and course.price > 0 %}
+                        <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='course', item_id=course.id)) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; background: #D97706; border-color: #D97706; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
+                            <span>Buy Now — ₹{{ course.price|int }}</span>
                         </a>
+                        {% else %}
+                        <a href="{{ url_for('auth.register', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
+                            <span>Start Learning</span>
+                        </a>
+                        {% endif %}
 
                     {% endif %}
 
@@ -990,19 +1019,21 @@
             <div class="card course-action-card" id="desktopCourseActionCard" style="padding: 24px; border-radius: 14px;">
 
                 <div style="text-align: center; margin-bottom: 20px;">
-
-                    <div style="font-size: 1.8rem; font-weight: 800; color: #10B981; margin-bottom: 4px;">
-
-                        FREE
-
+                    {% if course.is_paid and course.price > 0 %}
+                    <div style="font-size: 2.1rem; font-weight: 800; color: #D97706; margin-bottom: 4px;">
+                        ₹{{ course.price|int }}
                     </div>
-
                     <div style="font-size: 0.82rem; color: var(--text-muted);">
-
-                        Curated Learning & Project Certification
-
+                        Premium Course & Project Certification
                     </div>
-
+                    {% else %}
+                    <div style="font-size: 1.8rem; font-weight: 800; color: #10B981; margin-bottom: 4px;">
+                        FREE
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--text-muted);">
+                        Curated Learning & Project Certification
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Enrolment Status Box -->
@@ -1100,28 +1131,34 @@
                         {% else %}
 
                             <!-- Not Enrolled Yet (Authenticated) -->
-
-                            <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-
-                                <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
-
-                                <span>Start Learning</span>
-
+                            {% if course.is_paid and course.price > 0 and not verify_student_unlock(current_user, 'course', course.id) %}
+                            <a href="{{ url_for('payment.checkout', item_type='course', item_id=course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1rem; background: #D97706; border-color: #D97706; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
+                                <span>Buy Now — ₹{{ course.price|int }}</span>
                             </a>
+                            {% else %}
+                            <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
+                                <span>Enroll Now (Free)</span>
+                            </a>
+                            {% endif %}
 
                         {% endif %}
 
                     {% else %}
 
                         <!-- Unauthenticated User -->
-
-                        <a href="{{ url_for('auth.register', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-
-                            <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
-
-                            <span>Start Learning</span>
-
+                        {% if course.is_paid and course.price > 0 %}
+                        <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='course', item_id=course.id)) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1rem; background: #D97706; border-color: #D97706; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
+                            <span>Buy Now — ₹{{ course.price|int }}</span>
                         </a>
+                        {% else %}
+                        <a href="{{ url_for('auth.register', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
+                            <span>Start Learning Free</span>
+                        </a>
+                        {% endif %}
 
                     {% endif %}
 

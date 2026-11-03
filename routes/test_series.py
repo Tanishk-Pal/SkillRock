@@ -294,8 +294,8 @@ def start_test(test_slug):
 
     # Entitlement check
     if not UserEntitlement.has_access_to_test(current_user, test):
-        flash("This test requires access to an Interview Test Pack. Purchases will be available soon.", "warning")
-        return redirect(url_for("test_series.test_detail", test_slug=test.slug))
+        flash(f"'{test.title}' is a premium test (₹{int(getattr(test, 'price', 99))}). Please complete checkout to unlock your test session.", "info")
+        return redirect(url_for("payment.checkout", item_type="test_series", item_id=str(test.id)))
 
     # Check for active in-progress attempt
     active_attempt = TestAttempt.get_active_attempt(current_user.id, test.id)

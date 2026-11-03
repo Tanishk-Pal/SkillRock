@@ -262,10 +262,10 @@
                         View Included Tests (Free)
                     </a>
                     {% else %}
-                    <button type="button" class="btn btn-secondary" style="width: 100%; font-weight: 600; justify-content: center; background: rgba(99,102,241,0.08); color: #6366F1; border-color: rgba(99,102,241,0.25);" onclick="alert('Paid purchases are coming soon! Enjoy our 3 complete free placement tests in the meantime.');">
-                        <i data-lucide="lock" style="width: 15px; height: 15px; margin-right: 6px;"></i>
-                        <span>Coming Soon (₹{{ pack.price_inr }})</span>
-                    </button>
+                    <a href="{{ url_for('payment.checkout', item_type='test_series', item_id=pack.id) }}" class="btn btn-primary" style="width: 100%; font-weight: 700; justify-content: center; background: #D97706; border-color: #D97706; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                        <i data-lucide="shopping-cart" style="width: 15px; height: 15px;"></i>
+                        <span>Buy Pack — ₹{{ pack.price_inr }}</span>
+                    </a>
                     {% endif %}
                 </div>
             </div>

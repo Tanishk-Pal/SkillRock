@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Status — {{ payment.payment_id }} | SkillRock{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 40px auto 70px; padding: 0 16px;">
+
+    <!-- Back link -->
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+            <span>Browse Courses & Tests</span>
+        </a>
+    </div>
+
+    <!-- Status Card -->
+    <div class="card" style="border-radius: 20px; padding: 36px 32px; border: 1px solid var(--border-color); text-align: center; box-shadow: 0 12px 32px rgba(0,0,0,0.06);">
+        
+        {% if payment.status == 'approved' %}
+        <!-- APPROVED STATUS -->
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10B981; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <i data-lucide="check-circle-2" style="width: 40px; height: 40px;"></i>
+        </div>
+        <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+            Payment Verified & Access Unlocked!
+        </h1>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 480px; margin: 0 auto 24px; line-height: 1.5;">
+            Your transaction for <strong>{{ payment.item_title }}</strong> has been verified. Your full access is permanently unlocked!
+        </p>
+
+        <div style="margin-bottom: 30px;">
+            {% if payment.item_type == 'course' %}
+            <a href="{{ url_for('learning.course_detail', slug=item.slug if item else payment.item_id, player=1, _anchor='skillrockPlayerFrame') }}" class="btn btn-primary" style="font-weight: 800; padding: 12px 32px; font-size: 1rem; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px;">
+                <i data-lucide="play" style="width: 18px; height: 18px;"></i>
+                <span>Start Learning Now &rarr;</span>
+            </a>
+            {% else %}
+            <a href="{{ url_for('test_series.test_detail', test_slug=item.slug if item else payment.item_id) }}" class="btn btn-primary" style="font-weight: 800; padding: 12px 32px; font-size: 1rem; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px;">
+                <i data-lucide="play" style="width: 18px; height: 18px;"></i>
+                <span>Start Test Series &rarr;</span>
+            </a>
+            {% endif %}
+        </div>
+
+        {% elif payment.status == 'rejected' %}
+        <!-- REJECTED STATUS -->
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #EF4444; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <i data-lucide="alert-triangle" style="width: 40px; height: 40px;"></i>
+        </div>
+        <h1 style="font-size: 1.6rem; font-weight: 800; color: #EF4444; margin-bottom: 8px;">
+            Payment Verification Failed
+        </h1>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 480px; margin: 0 auto 16px; line-height: 1.5;">
+            The UTR number submitted could not be matched with incoming bank credits.
+        </p>
+        {% if payment.rejection_reason %}
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 10px; padding: 12px 18px; font-size: 0.85rem; color: #DC2626; max-width: 480px; margin: 0 auto 24px;">
+            <strong>Reason:</strong> {{ payment.rejection_reason }}
+        </div>
+        {% endif %}
+
+        <div style="margin-bottom: 30px;">
+            <a href="{{ url_for('payment.checkout', item_type=payment.item_type, item_id=payment.item_id) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 26px;">
+                Try Again with Valid UTR &rarr;
+            </a>
+        </div>
+
+        {% else %}
+        <!-- PENDING STATUS -->
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); color: #F59E0B; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <i data-lucide="clock" style="width: 40px; height: 40px;"></i>
+        </div>
+        <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+            Payment Verification Pending
+        </h1>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 480px; margin: 0 auto 20px; line-height: 1.5;">
+            Thank you! Your UTR has been recorded and is currently awaiting admin verification. Access is automatically activated as soon as approved.
+        </p>
+
+        <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 28px;">
+            <button type="button" onclick="window.location.reload();" class="btn btn-secondary btn-sm" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                <span>Refresh Status</span>
+            </button>
+        </div>
+        {% endif %}
+
+        <!-- Payment Details Summary Box -->
+        <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px 22px; text-align: left; font-size: 0.86rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="color: var(--text-secondary);">Payment Reference:</span>
+                <strong style="color: var(--text-main); font-family: monospace;">{{ payment.payment_id }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="color: var(--text-secondary);">Item:</span>
+                <strong style="color: var(--text-main); text-align: right; max-width: 320px;">{{ payment.item_title }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="color: var(--text-secondary);">Amount Paid:</span>
+                <strong style="color: #F59E0B; font-size: 1rem;">₹{{ payment.amount|int }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="color: var(--text-secondary);">Submitted UTR:</span>
+                <strong style="color: #2563EB; font-family: monospace; letter-spacing: 1px;">{{ payment.utr_number }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-secondary);">Submitted At:</span>
+                <span style="color: var(--text-main);">{{ payment.submitted_at.strftime('%d %b %Y, %I:%M %p') if payment.submitted_at else 'Recently' }}</span>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

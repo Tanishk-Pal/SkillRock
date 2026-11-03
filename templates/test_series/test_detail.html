@@ -49,6 +49,10 @@
             <span class="badge" style="background: #22C55E; color: white; font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
                 FREE TEST
             </span>
+            {% else %}
+            <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #D97706; font-weight: 800; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.3);">
+                ₹{{ test.price|int if test.price else 99 }}
+            </span>
             {% endif %}
         </div>
 
@@ -106,11 +110,25 @@
                 <i data-lucide="play" style="width: 18px; height: 18px;"></i>
                 <span>Resume Your Active Test</span>
             </a>
+            {% elif test.is_paid or not test.is_free %}
+                {% if verify_student_unlock(current_user, 'test_series', test.id) %}
+                <form method="POST" action="{{ url_for('test_series.start_test', test_slug=test.slug) }}">
+                    <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; font-weight: 700; justify-content: center; display: inline-flex; align-items: center; gap: 8px;">
+                        <i data-lucide="play" style="width: 18px; height: 18px;"></i>
+                        <span>Start Assessment Now (Unlocked)</span>
+                    </button>
+                </form>
+                {% else %}
+                <a href="{{ url_for('payment.checkout', item_type='test_series', item_id=test.id) }}" class="btn btn-primary btn-lg" style="width: 100%; font-weight: 800; justify-content: center; display: inline-flex; align-items: center; gap: 8px; background: #D97706; border-color: #D97706; text-decoration: none;">
+                    <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
+                    <span>Unlock Test — ₹{{ test.price|int if test.price else 99 }}</span>
+                </a>
+                {% endif %}
             {% else %}
             <form method="POST" action="{{ url_for('test_series.start_test', test_slug=test.slug) }}">
                 <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; font-weight: 700; justify-content: center; display: inline-flex; align-items: center; gap: 8px;">
                     <i data-lucide="play" style="width: 18px; height: 18px;"></i>
-                    <span>I Understand the Rules — Start Assessment Now</span>
+                    <span>I Understand the Rules — Start Free Assessment Now</span>
                 </button>
             </form>
             {% endif %}

@@ -151,7 +151,17 @@ class TestDefinition:
         self.duration_minutes = int(self._data.get("duration_minutes", 30))
         self.total_questions_count = int(self._data.get("total_questions_count", 30))
         self.passing_percentage = float(self._data.get("passing_percentage", 50.0))
-        self.is_free = bool(self._data.get("is_free", True))
+        self.is_paid = bool(self._data.get("is_paid", not self._data.get("is_free", True)))
+        try:
+            self.price = float(self._data.get("price", self._data.get("price_inr", 0.0)) or 0.0)
+        except (ValueError, TypeError):
+            self.price = 0.0
+        if not self.is_paid or self.price <= 0:
+            self.is_paid = False
+            self.price = 0.0
+            self.is_free = True
+        else:
+            self.is_free = False
         self.pack_ids = [str(pid) for pid in self._data.get("pack_ids", [])]
         self.question_ids = [str(qid) for qid in self._data.get("question_ids", [])]
         self.question_selection_mode = self._data.get("question_selection_mode", "manual")  # manual or category_rule
@@ -216,6 +226,8 @@ class TestDefinition:
             "total_questions_count": self.total_questions_count,
             "passing_percentage": self.passing_percentage,
             "is_free": self.is_free,
+            "is_paid": self.is_paid,
+            "price": self.price,
             "pack_ids": self.pack_ids,
             "question_ids": self.question_ids,
             "question_selection_mode": self.question_selection_mode,
@@ -288,8 +300,15 @@ class TestPack:
         self.slug = self._data.get("slug", "") or slugify(self.title)
         self.short_description = self._data.get("short_description", "")
         self.description = self._data.get("description", "")
-        self.price_inr = int(self._data.get("price_inr", 0))
-        self.is_free = bool(self._data.get("is_free", self.price_inr == 0))
+        self.price_inr = int(self._data.get("price_inr", 0) or 0)
+        self.price = float(self._data.get("price", self.price_inr) or 0.0)
+        self.is_paid = bool(self._data.get("is_paid", self.price > 0))
+        self.is_free = bool(self._data.get("is_free", not self.is_paid))
+        if not self.is_paid or self.price <= 0:
+            self.is_paid = False
+            self.is_free = True
+            self.price = 0.0
+            self.price_inr = 0
         self.badge_text = self._data.get("badge_text", "")
         self.test_ids = [str(tid) for tid in self._data.get("test_ids", [])]
         self.features = self._data.get("features", [])
@@ -327,7 +346,9 @@ class TestPack:
             "slug": self.slug,
             "short_description": self.short_description,
             "description": self.description,
-            "price_inr": self.price_inr,
+            "price_inr": int(self.price),
+            "price": float(self.price),
+            "is_paid": self.is_paid,
             "is_free": self.is_free,
             "badge_text": self.badge_text,
             "test_ids": self.test_ids,
@@ -617,14 +638,27 @@ class UserEntitlement:
         Determines if user has access to a test:
         1. If test is free -> True for all authenticated students.
         2. If user is admin -> True.
-        3. If test belongs to a pack -> Check if user has entitlement for any pack containing it.
+        3. If user has active direct access in user_access -> True.
+        4. If test belongs to a pack -> Check if user has entitlement for any pack containing it.
         """
         if not user or not user.is_authenticated:
             return False
-        if test_definition.is_free:
+        if getattr(test_definition, "is_free", True) and not getattr(test_definition, "is_paid", False):
             return True
         if getattr(user, "is_admin", False):
             return True
+
+        # Check direct user_access
+        db = get_db()
+        access_doc = db.user_access.find_one({
+            "user_id": str(user.id),
+            "item_type": {"$in": ["test_series", "test"]},
+            "item_id": str(test_definition.id),
+            "is_active": True
+        })
+        if access_doc:
+            return True
+
         for pid in test_definition.pack_ids:
             if cls.has_access_to_pack(user.id, pid):
                 return True

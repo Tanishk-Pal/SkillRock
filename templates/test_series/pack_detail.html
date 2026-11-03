@@ -35,9 +35,15 @@
                 <div style="font-size: 2.2rem; font-weight: 800; color: var(--text-main);">
                     ₹{{ pack.price_inr }}
                 </div>
-                <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">
                     {% if pack.is_free %}Free forever{% else %}One-time access{% endif %}
                 </div>
+                {% if not pack.is_free %}
+                <a href="{{ url_for('payment.checkout', item_type='test_series', item_id=pack.id) }}" class="btn btn-primary btn-sm" style="font-weight: 700; background: #D97706; border-color: #D97706; display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-lucide="shopping-cart" style="width: 14px; height: 14px;"></i>
+                    <span>Unlock Pack</span>
+                </a>
+                {% endif %}
             </div>
         </div>
 
@@ -89,14 +95,15 @@
                     <div style="color: #10B981; font-weight: 600;">Pass: {{ t.passing_percentage|int }}%</div>
                 </div>
 
-                {% if pack.is_free or t.is_free %}
+                {% if pack.is_free or t.is_free or verify_student_unlock(current_user, 'test_series', t.id) %}
                 <a href="{{ url_for('test_series.test_detail', test_slug=t.slug) }}" class="btn btn-primary btn-sm" style="font-weight: 700;">
                     Start Test
                 </a>
                 {% else %}
-                <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.65;">
-                    Coming Soon
-                </button>
+                <a href="{{ url_for('payment.checkout', item_type='test_series', item_id=t.id) }}" class="btn btn-primary btn-sm" style="font-weight: 700; background: #D97706; border-color: #D97706; display: inline-flex; align-items: center; gap: 4px;">
+                    <i data-lucide="shopping-cart" style="width: 13px; height: 13px;"></i>
+                    <span>Buy Test</span>
+                </a>
                 {% endif %}
             </div>
         </div>

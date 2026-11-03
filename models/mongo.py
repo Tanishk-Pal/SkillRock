@@ -134,6 +134,17 @@ def init_indexes(db):
 
         # Platform Settings
         db.platform_settings.create_index("key", unique=True)
+
+        # Payments & Dynamic UPI Access Control
+        db.payments.create_index("utr_number", unique=True, sparse=True)
+        db.payments.create_index("payment_id", unique=True, sparse=True)
+        db.payments.create_index("status")
+        db.payments.create_index([("user_id", 1), ("item_type", 1), ("item_id", 1)])
+        db.payments.create_index([("status", 1), ("created_at", -1)])
+
+        # Student User Access (One authoritative access record per user per item)
+        db.user_access.create_index([("user_id", 1), ("item_type", 1), ("item_id", 1)], unique=True)
+        db.user_access.create_index([("user_id", 1), ("is_active", 1)])
     except Exception as e:
         logger.debug(f"Index creation note: {e}")
 
@@ -1443,6 +1454,15 @@ class Course:
         self.youtube_url = self._data.get("youtube_url", "")
         self.youtube_video_id = self._data.get("youtube_video_id", "") or extract_youtube_id(self.youtube_url)
         self.is_published = bool(self._data.get("is_published", True))
+        self.is_paid = bool(self._data.get("is_paid", False))
+        try:
+            self.price = float(self._data.get("price", 0.0) or 0.0)
+        except (ValueError, TypeError):
+            self.price = 0.0
+        # Backward compatibility guarantee: If not paid or price <= 0, strictly free
+        if not self.is_paid or self.price <= 0:
+            self.is_paid = False
+            self.price = 0.0
         self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
         self.updated_at = self._data.get("updated_at") or datetime.now(timezone.utc)
 
@@ -1554,6 +1574,8 @@ class Course:
         self._data["youtube_url"] = self.youtube_url
         self._data["youtube_video_id"] = self.youtube_video_id
         self._data["is_published"] = bool(self.is_published)
+        self._data["is_paid"] = bool(self.is_paid)
+        self._data["price"] = float(self.price) if self.is_paid else 0.0
         self._data["updated_at"] = datetime.now(timezone.utc)
 
         if self._id:

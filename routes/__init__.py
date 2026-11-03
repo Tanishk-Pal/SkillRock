@@ -10,6 +10,7 @@ from routes.chat import chat_bp
 from routes.admin import admin_bp
 from routes.learning import learning_bp
 from routes.test_series import test_series_bp
+from routes.payment import payment_bp
 
 __all__ = [
     "auth_bp",
@@ -24,4 +25,5 @@ __all__ = [
     "admin_bp",
     "learning_bp",
     "test_series_bp",
+    "payment_bp",
 ]

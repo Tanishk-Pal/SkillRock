@@ -115,15 +115,47 @@
                 </div>
             </div>
 
-            <!-- Flags -->
+            <!-- Pricing Configuration: Free vs. Paid -->
+            <div style="background: rgba(15, 23, 42, 0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px 20px; margin-bottom: 22px;">
+                <label style="font-size: 0.92rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <i data-lucide="tag" style="width: 16px; height: 16px; color: #F59E0B;"></i>
+                    <span>Test Pricing Model *</span>
+                </label>
+                <div style="display: flex; gap: 24px; align-items: center; margin-bottom: 12px;">
+                    <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-main); font-size: 0.9rem; font-weight: 600;">
+                        <input type="radio" name="pricing_type" value="free" id="test_pricing_free" {% if not test or test.is_free %}checked{% endif %} style="accent-color: #10B981; width: 18px; height: 18px;">
+                        <span style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
+                            <strong>100% Free</strong> (Accessible to all students)
+                        </span>
+                    </label>
+                    <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-main); font-size: 0.9rem; font-weight: 600;">
+                        <input type="radio" name="pricing_type" value="paid" id="test_pricing_paid" {% if test and (test.is_paid or not test.is_free) %}checked{% endif %} style="accent-color: #F59E0B; width: 18px; height: 18px;">
+                        <span style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #F59E0B;"></span>
+                            <strong>Paid / Premium</strong> (UPI QR Checkout)
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Dynamic Price Input Field -->
+                <div id="test_price_wrapper" style="{% if not test or test.is_free %}display: none;{% else %}display: block;{% endif %} margin-top: 10px; padding-top: 12px; border-top: 1px dashed var(--border-color);">
+                    <label for="test_price" style="font-size: 0.85rem; font-weight: 700; color: #D97706; margin-bottom: 6px; display: block;">Test Price (in ₹ INR) *</label>
+                    <div style="position: relative; max-width: 260px;">
+                        <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-weight: 700;">₹</span>
+                        <input type="number" id="test_price" name="price" class="form-control" min="1" step="1" placeholder="e.g. 99" value="{{ test.price|int if test and test.price else '99' }}" style="padding-left: 32px; font-weight: 700;">
+                    </div>
+                    <small style="color: var(--text-secondary); font-size: 0.78rem; display: block; margin-top: 6px;">
+                        Students unlock this mock test via dynamic UPI QR code. Verified in Admin Payments.
+                    </small>
+                </div>
+            </div>
+
+            <!-- Publish Flag -->
             <div style="display: flex; gap: 24px; margin-bottom: 26px;">
                 <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">
-                    <input type="checkbox" name="is_free" value="1" {% if not test or test.is_free %}checked{% endif %}>
-                    <span>Free Test (₹0 - Accessible to all students)</span>
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">
                     <input type="checkbox" name="is_published" value="1" {% if not test or test.is_published %}checked{% endif %}>
-                    <span>Publish Immediately</span>
+                    <span>Publish Immediately (Visible in catalog)</span>
                 </label>
             </div>
 
@@ -140,6 +172,33 @@
         const checked = document.querySelectorAll('input[name="question_ids"]:checked');
         document.getElementById("selCount").innerText = checked.length;
     }
-    window.addEventListener("DOMContentLoaded", updateSelCount);
+
+    function initTestPricing() {
+        const freeRadio = document.getElementById("test_pricing_free");
+        const paidRadio = document.getElementById("test_pricing_paid");
+        const wrapper = document.getElementById("test_price_wrapper");
+        const priceInput = document.getElementById("test_price");
+
+        function sync() {
+            if (paidRadio && paidRadio.checked) {
+                wrapper.style.display = "block";
+                priceInput.required = true;
+            } else {
+                wrapper.style.display = "none";
+                priceInput.required = false;
+            }
+        }
+
+        if (freeRadio && paidRadio) {
+            freeRadio.addEventListener("change", sync);
+            paidRadio.addEventListener("change", sync);
+            sync();
+        }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        updateSelCount();
+        initTestPricing();
+    });
 </script>
 {% endblock %}

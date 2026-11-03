@@ -89,6 +89,42 @@ Build real-world automation scripts
 Understand error handling and debugging">{{ '\n'.join(course.learning_objectives) if course and course.learning_objectives else '' }}</textarea>
             </div>
 
+            <!-- Pricing Configuration: Free vs. Paid -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 18px 20px; margin-top: 18px; margin-bottom: 18px;">
+                <label class="admin-label" style="font-size: 0.95rem; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <i data-lucide="tag" style="width: 18px; height: 18px; color: #F59E0B;"></i>
+                    <span>Pricing Model *</span>
+                </label>
+                <div style="display: flex; gap: 24px; align-items: center; margin-bottom: 14px;">
+                    <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: #F8FAFC; font-size: 0.92rem; font-weight: 500;">
+                        <input type="radio" name="pricing_type" value="free" id="pricing_free" {% if not course or not course.is_paid %}checked{% endif %} style="accent-color: #10B981; width: 18px; height: 18px;">
+                        <span style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
+                            <strong>100% Free</strong> (Curated Learning)
+                        </span>
+                    </label>
+                    <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: #F8FAFC; font-size: 0.92rem; font-weight: 500;">
+                        <input type="radio" name="pricing_type" value="paid" id="pricing_paid" {% if course and course.is_paid %}checked{% endif %} style="accent-color: #F59E0B; width: 18px; height: 18px;">
+                        <span style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #F59E0B;"></span>
+                            <strong>Paid / Premium</strong> (UPI QR Checkout)
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Dynamic Price Input Field -->
+                <div id="price_field_wrapper" style="{% if not course or not course.is_paid %}display: none;{% else %}display: block;{% endif %} margin-top: 10px; padding-top: 12px; border-top: 1px dashed rgba(255, 255, 255, 0.1);">
+                    <label class="admin-label" for="course_price" style="color: #F59E0B; font-weight: 600;">Course Price (in ₹ INR) *</label>
+                    <div style="position: relative; max-width: 280px;">
+                        <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94A3B8; font-weight: 700;">₹</span>
+                        <input type="number" id="course_price" name="price" class="admin-input" min="1" step="1" placeholder="e.g. 499" value="{{ course.price|int if course and course.price else '' }}" style="padding-left: 32px; font-weight: 700; color: #F59E0B;">
+                    </div>
+                    <small style="color: var(--admin-text-muted); font-size: 0.78rem; display: block; margin-top: 6px;">
+                        Enrolled students must pay this exact price via dynamic UPI QR code. Verified by Admin before access is granted.
+                    </small>
+                </div>
+            </div>
+
             <!-- Published Switch -->
             <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
                 <input type="checkbox" name="is_published" id="is_published" {% if not course or course.is_published %}checked{% endif %} style="width: 18px; height: 18px;">
@@ -704,7 +740,30 @@ const quizBuilder = {
 
 window.quizBuilder = quizBuilder;
 
+function initPricingToggle() {
+    const pricingFree = document.getElementById('pricing_free');
+    const pricingPaid = document.getElementById('pricing_paid');
+    const priceWrapper = document.getElementById('price_field_wrapper');
+    const priceInput = document.getElementById('course_price');
+
+    function updatePricingVisibility() {
+        if (pricingPaid && pricingPaid.checked) {
+            priceWrapper.style.display = 'block';
+            priceInput.required = true;
+        } else {
+            priceWrapper.style.display = 'none';
+            priceInput.required = false;
+        }
+    }
+    if (pricingFree && pricingPaid) {
+        pricingFree.addEventListener('change', updatePricingVisibility);
+        pricingPaid.addEventListener('change', updatePricingVisibility);
+        updatePricingVisibility();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    initPricingToggle();
     quizBuilder.init();
 });
 </script>

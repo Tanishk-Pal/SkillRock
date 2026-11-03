@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout — {{ item.title }} | SkillRock{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 30px auto 60px; padding: 0 16px;">
+
+    <!-- Breadcrumb / Back button -->
+    <div style="margin-bottom: 20px;">
+        {% if item_type == 'course' %}
+        <a href="{{ url_for('learning.course_detail', slug=item.slug) }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+            <span>Back to Course Preview</span>
+        </a>
+        {% else %}
+        <a href="{{ url_for('test_series.test_detail', test_slug=item.slug) }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+            <span>Back to Test Overview</span>
+        </a>
+        {% endif %}
+    </div>
+
+    {% if pending_payment %}
+    <!-- Alert if student already has a pending verification -->
+    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <i data-lucide="clock" style="width: 22px; height: 22px; color: #F59E0B; flex-shrink: 0;"></i>
+            <div>
+                <strong style="color: #F59E0B; font-size: 0.95rem;">You have a pending payment verification for this item!</strong>
+                <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 2px;">
+                    UTR: <code style="font-weight: 700;">{{ pending_payment.utr_number }}</code> submitted on {{ pending_payment.submitted_at.strftime('%d %b, %I:%M %p') if pending_payment.submitted_at else 'recently' }}.
+                </div>
+            </div>
+        </div>
+        <a href="{{ url_for('payment.payment_status', payment_id=pending_payment.payment_id) }}" class="btn btn-secondary btn-sm" style="font-weight: 700;">
+            Track Status &rarr;
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Checkout Container Card -->
+    <div class="card" style="border-radius: 20px; padding: 0; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
+        
+        <!-- Header Banner -->
+        <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); padding: 26px 30px; color: #FFFFFF; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; color: #38BDF8; font-weight: 800; margin-bottom: 4px;">
+                    {% if item_type == 'course' %}PREMIUM COURSE ENROLLMENT{% else %}MOCK TEST SERIES ENROLLMENT{% endif %}
+                </div>
+                <h1 style="font-size: 1.45rem; font-weight: 800; margin: 0; color: #FFFFFF; line-height: 1.3;">
+                    {{ item.title }}
+                </h1>
+                <div style="font-size: 0.82rem; color: #94A3B8; margin-top: 4px;">
+                    Instant unlock with direct zero-fee UPI payment
+                </div>
+            </div>
+
+            <!-- Price Badge -->
+            <div style="text-align: right; background: rgba(255, 255, 255, 0.08); padding: 12px 20px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15);">
+                <div style="font-size: 0.74rem; text-transform: uppercase; color: #94A3B8; font-weight: 700;">Payable Amount</div>
+                <div style="font-size: 1.85rem; font-weight: 800; color: #F59E0B; line-height: 1.1;">
+                    ₹{{ price|int }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Checkout Two-Column Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1.15fr; gap: 0; min-height: 480px;">
+            
+            <!-- Left Column: In-Memory Dynamic UPI QR Code -->
+            <div style="padding: 32px 28px; background: rgba(15, 23, 42, 0.02); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; text-align: center;">
+                
+                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 6px;">
+                    Scan with Any UPI App
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 18px;">
+                    GPay, PhonePe, Paytm, BHIM, or Mobile Banking
+                </div>
+
+                <!-- Dynamic Base64 In-Memory QR Image Container -->
+                <div style="background: #FFFFFF; padding: 14px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); border: 1px solid #E2E8F0; margin-bottom: 18px;">
+                    <img src="{{ qr_data.qr_data_uri }}" alt="Dynamic UPI QR Code" style="width: 210px; height: 210px; display: block; image-rendering: pixelated;">
+                </div>
+
+                <!-- Mobile Tap-to-Pay Button -->
+                <a href="{{ qr_data.upi_uri }}" class="btn btn-primary" style="width: 100%; max-width: 260px; font-weight: 700; font-size: 0.88rem; padding: 10px 16px; margin-bottom: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i data-lucide="smartphone" style="width: 16px; height: 16px;"></i>
+                    <span>Tap to Pay on Mobile</span>
+                </a>
+
+                <!-- UPI ID Copy Row -->
+                <div style="background: var(--bg-hover); padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border-color); display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; margin-top: 6px;">
+                    <span style="color: var(--text-secondary);">UPI ID:</span>
+                    <strong style="color: var(--text-main); font-family: monospace;">{{ qr_data.merchant_upi }}</strong>
+                    <button type="button" onclick="navigator.clipboard.writeText('{{ qr_data.merchant_upi }}'); this.innerText='Copied!'; setTimeout(()=>this.innerText='Copy', 1500);" style="background: none; border: none; color: #2563EB; font-weight: 700; cursor: pointer; padding: 0 4px; font-size: 0.78rem;">
+                        Copy
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: 12-Digit UTR Submission Form -->
+            <div style="padding: 32px 30px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="font-weight: 800; font-size: 1.15rem; color: var(--text-main); margin-bottom: 6px;">
+                        Step 2: Enter 12-Digit UTR Reference
+                    </div>
+                    <p style="font-size: 0.84rem; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+                        After completing the ₹{{ price|int }} payment on your UPI app, enter the <strong>12-digit UTR / UPI Transaction Reference Number</strong> below to activate your learning access.
+                    </p>
+
+                    <!-- Anti-Replay Form -->
+                    <form method="POST" action="{{ url_for('payment.submit_payment') }}" id="utrPaymentForm">
+                        <input type="hidden" name="item_type" value="{{ item_type }}">
+                        <input type="hidden" name="item_id" value="{{ item_id }}">
+
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label for="utr_number" style="display: block; font-weight: 700; font-size: 0.88rem; margin-bottom: 8px; color: var(--text-main);">
+                                12-Digit UTR Number *
+                            </label>
+                            <input 
+                                type="text" 
+                                id="utr_number" 
+                                name="utr_number" 
+                                class="form-control" 
+                                required 
+                                pattern="\d{12}" 
+                                maxlength="12" 
+                                minlength="12" 
+                                inputmode="numeric" 
+                                placeholder="e.g. 429381749201" 
+                                style="font-family: monospace; font-size: 1.15rem; letter-spacing: 2px; font-weight: 700; padding: 12px 14px;"
+                                autocomplete="off"
+                            >
+                            <small id="utrHelperText" style="display: block; margin-top: 6px; font-size: 0.78rem; color: var(--text-secondary);">
+                                Exactly 12 numeric digits from your bank SMS or payment receipt.
+                            </small>
+                        </div>
+
+                        <!-- Anti-Cheat / Security Safeguard Notice -->
+                        <div style="background: rgba(37, 99, 235, 0.05); border: 1px solid rgba(37, 99, 235, 0.15); border-radius: 10px; padding: 12px 14px; margin-bottom: 22px; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45;">
+                            <div style="display: flex; gap: 8px;">
+                                <i data-lucide="shield-check" style="width: 16px; height: 16px; color: #2563EB; flex-shrink: 0; margin-top: 2px;"></i>
+                                <div>
+                                    <strong>Anti-Fraud Guarantee:</strong> Each UTR reference is strictly validated against duplicate submission. Admin confirms incoming transactions to ensure instant unlock.
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="submitPaymentBtn" class="btn btn-primary" style="width: 100%; font-weight: 800; font-size: 1rem; padding: 14px; border-radius: 10px;">
+                            Confirm Payment & Unlock Access &rarr;
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Where to Find UTR Helper -->
+                <div style="margin-top: 24px; padding-top: 18px; border-top: 1px dashed var(--border-color); font-size: 0.78rem; color: var(--text-secondary);">
+                    <strong>Where to find the 12-digit UTR?</strong>
+                    <ul style="margin: 6px 0 0 16px; padding: 0; line-height: 1.5;">
+                        <li><strong>Google Pay:</strong> View Transaction Details &rarr; UPI Transaction ID (12 digits)</li>
+                        <li><strong>PhonePe:</strong> Transaction Details &rarr; UTR Number (12 digits)</li>
+                        <li><strong>Paytm:</strong> Passbook &rarr; Payment Details &rarr; UPI Ref No.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const utrInput = document.getElementById('utr_number');
+    const helper = document.getElementById('utrHelperText');
+    const form = document.getElementById('utrPaymentForm');
+    const btn = document.getElementById('submitPaymentBtn');
+
+    if (utrInput) {
+        utrInput.addEventListener('input', (e) => {
+            // Only allow numbers
+            e.target.value = e.target.value.replace(/\D/g, '');
+            const len = e.target.value.length;
+            if (len === 12) {
+                helper.innerText = '✓ Valid 12-digit format entered.';
+                helper.style.color = '#10B981';
+            } else {
+                helper.innerText = `${len}/12 digits entered`;
+                helper.style.color = 'var(--text-secondary)';
+            }
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', () => {
+            btn.disabled = true;
+            btn.innerText = 'Submitting & Validating...';
+        });
+    }
+});
+</script>
+
+<style>
+@media (max-width: 768px) {
+    div[style*="grid-template-columns: 1fr 1.15fr"] {
+        grid-template-columns: 1fr !important;
+    }
+    div[style*="border-right: 1px solid var(--border-color)"] {
+        border-right: none !important;
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+}
+</style>
+{% endblock %}

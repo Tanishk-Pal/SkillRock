@@ -62,6 +62,7 @@
                 <tr>
                     <th>Course Title & Instructor</th>
                     <th>Category</th>
+                    <th>Pricing</th>
                     <th>Difficulty</th>
                     <th>Duration</th>
                     <th>Enrolled</th>
@@ -87,6 +88,17 @@
                     </td>
                     <td>
                         <span class="admin-badge admin-badge-blue">{{ course.category }}</span>
+                    </td>
+                    <td>
+                        {% if course.is_paid and course.price > 0 %}
+                        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3);">
+                            ₹{{ course.price|int }}
+                        </span>
+                        {% else %}
+                        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3);">
+                            FREE
+                        </span>
+                        {% endif %}
                     </td>
                     <td>
                         <span class="admin-badge admin-badge-gold">{{ course.difficulty }}</span>

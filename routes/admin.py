@@ -49,6 +49,7 @@ from models import (
     extract_youtube_id
 )
 from config import Config
+from services.payment_service import grant_student_access, revoke_student_access
 
 logger = logging.getLogger(__name__)
 
@@ -750,6 +751,21 @@ def course_new():
         required_features = [line.strip() for line in raw_required.splitlines() if line.strip()]
         optional_features = [line.strip() for line in raw_optional.splitlines() if line.strip()]
 
+        pricing_type = request.form.get("pricing_type", "free").strip().lower()
+        is_paid = (pricing_type == "paid")
+        price = 0.0
+        if is_paid:
+            try:
+                price = float(request.form.get("price", 0))
+            except (ValueError, TypeError):
+                price = 0.0
+            if price < 1:
+                flash("Paid courses must have a valid price of at least ₹1.", "danger")
+                return render_template("admin/course_edit.html", course=None, assignment=None)
+        else:
+            is_paid = False
+            price = 0.0
+
         course = Course({
             "title": title,
             "category": category,
@@ -760,6 +776,8 @@ def course_new():
             "thumbnail_url": thumbnail_url,
             "description": description,
             "learning_objectives": objectives,
+            "is_paid": is_paid,
+            "price": price,
             "is_published": is_published,
             "created_at": datetime.now(timezone.utc)
         })
@@ -826,7 +844,24 @@ def course_edit(course_id):
         course.description = request.form.get("description", "").strip()
         raw_objectives = request.form.get("learning_objectives", "").strip()
         course.learning_objectives = [line.strip() for line in raw_objectives.splitlines() if line.strip()]
+        pricing_type = request.form.get("pricing_type", "free").strip().lower()
+        is_paid = (pricing_type == "paid")
+        price = 0.0
+        if is_paid:
+            try:
+                price = float(request.form.get("price", 0))
+            except (ValueError, TypeError):
+                price = 0.0
+            if price < 1:
+                flash("Paid courses must have a valid price of at least ₹1.", "danger")
+                return render_template("admin/course_edit.html", course=course, assignment=assignment)
+        else:
+            is_paid = False
+            price = 0.0
+
         course.is_published = request.form.get("is_published") == "on"
+        course.is_paid = is_paid
+        course.price = price
         course.save()
 
         # Update assignment
@@ -1169,7 +1204,22 @@ def test_series_test_new():
         duration_minutes = int(request.form.get("duration_minutes", 30))
         total_questions_count = int(request.form.get("total_questions_count", 30))
         passing_percentage = float(request.form.get("passing_percentage", 50.0))
-        is_free = request.form.get("is_free") == "1"
+        
+        pricing_type = request.form.get("pricing_type", "free").strip().lower()
+        if pricing_type == "paid" or request.form.get("is_free") == "0":
+            is_paid = True
+            is_free = False
+            try:
+                price = float(request.form.get("price", 99.0))
+            except (ValueError, TypeError):
+                price = 99.0
+            if price < 1:
+                price = 99.0
+        else:
+            is_paid = False
+            is_free = True
+            price = 0.0
+
         is_published = request.form.get("is_published") == "1"
         max_warnings = int(request.form.get("max_warnings", 3))
         selected_question_ids = request.form.getlist("question_ids")
@@ -1196,6 +1246,8 @@ def test_series_test_new():
             "total_questions_count": total_questions_count or len(selected_question_ids),
             "passing_percentage": passing_percentage,
             "is_free": is_free,
+            "is_paid": is_paid,
+            "price": price,
             "is_published": is_published,
             "question_ids": selected_question_ids,
             "video_resources": video_resources,
@@ -1234,7 +1286,22 @@ def test_series_test_edit(test_id):
         test.duration_minutes = int(request.form.get("duration_minutes", test.duration_minutes))
         test.total_questions_count = int(request.form.get("total_questions_count", test.total_questions_count))
         test.passing_percentage = float(request.form.get("passing_percentage", test.passing_percentage))
-        test.is_free = request.form.get("is_free") == "1"
+
+        pricing_type = request.form.get("pricing_type", "free").strip().lower()
+        if pricing_type == "paid" or request.form.get("is_free") == "0":
+            test.is_paid = True
+            test.is_free = False
+            try:
+                test.price = float(request.form.get("price", 99.0))
+            except (ValueError, TypeError):
+                test.price = 99.0
+            if test.price < 1:
+                test.price = 99.0
+        else:
+            test.is_paid = False
+            test.is_free = True
+            test.price = 0.0
+
         test.is_published = request.form.get("is_published") == "1"
         test.focus_loss_policy["max_warnings"] = int(request.form.get("max_warnings", 3))
 
@@ -1305,6 +1372,8 @@ def test_series_pack_edit(pack_id):
     try:
         pack.price_inr = int(request.form.get("price_inr", pack.price_inr))
         pack.is_free = (pack.price_inr == 0)
+        pack.is_paid = (pack.price_inr > 0)
+        pack.price = float(pack.price_inr)
     except ValueError:
         pass
     pack.status = request.form.get("status", pack.status).strip()
@@ -1469,3 +1538,150 @@ def reminders_test_email():
         "info"
     )
     return redirect(url_for("admin.settings_page"))
+
+
+# ==============================================================================
+# 12. Student UPI Payments & Manual Approval Engine
+# ==============================================================================
+
+@admin_bp.route("/payments")
+def payments_list():
+    """
+    Master payment verification dashboard for admin.
+    Lists pending, approved, and rejected UPI payments with student details,
+    12-digit UTR references, server-locked amounts, and one-click actions.
+    """
+    db = get_db()
+    status_filter = request.args.get("status", "all").strip().lower()
+    q = request.args.get("q", "").strip()
+
+    query = {}
+    if status_filter in ("pending", "approved", "rejected"):
+        query["status"] = status_filter
+
+    if q:
+        query["$or"] = [
+            {"utr_number": {"$regex": q, "$options": "i"}},
+            {"payment_id": {"$regex": q, "$options": "i"}},
+            {"user_name": {"$regex": q, "$options": "i"}},
+            {"user_email": {"$regex": q, "$options": "i"}},
+            {"item_title": {"$regex": q, "$options": "i"}},
+        ]
+
+    payments_cursor = db.payments.find(query).sort("submitted_at", -1)
+    payments = list(payments_cursor)
+
+    # Calculate real-time summary statistics
+    pending_count = db.payments.count_documents({"status": "pending"})
+    approved_count = db.payments.count_documents({"status": "approved"})
+    rejected_count = db.payments.count_documents({"status": "rejected"})
+    
+    # Revenue aggregation
+    pipeline = [
+        {"$match": {"status": "approved"}},
+        {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
+    ]
+    revenue_res = list(db.payments.aggregate(pipeline))
+    total_revenue = float(revenue_res[0]["total"]) if revenue_res else 0.0
+
+    return render_template(
+        "admin/payments.html",
+        payments=payments,
+        status_filter=status_filter,
+        q=q,
+        pending_count=pending_count,
+        approved_count=approved_count,
+        rejected_count=rejected_count,
+        total_revenue=total_revenue,
+    )
+
+
+@admin_bp.route("/payments/<payment_id>/approve", methods=["POST"])
+def payment_approve(payment_id):
+    """
+    One-click Admin Verification:
+    - Sets payment status to 'approved'.
+    - Unlocks permanent access in user_access collection.
+    - If course: auto-enrolls student in the course.
+    - If test series: grants pack/test access entitlement.
+    """
+    db = get_db()
+    payment = db.payments.find_one({"payment_id": str(payment_id).strip()})
+    if not payment:
+        flash(f"Payment record '{payment_id}' not found.", "danger")
+        return redirect(url_for("admin.payments_list"))
+
+    now = datetime.now(timezone.utc)
+    admin_identifier = getattr(current_user, "email", "admin")
+
+    db.payments.update_one(
+        {"payment_id": payment["payment_id"]},
+        {
+            "$set": {
+                "status": "approved",
+                "reviewed_at": now,
+                "reviewed_by": admin_identifier,
+                "updated_at": now,
+            }
+        }
+    )
+
+    # Grant access to student
+    grant_student_access(
+        user_id=payment["user_id"],
+        item_type=payment["item_type"],
+        item_id=payment["item_id"],
+        granted_by=admin_identifier,
+        payment_id=payment["payment_id"],
+        amount=payment.get("amount", 0.0),
+    )
+
+    flash(
+        f"✅ Payment {payment['payment_id']} (UTR: {payment.get('utr_number')}) approved! "
+        f"Access successfully unlocked for student {payment.get('user_email')}.",
+        "success"
+    )
+    return redirect(url_for("admin.payments_list"))
+
+
+@admin_bp.route("/payments/<payment_id>/reject", methods=["POST"])
+def payment_reject(payment_id):
+    """
+    Rejects a fraudulent, duplicate, or unmatched payment.
+    Revokes any active access in user_access and records the rejection reason.
+    """
+    db = get_db()
+    payment = db.payments.find_one({"payment_id": str(payment_id).strip()})
+    if not payment:
+        flash(f"Payment record '{payment_id}' not found.", "danger")
+        return redirect(url_for("admin.payments_list"))
+
+    reason = request.form.get("reason", "Bank UTR could not be verified / uncredited transaction.").strip()
+    now = datetime.now(timezone.utc)
+    admin_identifier = getattr(current_user, "email", "admin")
+
+    db.payments.update_one(
+        {"payment_id": payment["payment_id"]},
+        {
+            "$set": {
+                "status": "rejected",
+                "rejection_reason": reason,
+                "reviewed_at": now,
+                "reviewed_by": admin_identifier,
+                "updated_at": now,
+            }
+        }
+    )
+
+    revoke_student_access(
+        user_id=payment["user_id"],
+        item_type=payment["item_type"],
+        item_id=payment["item_id"],
+    )
+
+    flash(
+        f"Payment {payment['payment_id']} marked as rejected. Access has been revoked.",
+        "warning"
+    )
+    return redirect(url_for("admin.payments_list"))
+
