@@ -31,6 +31,9 @@ from services.payment_service import (
     grant_student_access,
     revoke_student_access,
     get_item_by_type_and_id,
+    parse_bank_credit_sms,
+    register_checkout_session,
+    process_incoming_bank_credit,
 )
 
 
@@ -310,6 +313,97 @@ class TestPaymentPricingSystem(unittest.TestCase):
 
         # Student no longer has active access
         self.assertFalse(verify_student_unlock(self.student, "course", str(self.paid_course.id)))
+
+    def test_parse_bank_credit_sms_formats(self):
+        """Test multi-bank SMS credit parsing and debit rejection."""
+        # SBI format
+        sbi_sms = "Dear SBI User, your A/c ending 4968 credited by Rs 699.00 on 05Nov26 by UPI/429381749201/SR-CRS-6AE9ED99-A1B2."
+        res1 = parse_bank_credit_sms(sbi_sms, sender="VK-SBIINB")
+        self.assertTrue(res1["is_credit"])
+        self.assertEqual(res1["amount"], 699.0)
+        self.assertEqual(res1["utr_number"], "429381749201")
+        self.assertEqual(res1["ref_note"], "SR-CRS-6AE9ED99-A1B2")
+
+        # HDFC format
+        hdfc_sms = "Rs. 99.00 credited to a/c **4968 on 05-NOV-26 by UPI-582910394857-SR-TST-MOCK0001-C3D4."
+        res2 = parse_bank_credit_sms(hdfc_sms, sender="HDFCBK")
+        self.assertTrue(res2["is_credit"])
+        self.assertEqual(res2["amount"], 99.0)
+        self.assertEqual(res2["utr_number"], "582910394857")
+
+        # PhonePe merchant format
+        phonepe_sms = "Payment received of Rs 699 on PhonePe from Student. UTR: 839201948573."
+        res3 = parse_bank_credit_sms(phonepe_sms, sender="PhonePe")
+        self.assertTrue(res3["is_credit"])
+        self.assertEqual(res3["amount"], 699.0)
+        self.assertEqual(res3["utr_number"], "839201948573")
+
+        # YES Bank format
+        yes_sms = "YES BANK: Your A/c is credited with INR 699.00 on 05-Nov-2026 by UPI ref 948271039482. Note: SR-CRS-UNITY2D-TEST"
+        res4 = parse_bank_credit_sms(yes_sms, sender="YESBNK")
+        self.assertTrue(res4["is_credit"])
+        self.assertEqual(res4["amount"], 699.0)
+        self.assertEqual(res4["utr_number"], "948271039482")
+
+        # Debit SMS -> MUST BE REJECTED
+        debit_sms = "Rs 699.00 debited from your A/c 4968 on 05-NOV-26 to merchant XYZ. Available balance Rs 5000."
+        res5 = parse_bank_credit_sms(debit_sms, sender="VK-SBIINB")
+        self.assertFalse(res5["is_credit"])
+
+    def test_bank_sms_webhook_and_instant_auto_unlock(self):
+        """
+        Test end-to-end automated SMS webhook flow:
+        1. Student opens checkout screen (registers session token).
+        2. Student sends payment, bank SMS arrives on phone 9243494968.
+        3. Webhook POST /api/webhook/bank-sms is received with ref_note session token.
+        4. System automatically unlocks student access with ZERO manual admin action!
+        5. Real-time client polling verifies student is unlocked.
+        """
+        self.login_user(self.student.email, "StudentPass123!")
+
+        # 1. Student hits checkout page
+        res_checkout = self.client.get(f"/payment/checkout/course/{self.paid_course.id}")
+        self.assertEqual(res_checkout.status_code, 200)
+
+        # Retrieve registered session token from db.checkout_sessions
+        sess = self.db.checkout_sessions.find_one({"user_id": str(self.student.id)})
+        self.assertIsNotNone(sess)
+        session_token = sess["session_token"]
+
+        # 2. Test webhook security: unauthorized without secret
+        fake_webhook = self.client.post("/api/webhook/bank-sms", json={
+            "message": "Some credit sms"
+        })
+        self.assertEqual(fake_webhook.status_code, 401)
+
+        # 3. Simulate authentic Bank SMS arriving at webhook with session token in ref_note
+        bank_msg = (
+            f"Dear Customer, your A/c 4968 credited by Rs 699.00 on 05-Nov-26 "
+            f"by UPI/938472910482/SR-CRS-{str(self.paid_course.id)[:8]}-{session_token}."
+        )
+        valid_webhook = self.client.post(
+            "/api/webhook/bank-sms",
+            json={
+                "sender": "VK-SBIINB",
+                "message": bank_msg,
+            },
+            headers={"X-Webhook-Secret": "skillrock_bank_hook_sec_2026"}
+        )
+        self.assertEqual(valid_webhook.status_code, 200)
+        hook_data = valid_webhook.get_json()
+        self.assertTrue(hook_data["success"])
+        self.assertEqual(hook_data["result"]["status"], "auto_created_and_unlocked")
+
+        # 4. Verify student is now immediately unlocked in database!
+        self.assertTrue(verify_student_unlock(self.student, "course", str(self.paid_course.id)))
+
+        # 5. Verify client auto-status polling endpoint confirms unlocked
+        poll_res = self.client.get(f"/payment/check-auto-status/course/{self.paid_course.id}?session_token={session_token}")
+        self.assertEqual(poll_res.status_code, 200)
+        poll_data = poll_res.get_json()
+        self.assertTrue(poll_data["unlocked"])
+        self.assertIn("redirect_url", poll_data)
+
 
 
 if __name__ == "__main__":

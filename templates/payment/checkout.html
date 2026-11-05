@@ -3,950 +3,1344 @@
 {% block title %}Secure Checkout — {{ item.title }} | SkillRock Pay{% endblock %}
 
 {% block content %}
-<div class="rzp-checkout-wrapper">
+<div class="sr-pay-page-wrapper">
 
     <!-- Top Navigation / Breadcrumb -->
-    <div class="rzp-breadcrumb-row">
+    <div class="sr-pay-nav-bar">
         {% if item_type == 'course' %}
-        <a href="{{ url_for('learning.course_detail', slug=item.slug) }}" class="rzp-back-link">
+        <a href="{{ url_for('learning.course_detail', slug=item.slug) }}" class="sr-pay-back-link">
             <i data-lucide="arrow-left"></i>
             <span>Cancel & Return</span>
         </a>
         {% else %}
-        <a href="{{ url_for('test_series.test_detail', test_slug=item.slug) }}" class="rzp-back-link">
+        <a href="{{ url_for('test_series.test_detail', test_slug=item.slug) }}" class="sr-pay-back-link">
             <i data-lucide="arrow-left"></i>
             <span>Cancel & Return</span>
         </a>
         {% endif %}
 
-        <div class="rzp-trust-pill">
+        <div class="sr-pay-security-pill">
             <i data-lucide="shield-check"></i>
-            <span>256-Bit Encrypted Direct UPI</span>
+            <span>NPCI Direct UPI &bull; 256-Bit Encrypted</span>
         </div>
     </div>
 
     {% if pending_payment %}
     <!-- Alert Banner: Student already has a pending payment for this item -->
-    <div class="rzp-pending-alert">
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <i data-lucide="clock" class="rzp-pending-icon"></i>
+    <div class="sr-pay-alert-banner">
+        <div class="sr-pay-alert-content">
+            <i data-lucide="clock" class="sr-pay-alert-icon"></i>
             <div>
-                <strong>Payment Under Review</strong>
-                <p>UTR <code style="font-weight: 700;">{{ pending_payment.utr_number }}</code> is already submitted and pending admin approval.</p>
+                <strong>Payment Under Verification</strong>
+                <p>UTR <code class="sr-utr-code">{{ pending_payment.utr_number }}</code> is currently undergoing verification.</p>
             </div>
         </div>
-        <a href="{{ url_for('payment.payment_status', payment_id=pending_payment.payment_id) }}" class="rzp-track-btn">
-            Track Status &rarr;
+        <a href="{{ url_for('payment.payment_status', payment_id=pending_payment.payment_id) }}" class="sr-pay-track-cta">
+            <span>View Status</span>
+            <i data-lucide="arrow-right"></i>
         </a>
     </div>
     {% endif %}
 
-    <!-- Main Payment Gateway Card (Razorpay & Cashfree Mobile-First Architecture) -->
-    <div class="rzp-gateway-card">
+    <!-- Main Payment Gateway Card (Glassmorphic Dribbble / Razorpay Architecture) -->
+    <div class="sr-pay-card-container">
         
-        <!-- Header: Merchant & Order Specs -->
-        <div class="rzp-gateway-header">
-            <div class="rzp-brand-badge">
-                <div class="rzp-brand-icon">
-                    <i data-lucide="zap"></i>
-                </div>
-                <div>
-                    <div class="rzp-merchant-title">SkillRock Payments</div>
-                    <div class="rzp-merchant-vpa">UPI ID: <span id="merchantUpiText">{{ qr_data.merchant_upi }}</span></div>
+        <!-- LEFT COLUMN: Sleek Glass Card & Order Specs -->
+        <div class="sr-pay-left-col">
+            <div class="sr-glass-card-stack">
+                <div class="sr-glass-card-glow"></div>
+                <div class="sr-glass-card">
+                    <div class="sr-card-chip-row">
+                        <div class="sr-chip-icon">
+                            <i data-lucide="cpu"></i>
+                        </div>
+                        <div class="sr-card-brand-logo">
+                            <span class="sr-brand-dot"></span>
+                            <span>SkillRock Pay</span>
+                        </div>
+                    </div>
+
+                    <div class="sr-card-item-category">
+                        {% if item_type == 'course' %}
+                            <span class="sr-cat-tag course">PREMIUM COURSE</span>
+                        {% else %}
+                            <span class="sr-cat-tag test">MOCK TEST SERIES</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="sr-card-item-title">{{ item.title }}</div>
+
+                    <div class="sr-card-amount-box">
+                        <span class="sr-amt-currency">₹</span>
+                        <span class="sr-amt-number">{{ price|int }}</span>
+                        <span class="sr-amt-badge">One-Time &bull; Lifetime Access</span>
+                    </div>
+
+                    <div class="sr-card-footer-info">
+                        <div class="sr-payee-line">
+                            <span class="sr-muted">Payee VPA:</span>
+                            <span class="sr-vpa-highlight" id="merchantUpiText">{{ qr_data.merchant_upi }}</span>
+                        </div>
+                        <div class="sr-ref-line">
+                            <span class="sr-muted">Ref:</span>
+                            <span id="refNoteDisplay">{{ qr_data.ref_note }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Dynamic 5-Minute Countdown Expiry Clock -->
-            <div class="rzp-expiry-timer" id="timerBadge" title="Security session timeout">
-                <div class="rzp-timer-indicator"></div>
-                <div class="rzp-timer-content">
-                    <span class="rzp-timer-label">SESSION EXPIRES IN</span>
-                    <span class="rzp-timer-digits" id="timerDigits">05:00</span>
+            <!-- Trust & Features List -->
+            <div class="sr-trust-list">
+                <div class="sr-trust-item">
+                    <div class="sr-trust-icon-dot green"><i data-lucide="zap"></i></div>
+                    <div>
+                        <strong>Instant Automated Unlock</strong>
+                        <p>Our algorithm verifies incoming UPI credits within seconds.</p>
+                    </div>
+                </div>
+                <div class="sr-trust-item">
+                    <div class="sr-trust-icon-dot blue"><i data-lucide="check-circle-2"></i></div>
+                    <div>
+                        <strong>Zero Gateway Charges</strong>
+                        <p>100% direct bank-to-bank transfer via official UPI network.</p>
+                    </div>
+                </div>
+                <div class="sr-trust-item">
+                    <div class="sr-trust-icon-dot purple"><i data-lucide="shield"></i></div>
+                    <div>
+                        <strong>Tamper-Proof Anti-Replay</strong>
+                        <p>Each transaction reference is uniquely locked and verified.</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Order Summary Strip -->
-        <div class="rzp-order-summary-strip">
-            <div style="flex: 1; min-width: 200px;">
-                <span class="rzp-item-type-tag">
-                    {% if item_type == 'course' %}PREMIUM COURSE{% else %}MOCK TEST SERIES{% endif %}
-                </span>
-                <div class="rzp-item-title">{{ item.title }}</div>
-            </div>
-            <div class="rzp-amount-badge">
-                <span class="rzp-amount-label">Payable Amount</span>
-                <span class="rzp-amount-val">₹{{ price|int }}</span>
-            </div>
-        </div>
-
-        <!-- Gateway Content: Two Columns on Desktop, Unified Seamless Stack on Mobile -->
-        <div class="rzp-gateway-body">
+        <!-- RIGHT COLUMN: Interactive Payment Gateway Engine -->
+        <div class="sr-pay-right-col">
             
-            <!-- Left Section: Dynamic In-Memory QR Code & Mobile Triggers -->
-            <div class="rzp-qr-section">
-                
-                <!-- Mobile Instant App Launcher Strip (Only visible on small devices) -->
-                <div class="rzp-mobile-apps-container">
-                    <div class="rzp-apps-heading">Pay Directly With UPI App</div>
-                    <div class="rzp-apps-grid">
-                        <a href="{{ qr_data.gpay_uri }}" id="linkGPay" class="rzp-app-btn rzp-app-gpay">
-                            <span class="rzp-app-logo gpay-dot">G</span>
-                            <span>Google Pay</span>
-                        </a>
-                        <a href="{{ qr_data.phonepe_uri }}" id="linkPhonePe" class="rzp-app-btn rzp-app-phonepe">
-                            <span class="rzp-app-logo pe-dot">पे</span>
-                            <span>PhonePe</span>
-                        </a>
-                        <a href="{{ qr_data.paytm_uri }}" id="linkPaytm" class="rzp-app-btn rzp-app-paytm">
-                            <span class="rzp-app-logo paytm-dot">Pay</span>
-                            <span>Paytm</span>
-                        </a>
-                        <a href="{{ qr_data.upi_uri }}" id="linkAnyUpi" class="rzp-app-btn rzp-app-generic">
-                            <i data-lucide="smartphone" style="width: 15px; height: 15px;"></i>
-                            <span>Other UPI</span>
-                        </a>
-                    </div>
-                    <div class="rzp-or-divider">
-                        <span>OR SCAN DYNAMIC QR CODE</span>
-                    </div>
+            <!-- Session Timer & Live Status Bar -->
+            <div class="sr-status-header-strip">
+                <div class="sr-live-radar-badge" id="radarStatus">
+                    <span class="sr-radar-pulse"></span>
+                    <span class="sr-radar-text" id="radarText">Listening for payment...</span>
                 </div>
 
-                <!-- Centered Dynamic QR Box with 5-Minute Expiry Overlay -->
-                <div class="rzp-qr-box-wrapper">
-                    <div class="rzp-qr-box" id="qrContainer">
-                        <img src="{{ qr_data.qr_data_uri }}" alt="SkillRock Dynamic UPI QR" id="qrImage" class="rzp-qr-img">
+                <!-- Dynamic 5-Minute Expiry Countdown -->
+                <div class="sr-expiry-timer-box" id="timerBadge" title="Security session timeout">
+                    <i data-lucide="clock" class="sr-timer-icon"></i>
+                    <span class="sr-timer-text">EXPIRES:</span>
+                    <span class="sr-timer-digits" id="timerDigits">05:00</span>
+                </div>
+            </div>
+
+            <!-- Interactive Method Tabs -->
+            <div class="sr-tabs-nav" role="tablist">
+                <button type="button" class="sr-tab-btn active" id="tabBtnApps" onclick="switchPaymentTab('apps')">
+                    <i data-lucide="smartphone"></i>
+                    <span>⚡ Pay via UPI App</span>
+                </button>
+                <button type="button" class="sr-tab-btn" id="tabBtnQr" onclick="switchPaymentTab('qr')">
+                    <i data-lucide="qr-code"></i>
+                    <span>📷 Scan Dynamic QR</span>
+                </button>
+            </div>
+
+            <!-- TAB 1: UPI APPS (One-Tap Payment on Mobile / Universal on Desktop) -->
+            <div class="sr-tab-pane active" id="paneApps">
+                <div class="sr-pane-intro">
+                    <span class="sr-pane-sub">Tap any app below to launch payment with ₹{{ price|int }} pre-filled:</span>
+                </div>
+
+                <div class="sr-apps-button-grid">
+                    <a href="{{ qr_data.gpay_uri }}" id="linkGPay" class="sr-app-tile gpay" target="_blank" rel="noopener">
+                        <div class="sr-app-tile-left">
+                            <div class="sr-app-tile-logo gpay-logo">G</div>
+                            <div class="sr-app-tile-info">
+                                <span class="sr-app-name">Google Pay</span>
+                                <span class="sr-app-tag">Tap to Open</span>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="sr-chevron"></i>
+                    </a>
+
+                    <a href="{{ qr_data.phonepe_uri }}" id="linkPhonePe" class="sr-app-tile phonepe" target="_blank" rel="noopener">
+                        <div class="sr-app-tile-left">
+                            <div class="sr-app-tile-logo phonepe-logo">पे</div>
+                            <div class="sr-app-tile-info">
+                                <span class="sr-app-name">PhonePe</span>
+                                <span class="sr-app-tag">Tap to Open</span>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="sr-chevron"></i>
+                    </a>
+
+                    <a href="{{ qr_data.paytm_uri }}" id="linkPaytm" class="sr-app-tile paytm" target="_blank" rel="noopener">
+                        <div class="sr-app-tile-left">
+                            <div class="sr-app-tile-logo paytm-logo">Pay</div>
+                            <div class="sr-app-tile-info">
+                                <span class="sr-app-name">Paytm</span>
+                                <span class="sr-app-tag">Tap to Open</span>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="sr-chevron"></i>
+                    </a>
+
+                    <a href="{{ qr_data.upi_uri }}" id="linkAnyUpi" class="sr-app-tile anyupi" target="_blank" rel="noopener">
+                        <div class="sr-app-tile-left">
+                            <div class="sr-app-tile-logo anyupi-logo"><i data-lucide="credit-card"></i></div>
+                            <div class="sr-app-tile-info">
+                                <span class="sr-app-name">BHIM / Any Other UPI App</span>
+                                <span class="sr-app-tag">Cred, Navi, Jupiter, Bank Apps</span>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="sr-chevron"></i>
+                    </a>
+                </div>
+
+                <div class="sr-auto-detection-notice">
+                    <div class="sr-notice-icon"><i data-lucide="sparkles"></i></div>
+                    <div class="sr-notice-text">
+                        <strong>Automatic Detection Active:</strong> Once payment succeeds in your app, this screen will automatically confirm and open your course within 5 seconds.
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: DYNAMIC QR CODE -->
+            <div class="sr-tab-pane" id="paneQr">
+                <div class="sr-qr-pane-wrapper">
+                    <div class="sr-qr-frame" id="qrContainer">
+                        <img src="{{ qr_data.qr_data_uri }}" alt="SkillRock Dynamic UPI QR" id="qrImage" class="sr-qr-img">
                         
-                        <!-- Expired State Overlay (Revealed when 5-min timer hits 00:00) -->
-                        <div class="rzp-qr-expired-overlay" id="qrExpiredOverlay" style="display: none;">
-                            <div class="rzp-expired-icon-circle">
+                        <!-- Expired State Overlay -->
+                        <div class="sr-qr-expired-overlay" id="qrExpiredOverlay" style="display: none;">
+                            <div class="sr-expired-circle">
                                 <i data-lucide="alert-triangle"></i>
                             </div>
-                            <div class="rzp-expired-title">QR Code Expired</div>
-                            <p class="rzp-expired-desc">For security, payment QR codes are valid for 5 minutes.</p>
-                            <button type="button" class="rzp-refresh-btn" id="btnRefreshQr">
+                            <div class="sr-expired-title">QR Code Expired</div>
+                            <p class="sr-expired-sub">Session timed out for security.</p>
+                            <button type="button" class="sr-regenerate-btn" id="btnRefreshQr">
                                 <i data-lucide="refresh-cw"></i>
                                 <span>Generate New QR</span>
                             </button>
                         </div>
                     </div>
 
-                    <div class="rzp-qr-instruction">
-                        Scan with GPay, PhonePe, Paytm, or BHIM
-                    </div>
+                    <div class="sr-qr-meta">
+                        <p class="sr-qr-help-line">Point your UPI camera at this code to pay <strong>₹{{ price|int }}</strong></p>
 
-                    <!-- UPI ID Copy Pill -->
-                    <div class="rzp-vpa-copy-pill">
-                        <span class="vpa-label">UPI ID:</span>
-                        <code class="vpa-code" id="vpaCodeDisplay">{{ qr_data.merchant_upi }}</code>
-                        <button type="button" id="copyVpaBtn" class="vpa-copy-btn" title="Copy UPI ID">
-                            <span>Copy</span>
-                        </button>
-                    </div>
-
-                    <div class="rzp-ref-note">
-                        Ref: <span id="refNoteDisplay">{{ qr_data.ref_note }}</span>
+                        <!-- Copy UPI ID Pill -->
+                        <div class="sr-copy-upi-bar">
+                            <span class="sr-copy-label">UPI ID:</span>
+                            <code class="sr-copy-val" id="vpaCodeDisplay">{{ qr_data.merchant_upi }}</code>
+                            <button type="button" id="copyVpaBtn" class="sr-copy-action-btn">
+                                <i data-lucide="copy"></i>
+                                <span>Copy</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-
             </div>
 
-            <!-- Right Section: 12-Digit UTR Entry & Anti-Replay Guard -->
-            <div class="rzp-utr-section">
-                
-                <div class="rzp-step-badge">
-                    <span class="step-num">Step 2</span>
-                    <span class="step-title">Enter Transaction UTR Reference</span>
-                </div>
-                
-                <p class="rzp-step-desc">
-                    Once ₹{{ price|int }} is transferred in your UPI app, enter the <strong>12-digit UTR / UPI Ref Number</strong> from your payment receipt to activate your course.
-                </p>
-
-                <!-- Submission Form -->
-                <form method="POST" action="{{ url_for('payment.submit_payment') }}" id="utrPaymentForm">
-                    <input type="hidden" name="item_type" value="{{ item_type }}">
-                    <input type="hidden" name="item_id" value="{{ item_id }}">
-                    <input type="hidden" name="session_token" id="sessionTokenInput" value="{{ qr_data.session_token }}">
-
-                    <div class="rzp-input-group">
-                        <label for="utr_number" class="rzp-input-label">
-                            12-Digit Bank UTR / UPI Ref No. *
-                        </label>
-                        <div class="rzp-input-box-wrapper">
-                            <input 
-                                type="text" 
-                                id="utr_number" 
-                                name="utr_number" 
-                                class="rzp-utr-input" 
-                                required 
-                                pattern="\d{12}" 
-                                maxlength="14" 
-                                inputmode="numeric" 
-                                placeholder="e.g. 4293 8174 9201" 
-                                autocomplete="off"
-                            >
-                            <span class="rzp-digit-counter" id="digitCounter">0/12</span>
-                        </div>
-                        <small id="utrHelperText" class="rzp-helper-text">
-                            Enter the 12 digits found on your payment confirmation screen.
-                        </small>
+            <!-- BACKUP ACCORDION: Manual 12-Digit UTR Entry -->
+            <div class="sr-utr-backup-accordion">
+                <button type="button" class="sr-backup-toggle" id="btnToggleBackup" onclick="toggleBackupForm()">
+                    <div class="sr-backup-toggle-left">
+                        <i data-lucide="help-circle" class="sr-backup-icon"></i>
+                        <span>Need manual confirmation? Enter 12-digit UTR</span>
                     </div>
+                    <i data-lucide="chevron-down" id="backupChevron" class="sr-accordion-chevron"></i>
+                </button>
 
-                    <!-- Security / Anti-Replay Guarantee Strip -->
-                    <div class="rzp-security-strip">
-                        <i data-lucide="shield-check" class="rzp-sec-icon"></i>
-                        <div>
-                            <strong>Tamper-Proof Guarantee:</strong> Single-use reference validation ensures zero fraud. Access is reviewed and granted rapidly by our academic team.
-                        </div>
-                    </div>
+                <div class="sr-backup-collapse" id="backupFormCollapse" style="display: none;">
+                    <form method="POST" action="{{ url_for('payment.submit_payment') }}" id="utrPaymentForm" class="sr-backup-form">
+                        <input type="hidden" name="item_type" value="{{ item_type }}">
+                        <input type="hidden" name="item_id" value="{{ item_id }}">
+                        <input type="hidden" name="session_token" id="sessionTokenInput" value="{{ qr_data.session_token }}">
 
-                    <button type="submit" id="submitPaymentBtn" class="rzp-submit-cta-btn">
-                        <span>Verify & Unlock Access (₹{{ price|int }})</span>
-                        <i data-lucide="arrow-right"></i>
-                    </button>
-                </form>
+                        <div class="sr-field-group">
+                            <label for="utr_number" class="sr-field-label">
+                                12-Digit Bank UTR / UPI Ref Number
+                            </label>
+                            <div class="sr-input-wrapper">
+                                <input 
+                                    type="text" 
+                                    id="utr_number" 
+                                    name="utr_number" 
+                                    class="sr-utr-input" 
+                                    required 
+                                    pattern="\d{12}" 
+                                    maxlength="14" 
+                                    inputmode="numeric" 
+                                    placeholder="e.g. 4293 8174 9201" 
+                                    autocomplete="off"
+                                >
+                                <span class="sr-utr-counter" id="digitCounter">0/12</span>
+                            </div>
+                            <small id="utrHelperText" class="sr-field-helper">
+                                Enter the 12 digits from your payment receipt or bank SMS.
+                            </small>
+                        </div>
 
-                <!-- Where to Find 12-Digit UTR Mini Accordion -->
-                <div class="rzp-help-accordion">
-                    <div class="rzp-help-header">
-                        <i data-lucide="help-circle"></i>
-                        <span>Where to find the 12-digit UTR?</span>
-                    </div>
-                    <div class="rzp-help-body">
-                        <div class="rzp-help-item">
-                            <span class="help-app gpay-txt">Google Pay:</span>
-                            <span>Transaction details &rarr; UPI transaction ID (12 digits)</span>
-                        </div>
-                        <div class="rzp-help-item">
-                            <span class="help-app phonepe-txt">PhonePe:</span>
-                            <span>Transfer details &rarr; UTR number (12 digits)</span>
-                        </div>
-                        <div class="rzp-help-item">
-                            <span class="help-app paytm-txt">Paytm:</span>
-                            <span>Payment details &rarr; UPI Ref No (12 digits)</span>
-                        </div>
+                        <button type="submit" id="submitPaymentBtn" class="sr-submit-btn">
+                            <i data-lucide="shield-check"></i>
+                            <span>Verify & Unlock Access (₹{{ price|int }})</span>
+                        </button>
+                    </form>
+
+                    <!-- Where to find UTR -->
+                    <div class="sr-utr-guide-box">
+                        <div class="sr-guide-title"><i data-lucide="info"></i> Where to find your 12-digit UTR?</div>
+                        <ul class="sr-guide-list">
+                            <li><strong>Google Pay:</strong> Tap transaction &rarr; "UPI transaction ID" (12 digits)</li>
+                            <li><strong>PhonePe:</strong> View Transfer Details &rarr; "UTR Number" (12 digits)</li>
+                            <li><strong>Paytm:</strong> Passbook Payment Details &rarr; "UPI Ref No." (12 digits)</li>
+                        </ul>
                     </div>
                 </div>
-
             </div>
 
         </div>
 
     </div>
 
+    <!-- SUCCESS CELEBRATION MODAL (Morphs on Auto-Verification) -->
+    <div class="sr-success-modal-overlay" id="successModalOverlay" style="display: none;">
+        <div class="sr-success-modal-card">
+            <div class="sr-success-checkmark-circle">
+                <i data-lucide="check" class="sr-success-check-icon"></i>
+            </div>
+            <h2 class="sr-success-modal-title">Payment Confirmed!</h2>
+            <p class="sr-success-modal-sub">
+                ₹{{ price|int }} received via UPI. Your learning access has been unlocked.
+            </p>
+            <div class="sr-success-progress-bar">
+                <div class="sr-success-progress-fill"></div>
+            </div>
+            <div class="sr-success-redirect-note">
+                Opening your course in <span id="redirectSecs">2</span> seconds...
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<!-- Razorpay-Grade Stylesheet for Mobile & Desktop -->
+<!-- Sleek Glassmorphic Stylesheet -->
 <style>
-/* Base Wrapper */
-.rzp-checkout-wrapper {
-    max-width: 860px;
-    margin: 18px auto 60px;
-    padding: 0 14px;
+/* Page Layout */
+.sr-pay-page-wrapper {
+    max-width: 960px;
+    margin: 20px auto 60px;
+    padding: 0 16px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-main, #0f172a);
 }
 
-/* Breadcrumb & Trust */
-.rzp-breadcrumb-row {
+/* Nav & Trust */
+.sr-pay-nav-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
 }
-.rzp-back-link {
+.sr-pay-back-link {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.84rem;
+    font-size: 0.88rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-secondary, #64748b);
     text-decoration: none;
-    transition: color 0.15s;
+    transition: color 0.15s ease;
 }
-.rzp-back-link:hover {
-    color: var(--text-main);
+.sr-pay-back-link:hover {
+    color: #6366F1;
 }
-.rzp-back-link i {
-    width: 14px;
-    height: 14px;
+.sr-pay-back-link i {
+    width: 16px;
+    height: 16px;
 }
-.rzp-trust-pill {
+.sr-pay-security-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     background: rgba(16, 185, 129, 0.08);
     border: 1px solid rgba(16, 185, 129, 0.25);
     color: #10B981;
-    font-size: 0.76rem;
+    font-size: 0.78rem;
     font-weight: 700;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 9999px;
+    letter-spacing: 0.3px;
 }
-.rzp-trust-pill i {
-    width: 13px;
-    height: 13px;
+.sr-pay-security-pill i {
+    width: 14px;
+    height: 14px;
 }
 
-/* Pending Alert */
-.rzp-pending-alert {
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.35);
-    border-radius: 12px;
-    padding: 14px 18px;
-    margin-bottom: 16px;
+/* Pending Alert Banner */
+.sr-pay-alert-banner {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 12px;
+    padding: 12px 18px;
+    margin-bottom: 18px;
     flex-wrap: wrap;
     gap: 12px;
 }
-.rzp-pending-icon {
+.sr-pay-alert-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.sr-pay-alert-icon {
     width: 22px;
     height: 22px;
     color: #F59E0B;
-    flex-shrink: 0;
 }
-.rzp-pending-alert strong {
-    color: #F59E0B;
-    font-size: 0.92rem;
-}
-.rzp-pending-alert p {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin: 2px 0 0;
-}
-.rzp-track-btn {
-    background: #F59E0B;
-    color: #000000;
-    font-size: 0.8rem;
+.sr-utr-code {
     font-weight: 700;
-    padding: 6px 14px;
-    border-radius: 8px;
+    color: #B45309;
+    background: rgba(245, 158, 11, 0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.sr-pay-track-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #B45309;
     text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: #FEF3C7;
+    transition: background 0.15s ease;
+}
+.sr-pay-track-cta:hover {
+    background: #FDE68A;
 }
 
-/* Gateway Master Card */
-.rzp-gateway-card {
-    background: var(--surface-card, #FFFFFF);
-    border: 1px solid var(--border-color, #E2E8F0);
-    border-radius: 18px;
+/* Main Grid Container */
+.sr-pay-card-container {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
 }
 
-/* Header */
-.rzp-gateway-header {
-    background: #0F172A;
-    color: #FFFFFF;
-    padding: 18px 24px;
+/* LEFT COLUMN: Glassmorphic Aesthetics */
+.sr-pay-left-col {
+    background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 60%, #0f172a 100%);
+    color: #ffffff;
+    padding: 28px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+.sr-glass-card-stack {
+    position: relative;
+    margin-bottom: 24px;
+}
+.sr-glass-card-glow {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: radial-gradient(circle at 50% 30%, rgba(99, 102, 241, 0.4), transparent 70%);
+    filter: blur(20px);
+    z-index: 1;
+}
+.sr-glass-card {
+    position: relative;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+.sr-card-chip-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 14px;
 }
-.rzp-brand-badge {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.rzp-brand-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);
+.sr-chip-icon {
+    width: 32px;
+    height: 24px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #FFFFFF;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    color: #fff;
 }
-.rzp-brand-icon i {
-    width: 20px;
-    height: 20px;
+.sr-chip-icon i {
+    width: 16px;
+    height: 16px;
 }
-.rzp-merchant-title {
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: #FFFFFF;
-    letter-spacing: -0.01em;
-}
-.rzp-merchant-vpa {
-    font-size: 0.78rem;
-    color: #94A3B8;
-    margin-top: 2px;
-}
-.rzp-merchant-vpa span {
-    color: #38BDF8;
-    font-family: monospace;
-    font-weight: 700;
-}
-
-/* Expiry Timer Pill */
-.rzp-expiry-timer {
-    display: inline-flex;
+.sr-card-brand-logo {
+    display: flex;
     align-items: center;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    padding: 6px 14px;
-    border-radius: 10px;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #cbd5e1;
 }
-.rzp-timer-indicator {
+.sr-brand-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #10B981;
-    box-shadow: 0 0 8px #10B981;
-    animation: rzpPulse 1.5s infinite;
+    background: #6366F1;
+    box-shadow: 0 0 8px #6366F1;
 }
-@keyframes rzpPulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.85); }
+.sr-card-item-category {
+    margin-bottom: 8px;
 }
-.rzp-timer-content {
-    display: flex;
-    flex-direction: column;
-}
-.rzp-timer-label {
-    font-size: 0.62rem;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    color: #94A3B8;
-    font-weight: 700;
-}
-.rzp-timer-digits {
-    font-family: monospace;
-    font-size: 1.05rem;
+.sr-cat-tag {
+    font-size: 0.68rem;
     font-weight: 800;
-    color: #FBBF24;
-    letter-spacing: 1px;
+    letter-spacing: 0.6px;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+.sr-cat-tag.course {
+    background: rgba(99, 102, 241, 0.25);
+    color: #a5b4fc;
+    border: 1px solid rgba(99, 102, 241, 0.4);
+}
+.sr-cat-tag.test {
+    background: rgba(236, 72, 153, 0.25);
+    color: #f472b6;
+    border: 1px solid rgba(236, 72, 153, 0.4);
+}
+.sr-card-item-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #f8fafc;
+    margin-bottom: 16px;
+}
+.sr-card-amount-box {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.sr-amt-currency {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #a5b4fc;
+}
+.sr-amt-number {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1;
+}
+.sr-amt-badge {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-left: 8px;
+}
+.sr-card-footer-info {
+    font-size: 0.76rem;
+    line-height: 1.5;
+}
+.sr-payee-line, .sr-ref-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+.sr-muted {
+    color: #94a3b8;
+}
+.sr-vpa-highlight {
+    color: #38bdf8;
+    font-family: monospace;
+    font-weight: 600;
+}
+#refNoteDisplay {
+    color: #cbd5e1;
+    font-family: monospace;
+    font-size: 0.72rem;
 }
 
-/* Order Summary Strip */
-.rzp-order-summary-strip {
-    background: #1E293B;
-    padding: 16px 24px;
+/* Trust list */
+.sr-trust-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.sr-trust-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+.sr-trust-icon-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.sr-trust-icon-dot i {
+    width: 14px;
+    height: 14px;
+}
+.sr-trust-icon-dot.green {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10B981;
+}
+.sr-trust-icon-dot.blue {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38BDF8;
+}
+.sr-trust-icon-dot.purple {
+    background: rgba(168, 85, 247, 0.15);
+    color: #C084FC;
+}
+.sr-trust-item strong {
+    font-size: 0.82rem;
+    color: #f1f5f9;
+    display: block;
+    margin-bottom: 2px;
+}
+.sr-trust-item p {
+    font-size: 0.74rem;
+    color: #94a3b8;
+    margin: 0;
+    line-height: 1.35;
+}
+
+/* RIGHT COLUMN: Interactive Payment Area */
+.sr-pay-right-col {
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg, #ffffff);
+}
+
+/* Status Strip */
+.sr-status-header-strip {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 18px;
     flex-wrap: wrap;
-    gap: 14px;
-    color: #FFFFFF;
+    gap: 10px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
 }
-.rzp-item-type-tag {
-    font-size: 0.68rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: #38BDF8;
-    background: rgba(56, 189, 248, 0.12);
-    padding: 2px 8px;
-    border-radius: 4px;
-    display: inline-block;
-    margin-bottom: 4px;
-}
-.rzp-item-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #FFFFFF;
-    line-height: 1.35;
-}
-.rzp-amount-badge {
-    text-align: right;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    padding: 8px 16px;
-    border-radius: 10px;
-}
-.rzp-amount-label {
-    display: block;
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    color: #94A3B8;
-    font-weight: 700;
-}
-.rzp-amount-val {
-    font-size: 1.6rem;
-    font-weight: 800;
-    color: #F59E0B;
-    line-height: 1.1;
-}
-
-/* Gateway Body Grid */
-.rzp-gateway-body {
-    display: grid;
-    grid-template-columns: 1fr 1.15fr;
-}
-
-/* Left QR Section */
-.rzp-qr-section {
-    background: rgba(15, 23, 42, 0.02);
-    border-right: 1px solid var(--border-color, #E2E8F0);
-    padding: 26px 22px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-/* Mobile UPI Instant Apps */
-.rzp-mobile-apps-container {
-    width: 100%;
-    margin-bottom: 20px;
-}
-.rzp-apps-heading {
-    font-size: 0.84rem;
-    font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 10px;
-}
-.rzp-apps-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-}
-.rzp-app-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    font-size: 0.84rem;
-    font-weight: 700;
-    text-decoration: none;
-    transition: transform 0.1s, box-shadow 0.15s;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-}
-.rzp-app-btn:active {
-    transform: scale(0.97);
-}
-.rzp-app-logo {
+.sr-live-radar-badge {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    font-size: 0.76rem;
-    font-weight: 800;
-    color: #FFFFFF;
-}
-.rzp-app-gpay {
-    background: #FFFFFF;
-    color: #374151;
-    border-color: #E5E7EB;
-}
-.gpay-dot { background: #4285F4; }
-.rzp-app-phonepe {
-    background: #5F259F;
-    color: #FFFFFF;
-    border-color: #5F259F;
-}
-.pe-dot { background: #FFFFFF; color: #5F259F; }
-.rzp-app-paytm {
-    background: #00BAF2;
-    color: #FFFFFF;
-    border-color: #00BAF2;
-}
-.paytm-dot { background: #002970; }
-.rzp-app-generic {
-    background: var(--bg-hover, #F1F5F9);
-    color: var(--text-main);
-}
-.rzp-or-divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 18px 0 12px;
-}
-.rzp-or-divider::before, .rzp-or-divider::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid var(--border-color, #E2E8F0);
-}
-.rzp-or-divider span {
-    padding: 0 10px;
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.6px;
-    color: var(--text-secondary);
-}
-
-/* QR Code Box */
-.rzp-qr-box-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-.rzp-qr-box {
-    position: relative;
-    background: #FFFFFF;
-    padding: 12px;
-    border-radius: 16px;
-    border: 1px solid #E2E8F0;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    display: inline-block;
-}
-.rzp-qr-img {
-    width: 180px;
-    height: 180px;
-    display: block;
-    image-rendering: pixelated;
-    transition: filter 0.3s;
-}
-.rzp-qr-img.expired {
-    filter: blur(8px) brightness(0.6);
-}
-
-/* Expired Overlay */
-.rzp-qr-expired-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.88);
-    backdrop-filter: blur(4px);
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 14px;
-    text-align: center;
-    color: #FFFFFF;
-    z-index: 10;
-}
-.rzp-expired-icon-circle {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(239, 68, 68, 0.2);
-    border: 1px solid #EF4444;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #EF4444;
-    margin-bottom: 8px;
-}
-.rzp-expired-icon-circle i {
-    width: 18px;
-    height: 18px;
-}
-.rzp-expired-title {
-    font-size: 0.92rem;
-    font-weight: 800;
-    color: #FFFFFF;
-    margin-bottom: 4px;
-}
-.rzp-expired-desc {
-    font-size: 0.72rem;
-    color: #CBD5E1;
-    margin: 0 0 10px;
-    line-height: 1.3;
-}
-.rzp-refresh-btn {
-    background: #10B981;
-    border: none;
-    color: #FFFFFF;
+    gap: 8px;
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    color: #6366F1;
     font-size: 0.78rem;
     font-weight: 700;
-    padding: 6px 14px;
-    border-radius: 8px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+}
+.sr-radar-pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #6366F1;
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+    animation: pulse-dot 1.8s infinite;
+}
+@keyframes pulse-dot {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+/* Expiry Countdown */
+.sr-expiry-timer-box {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    background: var(--bg-hover, #f1f5f9);
+    border: 1px solid var(--border-color, #cbd5e1);
+    padding: 5px 12px;
+    border-radius: 8px;
 }
-.rzp-refresh-btn i {
+.sr-timer-icon {
+    width: 14px;
+    height: 14px;
+    color: #F59E0B;
+}
+.sr-timer-text {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-secondary, #64748b);
+    letter-spacing: 0.4px;
+}
+.sr-timer-digits {
+    font-size: 0.88rem;
+    font-weight: 800;
+    font-family: monospace;
+    color: #D97706;
+}
+
+/* Tabs */
+.sr-tabs-nav {
+    display: flex;
+    background: var(--bg-hover, #f1f5f9);
+    padding: 4px;
+    border-radius: 12px;
+    gap: 4px;
+    margin-bottom: 20px;
+}
+.sr-tab-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-secondary, #64748b);
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.sr-tab-btn i {
+    width: 16px;
+    height: 16px;
+}
+.sr-tab-btn.active {
+    background: var(--card-bg, #ffffff);
+    color: #6366F1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Tab Panes */
+.sr-tab-pane {
+    display: none;
+}
+.sr-tab-pane.active {
+    display: block;
+    animation: fadeInPane 0.25s ease;
+}
+@keyframes fadeInPane {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.sr-pane-intro {
+    margin-bottom: 14px;
+}
+.sr-pane-sub {
+    font-size: 0.82rem;
+    color: var(--text-secondary, #64748b);
+    font-weight: 500;
+}
+
+/* Apps Grid */
+.sr-apps-button-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+.sr-app-tile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    text-decoration: none;
+    background: var(--card-bg, #ffffff);
+    transition: all 0.18s ease;
+}
+.sr-app-tile:hover {
+    border-color: #6366F1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08);
+}
+.sr-app-tile-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.sr-app-tile-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1.05rem;
+    color: #ffffff;
+}
+.gpay-logo {
+    background: #1A73E8;
+}
+.phonepe-logo {
+    background: #5f259f;
+}
+.paytm-logo {
+    background: #00BAF2;
+    font-size: 0.82rem;
+}
+.anyupi-logo {
+    background: #0F172A;
+}
+.anyupi-logo i {
+    width: 18px;
+    height: 18px;
+}
+.sr-app-tile-info {
+    display: flex;
+    flex-direction: column;
+}
+.sr-app-name {
+    font-size: 0.94rem;
+    font-weight: 700;
+    color: var(--text-main, #0f172a);
+}
+.sr-app-tag {
+    font-size: 0.72rem;
+    color: var(--text-secondary, #64748b);
+}
+.sr-chevron {
+    width: 18px;
+    height: 18px;
+    color: var(--text-secondary, #94a3b8);
+}
+
+/* Auto Detection Notice */
+.sr-auto-detection-notice {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+.sr-notice-icon {
+    color: #10B981;
+}
+.sr-notice-icon i {
+    width: 20px;
+    height: 20px;
+}
+.sr-notice-text {
+    font-size: 0.78rem;
+    color: var(--text-main, #0f172a);
+    line-height: 1.4;
+}
+
+/* QR Code Display */
+.sr-qr-pane-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 8px 0 16px;
+}
+.sr-qr-frame {
+    position: relative;
+    width: 230px;
+    height: 230px;
+    background: #ffffff;
+    padding: 12px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-color, #e2e8f0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+.sr-qr-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    transition: filter 0.2s ease;
+}
+.sr-qr-img.expired {
+    filter: blur(4px) grayscale(1);
+}
+.sr-qr-expired-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.92);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    color: #ffffff;
+    z-index: 10;
+}
+.sr-expired-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.2);
+    color: #EF4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+.sr-expired-circle i {
+    width: 22px;
+    height: 22px;
+}
+.sr-expired-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+.sr-expired-sub {
+    font-size: 0.74rem;
+    color: #94a3b8;
+    margin-bottom: 12px;
+}
+.sr-regenerate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #6366F1;
+    color: #ffffff;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.sr-regenerate-btn:hover {
+    background: #4F46E5;
+}
+.sr-regenerate-btn i {
+    width: 14px;
+    height: 14px;
+}
+
+.sr-qr-meta {
+    width: 100%;
+    max-width: 340px;
+}
+.sr-qr-help-line {
+    font-size: 0.84rem;
+    color: var(--text-secondary, #64748b);
+    margin-bottom: 12px;
+}
+.sr-copy-upi-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-hover, #f8fafc);
+    border: 1px solid var(--border-color, #e2e8f0);
+    padding: 6px 12px;
+    border-radius: 8px;
+    gap: 8px;
+}
+.sr-copy-label {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--text-secondary, #64748b);
+}
+.sr-copy-val {
+    font-family: monospace;
+    font-weight: 700;
+    color: #6366F1;
+    font-size: 0.85rem;
+}
+.sr-copy-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    color: #6366F1;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.15s ease;
+}
+.sr-copy-action-btn:hover {
+    background: rgba(99, 102, 241, 0.1);
+}
+.sr-copy-action-btn i {
     width: 13px;
     height: 13px;
 }
 
-.rzp-qr-instruction {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin: 12px 0 8px;
+/* Backup Accordion */
+.sr-utr-backup-accordion {
+    margin-top: 20px;
+    border-top: 1px dashed var(--border-color, #e2e8f0);
+    padding-top: 16px;
 }
-
-/* VPA Pill */
-.rzp-vpa-copy-pill {
-    background: var(--bg-hover, #F8FAFC);
-    border: 1px solid var(--border-color, #E2E8F0);
-    padding: 6px 12px;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.8rem;
-    max-width: 100%;
-}
-.vpa-label {
-    color: var(--text-secondary);
-    font-size: 0.74rem;
-}
-.vpa-code {
-    font-family: monospace;
-    font-weight: 700;
-    color: var(--text-main);
-}
-.vpa-copy-btn {
-    background: none;
-    border: none;
-    color: #6366F1;
-    font-weight: 700;
-    cursor: pointer;
-    font-size: 0.76rem;
-    padding: 2px 4px;
-}
-.rzp-ref-note {
-    font-size: 0.7rem;
-    color: var(--text-secondary);
-    margin-top: 6px;
-    font-family: monospace;
-}
-
-/* Right UTR Section */
-.rzp-utr-section {
-    padding: 26px 26px;
+.sr-backup-toggle {
+    width: 100%;
     display: flex;
-    flex-direction: column;
     justify-content: space-between;
+    align-items: center;
+    background: transparent;
+    border: none;
+    padding: 8px 0;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text-secondary, #64748b);
+    cursor: pointer;
+    transition: color 0.15s ease;
 }
-.rzp-step-badge {
+.sr-backup-toggle:hover {
+    color: var(--text-main, #0f172a);
+}
+.sr-backup-toggle-left {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
 }
-.step-num {
-    background: #6366F1;
-    color: #FFFFFF;
-    font-size: 0.7rem;
-    font-weight: 800;
-    padding: 2px 8px;
-    border-radius: 6px;
-    text-transform: uppercase;
+.sr-backup-icon {
+    width: 16px;
+    height: 16px;
+    color: #6366F1;
 }
-.step-title {
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: var(--text-main);
+.sr-accordion-chevron {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s ease;
 }
-.rzp-step-desc {
-    font-size: 0.84rem;
-    color: var(--text-secondary);
-    line-height: 1.5;
-    margin: 0 0 18px;
+.sr-backup-toggle.expanded .sr-accordion-chevron {
+    transform: rotate(180deg);
 }
 
-/* Input Box */
-.rzp-input-group {
-    margin-bottom: 16px;
+.sr-backup-collapse {
+    margin-top: 12px;
+    padding: 16px;
+    background: var(--bg-hover, #f8fafc);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
 }
-.rzp-input-label {
+.sr-field-group {
+    margin-bottom: 14px;
+}
+.sr-field-label {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--text-main, #0f172a);
     margin-bottom: 6px;
 }
-.rzp-input-box-wrapper {
+.sr-input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
 }
-.rzp-utr-input {
+.sr-utr-input {
     width: 100%;
-    padding: 13px 60px 13px 14px;
+    padding: 10px 65px 10px 14px;
+    font-size: 1rem;
     font-family: monospace;
-    font-size: 1.12rem;
     font-weight: 700;
-    letter-spacing: 2px;
-    border: 2px solid var(--border-color, #CBD5E1);
-    border-radius: 10px;
-    background: var(--bg-card, #FFFFFF);
-    color: var(--text-main);
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    letter-spacing: 1px;
+    border: 1.5px solid var(--border-color, #cbd5e1);
+    border-radius: 8px;
+    background: var(--card-bg, #ffffff);
+    color: var(--text-main, #0f172a);
+    transition: border-color 0.15s ease;
 }
-.rzp-utr-input:focus {
+.sr-utr-input:focus {
+    outline: none;
     border-color: #6366F1;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
-.rzp-digit-counter {
+.sr-utr-counter {
     position: absolute;
     right: 12px;
     font-size: 0.74rem;
+    font-family: monospace;
     font-weight: 700;
-    color: var(--text-secondary);
-    background: var(--bg-hover, #F1F5F9);
-    padding: 3px 8px;
-    border-radius: 6px;
+    color: var(--text-secondary, #94a3b8);
 }
-.rzp-digit-counter.valid {
+.sr-utr-counter.valid {
     color: #10B981;
-    background: rgba(16, 185, 129, 0.1);
 }
-.rzp-helper-text {
+.sr-field-helper {
     display: block;
-    font-size: 0.76rem;
-    color: var(--text-secondary);
-    margin-top: 5px;
+    font-size: 0.74rem;
+    color: var(--text-secondary, #64748b);
+    margin-top: 4px;
 }
 
-/* Security Strip */
-.rzp-security-strip {
-    background: rgba(99, 102, 241, 0.05);
-    border: 1px solid rgba(99, 102, 241, 0.15);
-    border-radius: 10px;
-    padding: 10px 12px;
-    display: flex;
-    gap: 10px;
-    margin-bottom: 18px;
-    font-size: 0.78rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
-}
-.rzp-sec-icon {
-    width: 18px;
-    height: 18px;
-    color: #6366F1;
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-/* Submit CTA */
-.rzp-submit-cta-btn {
+.sr-submit-btn {
     width: 100%;
-    padding: 14px 18px;
-    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
-    border: none;
-    border-radius: 10px;
-    color: #FFFFFF;
-    font-size: 0.98rem;
-    font-weight: 800;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    padding: 12px 18px;
+    background: #6366F1;
+    color: #ffffff;
+    font-size: 0.94rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
     cursor: pointer;
-    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.35);
-    transition: transform 0.1s, box-shadow 0.15s;
+    transition: all 0.18s ease;
 }
-.rzp-submit-cta-btn:hover {
-    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+.sr-submit-btn:hover {
+    background: #4F46E5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
 }
-.rzp-submit-cta-btn:active {
-    transform: scale(0.99);
-}
-.rzp-submit-cta-btn i {
+.sr-submit-btn i {
     width: 18px;
     height: 18px;
 }
 
-/* Help Accordion */
-.rzp-help-accordion {
-    margin-top: 18px;
-    padding-top: 14px;
-    border-top: 1px dashed var(--border-color, #E2E8F0);
-    font-size: 0.78rem;
-    color: var(--text-secondary);
+.sr-utr-guide-box {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color, #e2e8f0);
 }
-.rzp-help-header {
+.sr-guide-title {
     display: flex;
     align-items: center;
     gap: 6px;
+    font-size: 0.76rem;
     font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 8px;
+    color: var(--text-secondary, #64748b);
+    margin-bottom: 6px;
 }
-.rzp-help-header i {
+.sr-guide-title i {
     width: 14px;
     height: 14px;
-    color: #6366F1;
 }
-.rzp-help-body {
+.sr-guide-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 0.74rem;
+    color: var(--text-secondary, #64748b);
+    line-height: 1.5;
+}
+
+/* SUCCESS CELEBRATION MODAL OVERLAY */
+.sr-success-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 99999;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
 }
-.rzp-help-item {
+.sr-success-modal-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 32px 28px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+    animation: scaleInModal 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes scaleInModal {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+.sr-success-checkmark-circle {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.15);
+    color: #10B981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    animation: popCheck 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes popCheck {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+.sr-success-check-icon {
+    width: 38px;
+    height: 38px;
+    stroke-width: 3;
+}
+.sr-success-modal-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+}
+.sr-success-modal-sub {
+    font-size: 0.88rem;
+    color: #64748b;
+    margin: 0 0 20px 0;
     line-height: 1.4;
 }
-.help-app {
-    font-weight: 700;
+.sr-success-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 9999px;
+    overflow: hidden;
+    margin-bottom: 12px;
 }
-.gpay-txt { color: #2563EB; }
-.phonepe-txt { color: #7C3AED; }
-.paytm-txt { color: #0284C7; }
+.sr-success-progress-fill {
+    width: 0%;
+    height: 100%;
+    background: #10B981;
+    border-radius: 9999px;
+    animation: progressFill 1.8s linear forwards;
+}
+@keyframes progressFill {
+    from { width: 0%; }
+    to { width: 100%; }
+}
+.sr-success-redirect-note {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
 
-/* Responsive Mobile Layout (Razorpay Pattern) */
+/* Responsive Mobile Layout (Clean Single-Column Alignment) */
 @media (max-width: 768px) {
-    .rzp-checkout-wrapper {
-        margin: 8px auto 40px;
-        padding: 0 8px;
+    .sr-pay-page-wrapper {
+        margin: 10px auto 40px;
+        padding: 0 10px;
     }
-    .rzp-gateway-card {
-        border-radius: 14px;
-    }
-    .rzp-gateway-header {
-        padding: 14px 16px;
-    }
-    .rzp-order-summary-strip {
-        padding: 12px 16px;
-    }
-    .rzp-gateway-body {
+    .sr-pay-card-container {
         grid-template-columns: 1fr;
+        border-radius: 16px;
     }
-    .rzp-qr-section {
+    .sr-pay-left-col {
+        padding: 20px 16px;
         border-right: none;
-        border-bottom: 1px solid var(--border-color, #E2E8F0);
-        padding: 18px 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .rzp-utr-section {
-        padding: 20px 14px;
+    .sr-trust-list {
+        display: none; /* Keep mobile clean and focused on action */
     }
-    .rzp-qr-img {
-        width: 160px;
-        height: 160px;
+    .sr-pay-right-col {
+        padding: 18px 16px;
+    }
+    .sr-card-item-title {
+        font-size: 0.98rem;
+    }
+    .sr-amt-number {
+        font-size: 1.8rem;
+    }
+    .sr-qr-frame {
+        width: 200px;
+        height: 200px;
     }
 }
 </style>
 
-<!-- Live 5-Minute Countdown, Dynamic QR Refresh & Instant UTR Formatter -->
+<!-- Automated Payment Polling, Tab Switcher & Expiry Timer Engine -->
 <script>
-(function initRazorpayCheckoutEngine() {
-    let remainingSeconds = {{ qr_data.expires_in|default(300) }};
+(function() {
     let timerInterval = null;
+    let autoPollInterval = null;
+    let remainingSeconds = {{ qr_data.expires_in|default(300) }};
+    const sessionToken = "{{ qr_data.session_token }}";
+    const itemType = "{{ item_type }}";
+    const itemId = "{{ item_id }}";
 
-    const timerBadge = document.getElementById('timerBadge');
+    // Elements
     const timerDigits = document.getElementById('timerDigits');
     const qrImage = document.getElementById('qrImage');
     const qrOverlay = document.getElementById('qrExpiredOverlay');
     const btnRefresh = document.getElementById('btnRefreshQr');
+    const radarText = document.getElementById('radarText');
+    const radarStatus = document.getElementById('radarStatus');
+    const successModal = document.getElementById('successModalOverlay');
     const utrInput = document.getElementById('utr_number');
     const digitCounter = document.getElementById('digitCounter');
     const helperText = document.getElementById('utrHelperText');
     const copyBtn = document.getElementById('copyVpaBtn');
-    const sessionTokenInput = document.getElementById('sessionTokenInput');
-    const form = document.getElementById('utrPaymentForm');
-    const submitBtn = document.getElementById('submitPaymentBtn');
+    const backupCollapse = document.getElementById('backupFormCollapse');
+    const backupBtn = document.getElementById('btnToggleBackup');
 
-    // Deep link elements
-    const linkGPay = document.getElementById('linkGPay');
-    const linkPhonePe = document.getElementById('linkPhonePe');
-    const linkPaytm = document.getElementById('linkPaytm');
-    const linkAnyUpi = document.getElementById('linkAnyUpi');
-    const refNoteDisplay = document.getElementById('refNoteDisplay');
+    // 1. Tab Switching Function
+    window.switchPaymentTab = function(tabName) {
+        const btnApps = document.getElementById('tabBtnApps');
+        const btnQr = document.getElementById('tabBtnQr');
+        const paneApps = document.getElementById('paneApps');
+        const paneQr = document.getElementById('paneQr');
 
-    // 1. Live Countdown Timer (5 Minutes)
+        if (tabName === 'apps') {
+            btnApps.classList.add('active');
+            btnQr.classList.remove('active');
+            paneApps.classList.add('active');
+            paneQr.classList.remove('active');
+        } else {
+            btnQr.classList.add('active');
+            btnApps.classList.remove('active');
+            paneQr.classList.add('active');
+            paneApps.classList.remove('active');
+        }
+        if (window.lucide) window.lucide.createIcons();
+    };
+
+    // 2. Backup Accordion Toggle
+    window.toggleBackupForm = function() {
+        if (!backupCollapse) return;
+        const isHidden = backupCollapse.style.display === 'none';
+        if (isHidden) {
+            backupCollapse.style.display = 'block';
+            backupBtn.classList.add('expanded');
+        } else {
+            backupCollapse.style.display = 'none';
+            backupBtn.classList.remove('expanded');
+        }
+    };
+
+    // 3. Expiry Countdown Clock
     function formatTime(secs) {
         const m = Math.floor(secs / 60);
         const s = secs % 60;
@@ -959,7 +1353,7 @@
             timerDigits.innerText = '00:00';
             timerDigits.style.color = '#EF4444';
             
-            // Trigger Expired State
+            // Trigger QR Expired Overlay
             qrImage.classList.add('expired');
             qrOverlay.style.display = 'flex';
             if (window.lucide) window.lucide.createIcons();
@@ -970,7 +1364,7 @@
         if (remainingSeconds <= 60) {
             timerDigits.style.color = '#EF4444';
         } else {
-            timerDigits.style.color = '#FBBF24';
+            timerDigits.style.color = '#D97706';
         }
         remainingSeconds--;
     }
@@ -984,37 +1378,42 @@
         timerInterval = setInterval(updateTimerUI, 1000);
     }
 
-    // 2. Dynamic QR Regeneration via AJAX (Zero Page Reload)
+    // 4. In-Place Dynamic QR Refresh via AJAX
     async function regenerateQR() {
+        if (!btnRefresh) return;
         btnRefresh.disabled = true;
         btnRefresh.innerHTML = '<span>Regenerating...</span>';
 
         try {
-            const resp = await fetch('/payment/refresh-qr/{{ item_type }}/{{ item_id }}');
+            const resp = await fetch(`/payment/refresh-qr/${itemType}/${itemId}`);
             const data = await resp.json();
 
             if (data.success) {
-                // Update QR image
                 qrImage.src = data.qr_data_uri;
                 
-                // Update deep link URLs
+                // Update links
+                const linkGPay = document.getElementById('linkGPay');
+                const linkPhonePe = document.getElementById('linkPhonePe');
+                const linkPaytm = document.getElementById('linkPaytm');
+                const linkAnyUpi = document.getElementById('linkAnyUpi');
                 if (linkGPay) linkGPay.href = data.gpay_uri;
                 if (linkPhonePe) linkPhonePe.href = data.phonepe_uri;
                 if (linkPaytm) linkPaytm.href = data.paytm_uri;
                 if (linkAnyUpi) linkAnyUpi.href = data.upi_uri;
 
-                // Update session token & reference note
-                if (sessionTokenInput) sessionTokenInput.value = data.session_token;
-                if (refNoteDisplay) refNoteDisplay.innerText = data.ref_note;
+                // Update session note
+                const refDisplay = document.getElementById('refNoteDisplay');
+                if (refDisplay) refDisplay.innerText = data.ref_note;
 
-                // Restart fresh 5-minute countdown (300 seconds)
+                const sessInput = document.getElementById('sessionTokenInput');
+                if (sessInput) sessInput.value = data.session_token;
+
                 startTimer(data.expires_in || 300);
             } else {
-                alert(data.error || 'Failed to refresh QR code. Please reload the page.');
+                alert(data.error || 'Failed to refresh QR.');
             }
         } catch (err) {
             console.error('Error refreshing QR:', err);
-            alert('Network connection error while refreshing QR. Please try again.');
         } finally {
             btnRefresh.disabled = false;
             btnRefresh.innerHTML = '<i data-lucide="refresh-cw"></i><span>Generate New QR</span>';
@@ -1026,14 +1425,63 @@
         btnRefresh.addEventListener('click', regenerateQR);
     }
 
-    // 3. Smart 12-Digit UTR Formatter with 4-4-4 spacing
+    // 5. Automated Real-Time Payment Detection Poller
+    let isUnlocked = false;
+    async function pollPaymentStatus() {
+        if (isUnlocked) return;
+        try {
+            const sess = document.getElementById('sessionTokenInput')?.value || sessionToken;
+            const resp = await fetch(`/payment/check-auto-status/${itemType}/${itemId}?session_token=${encodeURIComponent(sess)}`);
+            const data = await resp.json();
+
+            if (data && data.unlocked === true) {
+                isUnlocked = true;
+                clearInterval(autoPollInterval);
+                clearInterval(timerInterval);
+
+                // Update radar status
+                if (radarText) radarText.innerText = "Payment Verified! Unlocking...";
+                if (radarStatus) {
+                    radarStatus.style.borderColor = "#10B981";
+                    radarStatus.style.background = "rgba(16, 185, 129, 0.12)";
+                    radarStatus.style.color = "#10B981";
+                }
+
+                // Show Success Celebration Modal
+                if (successModal) {
+                    successModal.style.display = 'flex';
+                    if (window.lucide) window.lucide.createIcons();
+                }
+
+                // Countdown redirect
+                let countdown = 2;
+                const redirectSecsElem = document.getElementById('redirectSecs');
+                const redirectUrl = data.redirect_url || '/';
+
+                const redirectTimer = setInterval(() => {
+                    countdown--;
+                    if (redirectSecsElem) redirectSecsElem.innerText = countdown;
+                    if (countdown <= 0) {
+                        clearInterval(redirectTimer);
+                        window.location.href = redirectUrl;
+                    }
+                }, 900);
+            }
+        } catch (err) {
+            // Passive network skip
+            console.debug('Auto-poll check tick:', err);
+        }
+    }
+
+    // Start polling every 2.5 seconds
+    autoPollInterval = setInterval(pollPaymentStatus, 2500);
+
+    // 6. Smart 12-Digit UTR Formatter (4-4-4 spacing)
     if (utrInput) {
         utrInput.addEventListener('input', (e) => {
-            // Strip any non-numeric characters
             let raw = e.target.value.replace(/\D/g, '');
             if (raw.length > 12) raw = raw.slice(0, 12);
 
-            // Format with clean spacing: 1234 5678 9012
             let formatted = raw;
             if (raw.length > 4 && raw.length <= 8) {
                 formatted = raw.slice(0, 4) + ' ' + raw.slice(4);
@@ -1042,52 +1490,68 @@
             }
             e.target.value = formatted;
 
-            // Update Counter & Validation helper
             const len = raw.length;
-            digitCounter.innerText = `${len}/12`;
+            if (digitCounter) digitCounter.innerText = `${len}/12`;
 
             if (len === 12) {
-                digitCounter.classList.add('valid');
-                digitCounter.innerText = '✓ 12/12';
-                helperText.innerText = '✓ Complete 12-digit UTR reference entered.';
-                helperText.style.color = '#10B981';
+                if (digitCounter) {
+                    digitCounter.classList.add('valid');
+                    digitCounter.innerText = '✓ 12/12';
+                }
+                if (helperText) {
+                    helperText.innerText = '✓ Complete 12-digit UTR reference entered.';
+                    helperText.style.color = '#10B981';
+                }
             } else {
-                digitCounter.classList.remove('valid');
-                helperText.innerText = `${12 - len} more digit(s) required.`;
-                helperText.style.color = 'var(--text-secondary)';
+                if (digitCounter) digitCounter.classList.remove('valid');
+                if (helperText) {
+                    helperText.innerText = `${12 - len} more digit(s) required.`;
+                    helperText.style.color = 'var(--text-secondary, #64748b)';
+                }
             }
         });
     }
 
-    // 4. One-Click Copy UPI ID
+    // 7. Copy UPI ID
     if (copyBtn) {
         copyBtn.addEventListener('click', () => {
-            const vpa = document.getElementById('vpaCodeDisplay').innerText.trim();
+            const vpa = document.getElementById('vpaCodeDisplay')?.innerText.trim() || '9243494968@nyes';
             navigator.clipboard.writeText(vpa).then(() => {
-                copyBtn.innerText = 'Copied!';
+                copyBtn.innerHTML = '<i data-lucide="check"></i><span>Copied!</span>';
                 copyBtn.style.color = '#10B981';
+                if (window.lucide) window.lucide.createIcons();
                 setTimeout(() => {
-                    copyBtn.innerText = 'Copy';
+                    copyBtn.innerHTML = '<i data-lucide="copy"></i><span>Copy</span>';
                     copyBtn.style.color = '#6366F1';
+                    if (window.lucide) window.lucide.createIcons();
                 }, 1800);
             });
         });
     }
 
-    // 5. Form submission state
-    if (form) {
-        form.addEventListener('submit', (e) => {
-            // Clean whitespace before submitting to server
+    // 8. Clean UTR before submit
+    const utrForm = document.getElementById('utrPaymentForm');
+    if (utrForm) {
+        utrForm.addEventListener('submit', () => {
             if (utrInput) {
                 utrInput.value = utrInput.value.replace(/\D/g, '');
             }
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>Verifying Transaction...</span>';
+            const sBtn = document.getElementById('submitPaymentBtn');
+            if (sBtn) {
+                sBtn.disabled = true;
+                sBtn.innerHTML = '<span>Verifying Transaction...</span>';
+            }
         });
     }
 
-    // Launch initial 5-minute timer
+    // Init on DOM Load
     document.addEventListener('DOMContentLoaded', () => {
+        // Auto-select QR on desktop and Apps on mobile
+        if (window.innerWidth >= 768) {
+            switchPaymentTab('qr');
+        } else {
+            switchPaymentTab('apps');
+        }
         startTimer(300);
         if (window.lucide) window.lucide.createIcons();
     });

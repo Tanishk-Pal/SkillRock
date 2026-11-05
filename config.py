@@ -65,3 +65,5 @@ class Config:
     # Dynamic UPI Payment Gateway Configuration
     MERCHANT_UPI_ID = os.getenv("MERCHANT_UPI_ID", "9243494968@nyes").strip() or "9243494968@nyes"
     MERCHANT_NAME = os.getenv("MERCHANT_NAME", "SkillRock").strip() or "SkillRock"
+    BANK_SMS_WEBHOOK_SECRET = os.getenv("BANK_SMS_WEBHOOK_SECRET", "skillrock_bank_hook_sec_2026").strip() or "skillrock_bank_hook_sec_2026"
+

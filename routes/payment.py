@@ -21,6 +21,7 @@ from flask import (
 )
 from flask_login import login_required, current_user
 from pymongo.errors import DuplicateKeyError
+from config import Config
 from models import get_db, Course
 from models.test_series import TestDefinition, TestPack
 from services.payment_service import (
@@ -29,6 +30,10 @@ from services.payment_service import (
     get_item_by_type_and_id,
     verify_student_unlock,
     grant_student_access,
+    register_checkout_session,
+    parse_bank_credit_sms,
+    process_incoming_bank_credit,
+    auto_claim_credit_for_student,
 )
 
 logger = logging.getLogger(__name__)
@@ -91,6 +96,15 @@ def checkout(item_type, item_id):
         item_title=item.title,
     )
 
+    # Register active student checkout session for instant bank SMS auto-match
+    register_checkout_session(
+        user_id=str(current_user.id),
+        item_type=item_type,
+        item_id=str(item.id),
+        session_token=qr_data.get("session_token"),
+        amount=price,
+    )
+
     return render_template(
         "payment/checkout.html",
         item=item,
@@ -127,6 +141,15 @@ def refresh_qr(item_type, item_id):
         item_type=item_type,
         item_id=str(item.id),
         item_title=item.title,
+    )
+
+    # Register refreshed checkout session
+    register_checkout_session(
+        user_id=str(current_user.id),
+        item_type=item_type,
+        item_id=str(item.id),
+        session_token=qr_data.get("session_token"),
+        amount=price,
     )
 
     return jsonify({
@@ -203,6 +226,53 @@ def submit_payment():
     now = datetime.now(timezone.utc)
     payment_id = f"PAY-{now.strftime('%Y%m%d')}-{os.urandom(3).hex().upper()}"
 
+    # Check if this UTR was already detected & credited via Bank SMS
+    bank_credit = db.bank_credits.find_one({"utr_number": utr_clean, "claimed": False, "amount": exact_price})
+    if bank_credit:
+        # Instant Auto-Unlock: Bank SMS already confirmed the funds
+        payment_record = {
+            "payment_id": payment_id,
+            "user_id": str(current_user.id),
+            "user_name": getattr(current_user, "name", "Student"),
+            "user_email": getattr(current_user, "email", ""),
+            "item_type": item_type,
+            "item_id": str(item.id),
+            "item_title": getattr(item, "title", "SkillRock Learning Item"),
+            "amount": exact_price,
+            "utr_number": utr_clean,
+            "status": "approved",
+            "submitted_at": now,
+            "reviewed_at": now,
+            "reviewed_by": "bank_sms_instant_match",
+            "matched_via": "bank_credit_sms",
+            "rejection_reason": None,
+            "created_at": now,
+            "updated_at": now,
+        }
+        try:
+            db.payments.insert_one(payment_record)
+        except DuplicateKeyError:
+            flash(f"UTR '{utr_clean}' has already been recorded.", "danger")
+            return redirect(url_for("payment.checkout", item_type=item_type, item_id=str(item.id)))
+
+        db.bank_credits.update_one(
+            {"_id": bank_credit["_id"]},
+            {"$set": {"claimed": True, "claimed_by": str(current_user.id), "payment_id": payment_id, "updated_at": now}}
+        )
+        grant_student_access(
+            user_id=str(current_user.id),
+            item_type=item_type,
+            item_id=str(item.id),
+            granted_by="bank_sms_instant_match",
+            payment_id=payment_id,
+            amount=exact_price,
+        )
+        flash(f"⚡ Instant Bank Match: Payment of ₹{int(exact_price)} verified via Bank SMS. Access unlocked!", "success")
+        if item_type == "course":
+            return redirect(url_for("learning.course_detail", slug=item.slug, player=1, _anchor="skillrockPlayerFrame"))
+        else:
+            return redirect(url_for("test_series.test_detail", test_slug=item.slug))
+
     payment_record = {
         "payment_id": payment_id,
         "user_id": str(current_user.id),
@@ -242,6 +312,143 @@ def submit_payment():
         "success",
     )
     return redirect(url_for("payment.payment_status", payment_id=payment_id))
+
+
+# ==============================================================================
+# 2B. Automated Bank SMS Webhook
+# ==============================================================================
+
+@payment_bp.route("/api/webhook/bank-sms", methods=["POST"])
+def bank_sms_webhook():
+    """
+    Automated Bank SMS / UPI Credit Webhook Engine.
+    Receives forwarded incoming bank SMS from student transfers to 9243494968@nyes.
+    Parses amount, 12-digit UTR, and reference note.
+    Automatically approves pending payments or unlocks active student sessions.
+    Zero manual admin action required!
+    """
+    secret = (
+        request.headers.get("X-Webhook-Secret")
+        or request.args.get("secret")
+        or (request.is_json and (request.get_json(silent=True) or {}).get("secret"))
+        or request.form.get("secret")
+    )
+    expected_secret = getattr(Config, "BANK_SMS_WEBHOOK_SECRET", "skillrock_bank_hook_sec_2026")
+    if not secret or secret != expected_secret:
+        logger.warning(f"Unauthorized bank SMS webhook attempt with invalid secret from {request.remote_addr}")
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    payload = {}
+    if request.is_json:
+        payload = request.get_json(silent=True) or {}
+    else:
+        payload = request.form.to_dict() or {}
+
+    # Extract SMS text from common forwarder field names
+    sms_text = (
+        payload.get("message")
+        or payload.get("body")
+        or payload.get("text")
+        or payload.get("sms")
+        or payload.get("content")
+        or request.get_data(as_text=True)
+    )
+    sender = payload.get("sender") or payload.get("from") or payload.get("address") or ""
+
+    if not sms_text:
+        return jsonify({"success": False, "error": "Missing SMS content"}), 400
+
+    logger.info(f"Received Bank SMS notification from sender: {sender}")
+    parsed = parse_bank_credit_sms(sms_text, sender=sender)
+
+    if not parsed.get("is_credit"):
+        logger.info(f"Bank SMS ignored: {parsed.get('error')}")
+        return jsonify({"success": False, "reason": parsed.get("error")}), 200
+
+    # Process verified bank credit
+    res = process_incoming_bank_credit(
+        amount=parsed["amount"],
+        utr_number=parsed.get("utr_number"),
+        ref_note=parsed.get("ref_note"),
+        sender=sender,
+        raw_sms=sms_text,
+    )
+
+    return jsonify({
+        "success": True,
+        "parsed": {
+            "amount": parsed["amount"],
+            "utr_number": parsed.get("utr_number"),
+            "ref_note": parsed.get("ref_note"),
+        },
+        "result": res,
+    }), 200
+
+
+# ==============================================================================
+# 2C. Client Auto-Status Polling
+# ==============================================================================
+
+@payment_bp.route("/payment/check-auto-status/<item_type>/<item_id>")
+@login_required
+def check_auto_status(item_type, item_id):
+    """
+    Lightweight background status polling for checkout.html.
+    Checks if user has been unlocked via Bank SMS webhook or admin verification.
+    Returns unlocked: True with direct player redirect URL as soon as verified.
+    """
+    if item_type not in ("course", "test_series"):
+        return jsonify({"unlocked": False, "error": "Invalid item type"}), 400
+
+    item = get_item_by_type_and_id(item_type, item_id)
+    if not item:
+        return jsonify({"unlocked": False, "error": "Item not found"}), 404
+
+    session_token = request.args.get("session_token", "").strip()
+
+    # Run auto-claim & unlock verification
+    is_unlocked = auto_claim_credit_for_student(
+        user=current_user,
+        item_type=item_type,
+        item_id=str(item.id),
+        session_token=session_token,
+    )
+
+    if is_unlocked:
+        if item_type == "course":
+            redirect_url = url_for("learning.course_detail", slug=item.slug, player=1, _anchor="skillrockPlayerFrame")
+        else:
+            redirect_url = url_for("test_series.test_detail", test_slug=item.slug)
+
+        return jsonify({
+            "unlocked": True,
+            "status": "approved",
+            "redirect_url": redirect_url,
+            "message": f"Payment verified! Unlocking {item.title}..."
+        })
+
+    db = get_db()
+    pending = db.payments.find_one({
+        "user_id": str(current_user.id),
+        "item_type": item_type,
+        "item_id": str(item.id),
+        "status": "pending",
+    })
+
+    if pending:
+        return jsonify({
+            "unlocked": False,
+            "status": "pending",
+            "payment_id": pending.get("payment_id"),
+            "message": "Payment is under verification.",
+        })
+
+    return jsonify({
+        "unlocked": False,
+        "status": "listening",
+        "message": "Listening for UPI transfer...",
+    })
+
 
 
 # ==============================================================================
