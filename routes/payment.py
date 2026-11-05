@@ -343,8 +343,22 @@ def bank_sms_webhook():
         payload = request.get_json(silent=True) or {}
     else:
         payload = request.form.to_dict() or {}
+        # Auto-parse if MacroDroid sent raw JSON without setting Content-Type: application/json
+        if not payload:
+            raw_text = request.get_data(as_text=True)
+            if raw_text and ("{" in raw_text):
+                try:
+                    import json
+                    payload = json.loads(raw_text.strip())
+                except Exception:
+                    pass
 
-    # Extract SMS text from common forwarder field names
+    # Re-check secret if it was passed inside JSON body
+    if not secret and isinstance(payload, dict):
+        secret = payload.get("secret")
+    if not secret or secret != expected_secret:
+        logger.warning(f"Unauthorized bank SMS webhook attempt with invalid secret from {request.remote_addr}")
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
     sms_text = (
         payload.get("message")
         or payload.get("body")
