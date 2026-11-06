@@ -10,7 +10,7 @@ import time
 import secrets
 import base64
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from urllib.parse import quote
 import qrcode
 from config import Config
@@ -551,6 +551,71 @@ def process_incoming_bank_credit(amount, utr_number, ref_note=None, sender=None,
                 "payment_id": payment_id,
                 "user_id": user_id,
                 "message": f"Successfully auto-unlocked access for user {user_id} via session note."
+            }
+
+    # Case C: Even if ref_note is omitted by bank SMS (e.g. Central Bank, SBI),
+    # match against active student checkout session for this exact amount within the last 20 minutes!
+    if amt_float > 0:
+        twenty_mins_ago = now - timedelta(minutes=20)
+        recent_sessions = list(db.checkout_sessions.find({
+            "amount": amt_float,
+            "updated_at": {"$gte": twenty_mins_ago}
+        }).sort("updated_at", -1).limit(1))
+
+        if recent_sessions:
+            sess_doc = recent_sessions[0]
+            matched_user_id = sess_doc.get("user_id")
+            matched_item_type = sess_doc.get("item_type")
+            matched_item_id = sess_doc.get("item_id")
+            matched_item = get_item_by_type_and_id(matched_item_type, matched_item_id)
+
+            from models import User
+            matched_user_obj = User.get_by_id(matched_user_id)
+
+            payment_id = f"PAY-{now.strftime('%Y%m%d')}-{secrets.token_hex(3).upper()}"
+            auto_payment = {
+                "payment_id": payment_id,
+                "user_id": str(matched_user_id),
+                "user_name": getattr(matched_user_obj, "name", "Student"),
+                "user_email": getattr(matched_user_obj, "email", ""),
+                "item_type": matched_item_type,
+                "item_id": str(matched_item_id),
+                "item_title": getattr(matched_item, "title", "SkillRock Course"),
+                "amount": amt_float,
+                "utr_number": utr_number or f"SMS{now.strftime('%H%M%S')}{secrets.token_hex(2).upper()}",
+                "status": "approved",
+                "session_token": sess_doc.get("session_token"),
+                "submitted_at": now,
+                "reviewed_at": now,
+                "reviewed_by": "bank_sms_webhook",
+                "matched_via": "active_checkout_amount_match",
+                "created_at": now,
+                "updated_at": now,
+            }
+            try:
+                db.payments.insert_one(auto_payment)
+            except Exception as e:
+                logger.warning(f"Notice inserting auto payment: {e}")
+
+            grant_student_access(
+                user_id=matched_user_id,
+                item_type=matched_item_type,
+                item_id=matched_item_id,
+                granted_by="bank_sms_webhook",
+                payment_id=payment_id,
+                amount=amt_float,
+            )
+            if utr_number:
+                db.bank_credits.update_one(
+                    {"utr_number": utr_number},
+                    {"$set": {"claimed": True, "claimed_by": matched_user_id, "payment_id": payment_id, "updated_at": now}}
+                )
+            return {
+                "success": True,
+                "status": "auto_created_and_unlocked",
+                "payment_id": payment_id,
+                "user_id": matched_user_id,
+                "message": f"Successfully auto-unlocked access for user {matched_user_id} via recent active checkout session."
             }
 
     return {

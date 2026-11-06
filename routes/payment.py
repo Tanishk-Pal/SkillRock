@@ -203,13 +203,16 @@ def submit_payment():
     if not is_paid or exact_price <= 0:
         return redirect(url_for("payment.enroll_free", item_type=item_type, item_id=str(item.id)))
 
+    # Strip any spaces, hyphens, or formatting before validation
+    import re
+    utr_clean = re.sub(r"\D", "", str(utr_raw or "").strip())
+
     # Strict 12-digit UTR validation
-    is_valid, err_msg = validate_utr(utr_raw)
+    is_valid, err_msg = validate_utr(utr_clean)
     if not is_valid:
         flash(err_msg, "danger")
         return redirect(url_for("payment.checkout", item_type=item_type, item_id=str(item.id)))
 
-    utr_clean = str(utr_raw).strip()
     db = get_db()
 
     # Pre-check existing payment records for anti-replay
@@ -227,7 +230,11 @@ def submit_payment():
     payment_id = f"PAY-{now.strftime('%Y%m%d')}-{os.urandom(3).hex().upper()}"
 
     # Check if this UTR was already detected & credited via Bank SMS
-    bank_credit = db.bank_credits.find_one({"utr_number": utr_clean, "claimed": False, "amount": exact_price})
+    bank_credit = db.bank_credits.find_one({
+        "utr_number": utr_clean,
+        "claimed": False,
+        "amount": {"$gte": exact_price - 0.01}
+    })
     if bank_credit:
         # Instant Auto-Unlock: Bank SMS already confirmed the funds
         payment_record = {
