@@ -368,13 +368,22 @@ def bank_sms_webhook():
         return jsonify({"success": False, "error": "Unauthorized"}), 401
     sms_text = (
         payload.get("message")
+        or payload.get("notification")
+        or payload.get("not_text")
         or payload.get("body")
         or payload.get("text")
         or payload.get("sms")
         or payload.get("content")
         or request.get_data(as_text=True)
     )
-    sender = payload.get("sender") or payload.get("from") or payload.get("address") or ""
+    sender = (
+        payload.get("sender")
+        or payload.get("not_title")
+        or payload.get("title")
+        or payload.get("from")
+        or payload.get("address")
+        or ""
+    )
 
     if not sms_text:
         return jsonify({"success": False, "error": "Missing SMS content"}), 400
