@@ -1626,6 +1626,14 @@ def payment_approve(payment_id):
         }
     )
 
+    # Sync ambassador sales record status
+    if payment.get("srid"):
+        db.ambassador_sales.update_one(
+            {"payment_id": payment["payment_id"]},
+            {"$set": {"status": "approved", "approved_at": now, "approved_by": admin_identifier, "updated_at": now}},
+            upsert=False
+        )
+
     # Grant access to student
     grant_student_access(
         user_id=payment["user_id"],
@@ -1672,6 +1680,14 @@ def payment_reject(payment_id):
             }
         }
     )
+
+    # Sync ambassador sales record status if exists
+    if payment.get("srid"):
+        db.ambassador_sales.update_one(
+            {"payment_id": payment["payment_id"]},
+            {"$set": {"status": "rejected", "rejection_reason": reason, "reviewed_at": now, "reviewed_by": admin_identifier, "updated_at": now}},
+            upsert=False
+        )
 
     revoke_student_access(
         user_id=payment["user_id"],

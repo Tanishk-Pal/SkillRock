@@ -6,7 +6,11 @@ and strict free enrollment gating (blocking paid items with HTTP 403).
 """
 
 import os
+import re
+import json
 import logging
+import urllib.request
+import urllib.error
 from datetime import datetime, timezone
 from flask import (
     Blueprint,
@@ -39,6 +43,223 @@ from services.payment_service import (
 logger = logging.getLogger(__name__)
 
 payment_bp = Blueprint("payment", __name__)
+
+
+AMBASSADOR_VALIDATION_BASE_URL = "https://skillrock-ambassador-portal-backend.onrender.com/api/sales/validate-srid"
+
+
+def validate_srid_authoritative(srid):
+    """
+    Validates a Student Ambassador Referral ID against the authoritative external service.
+    Returns tuple: (is_valid: bool, ambassador_name: str or None, is_service_available: bool)
+    - Enforces format: 'SR' followed by exactly 4 numeric digits (e.g. 'SR1001').
+    - Robustly accepts '1001', 'SR1001', or 'SRID:SR1001'.
+    - Times out after 3.0 seconds to prevent blocking student checkout.
+    - Gracefully handles Render cold-starts / 404s / 'no-server' without throwing.
+    """
+    if not srid:
+        return False, None, True
+
+    clean_srid = str(srid).strip().upper()
+    clean_srid = re.sub(r"^SRID:?", "", clean_srid)
+    if re.match(r"^\d{4}$", clean_srid):
+        clean_srid = f"SR{clean_srid}"
+
+    if not re.match(r"^SR\d{4}$", clean_srid):
+        return False, None, True
+
+    url = f"{AMBASSADOR_VALIDATION_BASE_URL}/{clean_srid}"
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "SkillRock-Backend-Validator/1.0",
+                "Accept": "application/json",
+            }
+        )
+        with urllib.request.urlopen(req, timeout=3.0) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            name = (
+                data.get("name")
+                or data.get("ambassador_name")
+                or (data.get("ambassador", {}).get("name") if isinstance(data.get("ambassador"), dict) else None)
+            )
+            is_valid = bool(data.get("valid", True) and name)
+            return is_valid, name, True
+    except urllib.error.HTTPError as e:
+        is_render_no_server = "no-server" in str(e.headers.get("x-render-routing", "")).lower()
+        if is_render_no_server or e.code >= 500:
+            logger.info(f"Ambassador validation service unavailable ({e.code}, x-render-routing): {url}")
+            return False, None, False
+        if e.code == 404:
+            return False, None, True
+        return False, None, False
+    except (urllib.error.URLError, TimeoutError, OSError) as e:
+        logger.info(f"Ambassador validation connection error or timeout: {e}")
+        return False, None, False
+    except Exception as e:
+        logger.warning(f"Unexpected error validating SRID {clean_srid}: {e}")
+        return False, None, False
+
+
+def record_ambassador_sale(srid, item, user, amount, payment_id, utr_number, status="pending"):
+    """
+    Persists a referred course sale in MongoDB ambassador_sales collection,
+    recording which ambassador sold which course, to whom, and when.
+    Also dispatches non-blocking sync notification to Ambassador Portal API.
+    """
+    if not srid:
+        return
+    clean_srid = str(srid).strip().upper()
+    clean_srid = re.sub(r"^SRID:?", "", clean_srid)
+    if re.match(r"^\d{4}$", clean_srid):
+        clean_srid = f"SR{clean_srid}"
+    if not re.match(r"^SR\d{4}$", clean_srid):
+        return
+
+    now = datetime.now(timezone.utc)
+    db = get_db()
+    sale_doc = {
+        "srid": clean_srid,
+        "srid_display": f"SRID:{clean_srid}",
+        "course_id": str(getattr(item, "id", "")),
+        "course_title": getattr(item, "title", "Course"),
+        "student_id": str(getattr(user, "id", "")),
+        "student_name": getattr(user, "name", "Student"),
+        "student_email": getattr(user, "email", ""),
+        "amount": float(amount or 0.0),
+        "payment_id": payment_id,
+        "utr_number": utr_number,
+        "status": status,
+        "sold_at": now,
+        "created_at": now,
+        "updated_at": now,
+    }
+    try:
+        db.ambassador_sales.update_one(
+            {"payment_id": payment_id},
+            {"$set": sale_doc},
+            upsert=True
+        )
+    except Exception as e:
+        logger.warning(f"Error persisting ambassador_sales record: {e}")
+
+    # Asynchronous non-blocking dispatch to external ambassador portal
+    try:
+        portal_url = "https://skillrock-ambassador-portal-backend.onrender.com/api/sales/record"
+        payload = json.dumps({
+            "srid": clean_srid,
+            "course_title": sale_doc["course_title"],
+            "student_name": sale_doc["student_name"],
+            "student_email": sale_doc["student_email"],
+            "amount": sale_doc["amount"],
+            "payment_id": payment_id,
+            "utr_number": utr_number,
+            "status": status,
+            "sold_at": now.isoformat(),
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            portal_url,
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "SkillRock-Sales-Dispatcher/1.0"
+            },
+            method="POST"
+        )
+        urllib.request.urlopen(req, timeout=1.5)
+    except Exception as e:
+        logger.info(f"Ambassador portal notification notice: {e}")
+
+
+@payment_bp.route("/api/sales/validate-srid/<srid>", methods=["GET"])
+def api_validate_srid(srid):
+    """
+    Backend proxy endpoint for live debounced ambassador referral validation in checkout.
+    Prevents CORS issues and provides graceful messaging when ambassador service is sleeping.
+    """
+    clean_srid = str(srid or "").strip().upper()
+    clean_srid = re.sub(r"^SRID:?", "", clean_srid)
+    if re.match(r"^\d{4}$", clean_srid):
+        clean_srid = f"SR{clean_srid}"
+
+    if not re.match(r"^SR\d{4}$", clean_srid):
+        return jsonify({
+            "success": True,
+            "valid": False,
+            "available": True,
+            "srid": clean_srid,
+            "message": "Invalid Ambassador ID. Please check the 4-digit number."
+        })
+
+    is_valid, name, is_available = validate_srid_authoritative(clean_srid)
+    if not is_available:
+        return jsonify({
+            "success": True,
+            "valid": False,
+            "available": False,
+            "srid": clean_srid,
+            "message": "Ambassador validation service is temporarily unavailable. Checkout will proceed normally."
+        })
+
+    if is_valid and name:
+        return jsonify({
+            "success": True,
+            "valid": True,
+            "available": True,
+            "srid": clean_srid,
+            "name": name,
+            "message": f"Verified Ambassador: {name}"
+        })
+    else:
+        return jsonify({
+            "success": True,
+            "valid": False,
+            "available": True,
+            "srid": clean_srid,
+            "message": "Invalid Ambassador ID. Please check the 4-digit number."
+        })
+
+
+@payment_bp.route("/payment/update-referral", methods=["POST"])
+@login_required
+def update_referral():
+    """
+    Updates the student's active checkout session with the latest valid SRID in real-time.
+    Called asynchronously from client when student enters a referral ID during checkout.
+    """
+    data = request.get_json(silent=True) or {}
+    session_token = str(data.get("session_token") or "").strip()
+    srid_raw = str(data.get("srid") or "").strip()
+
+    if not session_token:
+        return jsonify({"success": False, "error": "Missing session token"}), 400
+
+    db = get_db()
+    session_doc = db.checkout_sessions.find_one({"session_token": session_token})
+    if not session_doc or session_doc.get("user_id") != str(current_user.id):
+        return jsonify({"success": False, "error": "Session not found or unauthorized"}), 403
+
+    now = datetime.now(timezone.utc)
+    if not srid_raw:
+        db.checkout_sessions.update_one(
+            {"session_token": session_token},
+            {"$unset": {"srid": ""}, "$set": {"updated_at": now}}
+        )
+        return jsonify({"success": True, "srid": None})
+
+    clean_srid = srid_raw.upper()
+    if re.match(r"^\d{4}$", clean_srid):
+        clean_srid = f"SR{clean_srid}"
+
+    if not re.match(r"^SR\d{4}$", clean_srid):
+        return jsonify({"success": False, "error": "Invalid SRID format"}), 400
+
+    db.checkout_sessions.update_one(
+        {"session_token": session_token},
+        {"$set": {"srid": clean_srid, "updated_at": now}}
+    )
+    return jsonify({"success": True, "srid": clean_srid})
 
 
 # ==============================================================================
@@ -88,6 +309,20 @@ def checkout(item_type, item_id):
         "status": "pending",
     })
 
+    # Check for optional prefilled referral code (query param ?ref=1001 or ?ref=SR1001 or ?srid=1001)
+    ref_param = (request.args.get("ref", "") or request.args.get("srid", "")).strip()
+    clean_ref = None
+    if ref_param:
+        c_ref = ref_param.upper().replace(" ", "")
+        if re.match(r"^SRID:SR\d{4}$", c_ref):
+            clean_ref = f"SR{c_ref[-4:]}"
+        elif re.match(r"^SRID:\d{4}$", c_ref):
+            clean_ref = f"SR{c_ref[-4:]}"
+        elif re.match(r"^\d{4}$", c_ref):
+            clean_ref = f"SR{c_ref}"
+        elif re.match(r"^SR\d{4}$", c_ref):
+            clean_ref = c_ref
+
     # Generate in-memory dynamic QR code locked to exact server-side price
     qr_data = generate_upi_qr_base64(
         amount=price,
@@ -103,6 +338,7 @@ def checkout(item_type, item_id):
         item_id=str(item.id),
         session_token=qr_data.get("session_token"),
         amount=price,
+        srid=clean_ref,
     )
 
     return render_template(
@@ -113,6 +349,7 @@ def checkout(item_type, item_id):
         price=price,
         qr_data=qr_data,
         pending_payment=pending_payment,
+        prefill_srid=(clean_ref[2:] if clean_ref else ""),
     )
 
 
@@ -143,6 +380,16 @@ def refresh_qr(item_type, item_id):
         item_title=item.title,
     )
 
+    srid_param = (request.args.get("srid", "") or request.args.get("ref", "")).strip()
+    if not srid_param:
+        db = get_db()
+        existing_sess = db.checkout_sessions.find_one({
+            "user_id": str(current_user.id),
+            "item_id": str(item.id),
+        }, sort=[("updated_at", -1)])
+        if existing_sess and existing_sess.get("srid"):
+            srid_param = existing_sess["srid"]
+
     # Register refreshed checkout session
     register_checkout_session(
         user_id=str(current_user.id),
@@ -150,6 +397,7 @@ def refresh_qr(item_type, item_id):
         item_id=str(item.id),
         session_token=qr_data.get("session_token"),
         amount=price,
+        srid=srid_param,
     )
 
     return jsonify({
@@ -229,6 +477,27 @@ def submit_payment():
     now = datetime.now(timezone.utc)
     payment_id = f"PAY-{now.strftime('%Y%m%d')}-{os.urandom(3).hex().upper()}"
 
+    # Authoritative referral attribution (SRID)
+    srid_raw = str(request.form.get("srid", "") or "").strip()
+    clean_srid = None
+    if srid_raw:
+        candidate_srid = srid_raw.upper()
+        if re.match(r"^\d{4}$", candidate_srid):
+            clean_srid = f"SR{candidate_srid}"
+        elif re.match(r"^SR\d{4}$", candidate_srid):
+            clean_srid = candidate_srid
+
+    # Fallback to active checkout session if not submitted via form
+    if not clean_srid:
+        sess_lookup = db.checkout_sessions.find_one({
+            "user_id": str(current_user.id),
+            "item_id": str(item.id),
+        }, sort=[("updated_at", -1)])
+        if sess_lookup and sess_lookup.get("srid"):
+            candidate_srid = str(sess_lookup["srid"]).strip().upper()
+            if re.match(r"^SR\d{4}$", candidate_srid):
+                clean_srid = candidate_srid
+
     # Check if this UTR was already detected & credited via Bank SMS
     bank_credit = db.bank_credits.find_one({
         "utr_number": utr_clean,
@@ -256,6 +525,17 @@ def submit_payment():
             "created_at": now,
             "updated_at": now,
         }
+        if clean_srid:
+            payment_record["srid"] = clean_srid
+            record_ambassador_sale(
+                srid=clean_srid,
+                item=item,
+                user=current_user,
+                amount=exact_price,
+                payment_id=payment_id,
+                utr_number=utr_clean,
+                status="approved",
+            )
         try:
             db.payments.insert_one(payment_record)
         except DuplicateKeyError:
@@ -298,6 +578,17 @@ def submit_payment():
         "created_at": now,
         "updated_at": now,
     }
+    if clean_srid:
+        payment_record["srid"] = clean_srid
+        record_ambassador_sale(
+            srid=clean_srid,
+            item=item,
+            user=current_user,
+            amount=exact_price,
+            payment_id=payment_id,
+            utr_number=utr_clean,
+            status="pending",
+        )
 
     try:
         db.payments.insert_one(payment_record)

@@ -288,28 +288,37 @@ def revoke_student_access(user_id, item_type, item_id):
 # Automated Bank SMS Credit Parsing & Instant Auto-Unlock Engine
 # ==============================================================================
 
-def register_checkout_session(user_id, item_type, item_id, session_token, amount):
+def register_checkout_session(user_id, item_type, item_id, session_token, amount, srid=None):
     """
     Registers an active student checkout session in MongoDB.
     Allows incoming bank SMS with ref_note (e.g. SR-CRS-<item>-<session>) to
     automatically match the user and auto-unlock within seconds.
+    Optionally persists normalized Student Ambassador Referral ID (e.g. 'SR1001').
     """
     if not session_token or not user_id:
         return False
     try:
         db = get_db()
         now = datetime.now(timezone.utc)
+        set_fields = {
+            "user_id": str(user_id),
+            "item_type": str(item_type),
+            "item_id": str(item_id),
+            "session_token": str(session_token).strip(),
+            "amount": float(amount or 0.0),
+            "updated_at": now,
+        }
+        if srid:
+            clean_srid = str(srid).strip().upper()
+            if re.match(r"^SR\d{4}$", clean_srid):
+                set_fields["srid"] = clean_srid
+            elif re.match(r"^\d{4}$", clean_srid):
+                set_fields["srid"] = f"SR{clean_srid}"
+
         db.checkout_sessions.update_one(
             {"session_token": str(session_token).strip()},
             {
-                "$set": {
-                    "user_id": str(user_id),
-                    "item_type": str(item_type),
-                    "item_id": str(item_id),
-                    "session_token": str(session_token).strip(),
-                    "amount": float(amount or 0.0),
-                    "updated_at": now,
-                },
+                "$set": set_fields,
                 "$setOnInsert": {
                     "created_at": now,
                 }
@@ -527,8 +536,32 @@ def process_incoming_bank_credit(amount, utr_number, ref_note=None, sender=None,
                 "created_at": now,
                 "updated_at": now,
             }
+            if checkout_sess.get("srid"):
+                new_payment["srid"] = str(checkout_sess["srid"]).strip().upper()
             try:
                 db.payments.insert_one(new_payment)
+                if new_payment.get("srid"):
+                    clean_s = new_payment["srid"]
+                    db.ambassador_sales.update_one(
+                        {"payment_id": payment_id},
+                        {"$set": {
+                            "srid": clean_s,
+                            "srid_display": f"SRID:{clean_s}",
+                            "course_id": str(item_id),
+                            "course_title": getattr(item, "title", "SkillRock Course"),
+                            "student_id": str(user_id),
+                            "student_name": getattr(user_obj, "name", "Student"),
+                            "student_email": getattr(user_obj, "email", ""),
+                            "amount": amt_float,
+                            "payment_id": payment_id,
+                            "utr_number": new_payment.get("utr_number"),
+                            "status": "approved",
+                            "sold_at": now,
+                            "created_at": now,
+                            "updated_at": now,
+                        }},
+                        upsert=True
+                    )
             except Exception as e:
                 logger.warning(f"Error inserting auto payment doc: {e}")
 
@@ -592,8 +625,32 @@ def process_incoming_bank_credit(amount, utr_number, ref_note=None, sender=None,
                 "created_at": now,
                 "updated_at": now,
             }
+            if sess_doc.get("srid"):
+                auto_payment["srid"] = str(sess_doc["srid"]).strip().upper()
             try:
                 db.payments.insert_one(auto_payment)
+                if auto_payment.get("srid"):
+                    clean_s = auto_payment["srid"]
+                    db.ambassador_sales.update_one(
+                        {"payment_id": payment_id},
+                        {"$set": {
+                            "srid": clean_s,
+                            "srid_display": f"SRID:{clean_s}",
+                            "course_id": str(matched_item_id),
+                            "course_title": getattr(matched_item, "title", "SkillRock Course"),
+                            "student_id": str(matched_user_id),
+                            "student_name": getattr(matched_user_obj, "name", "Student"),
+                            "student_email": getattr(matched_user_obj, "email", ""),
+                            "amount": amt_float,
+                            "payment_id": payment_id,
+                            "utr_number": auto_payment.get("utr_number"),
+                            "status": "approved",
+                            "sold_at": now,
+                            "created_at": now,
+                            "updated_at": now,
+                        }},
+                        upsert=True
+                    )
             except Exception as e:
                 logger.warning(f"Notice inserting auto payment: {e}")
 
@@ -686,6 +743,21 @@ def auto_claim_credit_for_student(user, item_type, item_id, session_token=None):
     if credit:
         utr_num = credit.get("utr_number") or f"SMS{now.strftime('%H%M%S')}{secrets.token_hex(2).upper()}"
         payment_id = f"PAY-{now.strftime('%Y%m%d')}-{secrets.token_hex(3).upper()}"
+        
+        # Check active checkout session for referral attribution (SRID)
+        ref_srid = None
+        if session_token:
+            sess_lookup = db.checkout_sessions.find_one({"session_token": session_token})
+            if sess_lookup and sess_lookup.get("srid"):
+                ref_srid = str(sess_lookup["srid"]).strip().upper()
+        if not ref_srid:
+            sess_lookup = db.checkout_sessions.find_one({
+                "user_id": uid,
+                "item_id": iid,
+            }, sort=[("updated_at", -1)])
+            if sess_lookup and sess_lookup.get("srid"):
+                ref_srid = str(sess_lookup["srid"]).strip().upper()
+
         new_pay = {
             "payment_id": payment_id,
             "user_id": uid,
@@ -705,8 +777,32 @@ def auto_claim_credit_for_student(user, item_type, item_id, session_token=None):
             "created_at": now,
             "updated_at": now,
         }
+        if ref_srid:
+            new_pay["srid"] = ref_srid
         try:
             db.payments.insert_one(new_pay)
+            if ref_srid:
+                clean_s = ref_srid
+                db.ambassador_sales.update_one(
+                    {"payment_id": payment_id},
+                    {"$set": {
+                        "srid": clean_s,
+                        "srid_display": f"SRID:{clean_s}",
+                        "course_id": str(iid),
+                        "course_title": getattr(item, "title", "SkillRock Course"),
+                        "student_id": str(uid),
+                        "student_name": getattr(user, "name", "Student"),
+                        "student_email": getattr(user, "email", ""),
+                        "amount": expected_price,
+                        "payment_id": payment_id,
+                        "utr_number": utr_num,
+                        "status": "approved",
+                        "sold_at": now,
+                        "created_at": now,
+                        "updated_at": now,
+                    }},
+                    upsert=True
+                )
         except Exception as e:
             logger.info(f"Payment doc insert notice: {e}")
 

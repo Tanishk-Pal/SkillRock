@@ -2,1355 +2,1189 @@
 
 {% block title %}Secure Checkout — {{ item.title }} | SkillRock Pay{% endblock %}
 
+{% block head %}
+<style>
+/* ==========================================================================
+   SkillRock Premium Checkout — TuteDude / Razorpay Modal Architecture
+   Colors: Royal Purple Gradient (#7A008A -> #530060), Clean White, Slate
+   ========================================================================== */
+
+:root {
+    --td-purple-dark: #4A0054;
+    --td-purple-primary: #7A008A;
+    --td-purple-vibrant: #9333EA;
+    --td-purple-light: #FAF5FF;
+    --td-purple-border: #E9D5FF;
+    --td-text-dark: #0F172A;
+    --td-text-muted: #64748B;
+    --td-card-bg: #FFFFFF;
+    --td-border: #E2E8F0;
+    --td-green: #10B981;
+}
+
+.td-page-wrapper {
+    max-width: 1080px;
+    margin: 24px auto 60px auto;
+    padding: 0 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Initiative Branding Top Header */
+.td-brand-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding: 0 4px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.td-brand-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.td-brand-logo-img {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.td-brand-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--td-text-dark);
+    margin: 0;
+    line-height: 1.2;
+}
+.td-brand-sub {
+    font-size: 0.78rem;
+    color: var(--td-text-muted);
+    font-weight: 500;
+}
+.td-topbar-secure {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ECFDF5;
+    border: 1px solid #A7F3D0;
+    color: #065F46;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+/* Pending Alert Banner */
+.td-pending-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-left: 5px solid #F59E0B;
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.td-pending-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.td-pending-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #92400E;
+    margin: 0 0 2px 0;
+}
+.td-pending-sub {
+    font-size: 0.82rem;
+    color: #B45309;
+    margin: 0;
+}
+.td-pending-btn {
+    background: #F59E0B;
+    color: #FFFFFF;
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+.td-pending-btn:hover {
+    background: #D97706;
+}
+
+/* Master 2-Column TuteDude Card Container */
+.td-checkout-modal {
+    display: grid;
+    grid-template-columns: 38% 62%;
+    background: #FFFFFF;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px -15px rgba(122, 0, 138, 0.28), 0 0 0 1px rgba(122, 0, 138, 0.12);
+    min-height: 640px;
+    margin-bottom: 28px;
+}
+
+/* --------------------------------------------------------------------------
+   LEFT COLUMN: Royal Purple Gradient (#7A008A -> #530060)
+   -------------------------------------------------------------------------- */
+.td-left-col {
+    background: linear-gradient(170deg, #7A008A 0%, #630070 45%, #460050 100%);
+    padding: 30px 24px;
+    color: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+.td-left-col::before {
+    content: "";
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.td-left-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+.td-left-logo-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #FFFFFF;
+    color: #7A008A;
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+.td-left-logo-pill img {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+.td-trusted-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(16, 185, 129, 0.18);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #34D399;
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 9999px;
+}
+
+/* White Price Summary Card */
+.td-price-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 20px;
+    color: var(--td-text-dark);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.18);
+    margin-bottom: 14px;
+}
+.td-price-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--td-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+.td-price-amount {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #0F172A;
+    line-height: 1.1;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.td-price-currency {
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+.td-item-info {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #334155;
+    line-height: 1.35;
+    margin-bottom: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.td-price-subtext {
+    font-size: 0.78rem;
+    color: #15803D;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #DCFCE7;
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: inline-flex;
+}
+
+/* Student Profile Pill */
+.td-user-pill {
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: var(--td-text-dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.td-user-pill-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+}
+.td-user-pill-left span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ambassador Referral Section (Prominent in Left Column) */
+.td-ambassador-card {
+    background: #FFFFFF;
+    border-radius: 14px;
+    padding: 16px;
+    color: var(--td-text-dark);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    margin-bottom: 16px;
+}
+.td-ambassador-label {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #6D28D9;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.td-ambassador-sub {
+    font-size: 0.74rem;
+    color: var(--td-text-muted);
+    margin-bottom: 10px;
+    line-height: 1.3;
+}
+.srid-fixed-input-wrap {
+    display: flex;
+    align-items: center;
+    background: #F8FAFC;
+    border: 2px solid #C4B5FD;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+.srid-fixed-input-wrap:focus-within {
+    border-color: #7A008A;
+    box-shadow: 0 0 0 3px rgba(122, 0, 138, 0.15);
+    background: #FFFFFF;
+}
+.srid-fixed-badge {
+    background: #EDE9FE;
+    color: #6D28D9;
+    font-weight: 900;
+    font-size: 0.95rem;
+    padding: 9px 12px;
+    letter-spacing: 0.5px;
+    user-select: none;
+    border-right: 1.5px solid #DDD6FE;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+.srid-number-box {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 8px 10px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0F172A;
+    letter-spacing: 2px;
+    width: 100%;
+}
+.srid-number-box::placeholder {
+    color: #94A3B8;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+.srid-status-icon {
+    padding-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.srid-feedback-strip {
+    margin-top: 6px;
+    font-size: 0.76rem;
+    min-height: 18px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Festive Bottom Graphic & Footer */
+.td-left-bottom {
+    margin-top: auto;
+    padding-top: 14px;
+}
+.td-left-illustration {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    opacity: 0.9;
+}
+.td-left-footer-trust {
+    font-size: 0.74rem;
+    color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   RIGHT COLUMN: Payment Options & Actions (White Crisp Layout)
+   -------------------------------------------------------------------------- */
+.td-right-col {
+    background: #FFFFFF;
+    padding: 26px 30px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Top bar with Cancel Button */
+.td-right-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--td-border);
+}
+.td-right-heading {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--td-text-dark);
+    margin: 0;
+}
+.td-cancel-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--td-text-muted);
+    text-decoration: none;
+    padding: 5px 12px;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+    border: 1px solid var(--td-border);
+}
+.td-cancel-btn:hover {
+    color: #DC2626;
+    border-color: #FCA5A5;
+    background: #FEF2F2;
+}
+
+/* Payment Layout Split: Sub-Sidebar + Main Active Area */
+.td-pay-split {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 20px;
+    flex: 1;
+}
+
+/* Vertical Payment Options Tabs */
+.td-pay-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-right: 1px solid var(--td-border);
+    padding-right: 14px;
+}
+.td-tab-item {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    text-align: left;
+    background: transparent;
+    transition: all 0.15s ease;
+    width: 100%;
+}
+.td-tab-item:hover {
+    background: #F8FAFC;
+}
+.td-tab-item.active {
+    background: var(--td-purple-light);
+    border-color: var(--td-purple-border);
+    box-shadow: 0 2px 8px rgba(122, 0, 138, 0.08);
+}
+.td-tab-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+.td-tab-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--td-text-dark);
+}
+.td-tab-item.active .td-tab-title {
+    color: var(--td-purple-primary);
+}
+.td-tab-badge {
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #DCFCE7;
+    color: #166534;
+}
+.td-tab-sub {
+    font-size: 0.72rem;
+    color: var(--td-text-muted);
+}
+.td-tab-icons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    opacity: 0.85;
+}
+
+/* Active Main Payment Pane */
+.td-pay-pane {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Offer Ribbon */
+.td-offer-ribbon {
+    background: linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%);
+    border: 1px solid #E9D5FF;
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #6B21A8;
+}
+
+/* UPI QR Card Frame */
+.td-qr-section {
+    background: #FAFAFA;
+    border: 1.5px solid var(--td-border);
+    border-radius: 16px;
+    padding: 18px;
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+.td-qr-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+.td-qr-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--td-text-dark);
+    margin: 0;
+}
+.td-timer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #FEF3C7;
+    border: 1px solid #FDE68A;
+    color: #B45309;
+    font-size: 0.78rem;
+    font-weight: 800;
+    font-family: monospace;
+    padding: 3px 8px;
+    border-radius: 6px;
+}
+.td-qr-container {
+    background: #FFFFFF;
+    border: 2px solid #F1F5F9;
+    border-radius: 14px;
+    padding: 12px;
+    display: inline-block;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    margin-bottom: 10px;
+    position: relative;
+}
+.td-qr-img {
+    width: 175px;
+    height: 175px;
+    display: block;
+    border-radius: 8px;
+}
+.td-scan-text {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--td-text-dark);
+    margin-bottom: 8px;
+}
+
+/* UPI App Badges Row */
+.td-apps-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.td-app-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+/* Copy UPI ID Pill */
+.td-copy-vpa {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #F1F5F9;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+}
+.td-vpa-code {
+    font-family: monospace;
+    font-weight: 800;
+    color: #0F172A;
+}
+.td-copy-btn {
+    background: none;
+    border: none;
+    color: #2563EB;
+    font-weight: 700;
+    font-size: 0.78rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0;
+}
+.td-copy-btn:hover {
+    text-decoration: underline;
+}
+
+/* Mobile Intent Buttons */
+.td-intent-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.td-intent-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 8px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    color: #FFFFFF;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    transition: transform 0.15s ease;
+}
+.td-intent-btn:hover {
+    transform: translateY(-1px);
+}
+.td-btn-phonepe { background: #5f259f; }
+.td-btn-gpay { background: #1a73e8; }
+.td-btn-paytm { background: #00b9f5; }
+
+/* 12-Digit UTR Form Section */
+.td-utr-box {
+    background: #FFFFFF;
+    border: 1.5px solid var(--td-border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+}
+.td-utr-title {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--td-text-dark);
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.td-utr-sub {
+    font-size: 0.78rem;
+    color: var(--td-text-muted);
+    margin-bottom: 12px;
+}
+.td-utr-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.td-utr-input {
+    width: 100%;
+    padding: 12px 60px 12px 14px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    font-family: monospace;
+    letter-spacing: 2px;
+    border: 2px solid #CBD5E1;
+    border-radius: 10px;
+    outline: none;
+    transition: all 0.2s ease;
+    background: #F8FAFC;
+    color: #0F172A;
+}
+.td-utr-input:focus {
+    border-color: #7A008A;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(122, 0, 138, 0.15);
+}
+.td-utr-counter {
+    position: absolute;
+    right: 12px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #94A3B8;
+    user-select: none;
+}
+.td-utr-counter.valid {
+    color: #16A34A;
+}
+.td-utr-helper {
+    font-size: 0.74rem;
+    color: var(--td-text-muted);
+    display: block;
+    margin-bottom: 14px;
+}
+
+/* Master Primary CTA Button */
+.td-submit-btn {
+    width: 100%;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #7A008A 0%, #9333EA 100%);
+    border: none;
+    border-radius: 12px;
+    color: #FFFFFF;
+    font-size: 1.02rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 8px 24px -4px rgba(122, 0, 138, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+.td-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px -4px rgba(122, 0, 138, 0.5);
+}
+.td-submit-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Bottom Trust Bar outside modal */
+.td-trust-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #64748B;
+    flex-wrap: wrap;
+    padding-top: 10px;
+}
+.td-trust-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Spinner helper */
+.srid-spinner {
+    width: 13px;
+    height: 13px;
+    border: 2px solid #CBD5E1;
+    border-top-color: #7A008A;
+    border-radius: 50%;
+    animation: td-spin 0.6s linear infinite;
+    display: inline-block;
+}
+@keyframes td-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 900px) {
+    .td-checkout-modal {
+        grid-template-columns: 1fr;
+        border-radius: 18px;
+    }
+    .td-pay-split {
+        grid-template-columns: 1fr;
+    }
+    .td-pay-tabs {
+        flex-direction: row;
+        overflow-x: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--td-border);
+        padding-bottom: 8px;
+        padding-right: 0;
+    }
+    .td-tab-item {
+        min-width: 140px;
+    }
+}
+@media (max-width: 480px) {
+    .td-intent-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="amz-checkout-container">
+<div class="td-page-wrapper">
 
-    <!-- Top Secure Navigation Header (Amazon Style) -->
-    <header class="amz-header-bar">
-        <div class="amz-header-left">
-            {% if item_type == 'course' %}
-            <a href="{{ url_for('learning.course_detail', slug=item.slug) }}" class="amz-cancel-link">
-                <i data-lucide="arrow-left"></i>
-                <span>Cancel & Return to Course</span>
-            </a>
-            {% else %}
-            <a href="{{ url_for('test_series.test_detail', test_slug=item.slug) }}" class="amz-cancel-link">
-                <i data-lucide="arrow-left"></i>
-                <span>Cancel & Return to Test</span>
-            </a>
-            {% endif %}
-        </div>
-
-        <div class="amz-header-center">
-            <div class="amz-secure-badge">
-                <i data-lucide="lock" class="amz-lock-icon"></i>
-                <span>SkillRock Secure Checkout</span>
+    <!-- Top Initiative Branding -->
+    <div class="td-brand-topbar">
+        <div class="td-brand-left">
+            <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="SkillRock" class="td-brand-logo-img">
+            <div>
+                <h1 class="td-brand-title">SkillRock</h1>
+                <span class="td-brand-sub">Student-Focused Real Project Learning Platform</span>
             </div>
         </div>
-
-        <div class="amz-header-right">
-            <span class="amz-ssl-pill">
-                <i data-lucide="shield-check"></i>
-                <span>256-Bit SSL Secured</span>
-            </span>
+        <div class="td-topbar-secure">
+            <i data-lucide="shield-check" style="width: 15px; height: 15px;"></i>
+            <span>256-Bit SSL Encrypted & Verified</span>
         </div>
-    </header>
+    </div>
 
     {% if pending_payment %}
-    <!-- Active Pending Payment Banner -->
-    <div class="amz-alert-banner">
-        <div class="amz-alert-left">
-            <i data-lucide="clock" class="amz-alert-icon"></i>
+    <!-- Active Pending Payment Alert -->
+    <div class="td-pending-banner">
+        <div class="td-pending-left">
+            <i data-lucide="clock" style="width: 22px; height: 22px; color: #D97706;"></i>
             <div>
-                <strong>Payment Verification in Progress</strong>
-                <p>UTR <code class="amz-utr-tag">{{ pending_payment.utr_number }}</code> is submitted and being verified.</p>
+                <h4 class="td-pending-title">Payment Verification in Progress</h4>
+                <p class="td-pending-sub">Your UTR <strong>{{ pending_payment.utr_number }}</strong> is submitted and undergoing rapid verification.</p>
             </div>
         </div>
-        <a href="{{ url_for('payment.payment_status', payment_id=pending_payment.payment_id) }}" class="amz-alert-link">
+        <a href="{{ url_for('payment.payment_status', payment_id=pending_payment.payment_id) }}" class="td-pending-btn">
             Track Status &rarr;
         </a>
     </div>
     {% endif %}
 
-    <!-- Main 2-Column Checkout Layout (Amazon/Razorpay Architecture) -->
-    <div class="amz-checkout-grid">
+    <!-- MASTER TUTEDUDE / RAZORPAY MODAL CARD -->
+    <div class="td-checkout-modal">
 
-        <!-- LEFT COLUMN: Payment Mode & 12-Digit UTR Confirmation (60% width) -->
-        <main class="amz-payment-main">
+        <!-- ====================================================================
+             LEFT COLUMN: Deep Royal Purple Gradient Summary Panel
+             ==================================================================== -->
+        <aside class="td-left-col">
+            <div>
+                <!-- Brand Badge -->
+                <div class="td-left-header">
+                    <div class="td-left-logo-pill">
+                        <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="logo">
+                        <span>SkillRock</span>
+                    </div>
+                    <span class="td-trusted-badge">
+                        <i data-lucide="check-circle" style="width: 13px; height: 13px;"></i>
+                        <span>Trusted Business</span>
+                    </span>
+                </div>
 
-            <!-- STEP 1: PAYMENT METHOD SELECTOR -->
-            <section class="amz-card amz-step-card">
-                <div class="amz-step-header">
-                    <span class="amz-step-num">1</span>
-                    <div class="amz-step-titles">
-                        <h2 class="amz-step-title">Select UPI Payment Method</h2>
-                        <p class="amz-step-sub">Pay via installed UPI app or scan the dynamic QR code</p>
+                <!-- Price Summary Card -->
+                <div class="td-price-card">
+                    <div class="td-price-label">Price Summary</div>
+                    <div class="td-price-amount">
+                        <span class="td-price-currency">₹</span>{{ price|int }}
+                    </div>
+                    <div class="td-item-info">
+                        {{ item.title }}
+                    </div>
+                    {% if price < 999 %}
+                    <div class="td-price-subtext">
+                        <i data-lucide="tag" style="width: 12px; height: 12px;"></i>
+                        <span>Original ₹999 • SkillRock Student Price</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Student Identity Pill -->
+                <div class="td-user-pill">
+                    <div class="td-user-pill-left">
+                        <i data-lucide="user" style="width: 16px; height: 16px; color: #7A008A; flex-shrink: 0;"></i>
+                        <span>Using as <strong>{{ current_user.email }}</strong></span>
+                    </div>
+                    <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: #94A3B8;"></i>
+                </div>
+
+                <!-- ================================================================
+                     CRITICAL DELIVERABLE: Fixed Prefix SRID:SR [ 1001 ]
+                     ================================================================ -->
+                <div class="td-ambassador-card">
+                    <div class="td-ambassador-label">
+                        <span><i data-lucide="award" style="width: 14px; height: 14px; display: inline-block; vertical-align: text-top;"></i> Ambassador Referral</span>
+                        <span style="font-size: 0.68rem; font-weight: 600; background: #EDE9FE; color: #7C3AED; padding: 2px 6px; border-radius: 9999px;">Optional</span>
+                    </div>
+                    <p class="td-ambassador-sub">Referred by an ambassador? Enter their 4-digit ID code below:</p>
+                    
+                    <div class="srid-fixed-input-wrap">
+                        <span class="srid-fixed-badge" title="Campus Ambassador Fixed Prefix">SRID:SR</span>
+                        <input 
+                            type="text" 
+                            id="srid_input" 
+                            class="srid-number-box" 
+                            maxlength="4" 
+                            inputmode="numeric" 
+                            placeholder="1001" 
+                            value="{{ prefill_srid or '' }}"
+                            autocomplete="off"
+                            aria-label="Student Ambassador 4-Digit ID"
+                        >
+                        <div class="srid-status-icon" id="sridStatusIcon"></div>
+                    </div>
+                    <div class="srid-feedback-strip" id="sridFeedback" role="status" aria-live="polite">
+                        <span style="color: #64748B;">Enter 4 digits (e.g. 1001)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Left Graphic & Security Note -->
+            <div class="td-left-bottom">
+                <div class="td-left-illustration">
+                    <!-- Clean SVG Graduation & Celebration Vector -->
+                    <svg width="180" height="90" viewBox="0 0 200 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="50" y="40" width="100" height="48" rx="8" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+                        <path d="M100 20L145 38L100 56L55 38L100 20Z" fill="#FBBF24" stroke="#FFFFFF" stroke-width="2"/>
+                        <path d="M72 45V65C72 74 128 74 128 65V45" stroke="#FFFFFF" stroke-width="2" fill="none"/>
+                        <circle cx="145" cy="40" r="4" fill="#F43F5E"/>
+                        <line x1="145" y1="44" x2="145" y2="60" stroke="#F43F5E" stroke-width="2"/>
+                        <circle cx="35" cy="30" r="3" fill="#FDE68A" opacity="0.8"/>
+                        <circle cx="165" cy="25" r="2.5" fill="#FDE68A" opacity="0.8"/>
+                        <circle cx="170" cy="70" r="3.5" fill="#A7F3D0" opacity="0.8"/>
+                        <circle cx="30" cy="75" r="2" fill="#DDD6FE" opacity="0.8"/>
+                    </svg>
+                </div>
+                <div class="td-left-footer-trust">
+                    <i data-lucide="lock" style="width: 13px; height: 13px;"></i>
+                    <span>Secured by SkillRock 256-Bit SSL Encryption</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ====================================================================
+             RIGHT COLUMN: Payment Options & Actions (White Crisp Section)
+             ==================================================================== -->
+        <main class="td-right-col">
+
+            <!-- Right Header -->
+            <div class="td-right-topbar">
+                <h2 class="td-right-heading">Payment Options</h2>
+                {% if item_type == 'course' %}
+                <a href="{{ url_for('learning.course_detail', slug=item.slug) }}" class="td-cancel-btn">
+                    <span>Cancel & Return</span>
+                    <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                </a>
+                {% else %}
+                <a href="{{ url_for('test_series.test_detail', test_slug=item.slug) }}" class="td-cancel-btn">
+                    <span>Cancel & Return</span>
+                    <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="td-pay-split">
+
+                <!-- Left Payment Method Tabs -->
+                <div class="td-pay-tabs" role="tablist">
+                    <div class="td-tab-item active" role="tab">
+                        <div class="td-tab-top">
+                            <span class="td-tab-title">UPI & QR</span>
+                            <span class="td-tab-badge">Fast</span>
+                        </div>
+                        <span class="td-tab-sub">Instant Auto-Unlock</span>
+                        <div class="td-tab-icons">
+                            <span style="font-size: 0.65rem; background: #EDE9FE; color: #6D28D9; padding: 1px 4px; border-radius: 3px; font-weight: 800;">GPay</span>
+                            <span style="font-size: 0.65rem; background: #EDE9FE; color: #6D28D9; padding: 1px 4px; border-radius: 3px; font-weight: 800;">PhonePe</span>
+                            <span style="font-size: 0.65rem; background: #EDE9FE; color: #6D28D9; padding: 1px 4px; border-radius: 3px; font-weight: 800;">Paytm</span>
+                        </div>
                     </div>
 
-                    <!-- Expiry Timer -->
-                    <div class="amz-timer-pill" id="timerBadge" title="Session security timeout">
-                        <i data-lucide="clock"></i>
-                        <span id="timerDigits">05:00</span>
+                    <div class="td-tab-item" style="opacity: 0.65; cursor: default;" title="Direct UPI is recommended for zero gateway fees">
+                        <div class="td-tab-top">
+                            <span class="td-tab-title">Cards</span>
+                        </div>
+                        <span class="td-tab-sub">Visa, Mastercard, RuPay</span>
+                    </div>
+
+                    <div class="td-tab-item" style="opacity: 0.65; cursor: default;" title="Direct UPI is recommended for zero gateway fees">
+                        <div class="td-tab-top">
+                            <span class="td-tab-title">Netbanking</span>
+                        </div>
+                        <span class="td-tab-sub">All Indian Banks</span>
+                    </div>
+
+                    <div class="td-tab-item" style="opacity: 0.65; cursor: default;" title="Direct UPI is recommended for zero gateway fees">
+                        <div class="td-tab-top">
+                            <span class="td-tab-title">Wallets</span>
+                        </div>
+                        <span class="td-tab-sub">Paytm, PhonePe Wallet</span>
                     </div>
                 </div>
 
-                <!-- Interactive Tab Switcher -->
-                <div class="amz-tab-bar" role="tablist">
-                    <button type="button" class="amz-tab-btn active" id="tabBtnApps" onclick="switchAmzTab('apps')">
-                        <i data-lucide="smartphone"></i>
-                        <span>Pay via UPI App</span>
-                    </button>
-                    <button type="button" class="amz-tab-btn" id="tabBtnQr" onclick="switchAmzTab('qr')">
-                        <i data-lucide="qr-code"></i>
-                        <span>Scan Dynamic QR</span>
-                    </button>
-                </div>
+                <!-- Main Active Payment Pane -->
+                <div class="td-pay-pane">
 
-                <!-- TAB PANE 1: UPI APPS -->
-                <div class="amz-tab-content active" id="paneApps">
-                    <p class="amz-tab-instruction">
-                        Tap your preferred UPI app below to launch payment with ₹{{ price|int }} pre-filled:
-                    </p>
-                    <div class="amz-apps-list">
-                        <a href="{{ qr_data.gpay_uri }}" id="linkGPay" class="amz-app-row gpay" target="_blank" rel="noopener">
-                            <div class="amz-app-left">
-                                <div class="amz-app-avatar gpay-avatar">G</div>
-                                <div class="amz-app-meta">
-                                    <span class="amz-app-title">Google Pay</span>
-                                    <span class="amz-app-hint">Instant 1-Tap Payment</span>
-                                </div>
-                            </div>
-                            <span class="amz-app-action">Pay ₹{{ price|int }} &rarr;</span>
-                        </a>
-
-                        <a href="{{ qr_data.phonepe_uri }}" id="linkPhonePe" class="amz-app-row phonepe" target="_blank" rel="noopener">
-                            <div class="amz-app-left">
-                                <div class="amz-app-avatar phonepe-avatar">पे</div>
-                                <div class="amz-app-meta">
-                                    <span class="amz-app-title">PhonePe</span>
-                                    <span class="amz-app-hint">Instant 1-Tap Payment</span>
-                                </div>
-                            </div>
-                            <span class="amz-app-action">Pay ₹{{ price|int }} &rarr;</span>
-                        </a>
-
-                        <a href="{{ qr_data.paytm_uri }}" id="linkPaytm" class="amz-app-row paytm" target="_blank" rel="noopener">
-                            <div class="amz-app-left">
-                                <div class="amz-app-avatar paytm-avatar">Pay</div>
-                                <div class="amz-app-meta">
-                                    <span class="amz-app-title">Paytm</span>
-                                    <span class="amz-app-hint">Instant 1-Tap Payment</span>
-                                </div>
-                            </div>
-                            <span class="amz-app-action">Pay ₹{{ price|int }} &rarr;</span>
-                        </a>
-
-                        <a href="{{ qr_data.upi_uri }}" id="linkAnyUpi" class="amz-app-row other-upi" target="_blank" rel="noopener">
-                            <div class="amz-app-left">
-                                <div class="amz-app-avatar other-avatar"><i data-lucide="credit-card"></i></div>
-                                <div class="amz-app-meta">
-                                    <span class="amz-app-title">BHIM / Other UPI Apps</span>
-                                    <span class="amz-app-hint">Cred, Navi, Jupiter, Bank Apps</span>
-                                </div>
-                            </div>
-                            <span class="amz-app-action">Pay ₹{{ price|int }} &rarr;</span>
-                        </a>
+                    <!-- Offer Ribbon -->
+                    <div class="td-offer-ribbon">
+                        <i data-lucide="zap" style="width: 16px; height: 16px; color: #9333EA; flex-shrink: 0;"></i>
+                        <span>Automated Bank SMS Detection Active — Course unlocks within seconds of payment!</span>
                     </div>
-                </div>
 
-                <!-- TAB PANE 2: DYNAMIC QR CODE -->
-                <div class="amz-tab-content" id="paneQr">
-                    <div class="amz-qr-center-box">
-                        <div class="amz-qr-frame" id="qrContainer">
-                            <img src="{{ qr_data.qr_data_uri }}" alt="SkillRock Dynamic UPI QR" id="qrImage" class="amz-qr-image">
-                            
-                            <!-- Expired State Overlay -->
-                            <div class="amz-qr-expired-overlay" id="qrExpiredOverlay" style="display: none;">
-                                <div class="amz-expired-circle"><i data-lucide="alert-triangle"></i></div>
-                                <strong>QR Code Expired</strong>
-                                <p>5-minute session expired for security.</p>
-                                <button type="button" class="amz-refresh-cta" id="btnRefreshQr">
-                                    <i data-lucide="refresh-cw"></i>
-                                    <span>Generate New QR</span>
-                                </button>
+                    <!-- Dynamic UPI QR Code Section -->
+                    <div class="td-qr-section">
+                        <div class="td-qr-header">
+                            <h3 class="td-qr-title">UPI QR Code</h3>
+                            <div class="td-timer-badge" id="timerBadge">
+                                <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
+                                <span id="timerDigits">05:00</span>
                             </div>
                         </div>
 
-                        <p class="amz-qr-tagline">
-                            Scan with Google Pay, PhonePe, Paytm, or BHIM to pay <strong>₹{{ price|int }}</strong>
-                        </p>
+                        <div class="td-qr-container">
+                            <img src="{{ qr_data.qr_data_uri }}" alt="UPI QR Code" class="td-qr-img" id="qrImage">
+                        </div>
+
+                        <div class="td-scan-text">
+                            Scan with any UPI App to pay <strong>₹{{ price|int }}</strong>
+                        </div>
+
+                        <!-- Supported Apps Badges -->
+                        <div class="td-apps-row">
+                            <span class="td-app-pill">PhonePe</span>
+                            <span class="td-app-pill">Google Pay</span>
+                            <span class="td-app-pill">Paytm</span>
+                            <span class="td-app-pill">BHIM</span>
+                            <span class="td-app-pill">Navi</span>
+                            <span class="td-app-pill">CRED</span>
+                        </div>
 
                         <!-- Copy UPI ID Pill -->
-                        <div class="amz-copy-vpa-pill">
-                            <span class="amz-vpa-label">UPI ID:</span>
-                            <code class="amz-vpa-val" id="vpaCodeDisplay">{{ qr_data.merchant_upi }}</code>
-                            <button type="button" id="copyVpaBtn" class="amz-copy-btn">
-                                <i data-lucide="copy"></i>
+                        <div class="td-copy-vpa">
+                            <span style="color: #64748B; font-weight: 600;">UPI ID:</span>
+                            <code class="td-vpa-code" id="vpaCodeDisplay">{{ qr_data.merchant_upi }}</code>
+                            <button type="button" id="copyVpaBtn" class="td-copy-btn">
+                                <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
                                 <span>Copy</span>
                             </button>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            <!-- STEP 2: PAYMENT CONFIRMATION (12-DIGIT UTR) -->
-            <section class="amz-card amz-step-card">
-                <div class="amz-step-header">
-                    <span class="amz-step-num">2</span>
-                    <div class="amz-step-titles">
-                        <h2 class="amz-step-title">Confirm Payment (12-Digit Bank UTR)</h2>
-                        <p class="amz-step-sub">Enter the 12-digit transaction reference number to unlock access</p>
+                    <!-- Mobile Intent Trigger Buttons -->
+                    <div class="td-intent-grid">
+                        <a href="{{ qr_data.phonepe_uri }}" class="td-intent-btn td-btn-phonepe">
+                            <span>PhonePe</span>
+                        </a>
+                        <a href="{{ qr_data.gpay_uri }}" class="td-intent-btn td-btn-gpay">
+                            <span>Google Pay</span>
+                        </a>
+                        <a href="{{ qr_data.paytm_uri }}" class="td-intent-btn td-btn-paytm">
+                            <span>Paytm UPI</span>
+                        </a>
                     </div>
-                </div>
 
-                <!-- Live Auto-Detection Radar Strip -->
-                <div class="amz-radar-strip" id="radarStatus">
-                    <span class="amz-radar-dot"></span>
-                    <div class="amz-radar-text">
-                        <strong>Automatic SMS Detection Active:</strong>
-                        <span id="radarText">Listening for bank payment... If you have already paid, enter your 12-digit UTR below for instant activation.</span>
-                    </div>
-                </div>
-
-                <!-- Form for UTR Submission (NO restrictive pattern attribute) -->
-                <form method="POST" action="{{ url_for('payment.submit_payment') }}" id="utrPaymentForm" class="amz-utr-form">
-                    <input type="hidden" name="item_type" value="{{ item_type }}">
-                    <input type="hidden" name="item_id" value="{{ item_id }}">
-                    <input type="hidden" name="session_token" id="sessionTokenInput" value="{{ qr_data.session_token }}">
-
-                    <div class="amz-field-group">
-                        <label for="utr_number" class="amz-field-label">
-                            12-Digit Bank UTR / UPI Transaction Reference Number *
-                        </label>
-                        <div class="amz-input-wrapper">
-                            <input 
-                                type="text" 
-                                id="utr_number" 
-                                name="utr_number" 
-                                class="amz-utr-input" 
-                                required 
-                                maxlength="16" 
-                                inputmode="numeric" 
-                                placeholder="e.g. 4781 2504 9818" 
-                                autocomplete="off"
-                            >
-                            <span class="amz-counter" id="digitCounter">0/12</span>
+                    <!-- Step 2: Confirm 12-Digit UTR Form -->
+                    <div class="td-utr-box">
+                        <div class="td-utr-title">
+                            <i data-lucide="shield-check" style="width: 17px; height: 17px; color: #16A34A;"></i>
+                            <span>Confirm Payment (12-Digit Bank UTR)</span>
                         </div>
-                        <small id="utrHelperText" class="amz-field-helper">
-                            Found in your Google Pay, PhonePe, Paytm receipt, or bank SMS (e.g. <code>Ref No. 478125049818</code>).
-                        </small>
+                        <p class="td-utr-sub">
+                            Enter the 12-digit transaction reference number from your bank or UPI app receipt:
+                        </p>
+
+                        <form method="POST" action="{{ url_for('payment.submit_payment') }}" id="utrPaymentForm">
+                            <input type="hidden" name="item_type" value="{{ item_type }}">
+                            <input type="hidden" name="item_id" value="{{ item_id }}">
+                            <input type="hidden" name="session_token" id="sessionTokenInput" value="{{ qr_data.session_token }}">
+                            <input type="hidden" name="srid" id="form_srid" value="{% if prefill_srid %}SR{{ prefill_srid }}{% endif %}">
+
+                            <div class="td-utr-input-wrapper">
+                                <input 
+                                    type="text" 
+                                    id="utr_number" 
+                                    name="utr_number" 
+                                    class="td-utr-input" 
+                                    required 
+                                    maxlength="16" 
+                                    inputmode="numeric" 
+                                    placeholder="4781 2504 9818" 
+                                    autocomplete="off"
+                                >
+                                <span class="td-utr-counter" id="digitCounter">0/12</span>
+                            </div>
+
+                            <small id="utrHelperText" class="td-utr-helper">
+                                Found in your payment confirmation receipt (e.g. <code>Ref No. 478125049818</code>).
+                            </small>
+
+                            <!-- Master Primary Unlock Button -->
+                            <button type="submit" id="submitPaymentBtn" class="td-submit-btn">
+                                <i data-lucide="lock" style="width: 18px; height: 18px;"></i>
+                                <span>Verify & Unlock Course Access (₹{{ price|int }})</span>
+                            </button>
+                        </form>
                     </div>
 
-                    <!-- Primary Unlock Button (Amazon Style) -->
-                    <button type="submit" id="submitPaymentBtn" class="amz-primary-btn">
-                        <i data-lucide="shield-check"></i>
-                        <span>Verify & Unlock Course Access (₹{{ price|int }})</span>
-                    </button>
-                </form>
-
-                <!-- Where to Find 12-Digit UTR -->
-                <div class="amz-guide-box">
-                    <div class="amz-guide-header">
-                        <i data-lucide="help-circle"></i>
-                        <span>Where to find your 12-digit UTR?</span>
-                    </div>
-                    <div class="amz-guide-grid">
-                        <div class="amz-guide-col">
-                            <strong>Google Pay</strong>
-                            <p>Transaction details &rarr; "UPI transaction ID" (12 digits)</p>
-                        </div>
-                        <div class="amz-guide-col">
-                            <strong>PhonePe</strong>
-                            <p>Transfer details &rarr; "UTR number" (12 digits)</p>
-                        </div>
-                        <div class="amz-guide-col">
-                            <strong>Paytm / Bank SMS</strong>
-                            <p>Passbook payment details &rarr; "UPI Ref No." / Ref No.</p>
-                        </div>
-                    </div>
                 </div>
-            </section>
-
+            </div>
         </main>
-
-        <!-- RIGHT COLUMN: Amazon-Grade Order Summary & Policies (40% width) -->
-        <aside class="amz-summary-sidebar">
-
-            <!-- Order Summary Card -->
-            <div class="amz-card amz-order-card">
-                <h3 class="amz-summary-heading">Order Summary</h3>
-
-                <div class="amz-item-preview">
-                    <div class="amz-item-badge">
-                        {% if item_type == 'course' %}PREMIUM COURSE{% else %}MOCK TEST SERIES{% endif %}
-                    </div>
-                    <h4 class="amz-item-title">{{ item.title }}</h4>
-                </div>
-
-                <div class="amz-price-breakdown">
-                    <div class="amz-price-row">
-                        <span>Items:</span>
-                        <span>₹999.00</span>
-                    </div>
-                    {% if price < 999 %}
-                    <div class="amz-price-row discount">
-                        <span>SkillRock Student Discount:</span>
-                        <span>-₹{{ (999 - price)|int }}.00</span>
-                    </div>
-                    {% endif %}
-                    <div class="amz-price-row">
-                        <span>Convenience Fee / Gateway Charges:</span>
-                        <span class="amz-free-text">FREE</span>
-                    </div>
-
-                    <div class="amz-divider"></div>
-
-                    <div class="amz-total-row">
-                        <span>Order Total:</span>
-                        <span class="amz-total-amount">₹{{ price|int }}.00</span>
-                    </div>
-                </div>
-
-                <div class="amz-benefits-list">
-                    <div class="amz-benefit-item">
-                        <i data-lucide="check" class="amz-check-icon"></i>
-                        <span>Lifetime Course & Video Access</span>
-                    </div>
-                    <div class="amz-benefit-item">
-                        <i data-lucide="check" class="amz-check-icon"></i>
-                        <span>Verified Certificate of Completion</span>
-                    </div>
-                    <div class="amz-benefit-item">
-                        <i data-lucide="check" class="amz-check-icon"></i>
-                        <span>Full Source Code & Interactive Exercises</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Amazon-Grade Terms & Conditions -->
-            <div class="amz-card amz-policy-card">
-                <div class="amz-policy-header">
-                    <i data-lucide="file-text" class="amz-policy-icon"></i>
-                    <strong>Terms & Conditions</strong>
-                </div>
-                <p class="amz-policy-text">
-                    By clicking <strong>"Verify & Unlock Course Access"</strong>, you confirm that you are purchasing digital learning access for your personal educational use and agree to SkillRock's <a href="#" class="amz-link">Conditions of Use</a>, <a href="#" class="amz-link">Student Code of Conduct</a>, and <a href="#" class="amz-link">Privacy Notice</a>.
-                </p>
-            </div>
-
-            <!-- Amazon-Grade Strict No Refund Policy -->
-            <div class="amz-card amz-policy-card refund-policy">
-                <div class="amz-policy-header">
-                    <i data-lucide="alert-circle" class="amz-policy-icon refund-icon"></i>
-                    <strong>Digital Content — No Refund Policy</strong>
-                </div>
-                <p class="amz-policy-text">
-                    In accordance with standard digital content regulations and Amazon digital goods policies:
-                </p>
-                <ul class="amz-refund-points">
-                    <li>
-                        <strong>Immediate Digital Access:</strong> Because our curriculum, high-definition video lessons, downloadable software assets, and certificate engines are unlocked instantly upon purchase, all sales are <strong>final and non-refundable</strong>.
-                    </li>
-                    <li>
-                        <strong>Verify Before Unlocking:</strong> Please ensure that you have selected the intended course or test series before entering your transaction UTR reference.
-                    </li>
-                    <li>
-                        <strong>24/7 Technical Support:</strong> If you experience any technical difficulty accessing your course, our academic team is committed to resolving it immediately at <a href="mailto:palt51419@gmail.com" class="amz-link">palt51419@gmail.com</a>.
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Trust Seals -->
-            <div class="amz-trust-seals">
-                <div class="amz-seal">
-                    <i data-lucide="shield-check"></i>
-                    <span>NPCI Verified UPI</span>
-                </div>
-                <div class="amz-seal">
-                    <i data-lucide="zap"></i>
-                    <span>Instant Activation</span>
-                </div>
-                <div class="amz-seal">
-                    <i data-lucide="award"></i>
-                    <span>Accredited Certificate</span>
-                </div>
-            </div>
-
-        </aside>
-
     </div>
 
-    <!-- SUCCESS CELEBRATION MODAL (Morphs on Auto-Verification) -->
-    <div class="amz-success-modal-overlay" id="successModalOverlay" style="display: none;">
-        <div class="amz-success-modal-card">
-            <div class="amz-success-check-circle">
-                <i data-lucide="check" class="amz-success-check-icon"></i>
-            </div>
-            <h2 class="amz-success-title">Payment Confirmed!</h2>
-            <p class="amz-success-sub">
-                ₹{{ price|int }} received via UPI. Your learning access has been activated.
-            </p>
-            <div class="amz-success-bar">
-                <div class="amz-success-bar-fill"></div>
-            </div>
-            <div class="amz-success-redirect">
-                Launching your course player in <span id="redirectSecs">2</span> seconds...
-            </div>
+    <!-- Bottom Outside Trust Indicators (like TuteDude) -->
+    <div class="td-trust-footer">
+        <div class="td-trust-item">
+            <i data-lucide="shield-check" style="width: 18px; height: 18px; color: #10B981;"></i>
+            <span>100% Safe & Secure Payment</span>
+        </div>
+        <div class="td-trust-item">
+            <i data-lucide="lock" style="width: 18px; height: 18px; color: #3B82F6;"></i>
+            <span>256-Bit Bank-Grade Encryption</span>
+        </div>
+        <div class="td-trust-item">
+            <i data-lucide="zap" style="width: 18px; height: 18px; color: #F59E0B;"></i>
+            <span>Instant Automated Course Activation</span>
         </div>
     </div>
 
 </div>
 
-<!-- Amazon-Grade Responsive Stylesheet -->
-<style>
-/* Base Container */
-.amz-checkout-container {
-    max-width: 1100px;
-    margin: 16px auto 60px;
-    padding: 0 16px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #0f172a;
-}
-
-/* Amazon Header Bar */
-.amz-header-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 12px 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    flex-wrap: wrap;
-    gap: 12px;
-}
-.amz-cancel-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #475569;
-    text-decoration: none;
-    transition: color 0.15s ease;
-}
-.amz-cancel-link:hover {
-    color: #2563eb;
-}
-.amz-cancel-link i {
-    width: 15px;
-    height: 15px;
-}
-.amz-secure-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.95rem;
-    font-weight: 800;
-    color: #0f172a;
-    letter-spacing: 0.2px;
-}
-.amz-lock-icon {
-    width: 18px;
-    height: 18px;
-    color: #16a34a;
-}
-.amz-ssl-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    color: #15803d;
-    font-size: 0.78rem;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 9999px;
-}
-.amz-ssl-pill i {
-    width: 13px;
-    height: 13px;
-}
-
-/* Alert Banner */
-.amz-alert-banner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #fffbeb;
-    border: 1px solid #fde68a;
-    border-radius: 10px;
-    padding: 12px 18px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-.amz-alert-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.amz-alert-icon {
-    width: 20px;
-    height: 20px;
-    color: #d97706;
-}
-.amz-utr-tag {
-    font-weight: 700;
-    background: #fef3c7;
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: #92400e;
-}
-.amz-alert-link {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #92400e;
-    text-decoration: underline;
-}
-
-/* Main 2-Column Grid */
-.amz-checkout-grid {
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 24px;
-    align-items: start;
-}
-
-/* Shared Card Styling */
-.amz-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-}
-
-/* Step Cards */
-.amz-step-card {
-    padding: 22px;
-    margin-bottom: 20px;
-}
-.amz-step-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    margin-bottom: 18px;
-    position: relative;
-}
-.amz-step-num {
-    width: 32px;
-    height: 32px;
-    background: #0f172a;
-    color: #ffffff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.95rem;
-    font-weight: 800;
-    flex-shrink: 0;
-}
-.amz-step-titles {
-    flex: 1;
-}
-.amz-step-title {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: #0f172a;
-    margin: 0 0 4px 0;
-}
-.amz-step-sub {
-    font-size: 0.82rem;
-    color: #64748b;
-    margin: 0;
-}
-.amz-timer-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #fef3c7;
-    border: 1px solid #fde68a;
-    color: #b45309;
-    font-size: 0.82rem;
-    font-weight: 800;
-    font-family: monospace;
-    padding: 4px 10px;
-    border-radius: 6px;
-}
-.amz-timer-pill i {
-    width: 14px;
-    height: 14px;
-}
-
-/* Tab Bar */
-.amz-tab-bar {
-    display: flex;
-    background: #f1f5f9;
-    border-radius: 8px;
-    padding: 4px;
-    gap: 4px;
-    margin-bottom: 16px;
-}
-.amz-tab-btn {
-    flex: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 14px;
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: #64748b;
-    background: transparent;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-.amz-tab-btn.active {
-    background: #ffffff;
-    color: #0f172a;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-.amz-tab-btn i {
-    width: 16px;
-    height: 16px;
-}
-
-/* Tab Panes */
-.amz-tab-content {
-    display: none;
-}
-.amz-tab-content.active {
-    display: block;
-}
-.amz-tab-instruction {
-    font-size: 0.84rem;
-    color: #64748b;
-    margin-bottom: 12px;
-}
-
-/* Apps List */
-.amz-apps-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.amz-app-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
-    text-decoration: none;
-    transition: all 0.15s ease;
-}
-.amz-app-row:hover {
-    border-color: #2563eb;
-    background: #f8fafc;
-}
-.amz-app-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.amz-app-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    font-weight: 900;
-    color: #ffffff;
-}
-.gpay-avatar { background: #1a73e8; }
-.phonepe-avatar { background: #5f259f; font-size: 1rem; }
-.paytm-avatar { background: #00baf2; font-size: 0.82rem; }
-.other-avatar { background: #0f172a; }
-.other-avatar i { width: 18px; height: 18px; }
-.amz-app-meta {
-    display: flex;
-    flex-direction: column;
-}
-.amz-app-title {
-    font-size: 0.94rem;
-    font-weight: 700;
-    color: #0f172a;
-}
-.amz-app-hint {
-    font-size: 0.72rem;
-    color: #64748b;
-}
-.amz-app-action {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #2563eb;
-}
-
-/* QR Code Center Box */
-.amz-qr-center-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 10px 0;
-}
-.amz-qr-frame {
-    position: relative;
-    width: 220px;
-    height: 220px;
-    padding: 10px;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    background: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.amz-qr-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border-radius: 6px;
-}
-.amz-qr-expired-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.92);
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    padding: 16px;
-}
-.amz-expired-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-}
-.amz-refresh-cta {
-    margin-top: 8px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #2563eb;
-    color: #ffffff;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    cursor: pointer;
-}
-.amz-qr-tagline {
-    font-size: 0.85rem;
-    color: #475569;
-    margin-bottom: 10px;
-}
-.amz-copy-vpa-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 6px 12px;
-    border-radius: 6px;
-}
-.amz-vpa-label {
-    font-size: 0.76rem;
-    font-weight: 700;
-    color: #64748b;
-}
-.amz-vpa-val {
-    font-family: monospace;
-    font-weight: 700;
-    color: #0f172a;
-    font-size: 0.88rem;
-}
-.amz-copy-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: transparent;
-    border: none;
-    color: #2563eb;
-    font-size: 0.78rem;
-    font-weight: 700;
-    cursor: pointer;
-    padding: 2px 6px;
-}
-
-/* Step 2: Confirmation & UTR */
-.amz-radar-strip {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin-bottom: 16px;
-}
-.amz-radar-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #16a34a;
-    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
-    animation: pulse-amz-dot 1.8s infinite;
-    flex-shrink: 0;
-}
-@keyframes pulse-amz-dot {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
-    70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
-}
-.amz-radar-text {
-    font-size: 0.8rem;
-    color: #14532d;
-    line-height: 1.4;
-}
-
-/* UTR Form */
-.amz-utr-form {
-    margin-bottom: 16px;
-}
-.amz-field-group {
-    margin-bottom: 16px;
-}
-.amz-field-label {
-    display: block;
-    font-size: 0.86rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin-bottom: 6px;
-}
-.amz-input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-.amz-utr-input {
-    width: 100%;
-    padding: 12px 65px 12px 14px;
-    font-size: 1.05rem;
-    font-family: monospace;
-    font-weight: 700;
-    letter-spacing: 1px;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 8px;
-    background: #ffffff;
-    color: #0f172a;
-    transition: border-color 0.15s ease;
-}
-.amz-utr-input:focus {
-    outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-}
-.amz-counter {
-    position: absolute;
-    right: 14px;
-    font-size: 0.76rem;
-    font-family: monospace;
-    font-weight: 700;
-    color: #94a3b8;
-}
-.amz-counter.valid {
-    color: #16a34a;
-}
-.amz-field-helper {
-    display: block;
-    font-size: 0.74rem;
-    color: #64748b;
-    margin-top: 5px;
-}
-
-/* Primary CTA Button (Amazon Style) */
-.amz-primary-btn {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 14px 20px;
-    background: #ffd814;
-    border: 1px solid #fcd200;
-    border-radius: 8px;
-    color: #0f172a;
-    font-size: 1rem;
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(213, 217, 217, 0.5);
-    transition: background 0.15s ease;
-}
-.amz-primary-btn:hover {
-    background: #f7ca00;
-}
-.amz-primary-btn:active {
-    background: #f0b800;
-}
-.amz-primary-btn i {
-    width: 18px;
-    height: 18px;
-}
-
-/* UTR Guide */
-.amz-guide-box {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 12px 14px;
-}
-.amz-guide-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: #475569;
-    margin-bottom: 8px;
-}
-.amz-guide-header i {
-    width: 14px;
-    height: 14px;
-}
-.amz-guide-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-}
-.amz-guide-col strong {
-    font-size: 0.74rem;
-    color: #0f172a;
-    display: block;
-}
-.amz-guide-col p {
-    font-size: 0.7rem;
-    color: #64748b;
-    margin: 2px 0 0 0;
-    line-height: 1.3;
-}
-
-/* RIGHT COLUMN: Sidebar */
-.amz-summary-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-.amz-order-card {
-    padding: 20px;
-}
-.amz-summary-heading {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: #0f172a;
-    margin: 0 0 14px 0;
-}
-.amz-item-preview {
-    margin-bottom: 14px;
-}
-.amz-item-badge {
-    display: inline-block;
-    font-size: 0.68rem;
-    font-weight: 800;
-    background: #e0e7ff;
-    color: #3730a3;
-    padding: 3px 8px;
-    border-radius: 4px;
-    margin-bottom: 6px;
-}
-.amz-item-title {
-    font-size: 0.98rem;
-    font-weight: 700;
-    color: #0f172a;
-    line-height: 1.35;
-    margin: 0;
-}
-
-.amz-price-breakdown {
-    margin-bottom: 16px;
-}
-.amz-price-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.86rem;
-    color: #475569;
-    margin-bottom: 6px;
-}
-.amz-price-row.discount {
-    color: #16a34a;
-    font-weight: 600;
-}
-.amz-free-text {
-    color: #16a34a;
-    font-weight: 700;
-}
-.amz-divider {
-    height: 1px;
-    background: #e2e8f0;
-    margin: 10px 0;
-}
-.amz-total-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: 1rem;
-    font-weight: 800;
-    color: #0f172a;
-}
-.amz-total-amount {
-    font-size: 1.35rem;
-    color: #b12704;
-    font-weight: 900;
-}
-
-.amz-benefits-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    border-top: 1px solid #f1f5f9;
-    padding-top: 12px;
-}
-.amz-benefit-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.78rem;
-    color: #475569;
-}
-.amz-check-icon {
-    width: 14px;
-    height: 14px;
-    color: #16a34a;
-    stroke-width: 3;
-}
-
-/* Policy Cards */
-.amz-policy-card {
-    padding: 16px;
-}
-.amz-policy-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
-    font-weight: 800;
-    color: #0f172a;
-    margin-bottom: 8px;
-}
-.amz-policy-icon {
-    width: 16px;
-    height: 16px;
-    color: #64748b;
-}
-.refund-icon {
-    color: #dc2626;
-}
-.amz-policy-text {
-    font-size: 0.76rem;
-    color: #64748b;
-    line-height: 1.45;
-    margin: 0;
-}
-.amz-link {
-    color: #2563eb;
-    text-decoration: underline;
-}
-.amz-refund-points {
-    margin: 8px 0 0 0;
-    padding-left: 16px;
-    font-size: 0.74rem;
-    color: #475569;
-    line-height: 1.45;
-}
-.amz-refund-points li {
-    margin-bottom: 6px;
-}
-
-/* Trust Seals */
-.amz-trust-seals {
-    display: flex;
-    justify-content: space-around;
-    padding: 8px;
-}
-.amz-seal {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: #64748b;
-    text-align: center;
-}
-.amz-seal i {
-    width: 18px;
-    height: 18px;
-    color: #16a34a;
-}
-
-/* Success Modal */
-.amz-success-modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(6px);
-    z-index: 99999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-.amz-success-modal-card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 30px;
-    max-width: 420px;
-    width: 100%;
-    text-align: center;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-    animation: scaleInAmz 0.3s ease;
-}
-@keyframes scaleInAmz {
-    from { opacity: 0; transform: scale(0.92); }
-    to { opacity: 1; transform: scale(1); }
-}
-.amz-success-check-circle {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: #dcfce7;
-    color: #16a34a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-}
-.amz-success-check-icon {
-    width: 36px;
-    height: 36px;
-    stroke-width: 3;
-}
-.amz-success-title {
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: #0f172a;
-    margin: 0 0 6px 0;
-}
-.amz-success-sub {
-    font-size: 0.88rem;
-    color: #64748b;
-    margin: 0 0 16px 0;
-}
-.amz-success-bar {
-    width: 100%;
-    height: 6px;
-    background: #e2e8f0;
-    border-radius: 9999px;
-    overflow: hidden;
-    margin-bottom: 10px;
-}
-.amz-success-bar-fill {
-    width: 0%;
-    height: 100%;
-    background: #16a34a;
-    border-radius: 9999px;
-    animation: amzProgress 1.8s linear forwards;
-}
-@keyframes amzProgress {
-    from { width: 0%; }
-    to { width: 100%; }
-}
-.amz-success-redirect {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #94a3b8;
-}
-
-/* Mobile Responsive */
-@media (max-width: 860px) {
-    .amz-checkout-grid {
-        grid-template-columns: 1fr;
-    }
-    .amz-summary-sidebar {
-        order: 2;
-    }
-    .amz-payment-main {
-        order: 1;
-    }
-    .amz-guide-grid {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
-
-<!-- Polling, UTR Cleaning & Dynamic Timer Script -->
+<!-- Interactive Client-Side Automation Script -->
 <script>
 (function() {
-    let timerInterval = null;
-    let autoPollInterval = null;
-    let remainingSeconds = {{ qr_data.expires_in|default(300) }};
-    const sessionToken = "{{ qr_data.session_token }}";
-    const itemType = "{{ item_type }}";
-    const itemId = "{{ item_id }}";
+    'use strict';
 
-    // DOM Elements
+    const itemType = {{ item_type | tojson }};
+    const itemId = {{ item_id | tojson }};
+    const sessionTokenInput = document.getElementById('sessionTokenInput');
     const timerDigits = document.getElementById('timerDigits');
-    const qrImage = document.getElementById('qrImage');
-    const qrOverlay = document.getElementById('qrExpiredOverlay');
-    const btnRefresh = document.getElementById('btnRefreshQr');
-    const radarText = document.getElementById('radarText');
-    const radarStatus = document.getElementById('radarStatus');
-    const successModal = document.getElementById('successModalOverlay');
     const utrInput = document.getElementById('utr_number');
     const digitCounter = document.getElementById('digitCounter');
     const helperText = document.getElementById('utrHelperText');
-    const copyBtn = document.getElementById('copyVpaBtn');
-    const utrForm = document.getElementById('utrPaymentForm');
     const submitBtn = document.getElementById('submitPaymentBtn');
+    const copyBtn = document.getElementById('copyVpaBtn');
+    const qrImage = document.getElementById('qrImage');
 
-    // 1. Tab Switching Function
-    window.switchAmzTab = function(tabName) {
-        const btnApps = document.getElementById('tabBtnApps');
-        const btnQr = document.getElementById('tabBtnQr');
-        const paneApps = document.getElementById('paneApps');
-        const paneQr = document.getElementById('paneQr');
+    // 1. Session Expiry Countdown Timer (5 Minutes)
+    let countdownSeconds = 300;
+    let timerInterval = null;
 
-        if (tabName === 'apps') {
-            btnApps.classList.add('active');
-            btnQr.classList.remove('active');
-            paneApps.classList.add('active');
-            paneQr.classList.remove('active');
-        } else {
-            btnQr.classList.add('active');
-            btnApps.classList.remove('active');
-            paneQr.classList.add('active');
-            paneApps.classList.remove('active');
-        }
-        if (window.lucide) window.lucide.createIcons();
-    };
-
-    // 2. Expiry Countdown Clock
-    function formatTime(secs) {
-        const m = Math.floor(secs / 60);
-        const s = secs % 60;
-        return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-    }
-
-    function updateTimerUI() {
-        if (remainingSeconds <= 0) {
-            clearInterval(timerInterval);
-            timerDigits.innerText = '00:00';
-            timerDigits.style.color = '#ef4444';
-            
-            // Trigger QR Expired Overlay
-            if (qrImage) qrImage.style.filter = 'blur(4px) grayscale(1)';
-            if (qrOverlay) qrOverlay.style.display = 'flex';
-            if (window.lucide) window.lucide.createIcons();
-            return;
-        }
-
-        timerDigits.innerText = formatTime(remainingSeconds);
-        remainingSeconds--;
-    }
-
-    function startTimer(seconds) {
-        if (timerInterval) clearInterval(timerInterval);
-        remainingSeconds = seconds;
-        if (qrImage) qrImage.style.filter = 'none';
-        if (qrOverlay) qrOverlay.style.display = 'none';
-        updateTimerUI();
-        timerInterval = setInterval(updateTimerUI, 1000);
-    }
-
-    // 3. Dynamic QR Refresh via AJAX
-    async function regenerateQR() {
-        if (!btnRefresh) return;
-        btnRefresh.disabled = true;
-        btnRefresh.innerHTML = '<span>Regenerating...</span>';
-
-        try {
-            const resp = await fetch(`/payment/refresh-qr/${itemType}/${itemId}`);
-            const data = await resp.json();
-
-            if (data.success) {
-                if (qrImage) qrImage.src = data.qr_data_uri;
-                
-                // Update links
-                const linkGPay = document.getElementById('linkGPay');
-                const linkPhonePe = document.getElementById('linkPhonePe');
-                const linkPaytm = document.getElementById('linkPaytm');
-                const linkAnyUpi = document.getElementById('linkAnyUpi');
-                if (linkGPay) linkGPay.href = data.gpay_uri;
-                if (linkPhonePe) linkPhonePe.href = data.phonepe_uri;
-                if (linkPaytm) linkPaytm.href = data.paytm_uri;
-                if (linkAnyUpi) linkAnyUpi.href = data.upi_uri;
-
-                const sessInput = document.getElementById('sessionTokenInput');
-                if (sessInput) sessInput.value = data.session_token;
-
-                startTimer(data.expires_in || 300);
-            }
-        } catch (err) {
-            console.error('Error refreshing QR:', err);
-        } finally {
-            btnRefresh.disabled = false;
-            btnRefresh.innerHTML = '<i data-lucide="refresh-cw"></i><span>Generate New QR</span>';
-            if (window.lucide) window.lucide.createIcons();
-        }
-    }
-
-    if (btnRefresh) {
-        btnRefresh.addEventListener('click', regenerateQR);
-    }
-
-    // 4. Automated Real-Time Payment Detection Poller
-    let isUnlocked = false;
-    async function pollPaymentStatus() {
-        if (isUnlocked) return;
-        try {
-            const sess = document.getElementById('sessionTokenInput')?.value || sessionToken;
-            const resp = await fetch(`/payment/check-auto-status/${itemType}/${itemId}?session_token=${encodeURIComponent(sess)}`);
-            const data = await resp.json();
-
-            if (data && data.unlocked === true) {
-                isUnlocked = true;
-                clearInterval(autoPollInterval);
+    function startTimer(duration) {
+        countdownSeconds = duration;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            countdownSeconds--;
+            if (countdownSeconds <= 0) {
                 clearInterval(timerInterval);
-
-                if (radarText) radarText.innerText = "Payment Verified! Unlocking your course...";
-                if (radarStatus) {
-                    radarStatus.style.borderColor = "#16a34a";
-                    radarStatus.style.background = "#dcfce7";
-                }
-
-                if (successModal) {
-                    successModal.style.display = 'flex';
-                    if (window.lucide) window.lucide.createIcons();
-                }
-
-                let countdown = 2;
-                const redirectSecsElem = document.getElementById('redirectSecs');
-                const redirectUrl = data.redirect_url || '/';
-
-                const redirectTimer = setInterval(() => {
-                    countdown--;
-                    if (redirectSecsElem) redirectSecsElem.innerText = countdown;
-                    if (countdown <= 0) {
-                        clearInterval(redirectTimer);
-                        window.location.href = redirectUrl;
-                    }
-                }, 900);
+                if (timerDigits) timerDigits.innerText = '00:00';
+                refreshQRCode();
+                return;
             }
-        } catch (err) {
-            console.debug('Auto-poll tick:', err);
-        }
+            const mins = String(Math.floor(countdownSeconds / 60)).padStart(2, '0');
+            const secs = String(countdownSeconds % 60).padStart(2, '0');
+            if (timerDigits) timerDigits.innerText = `${mins}:${secs}`;
+        }, 1000);
     }
 
-    autoPollInterval = setInterval(pollPaymentStatus, 2500);
+    // 2. Dynamic QR Refresh
+    function refreshQRCode() {
+        const sridVal = (document.getElementById('form_srid')?.value || '').trim();
+        fetch(`/payment/refresh-qr/${itemType}/${itemId}?srid=${encodeURIComponent(sridVal)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.qr_data_uri) {
+                    if (qrImage) qrImage.src = data.qr_data_uri;
+                    if (sessionTokenInput) sessionTokenInput.value = data.session_token;
+                    startTimer(300);
+                }
+            })
+            .catch(err => console.error('QR refresh error:', err));
+    }
 
-    // 5. Smart 12-Digit UTR Formatter (No regex pattern block!)
+    // 3. Format UTR with spaces (4781 2504 9818) & live 12-digit counter
     if (utrInput) {
         utrInput.addEventListener('input', (e) => {
-            let raw = e.target.value.replace(/\D/g, '');
-            if (raw.length > 12) raw = raw.slice(0, 12);
-
+            const raw = e.target.value.replace(/\D/g, '').slice(0, 12);
             let formatted = raw;
             if (raw.length > 4 && raw.length <= 8) {
                 formatted = raw.slice(0, 4) + ' ' + raw.slice(4);
@@ -1381,7 +1215,8 @@
         });
     }
 
-    // 6. Clean UTR before submit & prevent blank submissions
+    // 4. Clean UTR before submit
+    const utrForm = document.getElementById('utrPaymentForm');
     if (utrForm) {
         utrForm.addEventListener('submit', (e) => {
             if (utrInput) {
@@ -1392,7 +1227,7 @@
                     utrInput.focus();
                     return false;
                 }
-                utrInput.value = cleanDigits; // Strip spaces before POST
+                utrInput.value = cleanDigits;
             }
             if (submitBtn) {
                 submitBtn.disabled = true;
@@ -1401,16 +1236,16 @@
         });
     }
 
-    // 7. Copy UPI ID
+    // 5. Copy UPI ID
     if (copyBtn) {
         copyBtn.addEventListener('click', () => {
             const vpa = document.getElementById('vpaCodeDisplay')?.innerText.trim() || '9243494968@nyes';
             navigator.clipboard.writeText(vpa).then(() => {
-                copyBtn.innerHTML = '<i data-lucide="check"></i><span>Copied!</span>';
+                copyBtn.innerHTML = '<i data-lucide="check" style="width:13px; height:13px;"></i><span>Copied!</span>';
                 copyBtn.style.color = '#16a34a';
                 if (window.lucide) window.lucide.createIcons();
                 setTimeout(() => {
-                    copyBtn.innerHTML = '<i data-lucide="copy"></i><span>Copy</span>';
+                    copyBtn.innerHTML = '<i data-lucide="copy" style="width:13px; height:13px;"></i><span>Copy</span>';
                     copyBtn.style.color = '#2563eb';
                     if (window.lucide) window.lucide.createIcons();
                 }, 1800);
@@ -1418,13 +1253,128 @@
         });
     }
 
+    // 6. Student Ambassador Referral Validation & Sync
+    const sridInput = document.getElementById('srid_input');
+    const formSrid = document.getElementById('form_srid');
+    const sridFeedback = document.getElementById('sridFeedback');
+    const sridStatusIcon = document.getElementById('sridStatusIcon');
+    let sridDebounceTimer = null;
+    let sridAbortController = null;
+
+    function updateSessionReferral(sridValue) {
+        const sessionToken = sessionTokenInput ? sessionTokenInput.value : '';
+        if (!sessionToken) return;
+        fetch('/payment/update-referral', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({
+                session_token: sessionToken,
+                srid: sridValue || ''
+            })
+        }).catch(err => console.debug('Session referral sync notice:', err));
+    }
+
+    function validateAmbassadorId(digits) {
+        if (!sridFeedback || !sridStatusIcon) return;
+        if (sridAbortController) {
+            sridAbortController.abort();
+        }
+        sridAbortController = new AbortController();
+
+        sridStatusIcon.innerHTML = '<span class="srid-spinner"></span>';
+        sridFeedback.innerHTML = '<span style="color:#64748B;"><span class="srid-spinner"></span> Verifying ambassador...</span>';
+
+        fetch(`/api/sales/validate-srid/SR${digits}`, {
+            signal: sridAbortController.signal,
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.valid && data.name) {
+                if (formSrid) formSrid.value = `SR${digits}`;
+                sridStatusIcon.innerHTML = '<i data-lucide="check-circle" style="color:#16a34a; width:16px; height:16px;"></i>';
+                sridFeedback.innerHTML = `<span style="color:#15803D; font-weight:700;">✅ Verified Ambassador: <strong>${data.name}</strong></span>`;
+                updateSessionReferral(`SR${digits}`);
+            } else if (!data.available) {
+                if (formSrid) formSrid.value = `SR${digits}`;
+                sridStatusIcon.innerHTML = '<i data-lucide="info" style="color:#64748b; width:16px; height:16px;"></i>';
+                sridFeedback.innerHTML = `<span style="color:#64748B; font-weight:600;">ℹ️ Ambassador referral recorded. Checkout proceeds normally.</span>`;
+                updateSessionReferral(`SR${digits}`);
+            } else {
+                if (formSrid) formSrid.value = '';
+                sridStatusIcon.innerHTML = '<i data-lucide="alert-circle" style="color:#dc2626; width:16px; height:16px;"></i>';
+                sridFeedback.innerHTML = `<span style="color:#DC2626; font-weight:700;">${data.message || 'Invalid Ambassador ID.'}</span>`;
+                updateSessionReferral('');
+            }
+            if (window.lucide) window.lucide.createIcons();
+        })
+        .catch(err => {
+            if (err.name === 'AbortError') return;
+            if (formSrid) formSrid.value = `SR${digits}`;
+            sridStatusIcon.innerHTML = '<i data-lucide="info" style="color:#64748b; width:16px; height:16px;"></i>';
+            sridFeedback.innerHTML = `<span style="color:#64748B; font-weight:600;">ℹ️ Ambassador referral recorded.</span>`;
+            updateSessionReferral(`SR${digits}`);
+            if (window.lucide) window.lucide.createIcons();
+        });
+    }
+
+    if (sridInput) {
+        sridInput.addEventListener('input', () => {
+            const cleanDigits = sridInput.value.replace(/\D/g, '').slice(0, 4);
+            if (sridInput.value !== cleanDigits) {
+                sridInput.value = cleanDigits;
+            }
+
+            clearTimeout(sridDebounceTimer);
+
+            if (cleanDigits.length === 0) {
+                if (formSrid) formSrid.value = '';
+                if (sridStatusIcon) sridStatusIcon.innerHTML = '';
+                if (sridFeedback) sridFeedback.innerHTML = '<span style="color:#64748B;">Enter 4 digits (e.g. 1001)</span>';
+                updateSessionReferral('');
+                return;
+            }
+
+            if (cleanDigits.length < 4) {
+                if (formSrid) formSrid.value = '';
+                if (sridStatusIcon) sridStatusIcon.innerHTML = '';
+                if (sridFeedback) sridFeedback.innerHTML = `<span style="color:#64748B;">${cleanDigits.length}/4 digits entered</span>`;
+                return;
+            }
+
+            // Exactly 4 digits -> Debounced 400ms
+            sridDebounceTimer = setTimeout(() => {
+                validateAmbassadorId(cleanDigits);
+            }, 400);
+        });
+
+        // If prefilled on load
+        if (sridInput.value && sridInput.value.length === 4) {
+            validateAmbassadorId(sridInput.value);
+        }
+    }
+
+    // 7. Real-Time Bank SMS Polling (Auto-Unlock Detection)
+    let pollInterval = setInterval(() => {
+        const token = sessionTokenInput ? sessionTokenInput.value : '';
+        if (!token) return;
+
+        fetch(`/payment/check-status/${itemType}/${itemId}?token=${encodeURIComponent(token)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.unlocked) {
+                    clearInterval(pollInterval);
+                    window.location.href = data.redirect_url || `/learning/course/${itemId}`;
+                }
+            })
+            .catch(err => console.debug('Status poller notice:', err));
+    }, 4000);
+
     // Init on DOM Load
     document.addEventListener('DOMContentLoaded', () => {
-        if (window.innerWidth >= 860) {
-            switchAmzTab('qr');
-        } else {
-            switchAmzTab('apps');
-        }
         startTimer(300);
         if (window.lucide) window.lucide.createIcons();
     });
