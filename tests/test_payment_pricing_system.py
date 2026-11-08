@@ -50,12 +50,10 @@ class TestPaymentPricingSystem(unittest.TestCase):
     def setUp(self):
         self.db = get_db()
         User._user_cache.clear()
-        self.db.users.delete_many({})
-        self.db.courses.delete_many({})
-        self.db.payments.delete_many({})
-        self.db.user_access.delete_many({})
-        self.db.enrollments.delete_many({})
-        self.db.tests.delete_many({})
+        self.db.users.delete_many({"email": {"$regex": r"@skillrock\.test$"}})
+        self.db.courses.delete_many({"slug": {"$in": ["test-intro-python", "test-fullstack-bootcamp"]}})
+        self.db.payments.delete_many({"gateway": "razorpay", "notes.test": True})
+        self.db.user_access.delete_many({"notes.test": True})
 
         # Create student user
         self.student = User({

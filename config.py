@@ -68,6 +68,6 @@ class Config:
     BANK_SMS_WEBHOOK_SECRET = os.getenv("BANK_SMS_WEBHOOK_SECRET", "skillrock_bank_hook_sec_2026").strip() or "skillrock_bank_hook_sec_2026"
 
     # Official Razorpay Standard Web Checkout Configuration
-    RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_TxeO2bqvHBawXV").strip()
-    RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "NXO31DDo2ra8jY755OFJMpZU").strip()
+    RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_live_TxhxjLBNvNoKme").strip()
+    RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "0rMbDhcWrFr5dMKzxhszCfSt").strip()
 
