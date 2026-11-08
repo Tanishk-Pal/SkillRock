@@ -527,217 +527,20 @@
     color: #6B21A8;
 }
 
-/* UPI QR Card Frame */
-.td-qr-section {
-    background: #FAFAFA;
-    border: 1.5px solid var(--td-border);
-    border-radius: 16px;
-    padding: 18px;
-    text-align: center;
-    margin-bottom: 20px;
-    position: relative;
+/* Razorpay Master Payment CTA Button */
+.td-rzp-master-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(122, 0, 138, 0.45) !important;
+    background: linear-gradient(135deg, #8A009C 0%, #630070 100%) !important;
 }
-.td-qr-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
+.td-rzp-master-btn:active {
+    transform: translateY(0);
 }
-.td-qr-title {
-    font-size: 0.95rem;
-    font-weight: 800;
-    color: var(--td-text-dark);
-    margin: 0;
+.td-rzp-master-btn:disabled {
+    opacity: 0.75;
+    cursor: not-allowed !important;
+    transform: none !important;
 }
-.td-timer-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: #FEF3C7;
-    border: 1px solid #FDE68A;
-    color: #B45309;
-    font-size: 0.78rem;
-    font-weight: 800;
-    font-family: monospace;
-    padding: 3px 8px;
-    border-radius: 6px;
-}
-.td-qr-container {
-    background: #FFFFFF;
-    border: 2px solid #F1F5F9;
-    border-radius: 14px;
-    padding: 12px;
-    display: inline-block;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-    margin-bottom: 10px;
-    position: relative;
-}
-.td-qr-img {
-    width: 175px;
-    height: 175px;
-    display: block;
-    border-radius: 8px;
-}
-.td-scan-text {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--td-text-dark);
-    margin-bottom: 8px;
-}
-
-/* UPI App Badges Row */
-.td-apps-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-}
-.td-app-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 6px;
-    padding: 3px 8px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #334155;
-}
-
-/* Copy UPI ID Pill */
-.td-copy-vpa {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: #F1F5F9;
-    border: 1px solid #CBD5E1;
-    border-radius: 8px;
-    padding: 5px 12px;
-    font-size: 0.8rem;
-}
-.td-vpa-code {
-    font-family: monospace;
-    font-weight: 800;
-    color: #0F172A;
-}
-.td-copy-btn {
-    background: none;
-    border: none;
-    color: #2563EB;
-    font-weight: 700;
-    font-size: 0.78rem;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    padding: 0;
-}
-.td-copy-btn:hover {
-    text-decoration: underline;
-}
-
-/* Mobile Intent Buttons */
-.td-intent-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 16px;
-}
-.td-intent-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 9px 8px;
-    border-radius: 10px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-decoration: none;
-    color: #FFFFFF;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-    transition: transform 0.15s ease;
-}
-.td-intent-btn:hover {
-    transform: translateY(-1px);
-}
-.td-btn-phonepe { background: #5f259f; }
-.td-btn-gpay { background: #1a73e8; }
-.td-btn-paytm { background: #00b9f5; }
-
-/* 12-Digit UTR Form Section */
-.td-utr-box {
-    background: #FFFFFF;
-    border: 1.5px solid var(--td-border);
-    border-radius: 14px;
-    padding: 16px 18px;
-    margin-bottom: 14px;
-}
-.td-utr-title {
-    font-size: 0.92rem;
-    font-weight: 800;
-    color: var(--td-text-dark);
-    margin-bottom: 2px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.td-utr-sub {
-    font-size: 0.78rem;
-    color: var(--td-text-muted);
-    margin-bottom: 12px;
-}
-.td-utr-input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-}
-.td-utr-input {
-    width: 100%;
-    padding: 12px 60px 12px 14px;
-    font-size: 1.05rem;
-    font-weight: 800;
-    font-family: monospace;
-    letter-spacing: 2px;
-    border: 2px solid #CBD5E1;
-    border-radius: 10px;
-    outline: none;
-    transition: all 0.2s ease;
-    background: #F8FAFC;
-    color: #0F172A;
-}
-.td-utr-input:focus {
-    border-color: #7A008A;
-    background: #FFFFFF;
-    box-shadow: 0 0 0 3px rgba(122, 0, 138, 0.15);
-}
-.td-utr-counter {
-    position: absolute;
-    right: 12px;
-    font-size: 0.78rem;
-    font-weight: 800;
-    color: #94A3B8;
-    user-select: none;
-}
-.td-utr-counter.valid {
-    color: #16A34A;
-}
-.td-utr-helper {
-    font-size: 0.74rem;
-    color: var(--td-text-muted);
-    display: block;
-    margin-bottom: 14px;
-}
-
-/* Master Primary CTA Button */
-.td-submit-btn {
-    width: 100%;
-    padding: 14px 20px;
-    background: linear-gradient(135deg, #7A008A 0%, #9333EA 100%);
-    border: none;
     border-radius: 12px;
     color: #FFFFFF;
     font-size: 1.02rem;
@@ -1018,139 +821,104 @@
                     </div>
                 </div>
 
-                <!-- Main Active Payment Pane -->
+                <!-- Main Active Payment Pane (Razorpay-First Gateway) -->
                 <div class="td-pay-pane">
 
-                    <!-- Razorpay Standard Web Checkout CTA Box -->
-                    <div class="td-rzp-card" style="background: linear-gradient(135deg, #FAF5FF 0%, #F5EEFD 100%); border: 2px solid #C084FC; border-radius: 16px; padding: 20px 22px; margin-bottom: 20px; box-shadow: 0 4px 18px rgba(122, 0, 138, 0.08);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="background: #7A008A; color: #FFFFFF; font-weight: 800; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; letter-spacing: 0.5px; text-transform: uppercase;">1-Click Checkout</span>
-                                <span style="font-weight: 800; color: #4A0054; font-size: 1rem;">Razorpay Online Payment</span>
+                    <!-- Active Method Detail Card -->
+                    <div id="methodDetailCard" style="background: #FBF8FF; border: 1.5px solid #E9D5FF; border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div id="methodBadgeIcon" style="width: 36px; height: 36px; border-radius: 10px; background: #7A008A; color: #FFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(122, 0, 138, 0.2);">
+                                    <i data-lucide="smartphone" style="width: 19px; height: 19px;"></i>
+                                </div>
+                                <div>
+                                    <h3 id="methodTitle" style="font-size: 1rem; font-weight: 800; color: #0F172A; margin: 0;">UPI & QR Payment</h3>
+                                    <p id="methodSubtitle" style="font-size: 0.76rem; color: #64748B; margin: 0;">Instant Auto-Unlock • Zero Gateway Surcharge</p>
+                                </div>
                             </div>
-                            <span style="font-size: 0.76rem; color: #059669; font-weight: 700; background: #ECFDF5; border: 1px solid #A7F3D0; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 5px;">
-                                <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i> Instant Auto-Unlock
+                            <span style="font-size: 0.72rem; font-weight: 800; background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; padding: 4px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i> Razorpay Verified
                             </span>
                         </div>
 
-                        <button type="button" id="btnRazorpayModal" class="td-rzp-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; background: linear-gradient(135deg, #7A008A 0%, #580064 100%); color: #FFFFFF; font-size: 1.05rem; font-weight: 800; padding: 15px 22px; border-radius: 12px; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 6px 20px rgba(122, 0, 138, 0.28);">
-                            <i data-lucide="credit-card" style="width: 20px; height: 20px;"></i>
-                            <span id="rzpBtnText">Pay ₹{{ price|int }} Online with Razorpay</span>
-                        </button>
-
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px; flex-wrap: wrap; gap: 10px; font-size: 0.76rem; color: #6B21A8; font-weight: 600;">
-                            <span>💳 Cards (Credit/Debit)</span>
-                            <span>⚡ UPI (GPay, PhonePe, Paytm)</span>
-                            <span>🏦 Netbanking (50+ Banks)</span>
-                            <span>👛 Wallets</span>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; align-items: center; margin: 18px 0 22px 0; text-align: center;">
-                        <div style="flex: 1; border-bottom: 1px solid #E2E8F0;"></div>
-                        <span style="padding: 0 14px; color: #94A3B8; font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px;">OR SCAN DIRECT UPI QR BELOW</span>
-                        <div style="flex: 1; border-bottom: 1px solid #E2E8F0;"></div>
-                    </div>
-
-                    <!-- Offer Ribbon -->
-                    <div class="td-offer-ribbon">
-                        <i data-lucide="zap" style="width: 16px; height: 16px; color: #9333EA; flex-shrink: 0;"></i>
-                        <span>Automated Bank SMS Detection Active — Course unlocks within seconds of payment!</span>
-                    </div>
-
-                    <!-- Dynamic UPI QR Code Section -->
-                    <div class="td-qr-section">
-                        <div class="td-qr-header">
-                            <h3 class="td-qr-title">UPI QR Code</h3>
-                            <div class="td-timer-badge" id="timerBadge">
-                                <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
-                                <span id="timerDigits">05:00</span>
-                            </div>
-                        </div>
-
-                        <div class="td-qr-container">
-                            <img src="{{ qr_data.qr_data_uri }}" alt="UPI QR Code" class="td-qr-img" id="qrImage">
-                        </div>
-
-                        <div class="td-scan-text">
-                            Scan with any UPI App to pay <strong>₹{{ price|int }}</strong>
-                        </div>
-
-                        <!-- Supported Apps Badges -->
-                        <div class="td-apps-row">
-                            <span class="td-app-pill">PhonePe</span>
+                        <!-- Supported Badges Preview -->
+                        <div id="methodBadgesRow" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
                             <span class="td-app-pill">Google Pay</span>
+                            <span class="td-app-pill">PhonePe</span>
                             <span class="td-app-pill">Paytm</span>
                             <span class="td-app-pill">BHIM</span>
                             <span class="td-app-pill">Navi</span>
                             <span class="td-app-pill">CRED</span>
+                            <span class="td-app-pill">Any UPI ID</span>
                         </div>
 
-                        <!-- Copy UPI ID Pill -->
-                        <div class="td-copy-vpa">
-                            <span style="color: #64748B; font-weight: 600;">UPI ID:</span>
-                            <code class="td-vpa-code" id="vpaCodeDisplay">{{ qr_data.merchant_upi }}</code>
-                            <button type="button" id="copyVpaBtn" class="td-copy-btn">
-                                <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
-                                <span>Copy</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Mobile Intent Trigger Buttons -->
-                    <div class="td-intent-grid">
-                        <a href="{{ qr_data.phonepe_uri }}" class="td-intent-btn td-btn-phonepe">
-                            <span>PhonePe</span>
-                        </a>
-                        <a href="{{ qr_data.gpay_uri }}" class="td-intent-btn td-btn-gpay">
-                            <span>Google Pay</span>
-                        </a>
-                        <a href="{{ qr_data.paytm_uri }}" class="td-intent-btn td-btn-paytm">
-                            <span>Paytm UPI</span>
-                        </a>
-                    </div>
-
-                    <!-- Step 2: Confirm 12-Digit UTR Form -->
-                    <div class="td-utr-box">
-                        <div class="td-utr-title">
-                            <i data-lucide="shield-check" style="width: 17px; height: 17px; color: #16A34A;"></i>
-                            <span>Confirm Payment (12-Digit Bank UTR)</span>
-                        </div>
-                        <p class="td-utr-sub">
-                            Enter the 12-digit transaction reference number from your bank or UPI app receipt:
+                        <p id="methodDescription" style="font-size: 0.8rem; color: #475569; margin: 0; line-height: 1.4;">
+                            Pay directly via UPI QR or UPI Intent with any app. Course access unlocks within seconds of payment.
                         </p>
+                    </div>
 
-                        <form method="POST" action="{{ url_for('payment.submit_payment') }}" id="utrPaymentForm">
-                            <input type="hidden" name="item_type" value="{{ item_type }}">
-                            <input type="hidden" name="item_id" value="{{ item_id }}">
-                            <input type="hidden" name="session_token" id="sessionTokenInput" value="{{ qr_data.session_token }}">
-                            <input type="hidden" name="srid" id="form_srid" value="{% if prefill_srid %}SR{{ prefill_srid }}{% endif %}">
+                    <!-- Order Price & Entitlement Summary Card -->
+                    <div style="background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 14px; padding: 18px 20px; margin-bottom: 22px;">
+                        <div style="font-size: 0.82rem; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+                            Item Details & Verification
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-weight: 700; color: #0F172A; font-size: 0.92rem;">{{ item.title }}</span>
+                            <span style="font-weight: 800; color: #0F172A; font-size: 0.95rem;">₹{{ price|int }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.78rem; color: #10B981; font-weight: 700;">
+                            <span>SkillRock Student Privilege</span>
+                            <span>Applied (FREE Processing)</span>
+                        </div>
+                        <div style="border-top: 1px dashed #CBD5E1; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 800; font-size: 1rem; color: #0F172A;">Total Payable Amount</span>
+                            <span style="font-weight: 900; font-size: 1.35rem; color: #7A008A;">₹{{ price|int }}</span>
+                        </div>
 
-                            <div class="td-utr-input-wrapper">
-                                <input 
-                                    type="text" 
-                                    id="utr_number" 
-                                    name="utr_number" 
-                                    class="td-utr-input" 
-                                    required 
-                                    maxlength="16" 
-                                    inputmode="numeric" 
-                                    placeholder="4781 2504 9818" 
-                                    autocomplete="off"
-                                >
-                                <span class="td-utr-counter" id="digitCounter">0/12</span>
+                        <!-- Included Benefits List -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; font-size: 0.76rem; color: #334155; font-weight: 600;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
+                                <span>Lifetime Course Access</span>
                             </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
+                                <span>Verified Certificate</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
+                                <span>Interactive Exercises</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
+                                <span>Instant Auto-Unlock</span>
+                            </div>
+                        </div>
+                    </div>
 
-                            <small id="utrHelperText" class="td-utr-helper">
-                                Found in your payment confirmation receipt (e.g. <code>Ref No. 478125049818</code>).
-                            </small>
+                    <!-- Master Razorpay Proceed CTA Button -->
+                    <button type="button" id="btnRazorpayModal" class="td-rzp-master-btn" style="width: 100%; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #7A008A 0%, #580064 100%); color: #FFFFFF; padding: 16px 24px; border-radius: 14px; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 8px 24px rgba(122, 0, 138, 0.35);">
+                        <div style="display: flex; align-items: center; gap: 14px; text-align: left;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="lock" style="width: 20px; height: 20px; color: #FFF;"></i>
+                            </div>
+                            <div>
+                                <div id="rzpBtnText" style="font-size: 1.05rem; font-weight: 800; letter-spacing: 0.3px;">Proceed to Pay ₹{{ price|int }} via Razorpay</div>
+                                <div style="font-size: 0.74rem; color: #E9D5FF; font-weight: 500;">Cards, UPI, Netbanking, Wallets • Instant Activation</div>
+                            </div>
+                        </div>
+                        <i data-lucide="arrow-right" style="width: 22px; height: 22px; color: #FFFFFF;"></i>
+                    </button>
 
-                            <!-- Master Primary Unlock Button -->
-                            <button type="submit" id="submitPaymentBtn" class="td-submit-btn">
-                                <i data-lucide="lock" style="width: 18px; height: 18px;"></i>
-                                <span>Verify & Unlock Course Access (₹{{ price|int }})</span>
-                            </button>
-                        </form>
+                    <!-- Security & Certification Trust Footer -->
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 18px; font-size: 0.74rem; color: #64748B; font-weight: 600; flex-wrap: wrap;">
+                        <span style="display: inline-flex; align-items: center; gap: 4px;">
+                            <i data-lucide="shield" style="width: 13px; height: 13px; color: #10B981;"></i> Razorpay Standard Gateway
+                        </span>
+                        <span>•</span>
+                        <span>PCI-DSS Level 1 Compliant</span>
+                        <span>•</span>
+                        <span>256-Bit SSL Secured</span>
                     </div>
 
                 </div>
@@ -1183,146 +951,14 @@
 
     const itemType = {{ item_type | tojson }};
     const itemId = {{ item_id | tojson }};
-    const sessionTokenInput = document.getElementById('sessionTokenInput');
-    const timerDigits = document.getElementById('timerDigits');
-    const utrInput = document.getElementById('utr_number');
-    const digitCounter = document.getElementById('digitCounter');
-    const helperText = document.getElementById('utrHelperText');
-    const submitBtn = document.getElementById('submitPaymentBtn');
-    const copyBtn = document.getElementById('copyVpaBtn');
-    const qrImage = document.getElementById('qrImage');
+    const razorpayKeyId = '{{ razorpay_key_id }}' || 'rzp_test_TxeO2bqvHBawXV';
 
-    // 1. Session Expiry Countdown Timer (5 Minutes)
-    let countdownSeconds = 300;
-    let timerInterval = null;
-
-    function startTimer(duration) {
-        countdownSeconds = duration;
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            countdownSeconds--;
-            if (countdownSeconds <= 0) {
-                clearInterval(timerInterval);
-                if (timerDigits) timerDigits.innerText = '00:00';
-                refreshQRCode();
-                return;
-            }
-            const mins = String(Math.floor(countdownSeconds / 60)).padStart(2, '0');
-            const secs = String(countdownSeconds % 60).padStart(2, '0');
-            if (timerDigits) timerDigits.innerText = `${mins}:${secs}`;
-        }, 1000);
-    }
-
-    // 2. Dynamic QR Refresh
-    function refreshQRCode() {
-        const sridVal = (document.getElementById('form_srid')?.value || '').trim();
-        fetch(`/payment/refresh-qr/${itemType}/${itemId}?srid=${encodeURIComponent(sridVal)}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.qr_data_uri) {
-                    if (qrImage) qrImage.src = data.qr_data_uri;
-                    if (sessionTokenInput) sessionTokenInput.value = data.session_token;
-                    startTimer(300);
-                }
-            })
-            .catch(err => console.error('QR refresh error:', err));
-    }
-
-    // 3. Format UTR with spaces (4781 2504 9818) & live 12-digit counter
-    if (utrInput) {
-        utrInput.addEventListener('input', (e) => {
-            const raw = e.target.value.replace(/\D/g, '').slice(0, 12);
-            let formatted = raw;
-            if (raw.length > 4 && raw.length <= 8) {
-                formatted = raw.slice(0, 4) + ' ' + raw.slice(4);
-            } else if (raw.length > 8) {
-                formatted = raw.slice(0, 4) + ' ' + raw.slice(4, 8) + ' ' + raw.slice(8);
-            }
-            e.target.value = formatted;
-
-            const len = raw.length;
-            if (digitCounter) digitCounter.innerText = `${len}/12`;
-
-            if (len === 12) {
-                if (digitCounter) {
-                    digitCounter.classList.add('valid');
-                    digitCounter.innerText = '✓ 12/12';
-                }
-                if (helperText) {
-                    helperText.innerText = '✓ Complete 12-digit UTR reference entered.';
-                    helperText.style.color = '#16a34a';
-                }
-            } else {
-                if (digitCounter) digitCounter.classList.remove('valid');
-                if (helperText) {
-                    helperText.innerText = `${12 - len} more digit(s) required.`;
-                    helperText.style.color = '#64748b';
-                }
-            }
-        });
-    }
-
-    // 4. Clean UTR before submit
-    const utrForm = document.getElementById('utrPaymentForm');
-    if (utrForm) {
-        utrForm.addEventListener('submit', (e) => {
-            if (utrInput) {
-                const cleanDigits = utrInput.value.replace(/\D/g, '');
-                if (cleanDigits.length !== 12) {
-                    e.preventDefault();
-                    alert('Please enter your full 12-digit bank UTR reference number.');
-                    utrInput.focus();
-                    return false;
-                }
-                utrInput.value = cleanDigits;
-            }
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span>Verifying Transaction...</span>';
-            }
-        });
-    }
-
-    // 5. Copy UPI ID
-    if (copyBtn) {
-        copyBtn.addEventListener('click', () => {
-            const vpa = document.getElementById('vpaCodeDisplay')?.innerText.trim() || '9243494968@nyes';
-            navigator.clipboard.writeText(vpa).then(() => {
-                copyBtn.innerHTML = '<i data-lucide="check" style="width:13px; height:13px;"></i><span>Copied!</span>';
-                copyBtn.style.color = '#16a34a';
-                if (window.lucide) window.lucide.createIcons();
-                setTimeout(() => {
-                    copyBtn.innerHTML = '<i data-lucide="copy" style="width:13px; height:13px;"></i><span>Copy</span>';
-                    copyBtn.style.color = '#2563eb';
-                    if (window.lucide) window.lucide.createIcons();
-                }, 1800);
-            });
-        });
-    }
-
-    // 6. Student Ambassador Referral Validation & Sync
+    // 1. Student Ambassador Referral Validation & Sync
     const sridInput = document.getElementById('srid_input');
-    const formSrid = document.getElementById('form_srid');
     const sridFeedback = document.getElementById('sridFeedback');
     const sridStatusIcon = document.getElementById('sridStatusIcon');
     let sridDebounceTimer = null;
     let sridAbortController = null;
-
-    function updateSessionReferral(sridValue) {
-        const sessionToken = sessionTokenInput ? sessionTokenInput.value : '';
-        if (!sessionToken) return;
-        fetch('/payment/update-referral', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: JSON.stringify({
-                session_token: sessionToken,
-                srid: sridValue || ''
-            })
-        }).catch(err => console.debug('Session referral sync notice:', err));
-    }
 
     function validateAmbassadorId(digits) {
         if (!sridFeedback || !sridStatusIcon) return;
@@ -1341,29 +977,21 @@
         .then(res => res.json())
         .then(data => {
             if (data.valid && data.name) {
-                if (formSrid) formSrid.value = `SR${digits}`;
                 sridStatusIcon.innerHTML = '<i data-lucide="check-circle" style="color:#16a34a; width:16px; height:16px;"></i>';
                 sridFeedback.innerHTML = `<span style="color:#15803D; font-weight:700;">✅ Verified Ambassador: <strong>${data.name}</strong></span>`;
-                updateSessionReferral(`SR${digits}`);
             } else if (!data.available) {
-                if (formSrid) formSrid.value = `SR${digits}`;
                 sridStatusIcon.innerHTML = '<i data-lucide="info" style="color:#64748b; width:16px; height:16px;"></i>';
                 sridFeedback.innerHTML = `<span style="color:#64748B; font-weight:600;">ℹ️ Ambassador referral recorded. Checkout proceeds normally.</span>`;
-                updateSessionReferral(`SR${digits}`);
             } else {
-                if (formSrid) formSrid.value = '';
                 sridStatusIcon.innerHTML = '<i data-lucide="alert-circle" style="color:#dc2626; width:16px; height:16px;"></i>';
                 sridFeedback.innerHTML = `<span style="color:#DC2626; font-weight:700;">${data.message || 'Invalid Ambassador ID.'}</span>`;
-                updateSessionReferral('');
             }
             if (window.lucide) window.lucide.createIcons();
         })
         .catch(err => {
             if (err.name === 'AbortError') return;
-            if (formSrid) formSrid.value = `SR${digits}`;
             sridStatusIcon.innerHTML = '<i data-lucide="info" style="color:#64748b; width:16px; height:16px;"></i>';
             sridFeedback.innerHTML = `<span style="color:#64748B; font-weight:600;">ℹ️ Ambassador referral recorded.</span>`;
-            updateSessionReferral(`SR${digits}`);
             if (window.lucide) window.lucide.createIcons();
         });
     }
@@ -1378,15 +1006,12 @@
             clearTimeout(sridDebounceTimer);
 
             if (cleanDigits.length === 0) {
-                if (formSrid) formSrid.value = '';
                 if (sridStatusIcon) sridStatusIcon.innerHTML = '';
-                if (sridFeedback) sridFeedback.innerHTML = '<span style="color:#64748B;">Enter 4 digits (e.g. 1001)</span>';
-                updateSessionReferral('');
+                if (sridFeedback) sridFeedback.innerHTML = '<span style="color:#64748B;">Enter 4 digits (e.g. 1004)</span>';
                 return;
             }
 
             if (cleanDigits.length < 4) {
-                if (formSrid) formSrid.value = '';
                 if (sridStatusIcon) sridStatusIcon.innerHTML = '';
                 if (sridFeedback) sridFeedback.innerHTML = `<span style="color:#64748B;">${cleanDigits.length}/4 digits entered</span>`;
                 return;
@@ -1398,41 +1023,93 @@
             }, 400);
         });
 
-        // If prefilled on load
         if (sridInput.value && sridInput.value.length === 4) {
             validateAmbassadorId(sridInput.value);
         }
     }
 
-    // 7. Real-Time Bank SMS Polling (Auto-Unlock Detection)
-    let pollInterval = setInterval(() => {
-        const token = sessionTokenInput ? sessionTokenInput.value : '';
-        if (!token) return;
+    // 2. Interactive Payment Method Tabs
+    let currentSelectedMethod = 'upi';
+    const methodConfigs = {
+        'upi': {
+            icon: 'smartphone',
+            title: 'UPI & QR Payment',
+            subtitle: 'Instant Auto-Unlock • Zero Gateway Surcharge',
+            badges: ['Google Pay', 'PhonePe', 'Paytm', 'BHIM', 'Navi', 'CRED', 'Any UPI ID'],
+            desc: 'Pay directly via UPI QR or UPI Intent with any app. Course access unlocks within seconds of payment.'
+        },
+        'cards': {
+            icon: 'credit-card',
+            title: 'Credit / Debit Cards',
+            subtitle: 'All Major Domestic & International Cards',
+            badges: ['Visa', 'Mastercard', 'RuPay', 'Maestro', 'American Express'],
+            desc: 'Pay securely using any Indian or international Debit or Credit card with 3D Secure OTP verification.'
+        },
+        'netbanking': {
+            icon: 'landmark',
+            title: 'Netbanking (50+ Banks)',
+            subtitle: 'Direct Netbanking from all Indian Banks',
+            badges: ['HDFC Bank', 'ICICI Bank', 'SBI', 'Axis Bank', 'Kotak', '50+ Banks'],
+            desc: 'Pay directly from your bank account via your bank\'s secure netbanking authorization portal.'
+        },
+        'wallets': {
+            icon: 'wallet',
+            title: 'Digital Wallets',
+            subtitle: 'Popular Indian Digital Wallets',
+            badges: ['PhonePe Wallet', 'Paytm Wallet', 'Mobikwik', 'Airtel Money', 'Freecharge'],
+            desc: 'Pay instantly using your digital wallet balance with one-tap authentication.'
+        }
+    };
 
-        fetch(`/payment/check-status/${itemType}/${itemId}?token=${encodeURIComponent(token)}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.unlocked) {
-                    clearInterval(pollInterval);
-                    window.location.href = data.redirect_url || `/learning/course/${itemId}`;
-                }
-            })
-            .catch(err => console.debug('Status poller notice:', err));
-    }, 4000);
+    function selectMethod(methodKey) {
+        currentSelectedMethod = methodKey;
+        const cfg = methodConfigs[methodKey];
+        if (!cfg) return;
 
-    // =========================================================================
-    // 8. Razorpay Standard Web Checkout Integration
-    // =========================================================================
+        // Update active tab style
+        document.querySelectorAll('.td-tab-item').forEach(el => el.classList.remove('active'));
+        const tabEl = document.getElementById(methodKey === 'upi' ? 'tabUpiQr' : (methodKey === 'cards' ? 'tabCards' : (methodKey === 'netbanking' ? 'tabNetbanking' : 'tabWallets')));
+        if (tabEl) tabEl.classList.add('active');
+
+        // Update active method detail card
+        const titleEl = document.getElementById('methodTitle');
+        const subEl = document.getElementById('methodSubtitle');
+        const descEl = document.getElementById('methodDescription');
+        const iconEl = document.getElementById('methodBadgeIcon');
+        const badgesEl = document.getElementById('methodBadgesRow');
+
+        if (titleEl) titleEl.innerText = cfg.title;
+        if (subEl) subEl.innerText = cfg.subtitle;
+        if (descEl) descEl.innerText = cfg.desc;
+        if (iconEl) iconEl.innerHTML = `<i data-lucide="${cfg.icon}" style="width: 19px; height: 19px;"></i>`;
+        if (badgesEl) {
+            badgesEl.innerHTML = cfg.badges.map(b => `<span class="td-app-pill">${b}</span>`).join('');
+        }
+
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    // Attach tab listeners
+    const tabUpi = document.getElementById('tabUpiQr');
+    const tabCards = document.getElementById('tabCards');
+    const tabNet = document.getElementById('tabNetbanking');
+    const tabWal = document.getElementById('tabWallets');
+
+    if (tabUpi) tabUpi.addEventListener('click', () => selectMethod('upi'));
+    if (tabCards) tabCards.addEventListener('click', () => selectMethod('cards'));
+    if (tabNet) tabNet.addEventListener('click', () => selectMethod('netbanking'));
+    if (tabWal) tabWal.addEventListener('click', () => selectMethod('wallets'));
+
+    // 3. Razorpay Standard Web Checkout Integration
     const btnRazorpayModal = document.getElementById('btnRazorpayModal');
     const rzpBtnText = document.getElementById('rzpBtnText');
-    const razorpayKeyId = '{{ razorpay_key_id }}' || 'rzp_test_TxeO2bqvHBawXV';
 
     async function launchRazorpayCheckout() {
         const cleanSrid = sridInput ? sridInput.value.trim() : '';
 
         if (btnRazorpayModal) {
             btnRazorpayModal.disabled = true;
-            if (rzpBtnText) rzpBtnText.innerText = 'Creating Secure Razorpay Order...';
+            if (rzpBtnText) rzpBtnText.innerText = 'Initializing Razorpay Checkout...';
         }
 
         try {
@@ -1452,7 +1129,7 @@
 
             const orderData = await orderRes.json();
             if (!orderRes.ok || !orderData.order_id) {
-                throw new Error(orderData.error || 'Failed to create Razorpay order.');
+                throw new Error(orderData.error || 'Failed to initialize payment order.');
             }
 
             // STEP 2: Configure & Open Razorpay Standard Checkout Modal
@@ -1482,7 +1159,7 @@
                         // User closed the modal
                         if (btnRazorpayModal) {
                             btnRazorpayModal.disabled = false;
-                            if (rzpBtnText) rzpBtnText.innerText = 'Pay ₹{{ price|int }} Online with Razorpay';
+                            if (rzpBtnText) rzpBtnText.innerText = 'Proceed to Pay ₹{{ price|int }} via Razorpay';
                         }
                     }
                 },
@@ -1518,14 +1195,14 @@
                             alert(verifyData.error || 'Signature verification failed. Please contact support.');
                             if (btnRazorpayModal) {
                                 btnRazorpayModal.disabled = false;
-                                if (rzpBtnText) rzpBtnText.innerText = 'Pay ₹{{ price|int }} Online with Razorpay';
+                                if (rzpBtnText) rzpBtnText.innerText = 'Proceed to Pay ₹{{ price|int }} via Razorpay';
                             }
                         }
                     } catch (err) {
                         alert('Network communication error during signature verification. Please refresh.');
                         if (btnRazorpayModal) {
                             btnRazorpayModal.disabled = false;
-                            if (rzpBtnText) rzpBtnText.innerText = 'Pay ₹{{ price|int }} Online with Razorpay';
+                            if (rzpBtnText) rzpBtnText.innerText = 'Proceed to Pay ₹{{ price|int }} via Razorpay';
                         }
                     }
                 }
@@ -1543,17 +1220,17 @@
                 alert('Payment was not completed: ' + errDetail);
                 if (btnRazorpayModal) {
                     btnRazorpayModal.disabled = false;
-                    if (rzpBtnText) rzpBtnText.innerText = 'Pay ₹{{ price|int }} Online with Razorpay';
+                    if (rzpBtnText) rzpBtnText.innerText = 'Proceed to Pay ₹{{ price|int }} via Razorpay';
                 }
             });
 
             rzp.open();
 
         } catch (err) {
-            alert(err.message || 'Could not launch Razorpay checkout. Please try again or scan the direct UPI QR.');
+            alert(err.message || 'Could not launch Razorpay checkout. Please try again.');
             if (btnRazorpayModal) {
                 btnRazorpayModal.disabled = false;
-                if (rzpBtnText) rzpBtnText.innerText = 'Pay ₹{{ price|int }} Online with Razorpay';
+                if (rzpBtnText) rzpBtnText.innerText = 'Proceed to Pay ₹{{ price|int }} via Razorpay';
             }
         }
     }
@@ -1562,17 +1239,8 @@
         btnRazorpayModal.addEventListener('click', launchRazorpayCheckout);
     }
 
-    // Connect Cards, Netbanking, Wallets tab clicks directly to Razorpay
-    ['tabCards', 'tabNetbanking', 'tabWallets'].forEach(tabId => {
-        const tabEl = document.getElementById(tabId);
-        if (tabEl) {
-            tabEl.addEventListener('click', launchRazorpayCheckout);
-        }
-    });
-
     // Init on DOM Load
     document.addEventListener('DOMContentLoaded', () => {
-        startTimer(300);
         if (window.lucide) window.lucide.createIcons();
     });
 })();

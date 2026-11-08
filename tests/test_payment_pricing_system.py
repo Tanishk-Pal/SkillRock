@@ -222,11 +222,11 @@ class TestPaymentPricingSystem(unittest.TestCase):
     def test_payment_checkout_and_submission_anti_replay(self):
         self.login_user(self.student.email, "StudentPass123!")
 
-        # 1. Checkout view renders dynamic QR and price
+        # 1. Checkout view renders price and Razorpay checkout
         res_checkout = self.client.get(f"/payment/checkout/course/{self.paid_course.id}")
         self.assertEqual(res_checkout.status_code, 200)
         self.assertIn(b"699", res_checkout.data)
-        self.assertIn(b"data:image/png;base64,", res_checkout.data)
+        self.assertIn(b"checkout.razorpay.com", res_checkout.data)
 
         # 2. Submit payment with valid 12-digit UTR
         test_utr = "938201847592"
