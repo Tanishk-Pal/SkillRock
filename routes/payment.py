@@ -11,7 +11,14 @@ import json
 import logging
 import urllib.request
 import urllib.error
+import hmac
+import hashlib
+import secrets
 from datetime import datetime, timezone
+try:
+    import razorpay
+except ImportError:
+    razorpay = None
 from flask import (
     Blueprint,
     render_template,
@@ -46,6 +53,23 @@ payment_bp = Blueprint("payment", __name__)
 
 
 AMBASSADOR_VALIDATION_BASE_URL = "https://skillrock-ambassador-portal-backend.onrender.com/api/sales/validate-srid"
+
+
+def get_razorpay_client():
+    """Initializes and returns the Razorpay client using configured credentials."""
+    key_id = getattr(Config, "RAZORPAY_KEY_ID", "").strip()
+    key_secret = getattr(Config, "RAZORPAY_KEY_SECRET", "").strip()
+    if not key_id or not key_secret:
+        logger.warning("[RAZORPAY WARNING] Key ID or Secret not configured in Config.")
+        return None
+    try:
+        if razorpay is None:
+            logger.error("[RAZORPAY ERROR] razorpay Python package not installed.")
+            return None
+        return razorpay.Client(auth=(key_id, key_secret))
+    except Exception as e:
+        logger.error(f"[RAZORPAY CLIENT INIT ERROR] {e}")
+        return None
 
 
 def validate_srid_authoritative(srid):
@@ -350,7 +374,274 @@ def checkout(item_type, item_id):
         qr_data=qr_data,
         pending_payment=pending_payment,
         prefill_srid=(clean_ref[2:] if clean_ref else ""),
+        razorpay_key_id=Config.RAZORPAY_KEY_ID,
     )
+
+
+# ==============================================================================
+# Razorpay Standard Web Checkout Endpoints
+# ==============================================================================
+
+@payment_bp.route("/api/create-order", methods=["POST"])
+@payment_bp.route("/payment/create-order", methods=["POST"])
+def create_razorpay_order():
+    """
+    Creates an official Razorpay Order.
+    Accepts JSON or form data:
+      - Direct amount in paise: { "amount": 69900, "currency": "INR", "receipt": "..." }
+      - Or learning item reference: { "item_type": "course", "item_id": "...", "srid": "1001" }
+    Returns:
+      - { "order_id": str, "amount": int, "currency": str, "key_id": str }
+    """
+    data = request.get_json(silent=True) or request.form.to_dict() or {}
+
+    item_type = data.get("item_type")
+    item_id = data.get("item_id")
+    srid_input = (data.get("srid") or "").strip()
+    clean_srid = None
+    if srid_input:
+        m = re.search(r"(\d{4})$", srid_input)
+        if m:
+            clean_srid = f"SR{m.group(1)}"
+        elif re.match(r"^SR\d{4}$", srid_input.upper()):
+            clean_srid = srid_input.upper()
+
+    amount_paise = None
+    currency = (data.get("currency") or "INR").upper()
+    receipt = (data.get("receipt") or f"rcpt_{datetime.now(timezone.utc).strftime('%m%d%H%M%S')}_{secrets.token_hex(2)}")[:40]
+
+    notes = {
+        "user_id": str(current_user.id) if (current_user and current_user.is_authenticated) else str(data.get("user_id") or ""),
+        "user_email": getattr(current_user, "email", str(data.get("user_email") or "")),
+        "item_type": str(item_type or "direct"),
+        "item_id": str(item_id or ""),
+        "srid": str(clean_srid or ""),
+    }
+
+    item = None
+    if item_type and item_id:
+        item = get_item_by_type_and_id(item_type, item_id)
+        if not item:
+            return jsonify({"error": "Learning item not found"}), 404
+        price = float(getattr(item, "price", 0.0))
+        if price <= 0:
+            return jsonify({"error": "Item is free, please enroll directly without checkout"}), 400
+        amount_paise = int(round(price * 100))
+        notes["item_title"] = getattr(item, "title", "Course")[:45]
+    elif "amount" in data and data["amount"] is not None:
+        try:
+            amount_paise = int(round(float(data["amount"])))
+        except (ValueError, TypeError):
+            return jsonify({"error": "Invalid amount specified. Must be integer in paise."}), 400
+
+    if amount_paise is None:
+        return jsonify({"error": "Either item_type/item_id or amount (in paise) must be provided."}), 400
+
+    # Minimum amount validation: at least 100 paise (₹1.00)
+    if amount_paise < 100:
+        return jsonify({"error": "Minimum order amount is 100 paise (₹1.00)"}), 400
+
+    client = get_razorpay_client()
+    if not client:
+        return jsonify({"error": "Razorpay client not configured or missing API credentials"}), 500
+
+    try:
+        order = client.order.create({
+            "amount": amount_paise,
+            "currency": currency,
+            "receipt": receipt,
+            "notes": notes,
+        })
+    except Exception as e:
+        err_msg = str(e)
+        logger.error(f"[RAZORPAY CREATE ORDER ERROR] {err_msg}")
+        if "auth" in err_msg.lower() or "unauthorized" in err_msg.lower() or "authentication failed" in err_msg.lower():
+            return jsonify({"error": "Razorpay authentication failed: check API credentials."}), 401
+        return jsonify({"error": f"Razorpay API Error: {err_msg}"}), 500
+
+    # Store order reference in MongoDB
+    try:
+        db = get_db()
+        db.razorpay_orders.insert_one({
+            "order_id": order["id"],
+            "amount": order["amount"],
+            "currency": order["currency"],
+            "receipt": receipt,
+            "user_id": notes["user_id"],
+            "item_type": item_type,
+            "item_id": str(item_id or ""),
+            "srid": clean_srid,
+            "status": "created",
+            "created_at": datetime.now(timezone.utc),
+        })
+    except Exception as e:
+        logger.warning(f"Note persisting razorpay_orders: {e}")
+
+    return jsonify({
+        "order_id": order["id"],
+        "amount": order["amount"],
+        "currency": order["currency"],
+        "key_id": Config.RAZORPAY_KEY_ID,
+    }), 200
+
+
+@payment_bp.route("/api/verify-payment", methods=["POST"])
+@payment_bp.route("/payment/verify-payment", methods=["POST"])
+def verify_razorpay_payment():
+    """
+    Verifies the cryptographic HMAC-SHA256 signature returned by Razorpay Standard Checkout.
+    Algorithm: HMAC-SHA256(order_id + "|" + payment_id, KEY_SECRET)
+    - Upon valid signature:
+      1. Approves payment immediately.
+      2. Unlocks student permanent access in user_access.
+      3. Attaches ambassador referral attribution if present.
+      4. Returns JSON with success: True and redirect_url.
+    - Upon signature mismatch or missing fields:
+      Returns HTTP 400 error and refuses access (does NOT mark as paid).
+    """
+    data = request.get_json(silent=True) or request.form.to_dict() or {}
+
+    order_id = (data.get("razorpay_order_id") or data.get("order_id") or "").strip()
+    payment_id = (data.get("razorpay_payment_id") or data.get("payment_id") or "").strip()
+    signature = (data.get("razorpay_signature") or data.get("signature") or "").strip()
+
+    # Missing fields validation
+    if not order_id or not payment_id or not signature:
+        return jsonify({
+            "success": False,
+            "error": "Missing required fields: razorpay_order_id, razorpay_payment_id, and razorpay_signature are required."
+        }), 400
+
+    key_secret = getattr(Config, "RAZORPAY_KEY_SECRET", "").strip()
+    if not key_secret:
+        return jsonify({"success": False, "error": "Razorpay secret key not configured on server"}), 500
+
+    # Algorithm: HMAC-SHA256(order_id + "|" + payment_id, KEY_SECRET)
+    msg = f"{order_id}|{payment_id}".encode("utf-8")
+    generated_signature = hmac.new(
+        key_secret.encode("utf-8"),
+        msg,
+        hashlib.sha256
+    ).hexdigest()
+
+    # Compare generated signature with razorpay_signature
+    if not hmac.compare_digest(generated_signature, signature):
+        logger.warning(f"[RAZORPAY SECURITY ALERT] Signature mismatch for order {order_id}, payment {payment_id}!")
+        return jsonify({
+            "success": False,
+            "error": "Invalid signature. Payment could not be verified."
+        }), 400
+
+    # Signature is authentic!
+    db = get_db()
+    now = datetime.now(timezone.utc)
+
+    # Check for replay attack / duplicate processing
+    existing_pay = db.payments.find_one({"razorpay_payment_id": payment_id})
+    if existing_pay:
+        item_type = existing_pay.get("item_type", "course")
+        item_id = existing_pay.get("item_id")
+        item = get_item_by_type_and_id(item_type, item_id)
+        redirect_url = url_for("learning.my_learning")
+        if item_type == "course" and item and getattr(item, "slug", None):
+            redirect_url = url_for("learning.course_detail", slug=item.slug, player=1, _anchor="skillrockPlayerFrame")
+        elif item_type == "test_series" and item and getattr(item, "slug", None):
+            redirect_url = url_for("test_series.test_detail", test_slug=item.slug)
+        return jsonify({
+            "success": True,
+            "message": "Payment already verified.",
+            "payment_id": existing_pay.get("payment_id"),
+            "redirect_url": redirect_url
+        }), 200
+
+    # Retrieve order document from MongoDB
+    order_doc = db.razorpay_orders.find_one({"order_id": order_id}) or {}
+    item_type = data.get("item_type") or order_doc.get("item_type") or "course"
+    item_id = data.get("item_id") or order_doc.get("item_id")
+    srid_input = (data.get("srid") or order_doc.get("srid") or "").strip()
+    clean_srid = None
+    if srid_input:
+        m = re.search(r"(\d{4})$", srid_input)
+        if m:
+            clean_srid = f"SR{m.group(1)}"
+        elif re.match(r"^SR\d{4}$", srid_input.upper()):
+            clean_srid = srid_input.upper()
+
+    user = current_user if (current_user and current_user.is_authenticated) else None
+    if not user and order_doc.get("user_id"):
+        from models import User
+        user = User.get_by_id(order_doc.get("user_id"))
+
+    item = get_item_by_type_and_id(item_type, item_id) if (item_type and item_id) else None
+    amount_rupees = float(order_doc.get("amount", 0) / 100.0) if order_doc.get("amount") else (float(getattr(item, "price", 0.0)) if item else 0.0)
+
+    internal_payment_id = f"PAY-{now.strftime('%Y%m%d')}-{secrets.token_hex(3).upper()}"
+    new_payment = {
+        "payment_id": internal_payment_id,
+        "gateway": "razorpay",
+        "razorpay_order_id": order_id,
+        "razorpay_payment_id": payment_id,
+        "razorpay_signature": signature,
+        "user_id": str(user.id) if user else str(order_doc.get("user_id") or ""),
+        "user_name": getattr(user, "name", "Student"),
+        "user_email": getattr(user, "email", ""),
+        "item_type": item_type,
+        "item_id": str(item_id or ""),
+        "item_title": getattr(item, "title", "SkillRock Course") if item else "Learning Item",
+        "amount": amount_rupees,
+        "utr_number": payment_id,
+        "status": "approved",
+        "submitted_at": now,
+        "reviewed_at": now,
+        "reviewed_by": "razorpay_standard_checkout",
+        "created_at": now,
+        "updated_at": now,
+    }
+    if clean_srid:
+        new_payment["srid"] = clean_srid
+
+    db.payments.insert_one(new_payment)
+    db.razorpay_orders.update_one(
+        {"order_id": order_id},
+        {"$set": {"status": "paid", "payment_id": payment_id, "updated_at": now}}
+    )
+
+    # Automatically grant student access to the course or test series
+    if user and item:
+        grant_student_access(
+            user_id=str(user.id),
+            item_type=item_type,
+            item_id=str(item.id),
+            granted_by="razorpay_verified",
+            payment_id=internal_payment_id,
+            amount=amount_rupees,
+        )
+
+    # Record Ambassador Referral Sale if an ambassador ID was attached
+    if clean_srid and item and user:
+        record_ambassador_sale(
+            srid=clean_srid,
+            item=item,
+            user=user,
+            amount=amount_rupees,
+            payment_id=internal_payment_id,
+            utr_number=payment_id,
+            status="approved"
+        )
+
+    # Build redirect destination for student
+    redirect_url = url_for("learning.my_learning")
+    if item_type == "course" and item and getattr(item, "slug", None):
+        redirect_url = url_for("learning.course_detail", slug=item.slug, player=1, _anchor="skillrockPlayerFrame")
+    elif item_type == "test_series" and item and getattr(item, "slug", None):
+        redirect_url = url_for("test_series.test_detail", test_slug=item.slug)
+
+    return jsonify({
+        "success": True,
+        "message": "Payment verified successfully! Access granted.",
+        "payment_id": internal_payment_id,
+        "redirect_url": redirect_url
+    }), 200
 
 
 @payment_bp.route("/payment/refresh-qr/<item_type>/<item_id>")
