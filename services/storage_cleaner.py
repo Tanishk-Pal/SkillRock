@@ -1,7 +1,7 @@
 """
 SkillRock Storage Optimization & Inactivity Cleaner Service
 Protects free MongoDB Atlas tier (512MB storage cap) by:
-1. Permanently purging student accounts inactive for 7+ days (cascading across all 11 collections).
+1. Permanently purging student accounts inactive for 120+ days (cascading across all 11 collections).
 2. Purging orphaned enrollments, submissions, and reviews.
 3. Purging obsolete chat messages for finished/rejected swap sessions.
 4. Protecting super admin and administrator accounts from deletion.
@@ -13,9 +13,9 @@ from datetime import datetime, timezone, timedelta
 logger = logging.getLogger(__name__)
 
 
-def purge_inactive_users(days=7):
+def purge_inactive_users(days=120):
     """
-    Permanently purges users inactive for more than `days` days (default: 7 days)
+    Permanently purges users inactive for more than `days` days (default: 120 days)
     and cascades deletion across all related MongoDB collections to reclaim storage.
     PROTECTED: Administrators (role == 'admin' or email == 'palt51419@gmail.com') are NEVER deleted.
     """
@@ -84,7 +84,7 @@ def purge_orphaned_records():
     return reclaimed
 
 
-def run_storage_optimization(days=7):
+def run_storage_optimization(days=120):
     """Executes full storage optimization suite and returns telemetry metrics."""
     purged_users = purge_inactive_users(days=days)
     orphaned_records = purge_orphaned_records()

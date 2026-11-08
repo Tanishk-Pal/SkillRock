@@ -181,7 +181,7 @@ def create_app(config_class=Config):
             import time
             time.sleep(15)  # Wait for app & DB connection to stabilize
             from services.storage_cleaner import run_storage_optimization
-            run_storage_optimization(days=7)
+            run_storage_optimization(days=120)
         except Exception as e:
             import logging
             logging.getLogger(__name__).warning(f"Startup storage optimization note: {e}")

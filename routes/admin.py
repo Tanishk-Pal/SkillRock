@@ -1147,12 +1147,12 @@ def submission_review(submission_id):
 
 @admin_bp.route("/maintenance/storage-clean", methods=["POST"])
 def storage_clean():
-    """Runs on-demand storage optimization: purges 7-day inactive users and orphaned records."""
+    """Runs on-demand storage optimization: purges 120-day inactive users and orphaned records."""
     from services.storage_cleaner import run_storage_optimization
     try:
-        days = int(request.form.get("days", 7))
+        days = int(request.form.get("days", 120))
     except (ValueError, TypeError):
-        days = 7
+        days = 120
     stats = run_storage_optimization(days=days)
     flash(
         f"🧹 Storage Optimization Complete! Purged {stats['purged_inactive_users']} inactive users (inactive >= {days} days) "
