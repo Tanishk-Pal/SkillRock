@@ -1566,6 +1566,7 @@ def payments_list():
             {"user_name": {"$regex": q, "$options": "i"}},
             {"user_email": {"$regex": q, "$options": "i"}},
             {"item_title": {"$regex": q, "$options": "i"}},
+            {"srid": {"$regex": q, "$options": "i"}},
         ]
 
     payments_cursor = db.payments.find(query).sort("submitted_at", -1)

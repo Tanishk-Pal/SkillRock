@@ -478,6 +478,37 @@ class TestAmbassadorReferralCheckout(unittest.TestCase):
         self.assertIsNotNone(sess)
         self.assertEqual(sess.get("srid"), "SR1001")
 
+    # -------------------------------------------------------------------------
+    # Scenario 12: Admin Search By SRID and Badge Rendering
+    # -------------------------------------------------------------------------
+    def test_scenario_12_admin_search_by_srid_and_badge_rendering(self):
+        """Admin can search payments by SRID and see the printed SRID:SR1001 badge."""
+        now = datetime.now(timezone.utc)
+        payment_id = "PAY-20261108-SRCH12"
+        utr = "481225049014"
+
+        self.db.payments.insert_one({
+            "payment_id": payment_id,
+            "user_id": str(self.student1.id),
+            "user_name": "Student Alpha",
+            "user_email": "alpha.student@skillrock.test",
+            "item_type": "course",
+            "item_id": str(self.paid_course.id),
+            "item_title": "Systems Programming with C++",
+            "amount": 699.0,
+            "utr_number": utr,
+            "status": "pending",
+            "srid": "SR1001",
+            "submitted_at": now,
+        })
+
+        self._login("admin@skillrock.test", "AdminPass123!")
+        search_res = self.client.get("/admin/payments?q=SR1001")
+        self.assertEqual(search_res.status_code, 200)
+        html = search_res.get_data(as_text=True)
+        self.assertIn("Ambassador SRID:SR1001", html)
+        self.assertIn(utr, html)
+
 
 if __name__ == "__main__":
     unittest.main()
