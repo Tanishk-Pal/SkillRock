@@ -293,11 +293,19 @@ def courses_list():
             logger.warning(f"Could not fetch distinct categories: {e_cat}")
             available_categories = ["Programming", "Web Development", "AI & Machine Learning", "Data Science", "Mobile Apps"]
 
+        roadmap_packages = []
+        try:
+            from models.roadmap import RoadmapPackage
+            roadmap_packages = RoadmapPackage.get_all(published_only=True) or []
+        except Exception as e_rm:
+            logger.warning(f"Could not fetch roadmap packages: {e_rm}")
+
         return render_template(
             "learning/courses.html",
             courses=courses,
             recommended_courses=recommended_courses,
             other_courses=other_courses,
+            roadmap_packages=roadmap_packages,
             user_interests=user_interests,
             available_interests=AVAILABLE_INTERESTS,
             selected_category=category,
@@ -317,6 +325,7 @@ def courses_list():
             courses=[],
             recommended_courses=[],
             other_courses=[],
+            roadmap_packages=[],
             user_interests=[],
             available_interests=AVAILABLE_INTERESTS,
             selected_category="",

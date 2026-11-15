@@ -416,6 +416,26 @@
     </div>
 
     <!-- Official Certificate Frame (Print & PDF Canvas) -->
+    <!-- 50% Course Fee Refund Guarantee Claim Banner -->
+    <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(30, 41, 59, 0.9) 100%); border: 1.5px solid rgba(245, 158, 11, 0.4); border-radius: 14px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(245, 158, 11, 0.2); color: #FBBF24; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="award" style="width: 22px; height: 22px;"></i>
+            </div>
+            <div>
+                <div style="color: #FFFFFF; font-weight: 800; font-size: 0.95rem;">
+                    Did you complete this purchased course within 3 months? Claim 50% Fee Refund!
+                </div>
+                <div style="color: #CBD5E1; font-size: 0.82rem; margin-top: 2px;">
+                    Email <strong style="color: #FBBF24;">Palt51419@gmail.com</strong> with your Certificate ID: <code style="color: #67E8F9; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">{{ certificate.certificate_id }}</code> for an instant 50% fee refund.
+                </div>
+            </div>
+        </div>
+        <a href="mailto:Palt51419@gmail.com?subject=50%25%20Course%20Fee%20Refund%20Claim%20-%20{{ certificate.certificate_id }}&body=Hi%20SkillRock%20Team,%0A%0AI%20have%20completed%20100%25%20of%20my%20purchased%20course%20and%20earned%20my%20certificate%20within%203%20months.%0A%0ACertificate%20ID:%20{{ certificate.certificate_id }}%0AStudent%20Email:%20{{ certificate.user_email }}%0ACourse:%20{{ certificate.display_course_title }}%0A%0APlease%20process%20my%2050%25%20fee%20refund.%0A%0AThank%20you!" class="btn btn-primary btn-sm" style="background: #F59E0B; border-color: #F59E0B; color: #000000; font-weight: 800; padding: 8px 16px; border-radius: 9999px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <i data-lucide="mail" style="width: 14px; height: 14px;"></i>
+            <span>Email for 50% Refund</span>
+        </a>
+    </div>
         <!-- Mobile Landscape Orientation Hint -->
     <div class="mobile-cert-hint-banner">
         <i data-lucide="smartphone" style="width: 14px; height: 14px; color: #2563EB;"></i>

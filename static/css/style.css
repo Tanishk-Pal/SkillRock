@@ -3,7 +3,6 @@
    Skill Rock — Central Theme System (WCAG 2.2 AA Compliant Light & Dark Modes)
    ========================================================================== */
 
-:root,
 [data-theme="light"] {
   --theme-mode: light;
   
@@ -68,6 +67,7 @@
   --transition: all 0.15s ease-in-out;
 }
 
+:root,
 [data-theme="dark"] {
   --theme-mode: dark;
   

@@ -499,8 +499,8 @@ class User(UserMixin):
     # User Appearance Theme Preference ("light" or "dark")
     @property
     def theme(self):
-        val = self._data.get("theme", "light")
-        return val if val in ["light", "dark"] else "light"
+        val = self._data.get("theme", "dark")
+        return val if val in ["light", "dark"] else "dark"
 
     @theme.setter
     def theme(self, value):

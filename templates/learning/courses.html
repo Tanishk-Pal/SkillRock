@@ -1,445 +1,641 @@
-{% extends "base.html" %}
-
-{% block title %}Learn & Build — Free Courses & Real Projects — Skill Rock{% endblock %}
-
-{% block meta_description %}Explore free curated programming courses in Python, Java, DSA, Web Development, Kali Linux, and UI/UX. Build real software projects and earn authentic certificates on SkillRock.{% endblock %}
-{% block og_title %}Learn & Build — Free Courses & Real Projects | SkillRock{% endblock %}
-{% block og_description %}Master Python, Java, DSA, Web Development, Kali Linux, and UI/UX with verified practical projects and official credentials on SkillRock.{% endblock %}
-
-{% block head %}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "ItemList",
-  "name": "SkillRock Learn and Build Curated Courses",
-  "description": "Curated industry courses with automated and project-based certifications.",
-  "itemListElement": [
-    {% for c in courses[:15] %}
-    {
-      "@type": "ListItem",
-      "position": {{ loop.index }},
-      "item": {
-        "@type": "Course",
-        "name": {{ c.title | tojson }},
-        "description": {{ (c.description or '') | tojson }},
-        "provider": {
-          "@type": "Organization",
-          "name": "SkillRock Student Academy"
-        },
-        "url": "https://skillrock.onrender.com{{ url_for('learning.course_detail', slug=c.slug or c.id) }}"
-      }
-    }{% if not loop.last %},{% endif %}
-    {% endfor %}
-  ]
-}
-</script>
-<style>
-    .learning-hero-card {
-        padding: 34px 32px;
-        margin-bottom: 24px;
-        background: linear-gradient(135deg, #181A20 0%, #1E202B 100%);
-        color: white;
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 18px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .bubble-filter-scroll {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        overflow-x: auto;
-        padding-bottom: 6px;
-        margin-bottom: 22px;
-        scrollbar-width: none;
-    }
-    .bubble-filter-scroll::-webkit-scrollbar {
-        display: none;
-    }
-
-    .bubble-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        padding: 8px 18px;
-        border-radius: 9999px;
-        font-size: 0.86rem;
-        font-weight: 600;
-        background: var(--bg-card);
-        border: 1.5px solid var(--border-color);
-        color: var(--text-secondary);
-        cursor: pointer;
-        transition: all 0.15s ease;
-        white-space: nowrap;
-        text-decoration: none;
-        user-select: none;
-    }
-
-    .bubble-chip:hover {
-        background: var(--bg-hover);
-        border-color: var(--border-focus);
-        color: var(--text-main);
-        transform: translateY(-1px);
-    }
-
-    .bubble-chip.active {
-        background: var(--primary-purple-light);
-        border-color: var(--primary-action);
-        color: var(--primary-action);
-        font-weight: 700;
-        box-shadow: 0 2px 8px rgba(81, 69, 205, 0.2);
-    }
-
-    .personalized-banner {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-left: 4px solid var(--primary-action);
-        border-radius: 14px;
-        padding: 14px 20px;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .course-card-custom {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        overflow: hidden;
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        background: var(--bg-card);
-        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
-        padding: 0;
-    }
-
-    .course-card-custom:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-hover);
-        border-color: rgba(99, 102, 241, 0.35);
-    }
-
-
-
-    .recommended-badge-ribbon {
-        background: linear-gradient(135deg, #5B46F6, #7C3AED);
-        color: #FFFFFF;
-        font-size: 0.72rem;
-        font-weight: 800;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        box-shadow: 0 2px 6px rgba(91, 70, 246, 0.35);
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="learning-container">
-    <!-- Hero Banner (Physics Wallah / Clean Dark Aesthetic) -->
-    <div class="learning-hero-card">
-        <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.04; pointer-events: none;">
-            <i data-lucide="award" style="width: 260px; height: 260px;"></i>
-        </div>
-        <div style="max-width: 740px; position: relative; z-index: 2;">
-            <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; background: rgba(91, 70, 246, 0.25); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 9999px; font-size: 0.78rem; font-weight: 700; color: #C4B5FD; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px;">
-                <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
-                <span>Skill Rock Academy — Learn & Build</span>
-            </div>
-            <h1 style="font-size: 2.1rem; font-weight: 800; line-height: 1.25; margin-bottom: 12px; letter-spacing: -0.02em;">
-                Learn. Build. Deploy. <span style="background: linear-gradient(135deg, #A78BFA, #818CF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Earn Your Verified Certificate.</span>
-            </h1>
-            <p style="font-size: 0.98rem; color: #94A3B8; line-height: 1.6; margin-bottom: 20px;">
-                Move beyond passively watching tutorials. Watch curated YouTube courses, build practical production projects, deploy them live, submit your work for evaluation, and earn authenticated student certificates.
-            </p>
-            <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #E2E8F0;">
-                    <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #10B981;"></i>
-                    <span>100% Free For All Students</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #E2E8F0;">
-                    <i data-lucide="git-pull-request" style="width: 18px; height: 18px; color: #818CF8;"></i>
-                    <span>GitHub Code & Live Deployment Reviews</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #E2E8F0;">
-                    <i data-lucide="award" style="width: 18px; height: 18px; color: #F59E0B;"></i>
-                    <span>Tamper-Proof Certificates</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Student Interests Recommendation Banner -->
-    {% if current_user.is_authenticated and user_interests %}
-    <div class="personalized-banner">
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <span class="recommended-badge-ribbon">
-                <i data-lucide="compass" style="width: 12px; height: 12px;"></i>
-                <span>Your Focus Topics:</span>
-            </span>
-            {% for interest in user_interests %}
-            <span style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--primary-action); font-size: 0.82rem; font-weight: 700; padding: 3px 10px; border-radius: 9999px;">
-                {{ interest }}
-            </span>
-            {% endfor %}
-        </div>
-        <div>
-            <a href="{{ url_for('learning.onboarding_interests') }}" style="color: var(--primary-action); font-size: 0.84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
-                <span>Change Focus Topics</span>
-                <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
-            </a>
-        </div>
-    </div>
-    {% elif current_user.is_authenticated and not user_interests %}
-    <div class="personalized-banner" style="background: var(--warning-bg); border-color: var(--warning-border);">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="sparkles" style="width: 18px; height: 18px; color: #D97706;"></i>
-            <span style="font-size: 0.88rem; font-weight: 600; color: var(--warning);">
-                Personalize your feed: Pick your top 3 study interests for smart recommendations.
-            </span>
-        </div>
-        <div>
-            <a href="{{ url_for('learning.onboarding_interests') }}" class="btn btn-primary btn-sm" style="background: #D97706; padding: 6px 14px; border-radius: 9999px;">
-                Pick Interests
-            </a>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Interactive Quick Filter Bubbles (Zero-Reload Filtering) -->
-    <div class="bubble-filter-scroll" id="interestBubbleFilters">
-        <a href="{{ url_for('learning.courses_list') }}" 
-           class="bubble-chip {% if not selected_category or selected_category == 'All' %}active{% endif %}" 
-           data-filter="all">
-            <span>All Courses</span>
-            <span style="font-size: 0.75rem; opacity: 0.7;">({{ total_courses }})</span>
-        </a>
-
-        {% if user_interests %}
-            {% for interest in user_interests %}
-            <a href="{{ url_for('learning.courses_list', category=interest) }}" 
-               class="bubble-chip {% if selected_category == interest %}active{% endif %}" 
-               data-filter="{{ interest|lower }}">
-                <span style="color: #5B46F6;">★</span>
-                <span>{{ interest }}</span>
-            </a>
-            {% endfor %}
-        {% endif %}
-
-        {% for cat in available_categories %}
-            {% if not user_interests or cat not in user_interests %}
-            <a href="{{ url_for('learning.courses_list', category=cat) }}" 
-               class="bubble-chip {% if selected_category == cat %}active{% endif %}" 
-               data-filter="{{ cat|lower }}">
-                <span>{{ cat }}</span>
-            </a>
-            {% endif %}
-        {% endfor %}
-    </div>
-
-    <!-- Search, Difficulty & Language Filter Bar -->
-    <div class="card" style="padding: 16px 20px; margin-bottom: 28px; border-radius: 14px;">
-        <form action="{{ url_for('learning.courses_list') }}" method="GET" id="courseFilterForm">
-            <input type="hidden" name="category" id="hiddenCategory" value="{{ selected_category or '' }}">
-            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: flex-end;" class="course-filter-grid">
-                <div>
-                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">Search Courses</label>
-                    <div style="position: relative;">
-                        <input type="text" name="q" id="courseSearchInput" class="form-control" placeholder="Search DSA, Python, Web Dev, Love Babbar, etc..." value="{{ search_query }}" style="padding-left: 36px;">
-                        <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94A3B8;"></i>
-                    </div>
-                </div>
-                <div>
-                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">Language</label>
-                    <select name="language" id="courseLanguageSelect" class="form-select">
-                        <option value="All">All Languages</option>
-                        <option value="Hindi" {% if selected_language == 'Hindi' %}selected{% endif %}>🇮🇳 Hindi (हिंदी)</option>
-                        <option value="English" {% if selected_language == 'English' %}selected{% endif %}>🌐 English</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">Difficulty</label>
-                    <select name="difficulty" id="courseDifficultySelect" class="form-select">
-                        <option value="All">All Levels</option>
-                        <option value="Beginner" {% if selected_difficulty == 'Beginner' %}selected{% endif %}>Beginner</option>
-                        <option value="Intermediate" {% if selected_difficulty == 'Intermediate' %}selected{% endif %}>Intermediate</option>
-                        <option value="Advanced" {% if selected_difficulty == 'Advanced' %}selected{% endif %}>Advanced</option>
-                    </select>
-                </div>
-                <div>
-                    <button type="submit" class="btn btn-primary" style="height: 42px; padding: 0 20px; border-radius: 10px; background: #5B46F6;">
-                        <span>Filter</span>
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- Live Client-Side No Results Card (Dynamic) -->
-    <div id="liveNoResultsCard" class="card" style="display: none; text-align: center; padding: 50px 20px; border-radius: 16px; margin-bottom: 24px;">
-        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary-purple-light); color: var(--primary-action); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
-            <i data-lucide="search-x" style="width: 28px; height: 28px;"></i>
-        </div>
-        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 6px;">No Matching Courses</h3>
-        <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 440px; margin: 0 auto 16px;">
-            No courses matched your query. Try searching for a different topic, keyword, or language.
-        </p>
-        <button type="button" id="btnResetLiveFilters" class="btn btn-secondary btn-sm">
-            Clear Search & Filters
-        </button>
-    </div>
-
-    <!-- Recommended Section (If user has interests and matches are found) -->
-    {% if recommended_courses %}
-    <div id="recommendedSection" style="margin-bottom: 36px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 1.3rem;">🎯</span>
-                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em;">
-                    Recommended for Your Interests
-                </h2>
-            </div>
-            <span style="font-size: 0.84rem; color: var(--primary-action); font-weight: 700;" id="recommendedCountBadge">
-                {{ recommended_courses|length }} Course{{ 's' if recommended_courses|length > 1 else '' }} Matched
-            </span>
-        </div>
-
-        <div class="grid-3" id="recommendedGrid" style="gap: 24px;">
-            {% for course in recommended_courses %}
-                {% include "learning/_course_card.html" %}
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- All / Other Courses Section -->
-    <div id="allCoursesSection">
-        {% if recommended_courses %}
-        <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="book-open" style="width: 20px; height: 20px; color: var(--primary-action);"></i>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">
-                All Curated Courses
-            </h2>
-        </div>
-        {% endif %}
-
-        {% if other_courses %}
-            <div class="grid-3" id="coursesGrid" style="gap: 24px;">
-                {% for course in other_courses %}
-                    {% include "learning/_course_card.html" %}
-                {% endfor %}
-            </div>
-        {% elif not recommended_courses %}
-            <!-- Empty State -->
-            <div class="card" style="text-align: center; padding: 60px 20px; border-radius: 16px;">
-                <div style="width: 64px; height: 64px; border-radius: 50%; background: #EDE9FE; color: #5B46F6; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-                    <i data-lucide="book-open" style="width: 32px; height: 32px;"></i>
-                </div>
-                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">No Courses Found</h3>
-                <p style="font-size: 0.92rem; color: var(--text-secondary); max-width: 460px; margin: 0 auto 20px;">
-                    No courses matched your current filter criteria. Try clearing your search query or selecting "All Courses".
-                </p>
-                <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary">
-                    Reset Filters
-                </a>
-            </div>
-        {% endif %}
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const courseCards = document.querySelectorAll(".course-card-custom");
-    const searchInput = document.getElementById("courseSearchInput");
-    const languageSelect = document.getElementById("courseLanguageSelect");
-    const difficultySelect = document.getElementById("courseDifficultySelect");
-    const liveNoResults = document.getElementById("liveNoResultsCard");
-    const recommendedSection = document.getElementById("recommendedSection");
-    const btnReset = document.getElementById("btnResetLiveFilters");
-
-    function applyFilters() {
-        const query = (searchInput ? searchInput.value : "").toLowerCase().trim();
-        const selectedLang = (languageSelect ? languageSelect.value : "All").toLowerCase();
-        const selectedDiff = (difficultySelect ? difficultySelect.value : "All").toLowerCase();
-
-        let visibleTotal = 0;
-        let visibleRecommended = 0;
-
-        courseCards.forEach(card => {
-            const title = (card.getAttribute("data-title") || "").toLowerCase();
-            const category = (card.getAttribute("data-category") || "").toLowerCase();
-            const desc = (card.getAttribute("data-desc") || "").toLowerCase();
-            const instructor = (card.getAttribute("data-instructor") || "").toLowerCase();
-            const lang = (card.getAttribute("data-language") || "english").toLowerCase();
-            const diff = (card.getAttribute("data-difficulty") || "").toLowerCase();
-
-            // Match text
-            const matchesText = !query || 
-                title.includes(query) || 
-                category.includes(query) || 
-                desc.includes(query) || 
-                instructor.includes(query) || 
-                lang.includes(query);
-
-            // Match language
-            const matchesLang = (selectedLang === "all") || (lang === selectedLang);
-
-            // Match difficulty
-            const matchesDiff = (selectedDiff === "all") || (diff === selectedDiff);
-
-            const isMatch = matchesText && matchesLang && matchesDiff;
-
-            if (isMatch) {
-                card.style.display = "";
-                visibleTotal++;
-                if (card.closest("#recommendedGrid")) {
-                    visibleRecommended++;
-                }
-            } else {
-                card.style.display = "none";
-            }
-        });
-
-        // Hide/Show recommended section header if no recommended cards match
-        if (recommendedSection) {
-            recommendedSection.style.display = visibleRecommended > 0 ? "" : "none";
-        }
-
-        // Show live empty state if 0 cards match
-        if (liveNoResults) {
-            liveNoResults.style.display = visibleTotal === 0 ? "block" : "none";
-        }
-    }
-
-    if (searchInput) {
-        searchInput.addEventListener("input", applyFilters);
-    }
-    if (languageSelect) {
-        languageSelect.addEventListener("change", applyFilters);
-    }
-    if (difficultySelect) {
-        difficultySelect.addEventListener("change", applyFilters);
-    }
-
-    if (btnReset) {
-        btnReset.addEventListener("click", function() {
-            if (searchInput) searchInput.value = "";
-            if (languageSelect) languageSelect.value = "All";
-            if (difficultySelect) difficultySelect.value = "All";
-            applyFilters();
-        });
-    }
-
-    // Run initial filter check
-    applyFilters();
-});
-</script>
-{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Learn & Build — Free Courses & Real Projects — Skill Rock{% endblock %}
+
+{% block meta_description %}Explore free curated programming courses in Python, Java, DSA, Web Development, Kali Linux, and UI/UX. Build real software projects and earn authentic certificates on SkillRock.{% endblock %}
+{% block og_title %}Learn & Build — Free Courses & Real Projects | SkillRock{% endblock %}
+{% block og_description %}Master Python, Java, DSA, Web Development, Kali Linux, and UI/UX with verified practical projects and official credentials on SkillRock.{% endblock %}
+
+{% block head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "SkillRock Learn and Build Curated Courses",
+  "description": "Curated industry courses with automated and project-based certifications.",
+  "itemListElement": [
+    {% for c in courses[:15] %}
+    {
+      "@type": "ListItem",
+      "position": {{ loop.index }},
+      "item": {
+        "@type": "Course",
+        "name": {{ c.title | tojson }},
+        "description": {{ (c.description or '') | tojson }},
+        "provider": {
+          "@type": "Organization",
+          "name": "SkillRock Student Academy"
+        },
+        "url": "https://skillrock.onrender.com{{ url_for('learning.course_detail', slug=c.slug or c.id) }}"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+<style>
+    .learning-hero-card {
+        padding: 34px 32px;
+        margin-bottom: 24px;
+        background: linear-gradient(135deg, #181A20 0%, #1E202B 100%);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 18px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .bubble-filter-scroll {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 6px;
+        margin-bottom: 22px;
+        scrollbar-width: none;
+    }
+    .bubble-filter-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .bubble-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 18px;
+        border-radius: 9999px;
+        font-size: 0.86rem;
+        font-weight: 600;
+        background: var(--bg-card);
+        border: 1.5px solid var(--border-color);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+        text-decoration: none;
+        user-select: none;
+    }
+
+    .bubble-chip:hover {
+        background: var(--bg-hover);
+        border-color: var(--border-focus);
+        color: var(--text-main);
+        transform: translateY(-1px);
+    }
+
+    .bubble-chip.active {
+        background: var(--primary-purple-light);
+        border-color: var(--primary-action);
+        color: var(--primary-action);
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(81, 69, 205, 0.2);
+    }
+
+    .personalized-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--primary-action);
+        border-radius: 14px;
+        padding: 14px 20px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .course-card-custom {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        background: var(--bg-card);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+        padding: 0;
+    }
+
+    .course-card-custom:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-hover);
+        border-color: rgba(99, 102, 241, 0.35);
+    }
+
+    .recommended-badge-ribbon {
+        background: linear-gradient(135deg, #5B46F6, #7C3AED);
+        color: #FFFFFF;
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        box-shadow: 0 2px 6px rgba(91, 70, 246, 0.35);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="learning-container">
+    <!-- Hero Banner -->
+    <div class="learning-hero-card">
+        <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.04; pointer-events: none;">
+            <i data-lucide="award" style="width: 260px; height: 260px;"></i>
+        </div>
+        <div style="max-width: 760px; position: relative; z-index: 2;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; background: rgba(91, 70, 246, 0.25); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 9999px; font-size: 0.78rem; font-weight: 700; color: #C4B5FD; text-transform: uppercase; letter-spacing: 0.05em;">
+                    <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+                    <span>Skill Rock Academy — Learn & Build</span>
+                </div>
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 9999px; font-size: 0.78rem; font-weight: 800; color: #34D399;">
+                    <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
+                    <span>⚡ 50% Fee Refund on 90-Day Completion</span>
+                </div>
+            </div>
+            <h1 style="font-size: 2.1rem; font-weight: 800; line-height: 1.25; margin-bottom: 12px; letter-spacing: -0.02em;">
+                Learn. Build. Deploy. <span style="background: linear-gradient(135deg, #A78BFA, #818CF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Earn Your Verified Certificate.</span>
+            </h1>
+            <p style="font-size: 0.98rem; color: #94A3B8; line-height: 1.6; margin-bottom: 20px;">
+                Move beyond passively watching tutorials. Watch curated YouTube masterclasses, build practical production projects, deploy them live, submit your work for evaluation, and earn authenticated student certificates.
+            </p>
+            <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #E2E8F0;">
+                    <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #10B981;"></i>
+                    <span>100% Free For All Students</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #E2E8F0;">
+                    <i data-lucide="git-pull-request" style="width: 18px; height: 18px; color: #818CF8;"></i>
+                    <span>GitHub Code & Live Deployment Reviews</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #E2E8F0;">
+                    <i data-lucide="award" style="width: 18px; height: 18px; color: #F59E0B;"></i>
+                    <span>Tamper-Proof Certificates</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #E2E8F0;">
+                    <i data-lucide="zap" style="width: 18px; height: 18px; color: #10B981;"></i>
+                    <span>50% Course Fee Refund Guaranteed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SkillRock Universal 50% Fee Refund Guarantee Banner -->
+    <div class="card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 16px; padding: 18px 22px; margin-bottom: 24px; position: relative; overflow: hidden;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; align-items: flex-start; gap: 14px; max-width: 820px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #10B981;">
+                    <i data-lucide="badge-percent" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin: 0;">
+                            SkillRock Universal 50% Fee Refund Guarantee
+                        </h3>
+                        <span style="background: rgba(16, 185, 129, 0.2); color: #10B981; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 9999px; text-transform: uppercase;">
+                            All Paid Courses & Roadmaps
+                        </span>
+                    </div>
+                    <p style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+                        Complete 100% of any enrolled course or career roadmap and earn your certificate within <strong>3 months (90 days)</strong> of purchase. Email your Certificate ID & registered email to <a href="mailto:Palt51419@gmail.com?subject=50%25%20Course%20Refund%20Claim" style="color: #60A5FA; font-weight: 700; text-decoration: underline;">Palt51419@gmail.com</a> to receive your <strong>50% fee refund</strong> directly to your UPI/bank account!
+                    </p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <a href="mailto:Palt51419@gmail.com?subject=50%25%20Course%20Refund%20Claim&body=Hi%20SkillRock%20Team,%0A%0AI%20have%20completed%20100%25%20of%20my%20purchased%20course%20within%203%20months.%0A%0ACertificate%20ID:%20%0AStudent%20Email:%20%0ACourse%20Name:%20%0A%0APlease%20process%20my%2050%25%20fee%20refund.%0A%0AThank%20you!" class="btn btn-primary btn-sm" style="background: #10B981; border-color: #10B981; font-weight: 700; padding: 8px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+                    <i data-lucide="mail" style="width: 14px; height: 14px;"></i>
+                    <span>Claim 50% Refund</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Interests Recommendation Banner -->
+    {% if current_user.is_authenticated and user_interests %}
+    <div class="personalized-banner">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span class="recommended-badge-ribbon">
+                <i data-lucide="compass" style="width: 12px; height: 12px;"></i>
+                <span>Your Focus Topics:</span>
+            </span>
+            {% for interest in user_interests %}
+            <span style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--primary-action); font-size: 0.82rem; font-weight: 700; padding: 3px 10px; border-radius: 9999px;">
+                {{ interest }}
+            </span>
+            {% endfor %}
+        </div>
+        <div>
+            <a href="{{ url_for('learning.onboarding_interests') }}" style="color: var(--primary-action); font-size: 0.84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                <span>Change Focus Topics</span>
+                <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+            </a>
+        </div>
+    </div>
+    {% elif current_user.is_authenticated and not user_interests %}
+    <div class="personalized-banner" style="background: var(--warning-bg); border-color: var(--warning-border);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="sparkles" style="width: 18px; height: 18px; color: #D97706;"></i>
+            <span style="font-size: 0.88rem; font-weight: 600; color: var(--warning);">
+                Personalize your feed: Pick your top 3 study interests for smart recommendations.
+            </span>
+        </div>
+        <div>
+            <a href="{{ url_for('learning.onboarding_interests') }}" class="btn btn-primary btn-sm" style="background: #D97706; padding: 6px 14px; border-radius: 9999px;">
+                Pick Interests
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Interactive Quick Filter Bubbles (Zero-Reload Filtering) -->
+    <div class="bubble-filter-scroll" id="interestBubbleFilters">
+        <a href="{{ url_for('learning.courses_list') }}" 
+           class="bubble-chip {% if not selected_category or selected_category == 'All' %}active{% endif %}" 
+           data-filter="all">
+            <span>All Courses</span>
+            <span style="font-size: 0.75rem; opacity: 0.7;">({{ total_courses }})</span>
+        </a>
+
+        <a href="#careerRoadmapsSection" 
+           class="bubble-chip" 
+           style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(217, 119, 6, 0.16)); border-color: rgba(245, 158, 11, 0.45); color: #F59E0B; font-weight: 700;">
+            <i data-lucide="compass" style="width: 13px; height: 13px;"></i>
+            <span>Career Roadmaps (50% Cashback)</span>
+        </a>
+
+        {% if user_interests %}
+            {% for interest in user_interests %}
+            <a href="{{ url_for('learning.courses_list', category=interest) }}" 
+               class="bubble-chip {% if selected_category == interest %}active{% endif %}" 
+               data-filter="{{ interest|lower }}">
+                <span style="color: #5B46F6;">★</span>
+                <span>{{ interest }}</span>
+            </a>
+            {% endfor %}
+        {% endif %}
+
+        {% for cat in available_categories %}
+            {% if not user_interests or cat not in user_interests %}
+            <a href="{{ url_for('learning.courses_list', category=cat) }}" 
+               class="bubble-chip {% if selected_category == cat %}active{% endif %}" 
+               data-filter="{{ cat|lower }}">
+                <span>{{ cat }}</span>
+            </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Search, Difficulty & Language Filter Bar -->
+    <div class="card" style="padding: 16px 20px; margin-bottom: 28px; border-radius: 14px;">
+        <form action="{{ url_for('learning.courses_list') }}" method="GET" id="courseFilterForm">
+            <input type="hidden" name="category" id="hiddenCategory" value="{{ selected_category or '' }}">
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: flex-end;" class="course-filter-grid">
+                <div>
+                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">Search Courses</label>
+                    <div style="position: relative;">
+                        <input type="text" name="q" id="courseSearchInput" class="form-control" placeholder="Search DSA, Python, Web Dev, Love Babbar, etc..." value="{{ search_query }}" style="padding-left: 36px;">
+                        <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94A3B8;"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">Language</label>
+                    <select name="language" id="courseLanguageSelect" class="form-select">
+                        <option value="All">All Languages</option>
+                        <option value="Hindi" {% if selected_language == 'Hindi' %}selected{% endif %}>🇮🇳 Hindi (हिंदी)</option>
+                        <option value="English" {% if selected_language == 'English' %}selected{% endif %}>🌐 English</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">Difficulty</label>
+                    <select name="difficulty" id="courseDifficultySelect" class="form-select">
+                        <option value="All">All Levels</option>
+                        <option value="Beginner" {% if selected_difficulty == 'Beginner' %}selected{% endif %}>Beginner</option>
+                        <option value="Intermediate" {% if selected_difficulty == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+                        <option value="Advanced" {% if selected_difficulty == 'Advanced' %}selected{% endif %}>Advanced</option>
+                    </select>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary" style="height: 42px; padding: 0 20px; border-radius: 10px; background: #5B46F6;">
+                        <span>Filter</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Live Client-Side No Results Card (Dynamic) -->
+    <div id="liveNoResultsCard" class="card" style="display: none; text-align: center; padding: 50px 20px; border-radius: 16px; margin-bottom: 24px;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary-purple-light); color: var(--primary-action); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+            <i data-lucide="search-x" style="width: 28px; height: 28px;"></i>
+        </div>
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 6px;">No Matching Courses</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 440px; margin: 0 auto 16px;">
+            No courses matched your query. Try searching for a different topic, keyword, or language.
+        </p>
+        <button type="button" id="btnResetLiveFilters" class="btn btn-secondary btn-sm">
+            Clear Search & Filters
+        </button>
+    </div>
+
+    <!-- Career Roadmaps Showcase Section (Consolidated in Learn & Build) -->
+    <div id="careerRoadmapsSection" style="margin-bottom: 40px; scroll-margin-top: 80px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99, 102, 241, 0.18); border: 1.5px solid rgba(99, 102, 241, 0.4); display: flex; align-items: center; justify-content: center; color: #818CF8;">
+                    <i data-lucide="compass" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin: 0; letter-spacing: -0.01em;">
+                            Career Roadmaps
+                        </h2>
+                        <span style="background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.4); color: #F59E0B; font-size: 0.74rem; font-weight: 800; padding: 2px 10px; border-radius: 9999px;">
+                            50% CASHBACK
+                        </span>
+                    </div>
+                    <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 2px 0 0 0;">
+                        Structured 20-week programs taking you from beginner to job-ready with weekly milestones, capstone code reviews, and guaranteed 50% cashback.
+                    </p>
+                </div>
+            </div>
+            <a href="{{ url_for('roadmap.catalog') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 8px 16px; border-radius: 8px;">
+                <span>Explore All Roadmaps</span>
+                <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+            </a>
+        </div>
+
+        {% if roadmap_packages %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px;">
+                {% for rm in roadmap_packages %}
+                <div class="card" style="padding: 0; overflow: hidden; border: 1.5px solid rgba(99, 102, 241, 0.35); border-radius: 18px; background: var(--bg-card); display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                    <!-- Roadmap Header Banner -->
+                    <div style="background: linear-gradient(135deg, #1E1B4B 0%, #0F172A 100%); padding: 24px 24px 20px 24px; border-bottom: 1px solid rgba(99, 102, 241, 0.2); position: relative;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <span style="background: rgba(99, 102, 241, 0.25); border: 1px solid rgba(99, 102, 241, 0.5); color: #C4B5FD; font-size: 0.74rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px;">
+                                    {{ rm.duration }} &bull; 5 PHASES
+                                </span>
+                                <span style="background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399; font-size: 0.74rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px;">
+                                    {{ rm.level }}
+                                </span>
+                            </div>
+                            <span style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.25)); border: 1px solid rgba(245, 158, 11, 0.5); color: #FBBF24; font-size: 0.74rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="zap" style="width: 13px; height: 13px;"></i>
+                                50% CASHBACK
+                            </span>
+                        </div>
+
+                        <h3 style="font-size: 1.35rem; font-weight: 800; color: #FFFFFF; line-height: 1.3; margin-bottom: 8px;">
+                            {{ rm.title }}
+                        </h3>
+                        <p style="font-size: 0.88rem; color: #CBD5E1; line-height: 1.5; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            {{ rm.short_description }}
+                        </p>
+                    </div>
+
+                    <!-- Body with Tech Stack & Outcomes -->
+                    <div style="padding: 20px 24px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 16px;">
+                        <div>
+                            <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+                                Technologies Covered
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;">
+                                {% for tech in rm.tech_stack[:8] %}
+                                <span style="background: var(--bg-hover); border: 1px solid var(--border-color); color: var(--text-main); font-size: 0.76rem; font-weight: 600; padding: 3px 8px; border-radius: 6px;">
+                                    {{ tech }}
+                                </span>
+                                {% endfor %}
+                                {% if rm.tech_stack|length > 8 %}
+                                <span style="background: var(--bg-hover); border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.76rem; font-weight: 600; padding: 3px 8px; border-radius: 6px;">
+                                    +{{ rm.tech_stack|length - 8 }} more
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--text-secondary);">
+                                <i data-lucide="briefcase" style="width: 15px; height: 15px; color: #60A5FA;"></i>
+                                <span>Target Roles: <strong style="color: var(--text-main);">{{ rm.career_outcomes | join(", ") }}</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Key Perks -->
+                        <div style="background: rgba(16, 185, 129, 0.06); border: 1px dashed rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem;">
+                            <div style="display: flex; align-items: center; gap: 6px; color: #10B981; font-weight: 700;">
+                                <i data-lucide="award" style="width: 16px; height: 16px;"></i>
+                                <span>Milestones + Capstone Review + Certificate</span>
+                            </div>
+                            <span style="font-weight: 800; color: #F59E0B;">₹{{ rm.price|int }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Footer Actions -->
+                    <div style="padding: 14px 24px; border-top: 1px solid var(--border-color); background: var(--bg-elevated); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <a href="{{ url_for('roadmap.detail', slug=rm.slug) }}" class="btn btn-secondary btn-sm" style="flex: 1; justify-content: center; font-weight: 700; padding: 9px 16px; border-radius: 8px;">
+                            <span>Explore 20-Week Syllabus</span>
+                        </a>
+                        <a href="{{ url_for('roadmap.detail', slug=rm.slug) }}" class="btn btn-primary btn-sm" style="flex: 1; justify-content: center; font-weight: 700; padding: 9px 16px; border-radius: 8px; background: #6366F1; display: inline-flex; align-items: center; gap: 6px;">
+                            <span>Start Roadmap</span>
+                            <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Recommended Section (If user has interests and matches are found) -->
+    {% if recommended_courses %}
+    <div id="recommendedSection" style="margin-bottom: 36px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.3rem;">🎯</span>
+                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em;">
+                    Recommended for Your Interests
+                </h2>
+            </div>
+            <span style="font-size: 0.84rem; color: var(--primary-action); font-weight: 700;" id="recommendedCountBadge">
+                {{ recommended_courses|length }} Course{{ 's' if recommended_courses|length > 1 else '' }} Matched
+            </span>
+        </div>
+
+        <div class="grid-3" id="recommendedGrid" style="gap: 24px;">
+            {% for course in recommended_courses %}
+                {% include "learning/_course_card.html" %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- All / Other Courses Section -->
+    <div id="allCoursesSection">
+        {% if recommended_courses %}
+        <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="book-open" style="width: 20px; height: 20px; color: var(--primary-action);"></i>
+            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">
+                All Curated Courses
+            </h2>
+        </div>
+        {% endif %}
+
+        {% if other_courses %}
+            {% if selected_category and selected_category != 'All' %}
+                <!-- Filtered by specific category -->
+                <div class="grid-3" id="coursesGrid" style="gap: 24px;">
+                    {% for course in other_courses %}
+                        {% include "learning/_course_card.html" %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- Organized by Category Sections for effortless discovery -->
+                {% set grouped_categories = other_courses | groupby('category') %}
+                {% for cat_group in grouped_categories %}
+                <div class="category-block" data-category-group="{{ cat_group.grouper|lower }}" style="margin-bottom: 38px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); display: inline-flex; align-items: center; gap: 6px;">
+                                {% if cat_group.grouper == 'Programming' %}💻
+                                {% elif cat_group.grouper == 'Data Structures & Algorithms' %}⚡
+                                {% elif cat_group.grouper == 'Web Development' %}🌐
+                                {% elif cat_group.grouper == 'AI & Machine Learning' %}🤖
+                                {% elif cat_group.grouper == 'Data Science' %}📊
+                                {% elif cat_group.grouper == 'Cybersecurity' %}🛡️
+                                {% elif cat_group.grouper == 'Design' or cat_group.grouper == 'UI/UX Design' %}🎨
+                                {% else %}📚
+                                {% endif %}
+                                {{ cat_group.grouper }}
+                            </span>
+                            <span style="background: var(--bg-hover); border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.74rem; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">
+                                {{ cat_group.list|length }} Course{{ 's' if cat_group.list|length > 1 else '' }}
+                            </span>
+                        </div>
+                        <a href="{{ url_for('learning.courses_list', category=cat_group.grouper) }}" style="font-size: 0.82rem; font-weight: 600; color: var(--primary-action); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                            <span>View all {{ cat_group.grouper }}</span>
+                            <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                        </a>
+                    </div>
+                    <div class="grid-3" style="gap: 24px;">
+                        {% for course in cat_group.list %}
+                            {% include "learning/_course_card.html" %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% elif not recommended_courses %}
+            <!-- Empty State -->
+            <div class="card" style="text-align: center; padding: 60px 20px; border-radius: 16px;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: #EDE9FE; color: #5B46F6; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                    <i data-lucide="book-open" style="width: 32px; height: 32px;"></i>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">No Courses Found</h3>
+                <p style="font-size: 0.92rem; color: var(--text-secondary); max-width: 460px; margin: 0 auto 20px;">
+                    No courses matched your current filter criteria. Try clearing your search query or selecting "All Courses".
+                </p>
+                <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary">
+                    Reset Filters
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const courseCards = document.querySelectorAll(".course-card-custom");
+    const searchInput = document.getElementById("courseSearchInput");
+    const languageSelect = document.getElementById("courseLanguageSelect");
+    const difficultySelect = document.getElementById("courseDifficultySelect");
+    const liveNoResults = document.getElementById("liveNoResultsCard");
+    const recommendedSection = document.getElementById("recommendedSection");
+    const btnReset = document.getElementById("btnResetLiveFilters");
+
+    function applyFilters() {
+        const query = (searchInput ? searchInput.value : "").toLowerCase().trim();
+        const selectedLang = (languageSelect ? languageSelect.value : "All").toLowerCase();
+        const selectedDiff = (difficultySelect ? difficultySelect.value : "All").toLowerCase();
+
+        let visibleTotal = 0;
+        let visibleRecommended = 0;
+
+        courseCards.forEach(card => {
+            const title = (card.getAttribute("data-title") || "").toLowerCase();
+            const category = (card.getAttribute("data-category") || "").toLowerCase();
+            const desc = (card.getAttribute("data-desc") || "").toLowerCase();
+            const instructor = (card.getAttribute("data-instructor") || "").toLowerCase();
+            const lang = (card.getAttribute("data-language") || "english").toLowerCase();
+            const diff = (card.getAttribute("data-difficulty") || "").toLowerCase();
+
+            // Match text
+            const matchesText = !query || 
+                title.includes(query) || 
+                category.includes(query) || 
+                desc.includes(query) || 
+                instructor.includes(query) || 
+                lang.includes(query);
+
+            // Match language
+            const matchesLang = (selectedLang === "all") || (lang === selectedLang);
+
+            // Match difficulty
+            const matchesDiff = (selectedDiff === "all") || (diff === selectedDiff);
+
+            const isMatch = matchesText && matchesLang && matchesDiff;
+
+            if (isMatch) {
+                card.style.display = "";
+                visibleTotal++;
+                if (card.closest("#recommendedGrid")) {
+                    visibleRecommended++;
+                }
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        // Hide/Show recommended section header if no recommended cards match
+        if (recommendedSection) {
+            recommendedSection.style.display = visibleRecommended > 0 ? "" : "none";
+        }
+
+        // Hide/Show category blocks if no cards match inside them
+        document.querySelectorAll(".category-block").forEach(block => {
+            const visibleInBlock = block.querySelectorAll(".course-card-custom:not([style*='display: none'])");
+            block.style.display = visibleInBlock.length > 0 ? "" : "none";
+        });
+
+        // Show live empty state if 0 cards match
+        if (liveNoResults) {
+            liveNoResults.style.display = visibleTotal === 0 ? "block" : "none";
+        }
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", applyFilters);
+    }
+    if (languageSelect) {
+        languageSelect.addEventListener("change", applyFilters);
+    }
+    if (difficultySelect) {
+        difficultySelect.addEventListener("change", applyFilters);
+    }
+
+    if (btnReset) {
+        btnReset.addEventListener("click", function() {
+            if (searchInput) searchInput.value = "";
+            if (languageSelect) languageSelect.value = "All";
+            if (difficultySelect) difficultySelect.value = "All";
+            applyFilters();
+        });
+    }
+
+    // Run initial filter check
+    applyFilters();
+});
+</script>
+{% endblock %}

@@ -460,6 +460,10 @@
                                     <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
                                     <span>Buy Now — ₹{{ course.price|int }} (Instant UPI Unlock)</span>
                                 </a>
+                                <div style="margin-top: 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 6px 14px; font-size: 0.78rem; color: #34D399; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
+                                    <span>⚡ 50% Fee Refund Guarantee: Complete 100% in 90 days & email Palt51419@gmail.com</span>
+                                </div>
                                 {% else %}
                                 <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='course', item_id=course.id)) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; background: #D97706; border-color: #D97706; box-shadow: 0 4px 18px rgba(217, 119, 6, 0.45); text-decoration: none;">
                                     <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
@@ -718,6 +722,18 @@
                                 <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
                                 <span>Buy Now — ₹{{ course.price|int }}</span>
                             </a>
+                            <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.08) 100%); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 12px 14px; margin-top: 12px;">
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                    <i data-lucide="zap" style="width: 14px; height: 14px; color: #10B981;"></i>
+                                    <span style="font-size: 0.84rem; font-weight: 800; color: #10B981;">50% Fee Refund Guarantee</span>
+                                </div>
+                                <p style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45; margin: 0 0 6px 0;">
+                                    Complete 100% within 3 months (90 days) & earn certificate to claim your <strong>50% cash refund</strong>!
+                                </p>
+                                <div style="font-size: 0.74rem; color: var(--text-muted);">
+                                    📧 Email <a href="mailto:Palt51419@gmail.com?subject=50%25%20Course%20Refund%20Claim" style="color: #60A5FA; font-weight: 700;">Palt51419@gmail.com</a> with Certificate ID
+                                </div>
+                            </div>
                             {% else %}
                             <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
                                 <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>

@@ -243,5 +243,5 @@ def appearance_settings():
         flash(f"Appearance updated to {new_theme.capitalize()} mode.", "success")
         return redirect(url_for("profile.appearance_settings"))
 
-    current_theme = getattr(current_user, "theme", "light") if current_user.is_authenticated else "light"
+    current_theme = getattr(current_user, "theme", "dark") if current_user.is_authenticated else "dark"
     return render_template("settings/appearance.html", current_theme=current_theme)

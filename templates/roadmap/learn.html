@@ -3,27 +3,555 @@
 {% block title %}{{ current_lesson.title }} — {{ roadmap.title }} — Skill Rock{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3 px-md-4">
+<style>
+    /* SkillRock Signature Career Roadmap Learning Workspace */
+    .roadmap-learn-wrapper {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 16px 20px 48px;
+    }
+
+    /* Top Breadcrumb & Control Bar */
+    .roadmap-top-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-color, #374151);
+    }
+
+    .roadmap-breadcrumbs {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-size: 0.85rem;
+    }
+
+    .roadmap-crumb-link {
+        color: var(--text-muted, #94A3B8);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+        transition: color 0.15s ease;
+    }
+    .roadmap-crumb-link:hover {
+        color: var(--primary-action, #A5B4FC);
+    }
+
+    .roadmap-crumb-sep {
+        color: var(--border-color, #4B5563);
+        user-select: none;
+    }
+
+    .roadmap-crumb-active {
+        color: var(--text-main, #F3F4F6);
+        font-weight: 700;
+    }
+
+    .roadmap-top-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Main 2-Column Grid */
+    .roadmap-learn-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        gap: 28px;
+        align-items: start;
+    }
+
+    @media (max-width: 1080px) {
+        .roadmap-learn-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Video Player Box */
+    .roadmap-video-card {
+        background: #000000;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 18px;
+        overflow: hidden;
+        position: relative;
+        padding-top: 56.25%; /* 16:9 */
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+        margin-bottom: 16px;
+    }
+
+    .roadmap-video-card iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    /* Video Attribution Bar */
+    .roadmap-attribution-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: var(--bg-card, #1F2937);
+        border: 1px solid var(--border-color, #374151);
+        border-radius: 12px;
+        padding: 12px 18px;
+        margin-bottom: 20px;
+    }
+
+    .roadmap-attr-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.86rem;
+        color: var(--text-secondary, #CBD5E1);
+    }
+
+    .roadmap-attr-left strong {
+        color: var(--text-main, #F3F4F6);
+    }
+
+    .roadmap-attr-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        background: rgba(99, 102, 241, 0.18);
+        border: 1px solid rgba(99, 102, 241, 0.35);
+        border-radius: 9999px;
+        color: #C7D2FE;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    /* Lesson Detail Card */
+    .roadmap-lesson-card {
+        background: var(--bg-card, #1F2937);
+        border: 1px solid var(--border-color, #374151);
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: var(--shadow-card);
+    }
+
+    .roadmap-lesson-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .roadmap-lesson-title {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--text-main, #FFFFFF);
+        margin: 0;
+        line-height: 1.35;
+    }
+
+    .roadmap-duration-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        background: rgba(165, 180, 252, 0.14);
+        border: 1px solid rgba(165, 180, 252, 0.3);
+        color: var(--primary-action, #A5B4FC);
+        font-size: 0.8rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .roadmap-lesson-desc {
+        font-size: 0.92rem;
+        color: var(--text-secondary, #CBD5E1);
+        line-height: 1.6;
+        margin-bottom: 22px;
+    }
+
+    /* Tab Switcher */
+    .roadmap-tab-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid var(--border-color, #374151);
+        padding-bottom: 12px;
+        margin-bottom: 18px;
+    }
+
+    .rm-tab-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 16px;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1.5px solid transparent;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-muted, #94A3B8);
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .rm-tab-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-main, #FFFFFF);
+    }
+    .rm-tab-btn.active {
+        background: var(--primary-purple-light, rgba(99, 102, 241, 0.2));
+        border-color: var(--primary-action, #6366F1);
+        color: #FFFFFF;
+        font-weight: 700;
+    }
+
+    .rm-tab-pane {
+        display: none;
+    }
+    .rm-tab-pane.active {
+        display: block;
+        animation: fadeIn 0.18s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Concepts List & Milestones */
+    .rm-concepts-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 18px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .rm-concepts-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 0.9rem;
+        color: var(--text-secondary, #E2E8F0);
+        line-height: 1.5;
+    }
+
+    .rm-concepts-list li i {
+        color: #10B981;
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        margin-top: 3px;
+    }
+
+    .rm-milestone-box {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .rm-milestone-title {
+        color: #38BDF8;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .rm-milestone-body {
+        color: #F8FAFC;
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+
+    /* External Documentation References */
+    .rm-ref-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--border-color, #374151);
+        border-radius: 12px;
+        text-decoration: none;
+        color: var(--text-main, #FFFFFF);
+        margin-bottom: 10px;
+        transition: all 0.15s ease;
+    }
+    .rm-ref-card:hover {
+        background: rgba(99, 102, 241, 0.12);
+        border-color: var(--primary-action, #6366F1);
+        transform: translateX(3px);
+    }
+    .rm-ref-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .rm-ref-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: rgba(56, 189, 248, 0.15);
+        color: #38BDF8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .rm-ref-name {
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+    .rm-ref-desc {
+        font-size: 0.78rem;
+        color: var(--text-muted, #94A3B8);
+    }
+
+    /* Right Column: Playlist Sidebar */
+    .roadmap-sidebar-card {
+        background: var(--bg-card, #1F2937);
+        border: 1px solid var(--border-color, #374151);
+        border-radius: 18px;
+        padding: 20px;
+        position: sticky;
+        top: 80px;
+        max-height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--shadow-card);
+    }
+
+    .rm-sidebar-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border-color, #374151);
+    }
+
+    .rm-sidebar-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--text-main, #FFFFFF);
+        margin: 0;
+    }
+
+    .rm-sidebar-sub {
+        font-size: 0.78rem;
+        color: var(--text-muted, #94A3B8);
+    }
+
+    .rm-progress-badge {
+        background: rgba(16, 185, 129, 0.18);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #34D399;
+        font-size: 0.78rem;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 9999px;
+    }
+
+    /* Scrollable Playlist Tree */
+    .rm-playlist-tree {
+        overflow-y: auto;
+        padding-right: 4px;
+        flex: 1;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+    }
+    .rm-playlist-tree::-webkit-scrollbar {
+        width: 5px;
+    }
+    .rm-playlist-tree::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 4px;
+    }
+
+    /* Phase Collapsible Item */
+    .rm-phase-item {
+        border: 1px solid var(--border-color, #374151);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        overflow: hidden;
+        background: rgba(15, 23, 42, 0.4);
+    }
+
+    .rm-phase-header {
+        width: 100%;
+        background: rgba(17, 24, 39, 0.85);
+        border: none;
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        text-align: left;
+        transition: background 0.15s ease;
+    }
+    .rm-phase-header:hover {
+        background: rgba(30, 41, 59, 0.95);
+    }
+
+    .rm-phase-title-text {
+        color: #F8FAFC;
+        font-weight: 700;
+        font-size: 0.85rem;
+        line-height: 1.3;
+    }
+
+    .rm-phase-chevron {
+        color: var(--text-muted, #94A3B8);
+        transition: transform 0.2s ease;
+        flex-shrink: 0;
+        width: 16px;
+        height: 16px;
+    }
+    .rm-phase-item.open .rm-phase-chevron {
+        transform: rotate(180deg);
+    }
+
+    .rm-phase-body {
+        display: none;
+        padding: 8px 10px 10px;
+    }
+    .rm-phase-item.open .rm-phase-body {
+        display: block;
+    }
+
+    .rm-week-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: var(--text-muted, #94A3B8);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 8px 6px 4px;
+    }
+
+    /* Individual Lesson Row */
+    .rm-lesson-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        text-decoration: none;
+        margin-bottom: 4px;
+        border: 1px solid transparent;
+        transition: all 0.15s ease;
+    }
+    .rm-lesson-row:hover {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .rm-lesson-row.active {
+        background: rgba(99, 102, 241, 0.22);
+        border-color: #6366F1;
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+    }
+
+    .rm-lesson-row.completed {
+        background: rgba(16, 185, 129, 0.08);
+        border-color: rgba(16, 185, 129, 0.18);
+    }
+
+    .rm-lesson-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .rm-lesson-icon {
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+    }
+    .rm-lesson-row.completed .rm-lesson-icon {
+        color: #10B981;
+    }
+    .rm-lesson-row.active .rm-lesson-icon {
+        color: #818CF8;
+    }
+    .rm-lesson-row:not(.active):not(.completed) .rm-lesson-icon {
+        color: #64748B;
+    }
+
+    .rm-lesson-name {
+        font-size: 0.82rem;
+        color: var(--text-secondary, #CBD5E1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .rm-lesson-row.active .rm-lesson-name {
+        color: #FFFFFF;
+        font-weight: 700;
+    }
+    .rm-lesson-row.completed .rm-lesson-name {
+        color: #E2E8F0;
+    }
+
+    .rm-lesson-time {
+        font-size: 0.72rem;
+        color: var(--text-muted, #94A3B8);
+        background: rgba(255, 255, 255, 0.06);
+        padding: 2px 6px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+</style>
+
+<div class="roadmap-learn-wrapper">
 
     <!-- Top Navigation Bar -->
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 pb-3 border-bottom border-secondary border-opacity-10">
-        <div class="d-flex align-items-center gap-2">
-            <a href="{{ url_for('roadmap.dashboard', slug=roadmap.slug) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" style="border-color: rgba(255,255,255,0.15);">
-                <i data-lucide="arrow-left" style="width: 14px; height: 14px; vertical-align: -1px;"></i> Dashboard
+    <div class="roadmap-top-bar">
+        <div class="roadmap-breadcrumbs">
+            <a href="{{ url_for('roadmap.dashboard', slug=roadmap.slug) }}" class="roadmap-crumb-link">
+                <i data-lucide="arrow-left" style="width: 15px; height: 15px;"></i>
+                <span>Dashboard</span>
             </a>
-            <span class="text-secondary">/</span>
-            <span class="text-secondary small">Phase {{ current_phase.phase_number }}: {{ current_phase.title }}</span>
-            <span class="text-secondary">/</span>
-            <span class="badge bg-secondary bg-opacity-25 text-white">Week {{ current_week.week_number }}</span>
+            <span class="roadmap-crumb-sep">/</span>
+            <span class="roadmap-crumb-link" style="pointer-events: none;">
+                {% if current_phase.title.lower().startswith('phase ') %}
+                    {{ current_phase.title }}
+                {% else %}
+                    Phase {{ current_phase.phase_number }}: {{ current_phase.title }}
+                {% endif %}
+            </span>
+            <span class="roadmap-crumb-sep">/</span>
+            <span class="roadmap-crumb-active">
+                Week {{ current_week.week_number }}
+            </span>
         </div>
 
-        <div class="d-flex align-items-center gap-2">
+        <div class="roadmap-top-actions">
             <!-- Toggle Lesson Completion Button -->
             <button id="toggleCompleteBtn" 
-                    class="btn btn-sm rounded-pill px-3 fw-bold {% if is_completed %}btn-success{% else %}btn-outline-light{% endif %}"
+                    class="btn btn-sm rounded-pill px-3 fw-bold {% if is_completed %}btn-success{% else %}btn-secondary{% endif %}"
                     data-slug="{{ roadmap.slug }}" 
                     data-lesson-id="{{ current_lesson.id }}"
-                    style="border-color: rgba(255,255,255,0.2);">
+                    style="{% if not is_completed %}background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #F1F5F9;{% endif %}">
                 <i data-lucide="{% if is_completed %}check-circle{% else %}circle{% endif %}" id="completeIcon" style="width: 14px; height: 14px; vertical-align: -1px;"></i>
                 <span id="completeText">{% if is_completed %}Lesson Completed{% else %}Mark as Complete{% endif %}</span>
             </button>
@@ -31,187 +559,221 @@
             <!-- Prev / Next Navigation -->
             {% if prev_item %}
             <a href="{{ url_for('roadmap.learn', slug=roadmap.slug, week_num=prev_item[1].week_number, lesson_id=prev_item[2].id) }}" 
-               class="btn btn-outline-secondary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center" 
-               title="Previous Lecture" style="width: 32px; height: 32px; border-color: rgba(255,255,255,0.15);">
+               class="btn btn-secondary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center" 
+               title="Previous Lecture" 
+               style="width: 34px; height: 34px; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18); color: #FFFFFF;">
                 <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
             </a>
             {% endif %}
 
             {% if next_item %}
             <a href="{{ url_for('roadmap.learn', slug=roadmap.slug, week_num=next_item[1].week_number, lesson_id=next_item[2].id) }}" 
-               class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm" 
-               style="background: #6366F1; border-color: #6366F1;">
-                Next Lecture <i data-lucide="chevron-right" style="width: 14px; height: 14px; vertical-align: -1px;"></i>
+               class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" 
+               style="background: #5B46F6; border-color: #5B46F6; color: #FFFFFF; display: inline-flex; align-items: center; gap: 4px;">
+                <span>Next Lecture</span>
+                <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
             </a>
             {% endif %}
         </div>
     </div>
 
-    <div class="row g-4">
-        <!-- Main Lecture & Workspace Column (Col 8) -->
-        <div class="col-lg-8">
+    <!-- Main Grid -->
+    <div class="roadmap-learn-grid">
+        <!-- Left Column: Video Player & Study Notes -->
+        <div class="roadmap-main-column">
             <!-- Embedded YouTube Player with exact timestamp -->
-            <div class="rounded-4 overflow-hidden mb-3 shadow-lg" 
-                 style="background: #000; border: 1px solid rgba(255,255,255,0.1); position: relative; padding-top: 56.25%;">
+            <div class="roadmap-video-card">
                 {% set video_id = current_lesson.video_id or 'LzMnsfqjzkA' %}
                 {% set start_sec = current_lesson.start_seconds or 0 %}
                 <iframe 
                     id="skillrockLectureFrame"
                     src="https://www.youtube.com/embed/{{ video_id }}?start={{ start_sec }}&rel=0&modestbranding=1&enablejsapi=1" 
                     title="{{ current_lesson.title }}"
-                    frameborder="0" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowfullscreen
-                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                    allowfullscreen>
                 </iframe>
             </div>
 
-            <!-- Video Attribution & Timestamp Notice -->
-            <div class="d-flex flex-wrap align-items-center justify-content-between p-3 rounded-3 mb-4" 
-                 style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.05);">
-                <div class="text-secondary small d-flex align-items-center gap-2">
-                    <i data-lucide="youtube" class="text-danger" style="width: 18px; height: 18px;"></i>
+            <!-- Video Attribution & Chapter Offset -->
+            <div class="roadmap-attribution-bar">
+                <div class="roadmap-attr-left">
+                    <i data-lucide="youtube" style="width: 18px; height: 18px; color: #EF4444;"></i>
                     <span>Resource: <strong>Become a Fullstack Developer from Scratch</strong> (freeCodeCamp / Scrimba)</span>
                 </div>
-                <div class="text-secondary small">
-                    <span class="badge bg-secondary bg-opacity-25 text-white">Chapter Start: {{ current_lesson.chapter_timestamp or '00:00:00' }}</span>
+                <div class="roadmap-attr-badge">
+                    <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
+                    <span>Chapter Start: {{ current_lesson.chapter_timestamp or '00:00:00' }}</span>
                 </div>
             </div>
 
-            <!-- Lesson Info & Tabs -->
-            <div class="p-4 rounded-4" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <h3 class="fw-bold text-white mb-0">{{ current_lesson.title }}</h3>
-                    <span class="badge px-3 py-1 rounded-pill" style="background: rgba(99, 102, 241, 0.15); color: #818CF8;">
-                        {{ current_lesson.duration or '45m' }}
+            <!-- Lesson Info Card -->
+            <div class="roadmap-lesson-card">
+                <div class="roadmap-lesson-header">
+                    <h1 class="roadmap-lesson-title">{{ current_lesson.title }}</h1>
+                    <span class="roadmap-duration-pill">
+                        <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
+                        <span>{{ current_lesson.duration or '45m' }}</span>
                     </span>
                 </div>
 
-                <p class="text-secondary small mb-4">
+                <p class="roadmap-lesson-desc">
                     {{ current_lesson.objective or current_week.milestone }}
                 </p>
 
-                <!-- Navigation Tabs -->
-                <ul class="nav nav-pills mb-3 border-bottom border-secondary border-opacity-10 pb-2" id="lessonTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active text-white fw-semibold px-3 py-2 rounded-pill small" id="objectives-tab" data-bs-toggle="pill" data-bs-target="#objectives" type="button" role="tab" style="background: transparent;">
-                            <i data-lucide="target" style="width: 14px; height: 14px; vertical-align: -1px;"></i> Topics & Objectives
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link text-secondary fw-semibold px-3 py-2 rounded-pill small" id="references-tab" data-bs-toggle="pill" data-bs-target="#references" type="button" role="tab" style="background: transparent;">
-                            <i data-lucide="book" style="width: 14px; height: 14px; vertical-align: -1px;"></i> Documentation & Guides
-                        </button>
-                    </li>
-                </ul>
+                <!-- Clean Tab Switcher -->
+                <div class="roadmap-tab-nav">
+                    <button class="rm-tab-btn active" id="btnTabConcepts" type="button" onclick="switchRmTab('concepts')">
+                        <i data-lucide="target" style="width: 14px; height: 14px;"></i>
+                        <span>Key Topics & Objectives</span>
+                    </button>
+                    <button class="rm-tab-btn" id="btnTabDocs" type="button" onclick="switchRmTab('docs')">
+                        <i data-lucide="book-open" style="width: 14px; height: 14px;"></i>
+                        <span>Documentation & Guides</span>
+                    </button>
+                </div>
 
-                <div class="tab-content" id="lessonTabsContent">
-                    <!-- Topics Tab -->
-                    <div class="tab-pane fade show active text-secondary small" id="objectives" role="tabpanel">
-                        <h6 class="text-white fw-bold mb-2">Key Concepts Covered</h6>
-                        <ul class="ps-3 mb-3" style="line-height: 1.8;">
-                            {% if current_lesson.topics %}
-                                {% for topic in current_lesson.topics %}
-                                <li>{{ topic }}</li>
-                                {% endfor %}
-                            {% else %}
-                                <li>Comprehensive theory and hands-on implementation for {{ current_lesson.title }}.</li>
-                                <li>Practical coding challenges and best architectural practices.</li>
-                                <li>Integration with Week {{ current_week.week_number }} milestone deliverables.</li>
-                            {% endif %}
-                        </ul>
+                <!-- Tab 1: Key Topics -->
+                <div class="rm-tab-pane active" id="paneConcepts">
+                    <h6 style="color: #F8FAFC; font-weight: 700; margin-bottom: 12px; font-size: 0.95rem;">Key Concepts Covered:</h6>
+                    <ul class="rm-concepts-list">
+                        {% if current_lesson.topics %}
+                            {% for topic in current_lesson.topics %}
+                            <li>
+                                <i data-lucide="check-circle-2"></i>
+                                <span>{{ topic }}</span>
+                            </li>
+                            {% endfor %}
+                        {% else %}
+                            <li>
+                                <i data-lucide="check-circle-2"></i>
+                                <span>Comprehensive theory and hands-on implementation for {{ current_lesson.title }}.</span>
+                            </li>
+                            <li>
+                                <i data-lucide="check-circle-2"></i>
+                                <span>Practical coding challenges and modern industry architectural practices.</span>
+                            </li>
+                            <li>
+                                <i data-lucide="check-circle-2"></i>
+                                <span>Integration with Week {{ current_week.week_number }} milestone deliverables.</span>
+                            </li>
+                        {% endif %}
+                    </ul>
 
-                        <div class="p-3 rounded-3 mt-3" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.05);">
-                            <div class="text-white fw-semibold mb-1">Weekly Milestone Target:</div>
-                            <div>{{ current_week.milestone }}</div>
+                    <div class="rm-milestone-box">
+                        <div class="rm-milestone-title">
+                            <i data-lucide="flag" style="width: 14px; height: 14px;"></i>
+                            <span>Weekly Milestone Target</span>
+                        </div>
+                        <div class="rm-milestone-body">
+                            {{ current_week.milestone }}
                         </div>
                     </div>
+                </div>
 
-                    <!-- References Tab -->
-                    <div class="tab-pane fade text-secondary small" id="references" role="tabpanel">
-                        <h6 class="text-white fw-bold mb-2">Verified Structured Learning References</h6>
-                        <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
-                            <li>
-                                <a href="https://developer.mozilla.org/en-US/curriculum/" target="_blank" rel="noopener noreferrer" class="text-info text-decoration-none d-flex align-items-center gap-2">
-                                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-                                    <span>MDN Web Curriculum & Documentation</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="https://www.theodinproject.com/paths/full-stack-javascript" target="_blank" rel="noopener noreferrer" class="text-info text-decoration-none d-flex align-items-center gap-2">
-                                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-                                    <span>The Odin Project — Full Stack JavaScript Path</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="https://roadmap.sh/full-stack" target="_blank" rel="noopener noreferrer" class="text-info text-decoration-none d-flex align-items-center gap-2">
-                                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-                                    <span>roadmap.sh — Full Stack Developer Roadmap</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+                <!-- Tab 2: Documentation & References -->
+                <div class="rm-tab-pane" id="paneDocs">
+                    <h6 style="color: #F8FAFC; font-weight: 700; margin-bottom: 14px; font-size: 0.95rem;">Verified Industry Reference Guides:</h6>
+                    
+                    <a href="https://developer.mozilla.org/en-US/curriculum/" target="_blank" rel="noopener noreferrer" class="rm-ref-card">
+                        <div class="rm-ref-left">
+                            <div class="rm-ref-icon">
+                                <i data-lucide="file-text" style="width: 18px; height: 18px;"></i>
+                            </div>
+                            <div>
+                                <div class="rm-ref-name">MDN Web Curriculum & Standards</div>
+                                <div class="rm-ref-desc">Official Mozilla web engineering guide and interactive exercises.</div>
+                            </div>
+                        </div>
+                        <i data-lucide="external-link" style="width: 15px; height: 15px; color: var(--text-muted, #94A3B8);"></i>
+                    </a>
+
+                    <a href="https://www.theodinproject.com/paths/full-stack-javascript" target="_blank" rel="noopener noreferrer" class="rm-ref-card">
+                        <div class="rm-ref-left">
+                            <div class="rm-ref-icon">
+                                <i data-lucide="code" style="width: 18px; height: 18px;"></i>
+                            </div>
+                            <div>
+                                <div class="rm-ref-name">The Odin Project — Full Stack Path</div>
+                                <div class="rm-ref-desc">Hands-on open source curriculum for full stack web development.</div>
+                            </div>
+                        </div>
+                        <i data-lucide="external-link" style="width: 15px; height: 15px; color: var(--text-muted, #94A3B8);"></i>
+                    </a>
+
+                    <a href="https://roadmap.sh/full-stack" target="_blank" rel="noopener noreferrer" class="rm-ref-card">
+                        <div class="rm-ref-left">
+                            <div class="rm-ref-icon">
+                                <i data-lucide="map" style="width: 18px; height: 18px;"></i>
+                            </div>
+                            <div>
+                                <div class="rm-ref-name">roadmap.sh — Full Stack Roadmap</div>
+                                <div class="rm-ref-desc">Community-driven visual learning roadmap and skill checkpoints.</div>
+                            </div>
+                        </div>
+                        <i data-lucide="external-link" style="width: 15px; height: 15px; color: var(--text-muted, #94A3B8);"></i>
+                    </a>
                 </div>
 
             </div>
         </div>
 
-        <!-- Curriculum Navigation Tree (Col 4) -->
-        <div class="col-lg-4">
-            <div class="p-4 rounded-4" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08); max-height: 85vh; overflow-y: auto;">
-                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-10">
+        <!-- Right Column: Sticky Curriculum Playlist -->
+        <div class="roadmap-sidebar-column">
+            <div class="roadmap-sidebar-card">
+                <div class="rm-sidebar-head">
                     <div>
-                        <h5 class="fw-bold text-white mb-0">Course Content</h5>
-                        <span class="text-secondary small">{{ roadmap.total_lessons_count }} Lessons &bull; 20 Weeks</span>
+                        <h2 class="rm-sidebar-title">Course Content</h2>
+                        <div class="rm-sidebar-sub">{{ roadmap.total_lessons_count }} Lessons &bull; 20 Weeks</div>
                     </div>
-                    <span class="badge bg-secondary bg-opacity-25 text-white fw-bold" id="sidebarProgressBadge">
+                    <span class="rm-progress-badge" id="sidebarProgressBadge">
                         {{ completion_pct }}%
                     </span>
                 </div>
 
-                <!-- Phase List in Sidebar -->
-                <div class="accordion accordion-flush" id="sidebarCurriculum">
+                <!-- Playlist Accordion Tree -->
+                <div class="rm-playlist-tree" id="roadmapPlaylistTree">
                     {% for phase in roadmap.phases %}
-                    {% set is_current_phase = (phase.phase_number == current_phase.phase_number) %}
-                    <div class="accordion-item mb-2 rounded-3 overflow-hidden" style="background: transparent; border: 1px solid rgba(255, 255, 255, 0.05);">
-                        <h2 class="accordion-header" id="sideHeadingPhase{{ phase.phase_number }}">
-                            <button class="accordion-button {% if not is_current_phase %}collapsed{% endif %} px-3 py-2 text-white small fw-bold" 
-                                    type="button" data-bs-toggle="collapse" data-bs-target="#sideCollapsePhase{{ phase.phase_number }}" 
-                                    aria-expanded="{% if is_current_phase %}true{% else %}false{% endif %}"
-                                    style="background: rgba(15, 23, 42, 0.6); box-shadow: none;">
-                                Phase {{ phase.phase_number }}: {{ phase.title }}
-                            </button>
-                        </h2>
-                        <div id="sideCollapsePhase{{ phase.phase_number }}" class="accordion-collapse collapse {% if is_current_phase %}show{% endif %}" 
-                             data-bs-parent="#sidebarCurriculum">
-                            <div class="accordion-body p-2" style="background: rgba(15, 23, 42, 0.3);">
-                                {% for week in phase.weeks %}
-                                <div class="mb-2">
-                                    <div class="text-secondary small fw-semibold px-2 py-1" style="font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;">
-                                        Week {{ week.week_number }}: {{ week.title }}
+                    {% set is_curr_phase = (phase.phase_number == current_phase.phase_number) %}
+                    <div class="rm-phase-item {% if is_curr_phase %}open{% endif %}" id="phaseItem{{ phase.phase_number }}">
+                        <button type="button" class="rm-phase-header" onclick="togglePhaseItem({{ phase.phase_number }})">
+                            <span class="rm-phase-title-text">
+                                {% if phase.title.lower().startswith('phase ') %}
+                                    {{ phase.title }}
+                                {% else %}
+                                    Phase {{ phase.phase_number }}: {{ phase.title }}
+                                {% endif %}
+                            </span>
+                            <i data-lucide="chevron-down" class="rm-phase-chevron"></i>
+                        </button>
+
+                        <div class="rm-phase-body">
+                            {% for week in phase.weeks %}
+                            <div class="rm-week-label">
+                                {% if week.title.lower().startswith('week ') %}
+                                    {{ week.title }}
+                                {% else %}
+                                    Week {{ week.week_number }}: {{ week.title }}
+                                {% endif %}
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                                {% for lesson in week.lessons %}
+                                {% set is_act = (lesson.id == current_lesson.id) %}
+                                {% set is_dn = lesson.id in progress.completed_lesson_ids %}
+                                <a href="{{ url_for('roadmap.learn', slug=roadmap.slug, week_num=week.week_number, lesson_id=lesson.id) }}" 
+                                   class="rm-lesson-row {% if is_act %}active{% elif is_dn %}completed{% endif %}">
+                                    <div class="rm-lesson-left">
+                                        <i data-lucide="{% if is_dn %}check-circle-2{% elif is_act %}play-circle{% else %}circle{% endif %}" 
+                                           class="rm-lesson-icon"></i>
+                                        <span class="rm-lesson-name">
+                                            {{ lesson.title }}
+                                        </span>
                                     </div>
-                                    <div class="list-group list-group-flush">
-                                        {% for lesson in week.lessons %}
-                                        {% set is_active_lesson = (lesson.id == current_lesson.id) %}
-                                        {% set is_done = lesson.id in progress.completed_lesson_ids %}
-                                        <a href="{{ url_for('roadmap.learn', slug=roadmap.slug, week_num=week.week_number, lesson_id=lesson.id) }}" 
-                                           class="list-group-item list-group-item-action px-2 py-2 rounded-2 d-flex align-items-center justify-content-between mb-1" 
-                                           style="background: {% if is_active_lesson %}rgba(99, 102, 241, 0.25){% else %}transparent{% endif %}; border: {% if is_active_lesson %}1px solid #6366F1{% else %}none{% endif %};">
-                                            <div class="d-flex align-items-center gap-2 overflow-hidden">
-                                                <i data-lucide="{% if is_done %}check-circle-2{% elif is_active_lesson %}play-circle{% else %}circle{% endif %}" 
-                                                   class="{% if is_done %}text-success{% elif is_active_lesson %}text-primary{% else %}text-secondary{% endif %}" 
-                                                   style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-                                                <span class="small {% if is_active_lesson %}text-white fw-bold{% else %}text-light{% endif %} text-truncate" style="font-size: 0.8rem;">
-                                                    {{ lesson.title }}
-                                                </span>
-                                            </div>
-                                            <span class="text-secondary small" style="font-size: 0.7rem; flex-shrink: 0;">{{ lesson.duration or '45m' }}</span>
-                                        </a>
-                                        {% endfor %}
-                                    </div>
-                                </div>
+                                    <span class="rm-lesson-time">{{ lesson.duration or '45m' }}</span>
+                                </a>
                                 {% endfor %}
                             </div>
+                            {% endfor %}
                         </div>
                     </div>
                     {% endfor %}
@@ -224,9 +786,45 @@
 </div>
 
 <script>
+    // Tab switching logic
+    function switchRmTab(tabName) {
+        var btnConcepts = document.getElementById("btnTabConcepts");
+        var btnDocs = document.getElementById("btnTabDocs");
+        var paneConcepts = document.getElementById("paneConcepts");
+        var paneDocs = document.getElementById("paneDocs");
+
+        if (tabName === "concepts") {
+            btnConcepts.classList.add("active");
+            btnDocs.classList.remove("active");
+            paneConcepts.classList.add("active");
+            paneDocs.classList.remove("active");
+        } else {
+            btnDocs.classList.add("active");
+            btnConcepts.classList.remove("active");
+            paneDocs.classList.add("active");
+            paneConcepts.classList.remove("active");
+        }
+    }
+
+    // Accordion toggle logic
+    function togglePhaseItem(phaseNum) {
+        var item = document.getElementById("phaseItem" + phaseNum);
+        if (item) {
+            item.classList.toggle("open");
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         if (window.lucide) {
             lucide.createIcons();
+        }
+
+        // Auto-scroll playlist so active lesson is in view
+        var activeRow = document.querySelector(".rm-lesson-row.active");
+        if (activeRow) {
+            setTimeout(function() {
+                activeRow.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }, 250);
         }
 
         // Toggle Complete Button AJAX
@@ -256,10 +854,16 @@
                     if (data.success) {
                         if (data.is_completed) {
                             toggleBtn.className = "btn btn-sm rounded-pill px-3 fw-bold btn-success";
+                            toggleBtn.style.background = "";
+                            toggleBtn.style.borderColor = "";
+                            toggleBtn.style.color = "";
                             completeText.innerText = "Lesson Completed";
                             completeIcon.setAttribute("data-lucide", "check-circle");
                         } else {
-                            toggleBtn.className = "btn btn-sm rounded-pill px-3 fw-bold btn-outline-light";
+                            toggleBtn.className = "btn btn-sm rounded-pill px-3 fw-bold btn-secondary";
+                            toggleBtn.style.background = "rgba(255,255,255,0.08)";
+                            toggleBtn.style.borderColor = "rgba(255,255,255,0.2)";
+                            toggleBtn.style.color = "#F1F5F9";
                             completeText.innerText = "Mark as Complete";
                             completeIcon.setAttribute("data-lucide", "circle");
                         }

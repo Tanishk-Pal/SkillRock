@@ -216,15 +216,15 @@
 
                 var savedTheme = localStorage.getItem("skillrock_theme");
 
-                var theme = userTheme || savedTheme || "light";
+                var theme = userTheme || savedTheme || "dark";
 
-                if (theme !== "dark" && theme !== "light") theme = "light";
+                if (theme !== "dark" && theme !== "light") theme = "dark";
 
                 document.documentElement.setAttribute("data-theme", theme);
 
             } catch(e) {
 
-                document.documentElement.setAttribute("data-theme", "light");
+                document.documentElement.setAttribute("data-theme", "dark");
 
             }
 
@@ -558,7 +558,7 @@
 
                     </a>
 
-                    <a href="{{ url_for('roadmap.catalog') }}" class="btn btn-secondary btn-sm" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #FBBF24; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
+                    <a href="{{ url_for('learning.courses_list') }}#careerRoadmapsSection" class="btn btn-secondary btn-sm" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #FBBF24; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
 
                         <i data-lucide="map" style="width: 14px; height: 14px;"></i>
 
@@ -645,18 +645,6 @@
                     <span>Test Series</span>
 
                     <span class="pw-nav-badge" style="background: #10B981; color: #FFFFFF;">HOT</span>
-
-                </a>
-
-                <a href="{{ url_for('roadmap.catalog') }}"
-
-                   class="pw-nav-item {% if request.endpoint and 'roadmap.' in request.endpoint %}active{% endif %}">
-
-                    <i data-lucide="map"></i>
-
-                    <span>Career Roadmaps</span>
-
-                    <span class="pw-nav-badge" style="background: #F59E0B; color: #000000; font-weight: 800;">50% CASHBACK</span>
 
                 </a>
 
@@ -2093,7 +2081,7 @@
 
             window.setSkillRockTheme = function(theme) {
 
-                if (theme !== "dark" && theme !== "light") theme = "light";
+                if (theme !== "dark" && theme !== "light") theme = "dark";
 
                 document.documentElement.setAttribute("data-theme", theme);
 
@@ -2143,7 +2131,7 @@
 
             function updateThemeUI(theme) {
 
-                const current = theme || document.documentElement.getAttribute("data-theme") || "light";
+                const current = theme || document.documentElement.getAttribute("data-theme") || "dark";
 
                 document.querySelectorAll(".global-theme-btn, .theme-card-option").forEach(btn => {
 
@@ -2191,7 +2179,7 @@
 
                 appearanceModal.style.display = "flex";
 
-                const current = document.documentElement.getAttribute("data-theme") || "light";
+                const current = document.documentElement.getAttribute("data-theme") || "dark";
 
                 updateThemeUI(current);
 
@@ -2221,7 +2209,7 @@
 
                 visitorToggleBtn.addEventListener("click", function() {
 
-                    const cur = document.documentElement.getAttribute("data-theme") || "light";
+                    const cur = document.documentElement.getAttribute("data-theme") || "dark";
 
                     const next = cur === "dark" ? "light" : "dark";
 
@@ -2271,7 +2259,7 @@
 
             // Initial UI sync
 
-            updateThemeUI(document.documentElement.getAttribute("data-theme") || "light");
+            updateThemeUI(document.documentElement.getAttribute("data-theme") || "dark");
 
         })();
 
