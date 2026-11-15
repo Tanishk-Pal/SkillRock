@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}{{ roadmap.title }} — Career Roadmap — Skill Rock{% endblock %}
+
+{% block meta_description %}{{ roadmap.short_description }} Master the full stack in 20 weeks with real projects, verified resources, and 50% completion cashback.{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-md-5">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('roadmap.catalog') }}" class="text-secondary text-decoration-none">Roadmaps</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page">{{ roadmap.title }}</li>
+        </ol>
+    </nav>
+
+    <!-- Top Hero Card -->
+    <div class="p-4 p-md-5 rounded-4 mb-4 position-relative overflow-hidden" 
+         style="background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%); border: 1px solid rgba(99, 102, 241, 0.25);">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <span class="badge px-3 py-1 rounded-pill" style="background: rgba(99, 102, 241, 0.15); color: #818CF8; border: 1px solid rgba(99, 102, 241, 0.3);">
+                        {{ roadmap.duration }} &bull; 5 PHASES
+                    </span>
+                    <span class="badge px-3 py-1 rounded-pill" style="background: rgba(16, 185, 129, 0.12); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3);">
+                        {{ roadmap.level }}
+                    </span>
+                    <span class="badge px-3 py-1 rounded-pill" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3);">
+                        <i data-lucide="gift" style="width: 14px; height: 14px; vertical-align: -1px;"></i> 50% COMPLETION CASHBACK
+                    </span>
+                </div>
+
+                <h1 class="display-6 fw-bold text-white mb-3">{{ roadmap.title }}</h1>
+                <p class="text-secondary lead mb-4" style="max-width: 720px; font-size: 1.05rem; line-height: 1.6;">
+                    {{ roadmap.full_description or roadmap.short_description }}
+                </p>
+
+                <!-- Tech Stack Badges -->
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    {% for tech in roadmap.tech_stack %}
+                    <span class="badge px-3 py-1 rounded-pill" style="background: rgba(30, 41, 59, 0.8); color: #E2E8F0; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        {{ tech }}
+                    </span>
+                    {% endfor %}
+                </div>
+
+                <!-- Career Outcomes -->
+                <div class="d-flex align-items-center gap-2 text-secondary small">
+                    <i data-lucide="briefcase" class="text-info" style="width: 16px; height: 16px;"></i>
+                    <span>Target Outcomes:</span>
+                    <span class="text-white">{{ roadmap.career_outcomes | join(" &bull; ") }}</span>
+                </div>
+            </div>
+
+            <!-- Side Card with Pricing and Action -->
+            <div class="col-lg-4 mt-4 mt-lg-0">
+                <div class="p-4 rounded-4" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);">
+                    {% if is_enrolled %}
+                    <div class="text-center mb-3">
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill fw-semibold">
+                            <i data-lucide="check-circle" style="width: 14px; height: 14px; vertical-align: -1px;"></i> Enrolled & Active
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between text-secondary small mb-1">
+                            <span>Your Progress</span>
+                            <span class="text-white fw-bold">{{ completion_pct }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px; background: rgba(255,255,255,0.1);">
+                            <div class="progress-bar" style="width: {{ completion_pct }}%; background: #6366F1;"></div>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('roadmap.dashboard', slug=roadmap.slug) }}" class="btn btn-primary w-100 py-3 rounded-pill fw-bold" style="background: #6366F1; border-color: #6366F1;">
+                        Open Student Dashboard <i data-lucide="arrow-right" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                    </a>
+                    {% else %}
+                    <div class="d-flex align-items-baseline gap-2 mb-2">
+                        <span class="display-6 fw-bold text-white">₹{{ roadmap.price|int }}</span>
+                        {% if roadmap.original_price and roadmap.original_price > roadmap.price %}
+                        <span class="text-secondary text-decoration-line-through fs-5">₹{{ roadmap.original_price|int }}</span>
+                        {% endif %}
+                    </div>
+                    {% if roadmap.cashback_enabled %}
+                    <div class="p-2 px-3 rounded-3 mb-3" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25);">
+                        <div class="text-warning fw-bold small">
+                            <i data-lucide="sparkles" style="width: 14px; height: 14px; vertical-align: -1px;"></i> 50% Cashback Eligible
+                        </div>
+                        <div class="text-secondary" style="font-size: 0.75rem;">
+                            Pay ₹{{ roadmap.price|int }} today & receive <strong>₹{{ (roadmap.price * 0.5)|int }} back</strong> when you finish in 180 days!
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <form action="{{ url_for('roadmap.enroll', slug=roadmap.slug) }}" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small mb-1">Ambassador Referral Code (Optional)</label>
+                            <input type="text" name="srid" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="e.g. 1001 or SR1001" style="border-color: rgba(255,255,255,0.15) !important;">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow" style="background: #6366F1; border-color: #6366F1;">
+                            Enroll in Launchpad <i data-lucide="arrow-right" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <div class="mt-4 pt-3 border-top border-secondary border-opacity-10 text-secondary small">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i data-lucide="check" class="text-success" style="width: 15px; height: 15px;"></i>
+                            <span>20 Weeks &bull; {{ roadmap.total_lessons_count }} Lessons</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i data-lucide="check" class="text-success" style="width: 15px; height: 15px;"></i>
+                            <span>4 Real Projects + 1 Live Capstone</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i data-lucide="check" class="text-success" style="width: 15px; height: 15px;"></i>
+                            <span>Verified Industry YouTube Material</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i data-lucide="check" class="text-success" style="width: 15px; height: 15px;"></i>
+                            <span>Verified Certificate of Completion</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Curriculum Syllabus Breakdown -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <h3 class="fw-bold text-white mb-0">Detailed 20-Week Curriculum</h3>
+                <span class="text-secondary small">{{ roadmap.phases|length }} Structured Learning Phases</span>
+            </div>
+
+            <!-- Accordion of 5 Phases -->
+            <div class="accordion" id="curriculumAccordion">
+                {% for phase in roadmap.phases %}
+                <div class="accordion-item mb-3 rounded-4 overflow-hidden" 
+                     style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08) !important;">
+                    <h2 class="accordion-header" id="headingPhase{{ phase.phase_number }}">
+                        <button class="accordion-button {% if not loop.first %}collapsed{% endif %} px-4 py-3 text-white fw-bold" 
+                                type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhase{{ phase.phase_number }}" 
+                                aria-expanded="{% if loop.first %}true{% else %}false{% endif %}" 
+                                aria-controls="collapsePhase{{ phase.phase_number }}"
+                                style="background: rgba(15, 23, 42, 0.6); box-shadow: none;">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between w-100 me-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge px-2 py-1 rounded-circle" style="background: #6366F1; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">
+                                        {{ phase.phase_number }}
+                                    </span>
+                                    <div>
+                                        <div class="text-white">{{ phase.title }}</div>
+                                        <div class="text-secondary small fw-normal">{{ phase.weeks|length }} Weeks &bull; {{ phase.objective }}</div>
+                                    </div>
+                                </div>
+                                {% if loop.index0 < roadmap.projects|length %}
+                                {% set phase_proj = roadmap.projects[loop.index0] %}
+                                <span class="badge px-3 py-1 rounded-pill mt-2 mt-md-0" style="background: rgba(99, 102, 241, 0.15); color: #818CF8; border: 1px solid rgba(99, 102, 241, 0.3);">
+                                    Phase Project: {{ phase_proj.title }}
+                                </span>
+                                {% else %}
+                                <span class="badge px-3 py-1 rounded-pill mt-2 mt-md-0" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3);">
+                                    Final Capstone: {{ roadmap.capstone.title }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapsePhase{{ phase.phase_number }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" 
+                         aria-labelledby="headingPhase{{ phase.phase_number }}" data-bs-parent="#curriculumAccordion">
+                        <div class="accordion-body px-4 py-3">
+
+                            <!-- Weeks under this phase -->
+                            {% for week in phase.weeks %}
+                            <div class="mb-4 pb-3 {% if not loop.last %}border-bottom border-secondary border-opacity-10{% endif %}">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div class="fw-semibold text-white d-flex align-items-center gap-2">
+                                        <span class="badge bg-secondary bg-opacity-25 text-white">Week {{ week.week_number }}</span>
+                                        <span>{{ week.title }}</span>
+                                    </div>
+                                    <span class="text-secondary small">{{ week.milestone }}</span>
+                                </div>
+
+                                <div class="list-group list-group-flush rounded-3 overflow-hidden">
+                                    {% for lesson in week.lessons %}
+                                    <div class="list-group-item px-3 py-2 d-flex align-items-center justify-content-between" 
+                                         style="background: rgba(15, 23, 42, 0.4); border-color: rgba(255, 255, 255, 0.05);">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i data-lucide="play-circle" class="text-secondary" style="width: 16px; height: 16px;"></i>
+                                            <span class="text-light small">{{ lesson.title }}</span>
+                                        </div>
+                                        <span class="text-secondary small" style="font-size: 0.75rem;">{{ lesson.duration or 'Lecture' }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+
+                            <!-- Phase Project Box -->
+                            {% if loop.index0 < roadmap.projects|length %}
+                            {% set phase_proj = roadmap.projects[loop.index0] %}
+                            <div class="p-3 rounded-3" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2);">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i data-lucide="code" class="text-primary" style="width: 16px; height: 16px;"></i>
+                                    <span class="text-white fw-bold small">Milestone Project: {{ phase_proj.title }}</span>
+                                </div>
+                                <div class="text-secondary small mb-2">{{ phase_proj.description }}</div>
+                                <div class="text-secondary small" style="font-size: 0.75rem;">
+                                    <strong>Deliverables:</strong> {{ phase_proj.deliverables | join(", ") }}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Final Capstone Showcase -->
+            {% if roadmap.capstone %}
+            <div class="p-4 rounded-4 mt-4" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(15, 23, 42, 0.8) 100%); border: 1px solid rgba(245, 158, 11, 0.3);">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge px-3 py-1 rounded-pill" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.4);">
+                        FINAL CAPSTONE
+                    </span>
+                    <span class="text-secondary small">Evaluated by SkillRock Mentors</span>
+                </div>
+                <h4 class="text-white fw-bold mb-2">{{ roadmap.capstone.title }}</h4>
+                <p class="text-secondary small mb-3">{{ roadmap.capstone.description }}</p>
+                <div class="row g-2 text-secondary small">
+                    <div class="col-md-6">
+                        <strong>Requirements:</strong>
+                        <ul class="ps-3 mb-0" style="font-size: 0.8rem;">
+                            {% for req in (roadmap.capstone.required_features or roadmap.capstone.requirements or [])[:4] %}
+                            <li>{{ req }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Evaluation Rubrics:</strong>
+                        <ul class="ps-3 mb-0" style="font-size: 0.8rem;">
+                            {% for r in roadmap.capstone.rubric %}
+                            <li>{{ r.criterion }} ({{ r.weight }}%)</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Side: Program Features & FAQ -->
+        <div class="col-lg-4">
+            <div class="p-4 rounded-4 mb-4" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <h5 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i data-lucide="compass" class="text-primary" style="width: 20px; height: 20px;"></i>
+                    Why This Program?
+                </h5>
+                <ul class="list-unstyled text-secondary small mb-0 d-flex flex-column gap-3" style="line-height: 1.6;">
+                    <li class="d-flex gap-2">
+                        <i data-lucide="check-circle-2" class="text-success flex-shrink-0" style="width: 16px; height: 16px; margin-top: 3px;"></i>
+                        <div><strong class="text-white">Zero Guesswork:</strong> Every single week has exact video timestamps, chapter navigation, and clear learning milestones.</div>
+                    </li>
+                    <li class="d-flex gap-2">
+                        <i data-lucide="check-circle-2" class="text-success flex-shrink-0" style="width: 16px; height: 16px; margin-top: 3px;"></i>
+                        <div><strong class="text-white">Real Evaluated Repositories:</strong> Build 4 phase apps and 1 production capstone reviewed against official rubrics.</div>
+                    </li>
+                    <li class="d-flex gap-2">
+                        <i data-lucide="check-circle-2" class="text-success flex-shrink-0" style="width: 16px; height: 16px; margin-top: 3px;"></i>
+                        <div><strong class="text-white">50% Cash Incentive:</strong> Finish on time, pass your reviews, and receive 50% of your fee back.</div>
+                    </li>
+                    <li class="d-flex gap-2">
+                        <i data-lucide="check-circle-2" class="text-success flex-shrink-0" style="width: 16px; height: 16px; margin-top: 3px;"></i>
+                        <div><strong class="text-white">Verified Certificate:</strong> Permanent tamper-proof cryptographic credential verifiable by recruiters.</div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Transparency Card -->
+            <div class="p-4 rounded-4" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08);">
+                <h6 class="text-white fw-bold mb-2">Notice & Standards</h6>
+                <p class="text-secondary small mb-0" style="font-size: 0.8rem; line-height: 1.6;">
+                    SkillRock provides structured educational guidance, curated industry lectures, and rigorous project evaluations. We do not guarantee jobs or employment. Your career outcomes depend on your authentic practice and project portfolio quality.
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    });
+</script>
+{% endblock %}

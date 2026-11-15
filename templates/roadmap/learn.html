@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}{{ current_lesson.title }} — {{ roadmap.title }} — Skill Rock{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 px-md-4">
+
+    <!-- Top Navigation Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 pb-3 border-bottom border-secondary border-opacity-10">
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('roadmap.dashboard', slug=roadmap.slug) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" style="border-color: rgba(255,255,255,0.15);">
+                <i data-lucide="arrow-left" style="width: 14px; height: 14px; vertical-align: -1px;"></i> Dashboard
+            </a>
+            <span class="text-secondary">/</span>
+            <span class="text-secondary small">Phase {{ current_phase.phase_number }}: {{ current_phase.title }}</span>
+            <span class="text-secondary">/</span>
+            <span class="badge bg-secondary bg-opacity-25 text-white">Week {{ current_week.week_number }}</span>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <!-- Toggle Lesson Completion Button -->
+            <button id="toggleCompleteBtn" 
+                    class="btn btn-sm rounded-pill px-3 fw-bold {% if is_completed %}btn-success{% else %}btn-outline-light{% endif %}"
+                    data-slug="{{ roadmap.slug }}" 
+                    data-lesson-id="{{ current_lesson.id }}"
+                    style="border-color: rgba(255,255,255,0.2);">
+                <i data-lucide="{% if is_completed %}check-circle{% else %}circle{% endif %}" id="completeIcon" style="width: 14px; height: 14px; vertical-align: -1px;"></i>
+                <span id="completeText">{% if is_completed %}Lesson Completed{% else %}Mark as Complete{% endif %}</span>
+            </button>
+
+            <!-- Prev / Next Navigation -->
+            {% if prev_item %}
+            <a href="{{ url_for('roadmap.learn', slug=roadmap.slug, week_num=prev_item[1].week_number, lesson_id=prev_item[2].id) }}" 
+               class="btn btn-outline-secondary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center" 
+               title="Previous Lecture" style="width: 32px; height: 32px; border-color: rgba(255,255,255,0.15);">
+                <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+            </a>
+            {% endif %}
+
+            {% if next_item %}
+            <a href="{{ url_for('roadmap.learn', slug=roadmap.slug, week_num=next_item[1].week_number, lesson_id=next_item[2].id) }}" 
+               class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm" 
+               style="background: #6366F1; border-color: #6366F1;">
+                Next Lecture <i data-lucide="chevron-right" style="width: 14px; height: 14px; vertical-align: -1px;"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Lecture & Workspace Column (Col 8) -->
+        <div class="col-lg-8">
+            <!-- Embedded YouTube Player with exact timestamp -->
+            <div class="rounded-4 overflow-hidden mb-3 shadow-lg" 
+                 style="background: #000; border: 1px solid rgba(255,255,255,0.1); position: relative; padding-top: 56.25%;">
+                {% set video_id = current_lesson.video_id or 'LzMnsfqjzkA' %}
+                {% set start_sec = current_lesson.start_seconds or 0 %}
+                <iframe 
+                    id="skillrockLectureFrame"
+                    src="https://www.youtube.com/embed/{{ video_id }}?start={{ start_sec }}&rel=0&modestbranding=1&enablejsapi=1" 
+                    title="{{ current_lesson.title }}"
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                </iframe>
+            </div>
+
+            <!-- Video Attribution & Timestamp Notice -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between p-3 rounded-3 mb-4" 
+                 style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.05);">
+                <div class="text-secondary small d-flex align-items-center gap-2">
+                    <i data-lucide="youtube" class="text-danger" style="width: 18px; height: 18px;"></i>
+                    <span>Resource: <strong>Become a Fullstack Developer from Scratch</strong> (freeCodeCamp / Scrimba)</span>
+                </div>
+                <div class="text-secondary small">
+                    <span class="badge bg-secondary bg-opacity-25 text-white">Chapter Start: {{ current_lesson.chapter_timestamp or '00:00:00' }}</span>
+                </div>
+            </div>
+
+            <!-- Lesson Info & Tabs -->
+            <div class="p-4 rounded-4" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h3 class="fw-bold text-white mb-0">{{ current_lesson.title }}</h3>
+                    <span class="badge px-3 py-1 rounded-pill" style="background: rgba(99, 102, 241, 0.15); color: #818CF8;">
+                        {{ current_lesson.duration or '45m' }}
+                    </span>
+                </div>
+
+                <p class="text-secondary small mb-4">
+                    {{ current_lesson.objective or current_week.milestone }}
+                </p>
+
+                <!-- Navigation Tabs -->
+                <ul class="nav nav-pills mb-3 border-bottom border-secondary border-opacity-10 pb-2" id="lessonTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active text-white fw-semibold px-3 py-2 rounded-pill small" id="objectives-tab" data-bs-toggle="pill" data-bs-target="#objectives" type="button" role="tab" style="background: transparent;">
+                            <i data-lucide="target" style="width: 14px; height: 14px; vertical-align: -1px;"></i> Topics & Objectives
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link text-secondary fw-semibold px-3 py-2 rounded-pill small" id="references-tab" data-bs-toggle="pill" data-bs-target="#references" type="button" role="tab" style="background: transparent;">
+                            <i data-lucide="book" style="width: 14px; height: 14px; vertical-align: -1px;"></i> Documentation & Guides
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="lessonTabsContent">
+                    <!-- Topics Tab -->
+                    <div class="tab-pane fade show active text-secondary small" id="objectives" role="tabpanel">
+                        <h6 class="text-white fw-bold mb-2">Key Concepts Covered</h6>
+                        <ul class="ps-3 mb-3" style="line-height: 1.8;">
+                            {% if current_lesson.topics %}
+                                {% for topic in current_lesson.topics %}
+                                <li>{{ topic }}</li>
+                                {% endfor %}
+                            {% else %}
+                                <li>Comprehensive theory and hands-on implementation for {{ current_lesson.title }}.</li>
+                                <li>Practical coding challenges and best architectural practices.</li>
+                                <li>Integration with Week {{ current_week.week_number }} milestone deliverables.</li>
+                            {% endif %}
+                        </ul>
+
+                        <div class="p-3 rounded-3 mt-3" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <div class="text-white fw-semibold mb-1">Weekly Milestone Target:</div>
+                            <div>{{ current_week.milestone }}</div>
+                        </div>
+                    </div>
+
+                    <!-- References Tab -->
+                    <div class="tab-pane fade text-secondary small" id="references" role="tabpanel">
+                        <h6 class="text-white fw-bold mb-2">Verified Structured Learning References</h6>
+                        <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
+                            <li>
+                                <a href="https://developer.mozilla.org/en-US/curriculum/" target="_blank" rel="noopener noreferrer" class="text-info text-decoration-none d-flex align-items-center gap-2">
+                                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                                    <span>MDN Web Curriculum & Documentation</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.theodinproject.com/paths/full-stack-javascript" target="_blank" rel="noopener noreferrer" class="text-info text-decoration-none d-flex align-items-center gap-2">
+                                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                                    <span>The Odin Project — Full Stack JavaScript Path</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://roadmap.sh/full-stack" target="_blank" rel="noopener noreferrer" class="text-info text-decoration-none d-flex align-items-center gap-2">
+                                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                                    <span>roadmap.sh — Full Stack Developer Roadmap</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Curriculum Navigation Tree (Col 4) -->
+        <div class="col-lg-4">
+            <div class="p-4 rounded-4" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08); max-height: 85vh; overflow-y: auto;">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-10">
+                    <div>
+                        <h5 class="fw-bold text-white mb-0">Course Content</h5>
+                        <span class="text-secondary small">{{ roadmap.total_lessons_count }} Lessons &bull; 20 Weeks</span>
+                    </div>
+                    <span class="badge bg-secondary bg-opacity-25 text-white fw-bold" id="sidebarProgressBadge">
+                        {{ completion_pct }}%
+                    </span>
+                </div>
+
+                <!-- Phase List in Sidebar -->
+                <div class="accordion accordion-flush" id="sidebarCurriculum">
+                    {% for phase in roadmap.phases %}
+                    {% set is_current_phase = (phase.phase_number == current_phase.phase_number) %}
+                    <div class="accordion-item mb-2 rounded-3 overflow-hidden" style="background: transparent; border: 1px solid rgba(255, 255, 255, 0.05);">
+                        <h2 class="accordion-header" id="sideHeadingPhase{{ phase.phase_number }}">
+                            <button class="accordion-button {% if not is_current_phase %}collapsed{% endif %} px-3 py-2 text-white small fw-bold" 
+                                    type="button" data-bs-toggle="collapse" data-bs-target="#sideCollapsePhase{{ phase.phase_number }}" 
+                                    aria-expanded="{% if is_current_phase %}true{% else %}false{% endif %}"
+                                    style="background: rgba(15, 23, 42, 0.6); box-shadow: none;">
+                                Phase {{ phase.phase_number }}: {{ phase.title }}
+                            </button>
+                        </h2>
+                        <div id="sideCollapsePhase{{ phase.phase_number }}" class="accordion-collapse collapse {% if is_current_phase %}show{% endif %}" 
+                             data-bs-parent="#sidebarCurriculum">
+                            <div class="accordion-body p-2" style="background: rgba(15, 23, 42, 0.3);">
+                                {% for week in phase.weeks %}
+                                <div class="mb-2">
+                                    <div class="text-secondary small fw-semibold px-2 py-1" style="font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                                        Week {{ week.week_number }}: {{ week.title }}
+                                    </div>
+                                    <div class="list-group list-group-flush">
+                                        {% for lesson in week.lessons %}
+                                        {% set is_active_lesson = (lesson.id == current_lesson.id) %}
+                                        {% set is_done = lesson.id in progress.completed_lesson_ids %}
+                                        <a href="{{ url_for('roadmap.learn', slug=roadmap.slug, week_num=week.week_number, lesson_id=lesson.id) }}" 
+                                           class="list-group-item list-group-item-action px-2 py-2 rounded-2 d-flex align-items-center justify-content-between mb-1" 
+                                           style="background: {% if is_active_lesson %}rgba(99, 102, 241, 0.25){% else %}transparent{% endif %}; border: {% if is_active_lesson %}1px solid #6366F1{% else %}none{% endif %};">
+                                            <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                                <i data-lucide="{% if is_done %}check-circle-2{% elif is_active_lesson %}play-circle{% else %}circle{% endif %}" 
+                                                   class="{% if is_done %}text-success{% elif is_active_lesson %}text-primary{% else %}text-secondary{% endif %}" 
+                                                   style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+                                                <span class="small {% if is_active_lesson %}text-white fw-bold{% else %}text-light{% endif %} text-truncate" style="font-size: 0.8rem;">
+                                                    {{ lesson.title }}
+                                                </span>
+                                            </div>
+                                            <span class="text-secondary small" style="font-size: 0.7rem; flex-shrink: 0;">{{ lesson.duration or '45m' }}</span>
+                                        </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        // Toggle Complete Button AJAX
+        const toggleBtn = document.getElementById("toggleCompleteBtn");
+        const completeIcon = document.getElementById("completeIcon");
+        const completeText = document.getElementById("completeText");
+        const sidebarProgressBadge = document.getElementById("sidebarProgressBadge");
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener("click", function() {
+                const slug = this.getAttribute("data-slug");
+                const lessonId = this.getAttribute("data-lesson-id");
+
+                toggleBtn.disabled = true;
+
+                fetch(`/roadmaps/${slug}/progress/toggle-lesson`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: JSON.stringify({ lesson_id: lessonId })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    toggleBtn.disabled = false;
+                    if (data.success) {
+                        if (data.is_completed) {
+                            toggleBtn.className = "btn btn-sm rounded-pill px-3 fw-bold btn-success";
+                            completeText.innerText = "Lesson Completed";
+                            completeIcon.setAttribute("data-lucide", "check-circle");
+                        } else {
+                            toggleBtn.className = "btn btn-sm rounded-pill px-3 fw-bold btn-outline-light";
+                            completeText.innerText = "Mark as Complete";
+                            completeIcon.setAttribute("data-lucide", "circle");
+                        }
+                        if (sidebarProgressBadge) {
+                            sidebarProgressBadge.innerText = `${data.completion_pct}%`;
+                        }
+                        if (window.lucide) {
+                            lucide.createIcons();
+                        }
+                    } else {
+                        alert(data.error || "Failed to update progress.");
+                    }
+                })
+                .catch(err => {
+                    toggleBtn.disabled = false;
+                    console.error("Toggle error:", err);
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

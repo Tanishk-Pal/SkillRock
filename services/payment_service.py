@@ -92,7 +92,12 @@ def generate_upi_qr_base64(amount, item_type, item_id, item_title="", session_to
     expires_at = now_ts + expires_in
 
     # Build standard NPCI UPI URI with dynamic session token
-    short_type = "CRS" if item_type == "course" else "TST"
+    if item_type == "course":
+        short_type = "CRS"
+    elif item_type == "roadmap":
+        short_type = "RDM"
+    else:
+        short_type = "TST"
     short_id = str(item_id).replace("-", "")[:8].upper()
     ref_note = f"SR-{short_type}-{short_id}-{session_token}"
 
@@ -172,6 +177,13 @@ def get_item_by_type_and_id(item_type, item_id):
             pack = TestPack.get_by_slug(str_id)
         return pack
 
+    elif item_type == "roadmap":
+        from models.roadmap import RoadmapPackage
+        pkg = RoadmapPackage.get_by_id(str_id)
+        if not pkg:
+            pkg = RoadmapPackage.get_by_slug(str_id)
+        return pkg
+
     return None
 
 
@@ -209,7 +221,10 @@ def verify_student_unlock(user, item_type, item_id):
     access_doc = db.user_access.find_one({
         "user_id": str(user.id),
         "item_type": item_type,
-        "item_id": str(item.id),
+        "$or": [
+            {"item_id": str(item.id)},
+            {"item_id": getattr(item, "slug", str(item.id))}
+        ],
         "is_active": True,
     })
 
@@ -269,6 +284,25 @@ def grant_student_access(user_id, item_type, item_id, granted_by="admin", paymen
             )
         except Exception as e:
             logger.warning(f"Entitlement hook on grant_student_access error: {e}")
+
+    # Automatically initialize progress if roadmap
+    if item_type == "roadmap":
+        try:
+            from models.roadmap import RoadmapPackage, RoadmapProgress
+            pkg = RoadmapPackage.get_by_id(iid) or RoadmapPackage.get_by_slug(iid)
+            if pkg:
+                prog = RoadmapProgress.get_user_progress(uid, pkg.slug)
+                if not prog:
+                    prog = RoadmapProgress({
+                        "user_id": uid,
+                        "roadmap_slug": pkg.slug,
+                        "payment_id": str(payment_id) if payment_id else "",
+                        "amount_paid": float(amount or 0.0),
+                        "cashback_percentage_enrolled": float(pkg.cashback_percentage or 50.0),
+                    })
+                    prog.save()
+        except Exception as e:
+            logger.warning(f"Roadmap progress hook on grant_student_access error: {e}")
 
     return True
 

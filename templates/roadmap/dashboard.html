@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — {{ roadmap.title }} — Skill Rock{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-md-5">
+
+    <!-- Top Breadcrumb & Status -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('roadmap.catalog') }}" class="text-secondary text-decoration-none">Roadmaps</a></li>
+                    <li class="breadcrumb-item active text-white" aria-current="page">{{ roadmap.title }}</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold text-white mb-0">{{ roadmap.title }} &bull; Learning Dashboard</h2>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('roadmap.projects_hub', slug=roadmap.slug) }}" class="btn btn-outline-light btn-sm rounded-pill px-3" style="border-color: rgba(255,255,255,0.2);">
+                <i data-lucide="folder-code" style="width: 14px; height: 14px; vertical-align: -1px;"></i> Projects & Capstone
+            </a>
+            <a href="{{ url_for('roadmap.cashback_tracker', slug=roadmap.slug) }}" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold text-dark shadow-sm">
+                <i data-lucide="gift" style="width: 14px; height: 14px; vertical-align: -1px;"></i> 50% Cashback Tracker
+            </a>
+            {% if certificate or (completion_pct >= 100.0 and capstone_approved) %}
+            <a href="{{ url_for('roadmap.certificate_view', slug=roadmap.slug) }}" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold shadow-sm">
+                <i data-lucide="award" style="width: 14px; height: 14px; vertical-align: -1px;"></i> View Certificate
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards Row -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Progress -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="p-3 rounded-4 h-100" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-secondary small fw-semibold">CURRICULUM PROGRESS</span>
+                    <i data-lucide="pie-chart" class="text-primary" style="width: 18px; height: 18px;"></i>
+                </div>
+                <div class="d-flex align-items-baseline gap-2 mb-2">
+                    <span class="fs-3 fw-bold text-white">{{ completion_pct }}%</span>
+                    <span class="text-secondary small">({{ completed_count }}/{{ total_lessons }})</span>
+                </div>
+                <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1);">
+                    <div class="progress-bar" style="width: {{ completion_pct }}%; background: #6366F1;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Current Week -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="p-3 rounded-4 h-100" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-secondary small fw-semibold">CURRENT MILESTONE</span>
+                    <i data-lucide="calendar" class="text-info" style="width: 18px; height: 18px;"></i>
+                </div>
+                <div class="fs-3 fw-bold text-white mb-1">Week {{ progress.current_week }}</div>
+                <div class="text-secondary small">of 20 weeks journey</div>
+            </div>
+        </div>
+
+        <!-- 3. Projects Status -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="p-3 rounded-4 h-100" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-secondary small fw-semibold">PROJECTS SUBMITTED</span>
+                    <i data-lucide="check-square" class="text-success" style="width: 18px; height: 18px;"></i>
+                </div>
+                <div class="fs-3 fw-bold text-white mb-1">{{ submissions_by_project|length }} / 5</div>
+                <div class="text-secondary small">
+                    {% if capstone_approved %}
+                    <span class="text-success fw-bold">Capstone Approved!</span>
+                    {% elif capstone_submission %}
+                    <span class="text-warning">Capstone in Review</span>
+                    {% else %}
+                    4 Phase Projects + 1 Capstone
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Cashback Countdown -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="p-3 rounded-4 h-100" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-secondary small fw-semibold">50% CASHBACK WINDOW</span>
+                    <i data-lucide="clock" class="text-warning" style="width: 18px; height: 18px;"></i>
+                </div>
+                {% if cashback_record and cashback_record.review_status == 'processed' %}
+                <div class="fs-4 fw-bold text-success mb-1">₹{{ cashback_record.cashback_amount|int }} Refunded</div>
+                <div class="text-secondary small">50% Cashback Transferred</div>
+                {% elif is_deadline_passed %}
+                <div class="fs-4 fw-bold text-danger mb-1">Deadline Expired</div>
+                <div class="text-secondary small">180 days window closed</div>
+                {% else %}
+                <div class="fs-3 fw-bold text-warning mb-1">{{ days_left }} Days Left</div>
+                <div class="text-secondary small">Deadline: {{ deadline_date.strftime('%d %b %Y') }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Resume / Next Action Card -->
+    {% if next_lesson and next_week %}
+    <div class="p-4 rounded-4 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3 position-relative overflow-hidden" 
+         style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(30, 41, 59, 0.9) 100%); border: 1px solid rgba(99, 102, 241, 0.3);">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center text-white" 
+                 style="width: 52px; height: 52px; background: #6366F1; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);">
+                <i data-lucide="play" style="width: 24px; height: 24px; margin-left: 2px;"></i>
+            </div>
+            <div>
+                <span class="badge bg-secondary bg-opacity-25 text-white mb-1">Week {{ next_week.week_number }} &bull; Next Up</span>
+                <h4 class="text-white fw-bold mb-1">{{ next_lesson.title }}</h4>
+                <div class="text-secondary small">Duration: {{ next_lesson.duration or 'Lecture' }} &bull; Objective: {{ next_lesson.objective or next_week.milestone }}</div>
+            </div>
+        </div>
+
+        <div>
+            <a href="{{ url_for('roadmap.learn', slug=roadmap.slug, week_num=next_week.week_number, lesson_id=next_lesson.id) }}" 
+               class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm" style="background: #6366F1; border-color: #6366F1;">
+                Resume Lecture <i data-lucide="arrow-right" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 5 Learning Phases Navigation -->
+    <h4 class="fw-bold text-white mb-3">Your 5 Learning Phases</h4>
+
+    <div class="d-flex flex-column gap-3 mb-5">
+        {% for phase in roadmap.phases %}
+        <div class="p-4 rounded-4" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge px-3 py-2 rounded-pill fw-bold" style="background: rgba(99, 102, 241, 0.15); color: #818CF8; border: 1px solid rgba(99, 102, 241, 0.3);">
+                        PHASE {{ phase.phase_number }}
+                    </span>
+                    <div>
+                        <h5 class="text-white fw-bold mb-0">{{ phase.title }}</h5>
+                        <span class="text-secondary small">{{ phase.objective }}</span>
+                    </div>
+                </div>
+
+                <!-- Phase Project Status Pill -->
+                {% if loop.index0 < roadmap.projects|length %}
+                {% set phase_proj = roadmap.projects[loop.index0] %}
+                {% set phase_sub = submissions_by_project.get(phase_proj.id) %}
+                <div>
+                    {% if phase_sub %}
+                        {% if phase_sub.status == 'approved' %}
+                        <span class="badge px-3 py-2 rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                            <i data-lucide="check-circle" style="width: 13px; height: 13px; vertical-align: -1px;"></i> {{ phase_proj.title }}: Approved
+                        </span>
+                        {% elif phase_sub.status == 'changes_requested' %}
+                        <span class="badge px-3 py-2 rounded-pill bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                            <i data-lucide="alert-circle" style="width: 13px; height: 13px; vertical-align: -1px;"></i> Changes Requested
+                        </span>
+                        {% else %}
+                        <span class="badge px-3 py-2 rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">
+                            <i data-lucide="clock" style="width: 13px; height: 13px; vertical-align: -1px;"></i> {{ phase_proj.title }}: In Review
+                        </span>
+                        {% endif %}
+                    {% else %}
+                    <a href="{{ url_for('roadmap.projects_hub', slug=roadmap.slug) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 text-secondary" style="border-color: rgba(255,255,255,0.15);">
+                        Submit {{ phase_proj.title }}
+                    </a>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div>
+                    <span class="badge px-3 py-2 rounded-pill bg-warning bg-opacity-15 text-warning border border-warning border-opacity-25">
+                        Final Capstone Phase
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Weeks row -->
+            <div class="row g-2">
+                {% for week in phase.weeks %}
+                {% set week_lessons_total = week.lessons|length %}
+                {% set completed_in_week = [] %}
+                {% for l in week.lessons %}
+                    {% if l.id in progress.completed_lesson_ids %}
+                        {% set _ = completed_in_week.append(1) %}
+                    {% endif %}
+                {% endfor %}
+                {% set week_done = (completed_in_week|length == week_lessons_total and week_lessons_total > 0) %}
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="p-3 rounded-3 h-100 d-flex flex-column justify-content-between" 
+                         style="background: rgba(15, 23, 42, 0.5); border: 1px solid {% if week_done %}rgba(16, 185, 129, 0.3){% else %}rgba(255, 255, 255, 0.05){% endif %};">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="badge {% if week_done %}bg-success{% else %}bg-secondary bg-opacity-25 text-white{% endif %}">
+                                    Week {{ week.week_number }}
+                                </span>
+                                <span class="small {% if week_done %}text-success fw-bold{% else %}text-secondary{% endif %}" style="font-size: 0.75rem;">
+                                    {{ completed_in_week|length }}/{{ week_lessons_total }}
+                                </span>
+                            </div>
+                            <div class="text-white small fw-semibold mb-2" style="font-size: 0.85rem;">{{ week.title }}</div>
+                        </div>
+
+                        <div>
+                            {% if week.lessons %}
+                            <a href="{{ url_for('roadmap.learn', slug=roadmap.slug, week_num=week.week_number, lesson_id=week.lessons[0].id) }}" 
+                               class="btn btn-sm w-100 rounded-pill {% if week_done %}btn-outline-success{% else %}btn-outline-light{% endif %}" 
+                               style="font-size: 0.75rem; border-color: rgba(255,255,255,0.15);">
+                                {% if week_done %}Review Lessons{% else %}Start Week{% endif %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Final Capstone Section -->
+    {% if roadmap.capstone %}
+    <div class="p-4 rounded-4 mb-4" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(15, 23, 42, 0.8) 100%); border: 1px solid rgba(245, 158, 11, 0.25);">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <span class="badge px-3 py-1 rounded-pill mb-2" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.4);">
+                    FINAL CAPSTONE REQUIREMENT
+                </span>
+                <h4 class="text-white fw-bold mb-1">{{ roadmap.capstone.title }}</h4>
+                <div class="text-secondary small">{{ roadmap.capstone.description }}</div>
+            </div>
+
+            <div>
+                {% if capstone_approved %}
+                <span class="badge bg-success text-white px-4 py-2 rounded-pill fs-6 fw-bold">
+                    <i data-lucide="check-circle" style="width: 16px; height: 16px; vertical-align: -2px;"></i> Capstone Approved & Certified
+                </span>
+                {% elif capstone_submission %}
+                <a href="{{ url_for('roadmap.projects_hub', slug=roadmap.slug) }}" class="btn btn-warning px-4 py-2 rounded-pill fw-bold text-dark">
+                    <i data-lucide="clock" style="width: 16px; height: 16px; vertical-align: -2px;"></i> View Submission Status
+                </a>
+                {% else %}
+                <a href="{{ url_for('roadmap.projects_hub', slug=roadmap.slug) }}" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm" style="background: #6366F1; border-color: #6366F1;">
+                    Submit Capstone Project <i data-lucide="arrow-right" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    });
+</script>
+{% endblock %}

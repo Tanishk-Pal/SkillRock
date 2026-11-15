@@ -37,8 +37,8 @@ class TestRazorpayStandardCheckout(unittest.TestCase):
         self.client = self.app.test_client()
         self.db = get_db()
 
-        self.test_key_id = "rzp_test_TxeO2bqvHBawXV"
-        self.test_key_secret = "NXO31DDo2ra8jY755OFJMpZU"
+        self.test_key_id = Config.RAZORPAY_KEY_ID or "rzp_test_TxeO2bqvHBawXV"
+        self.test_key_secret = Config.RAZORPAY_KEY_SECRET or "NXO31DDo2ra8jY755OFJMpZU"
 
         # Clean collections
         self.db.users.delete_many({"email": {"$regex": r".*@razorpaytest\.skillrock$"}})

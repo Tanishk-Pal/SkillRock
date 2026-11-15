@@ -1,0 +1,205 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}50% Completion Cashback Console{% endblock %}
+{% block breadcrumb %}Cashback Requests{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div>
+            <div class="admin-card-title">
+                <i data-lucide="gift"></i>
+                <span>50% Completion Cashback Review & Refund Console</span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
+                Review student completion eligibility, trigger automated Razorpay refunds, or record manual UPI payouts with full audit logging.
+            </p>
+        </div>
+        <a href="{{ url_for('admin.roadmaps_list') }}" class="admin-btn admin-btn-secondary">
+            <i data-lucide="map"></i>
+            <span>Roadmaps Catalog</span>
+        </a>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
+        <a href="{{ url_for('admin.cashback_list', status='all') }}" class="admin-btn {% if status_filter == 'all' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">
+            All Claims ({{ total_count }})
+        </a>
+        <a href="{{ url_for('admin.cashback_list', status='pending_review') }}" class="admin-btn {% if status_filter == 'pending_review' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #F59E0B; margin-right: 4px;"></span>
+            Pending Review ({{ pending_count }})
+        </a>
+        <a href="{{ url_for('admin.cashback_list', status='processed') }}" class="admin-btn {% if status_filter == 'processed' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981; margin-right: 4px;"></span>
+            Processed / Refunded ({{ processed_count }})
+        </a>
+        <a href="{{ url_for('admin.cashback_list', status='rejected') }}" class="admin-btn {% if status_filter == 'rejected' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">
+            Rejected ({{ rejected_count }})
+        </a>
+    </div>
+
+    <!-- Claims Table -->
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Student Details</th>
+                    <th>Roadmap Program</th>
+                    <th>Original Payment</th>
+                    <th>50% Cashback Amount</th>
+                    <th>Status</th>
+                    <th>Requested At</th>
+                    <th style="text-align: right;">Refund Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if not requests %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--admin-text-muted);">
+                        No cashback claims found in this view.
+                    </td>
+                </tr>
+                {% endif %}
+
+                {% for req in requests %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 700; color: var(--admin-text-main);">{{ req.user_name or 'Student' }}</div>
+                        <div style="font-size: 0.75rem; color: var(--admin-text-muted);">{{ req.user_email }}</div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 600; color: var(--admin-text-main);">{{ req.roadmap_title or req.roadmap_slug }}</div>
+                        <div style="font-size: 0.72rem; color: var(--admin-text-muted); font-family: monospace;">{{ req.roadmap_slug }}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.82rem; color: var(--admin-text-main); font-weight: 600;">₹{{ req.original_amount|int }}</div>
+                        <div style="font-size: 0.72rem; color: var(--admin-text-muted); font-family: monospace;">Ref: {{ req.original_payment_id or 'N/A' }}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #10B981;">₹{{ req.cashback_amount|int }}</div>
+                        <div style="font-size: 0.72rem; color: #F59E0B;">{{ req.cashback_percentage|int }}% of payment</div>
+                    </td>
+                    <td>
+                        {% if req.review_status == 'processed' %}
+                        <span class="admin-badge admin-badge-success">PROCESSED</span>
+                        <div style="font-size: 0.72rem; color: var(--admin-text-muted); margin-top: 3px;">
+                            {{ req.refund_mode }} &bull; {{ req.payment_provider_refund_id or 'Completed' }}
+                        </div>
+                        {% elif req.review_status == 'rejected' %}
+                        <span class="admin-badge admin-badge-danger">REJECTED</span>
+                        {% if req.failure_reason %}
+                        <div style="font-size: 0.72rem; color: #EF4444; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ req.failure_reason }}">
+                            {{ req.failure_reason }}
+                        </div>
+                        {% endif %}
+                        {% else %}
+                        <span class="admin-badge admin-badge-warning">PENDING REVIEW</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-size: 0.78rem; color: var(--admin-text-main);">
+                            {{ req.requested_at.strftime('%d %b %Y, %I:%M %p') if req.requested_at else 'N/A' }}
+                        </div>
+                    </td>
+                    <td style="text-align: right;">
+                        {% if req.review_status != 'processed' %}
+                        <div style="display: inline-flex; gap: 6px;">
+                            <!-- Gateway Refund Form -->
+                            <form action="{{ url_for('admin.cashback_process', request_id=req.id) }}" method="POST" onsubmit="return confirm('Initiate Razorpay API gateway refund of ₹{{ req.cashback_amount|int }} to original payment?');">
+                                <input type="hidden" name="mode" value="gateway">
+                                <button type="submit" class="admin-btn admin-btn-primary" style="padding: 6px 10px; font-size: 0.75rem;">
+                                    <i data-lucide="zap"></i>
+                                    <span>Gateway Refund</span>
+                                </button>
+                            </form>
+
+                            <!-- Manual Payout Modal Trigger -->
+                            <button onclick="openManualModal('{{ req.id }}', '{{ req.user_name|e }}', '{{ req.cashback_amount|int }}')" 
+                                    class="admin-btn admin-btn-secondary" style="padding: 6px 10px; font-size: 0.75rem;">
+                                <i data-lucide="wallet"></i>
+                                <span>Manual UPI</span>
+                            </button>
+
+                            <!-- Reject Claim Modal Trigger -->
+                            <button onclick="openRejectModal('{{ req.id }}', '{{ req.user_name|e }}')" 
+                                    class="admin-btn admin-btn-secondary" style="padding: 6px 8px; font-size: 0.75rem; color: #EF4444;">
+                                <i data-lucide="x-circle"></i>
+                            </button>
+                        </div>
+                        {% else %}
+                        <span style="font-size: 0.75rem; color: #10B981; font-weight: 700;">
+                            ✓ Refund Disbursed
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Manual Payout Modal -->
+<div id="manualModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--admin-bg-card); border: 1px solid var(--admin-border); border-radius: 12px; max-width: 500px; width: 100%; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="font-weight: 700; font-size: 1.1rem; color: var(--admin-text-main);" id="manualModalTitle">Record Manual Refund</div>
+            <button onclick="closeManualModal()" style="background: none; border: none; color: var(--admin-text-muted); cursor: pointer; font-size: 1.2rem;">&times;</button>
+        </div>
+
+        <form id="manualForm" method="POST">
+            <input type="hidden" name="mode" value="manual">
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--admin-text-main); margin-bottom: 4px;">Manual UTR / Bank Transfer Reference Notes</label>
+                <textarea name="notes" required rows="3" placeholder="Enter bank reference number, UPI transaction ID, or account details..." style="width: 100%; padding: 8px 12px; background: var(--admin-bg-input); border: 1px solid var(--admin-border); border-radius: 6px; color: var(--admin-text-main);"></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" onclick="closeManualModal()" class="admin-btn admin-btn-secondary">Cancel</button>
+                <button type="submit" class="admin-btn admin-btn-primary">Record Manual Disbursal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reject Claim Modal -->
+<div id="rejectModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--admin-bg-card); border: 1px solid var(--admin-border); border-radius: 12px; max-width: 500px; width: 100%; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="font-weight: 700; font-size: 1.1rem; color: #EF4444;" id="rejectModalTitle">Reject Cashback Claim</div>
+            <button onclick="closeRejectModal()" style="background: none; border: none; color: var(--admin-text-muted); cursor: pointer; font-size: 1.2rem;">&times;</button>
+        </div>
+
+        <form id="rejectForm" method="POST">
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--admin-text-main); margin-bottom: 4px;">Reason for Rejection</label>
+                <textarea name="reason" required rows="3" placeholder="Explain which criteria was not met (e.g. deadline expired, incomplete projects)..." style="width: 100%; padding: 8px 12px; background: var(--admin-bg-input); border: 1px solid var(--admin-border); border-radius: 6px; color: var(--admin-text-main);"></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" onclick="closeRejectModal()" class="admin-btn admin-btn-secondary">Cancel</button>
+                <button type="submit" class="admin-btn admin-btn-danger" style="background: #EF4444; border-color: #EF4444; color: white;">Confirm Rejection</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openManualModal(id, name, amount) {
+        document.getElementById('manualModalTitle').innerText = `Record ₹${amount} Payout to ${name}`;
+        document.getElementById('manualForm').action = `/admin/cashback/${id}/process`;
+        document.getElementById('manualModal').style.display = 'flex';
+    }
+    function closeManualModal() {
+        document.getElementById('manualModal').style.display = 'none';
+    }
+
+    function openRejectModal(id, name) {
+        document.getElementById('rejectModalTitle').innerText = `Reject Cashback for ${name}`;
+        document.getElementById('rejectForm').action = `/admin/cashback/${id}/reject`;
+        document.getElementById('rejectModal').style.display = 'flex';
+    }
+    function closeRejectModal() {
+        document.getElementById('rejectModal').style.display = 'none';
+    }
+</script>
+{% endblock %}

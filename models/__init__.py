@@ -12,6 +12,14 @@ from models.test_series import (
 )
 from models.default_test_series import ensure_default_test_series
 
+from models.roadmap import (
+    RoadmapPackage,
+    RoadmapProgress,
+    RoadmapSubmission,
+    RoadmapCashback,
+    ensure_default_roadmaps
+)
+
 from models.mongo import (
     db,
     get_db,
@@ -72,4 +80,9 @@ __all__ = [
     "TestAttempt",
     "UserEntitlement",
     "ensure_default_test_series",
+    "RoadmapPackage",
+    "RoadmapProgress",
+    "RoadmapSubmission",
+    "RoadmapCashback",
+    "ensure_default_roadmaps",
 ]

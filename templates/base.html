@@ -558,7 +558,15 @@
 
                     </a>
 
-                    <a href="{{ url_for('test_series.landing') }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #FFFFFF; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
+                    <a href="{{ url_for('roadmap.catalog') }}" class="btn btn-secondary btn-sm" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #FBBF24; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
+
+                        <i data-lucide="map" style="width: 14px; height: 14px;"></i>
+
+                        <span>Roadmaps</span>
+
+                    </a>
+
+                                        <a href="{{ url_for('test_series.landing') }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #FFFFFF; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
 
                         <i data-lucide="file-check-2" style="width: 14px; height: 14px;"></i>
 
@@ -637,6 +645,18 @@
                     <span>Test Series</span>
 
                     <span class="pw-nav-badge" style="background: #10B981; color: #FFFFFF;">HOT</span>
+
+                </a>
+
+                <a href="{{ url_for('roadmap.catalog') }}"
+
+                   class="pw-nav-item {% if request.endpoint and 'roadmap.' in request.endpoint %}active{% endif %}">
+
+                    <i data-lucide="map"></i>
+
+                    <span>Career Roadmaps</span>
+
+                    <span class="pw-nav-badge" style="background: #F59E0B; color: #000000; font-weight: 800;">50% CASHBACK</span>
 
                 </a>
 

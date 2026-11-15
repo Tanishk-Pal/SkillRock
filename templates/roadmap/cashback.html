@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}50% Completion Cashback Tracker — {{ roadmap.title }} — Skill Rock{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-md-5">
+
+    <!-- Breadcrumb & Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('roadmap.catalog') }}" class="text-secondary text-decoration-none">Roadmaps</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('roadmap.dashboard', slug=roadmap.slug) }}" class="text-secondary text-decoration-none">{{ roadmap.title }}</a></li>
+                    <li class="breadcrumb-item active text-white" aria-current="page">Cashback Tracker</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold text-white mb-0">50% Completion Cashback Transparency Tracker</h2>
+        </div>
+
+        <a href="{{ url_for('roadmap.dashboard', slug=roadmap.slug) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" style="border-color: rgba(255,255,255,0.15);">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px; vertical-align: -1px;"></i> Return to Dashboard
+        </a>
+    </div>
+
+    <!-- Quick Metrics Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="p-4 rounded-4 h-100" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <div class="text-secondary small fw-semibold mb-1">YOUR ORIGINAL ENROLLMENT</div>
+                <div class="fs-3 fw-bold text-white">₹{{ progress.amount_paid|int }}</div>
+                <div class="text-secondary small">Paid on enrollment</div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="p-4 rounded-4 h-100" style="background: #1E293B; border: 1px solid rgba(245, 158, 11, 0.3);">
+                <div class="text-warning small fw-semibold mb-1">50% CASHBACK VALUE</div>
+                <div class="fs-3 fw-bold text-warning">₹{{ cashback_amount|int }}</div>
+                <div class="text-secondary small">Refunded to your account</div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="p-4 rounded-4 h-100" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <div class="text-secondary small fw-semibold mb-1">DEADLINE WINDOW</div>
+                <div class="fs-3 fw-bold {% if is_within_deadline %}text-info{% else %}text-danger{% endif %}">
+                    {% if is_within_deadline %}{{ days_left }} Days{% else %}Expired{% endif %}
+                </div>
+                <div class="text-secondary small">Before {{ deadline_date.strftime('%d %b %Y') }}</div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="p-4 rounded-4 h-100" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <div class="text-secondary small fw-semibold mb-1">CLAIM STATUS</div>
+                {% if cashback_record %}
+                    {% if cashback_record.review_status == 'processed' %}
+                    <div class="fs-4 fw-bold text-success">PROCESSED</div>
+                    <div class="text-secondary small">₹{{ cashback_record.cashback_amount|int }} refunded</div>
+                    {% elif cashback_record.review_status == 'rejected' %}
+                    <div class="fs-4 fw-bold text-danger">REJECTED</div>
+                    <div class="text-secondary small">See notes below</div>
+                    {% else %}
+                    <div class="fs-4 fw-bold text-warning">IN REVIEW</div>
+                    <div class="text-secondary small">Under finance check</div>
+                    {% endif %}
+                {% elif is_eligible %}
+                    <div class="fs-4 fw-bold text-success">READY TO CLAIM</div>
+                    <div class="text-secondary small">All criteria completed!</div>
+                {% else %}
+                    <div class="fs-4 fw-bold text-secondary">IN PROGRESS</div>
+                    <div class="text-secondary small">Fulfill all 4 criteria</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Cashback Record Status Details (if already submitted) -->
+    {% if cashback_record %}
+    <div class="p-4 rounded-4 mb-4" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
+        <h5 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+            <i data-lucide="file-text" class="text-primary" style="width: 20px; height: 20px;"></i>
+            Your Cashback Claim Details
+        </h5>
+
+        <div class="row g-3 text-secondary small">
+            <div class="col-md-3">
+                <span class="d-block text-white fw-semibold">Review Status</span>
+                <span class="badge {% if cashback_record.review_status == 'processed' %}bg-success{% elif cashback_record.review_status == 'rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %} px-3 py-1 rounded-pill mt-1">
+                    {{ cashback_record.review_status.replace('_', ' ').upper() }}
+                </span>
+            </div>
+            <div class="col-md-3">
+                <span class="d-block text-white fw-semibold">Refund Mode</span>
+                <span>{{ 'Razorpay Gateway Refund' if cashback_record.refund_mode == 'gateway' else 'Direct Bank / UPI Transfer' }}</span>
+            </div>
+            <div class="col-md-3">
+                <span class="d-block text-white fw-semibold">Requested At</span>
+                <span>{{ cashback_record.requested_at.strftime('%d %b %Y, %I:%M %p') if cashback_record.requested_at else 'N/A' }}</span>
+            </div>
+            <div class="col-md-3">
+                <span class="d-block text-white fw-semibold">Refund Reference ID</span>
+                <span>{{ cashback_record.payment_provider_refund_id or 'Processing...' }}</span>
+            </div>
+
+            {% if cashback_record.admin_notes or cashback_record.failure_reason %}
+            <div class="col-12 mt-3 pt-3 border-top border-secondary border-opacity-10">
+                <strong class="text-white">SkillRock Evaluator / Finance Notes:</strong>
+                <p class="mb-0 text-light mt-1">{{ cashback_record.admin_notes or cashback_record.failure_reason }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 4 Mandatory Criteria Breakdown -->
+    <div class="p-4 p-md-5 rounded-4 mb-4" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
+        <h4 class="text-white fw-bold mb-2">The 4 Eligibility Criteria</h4>
+        <p class="text-secondary small mb-4">
+            Our completion cashback is an automated merit incentive. As soon as all 4 criteria below are met within your 180-day enrollment window, you can submit your claim with one click.
+        </p>
+
+        <div class="d-flex flex-column gap-3 mb-4">
+            <!-- Criterion 1 -->
+            {% set c1_passed = (completion_pct >= 100.0) %}
+            <div class="p-3 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-3" 
+                 style="background: rgba(15, 23, 42, 0.6); border: 1px solid {% if c1_passed %}rgba(16, 185, 129, 0.3){% else %}rgba(255, 255, 255, 0.05){% endif %};">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center {% if c1_passed %}bg-success text-white{% else %}bg-secondary bg-opacity-25 text-secondary{% endif %}" style="width: 36px; height: 36px;">
+                        <i data-lucide="{% if c1_passed %}check{% else %}circle{% endif %}" style="width: 18px; height: 18px;"></i>
+                    </div>
+                    <div>
+                        <div class="text-white fw-bold small">1. Complete 100% of 20-Week Lectures</div>
+                        <div class="text-secondary" style="font-size: 0.8rem;">Every chapter and lecture must be watched and checked in your learning workspace.</div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <span class="badge {% if c1_passed %}bg-success{% else %}bg-secondary bg-opacity-25 text-white{% endif %} px-3 py-2 rounded-pill">
+                        {{ completed_lessons }} / {{ total_lessons }} Lessons ({{ completion_pct }}%)
+                    </span>
+                </div>
+            </div>
+
+            <!-- Criterion 2 -->
+            {% set c2_passed = phase_projects_submitted %}
+            <div class="p-3 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-3" 
+                 style="background: rgba(15, 23, 42, 0.6); border: 1px solid {% if c2_passed %}rgba(16, 185, 129, 0.3){% else %}rgba(255, 255, 255, 0.05){% endif %};">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center {% if c2_passed %}bg-success text-white{% else %}bg-secondary bg-opacity-25 text-secondary{% endif %}" style="width: 36px; height: 36px;">
+                        <i data-lucide="{% if c2_passed %}check{% else %}circle{% endif %}" style="width: 18px; height: 18px;"></i>
+                    </div>
+                    <div>
+                        <div class="text-white fw-bold small">2. Submit All 4 Phase Projects</div>
+                        <div class="text-secondary" style="font-size: 0.8rem;">Personal portfolio, task manager, secure auth REST API, and full stack database app.</div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <span class="badge {% if c2_passed %}bg-success{% else %}bg-secondary bg-opacity-25 text-white{% endif %} px-3 py-2 rounded-pill">
+                        {% if c2_passed %}All 4 Submitted{% else %}Pending Phase Submissions{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Criterion 3 -->
+            {% set c3_passed = capstone_approved %}
+            <div class="p-3 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-3" 
+                 style="background: rgba(15, 23, 42, 0.6); border: 1px solid {% if c3_passed %}rgba(16, 185, 129, 0.3){% else %}rgba(255, 255, 255, 0.05){% endif %};">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center {% if c3_passed %}bg-success text-white{% else %}bg-secondary bg-opacity-25 text-secondary{% endif %}" style="width: 36px; height: 36px;">
+                        <i data-lucide="{% if c3_passed %}check{% else %}circle{% endif %}" style="width: 18px; height: 18px;"></i>
+                    </div>
+                    <div>
+                        <div class="text-white fw-bold small">3. Pass Final Capstone Evaluation</div>
+                        <div class="text-secondary" style="font-size: 0.8rem;">Live deployed Job Application Tracker evaluated and approved by SkillRock reviewers.</div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <span class="badge {% if c3_passed %}bg-success{% elif capstone_sub %}bg-warning text-dark{% else %}bg-secondary bg-opacity-25 text-white{% endif %} px-3 py-2 rounded-pill">
+                        {% if c3_passed %}Capstone Approved{% elif capstone_sub %}In Review Queue{% else %}Not Submitted{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Criterion 4 -->
+            {% set c4_passed = is_within_deadline %}
+            <div class="p-3 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-3" 
+                 style="background: rgba(15, 23, 42, 0.6); border: 1px solid {% if c4_passed %}rgba(16, 185, 129, 0.3){% else %}rgba(255, 255, 255, 0.05){% endif %};">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center {% if c4_passed %}bg-success text-white{% else %}bg-danger text-white{% endif %}" style="width: 36px; height: 36px;">
+                        <i data-lucide="{% if c4_passed %}check{% else %}alert-circle{% endif %}" style="width: 18px; height: 18px;"></i>
+                    </div>
+                    <div>
+                        <div class="text-white fw-bold small">4. Finish Within 180-Day Window</div>
+                        <div class="text-secondary" style="font-size: 0.8rem;">Enrolled: {{ progress.started_at.strftime('%d %b %Y') }} &bull; Deadline: {{ deadline_date.strftime('%d %b %Y') }}.</div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <span class="badge {% if c4_passed %}bg-success{% else %}bg-danger{% endif %} px-3 py-2 rounded-pill">
+                        {% if c4_passed %}{{ days_left }} Days Remaining{% else %}Deadline Expired{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Claim Action Button -->
+        {% if is_eligible and not cashback_record %}
+        <div class="p-4 rounded-3 text-center" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);">
+            <div class="text-success display-6 fw-bold mb-2">🎉 Congratulations!</div>
+            <p class="text-light mb-3">You have fulfilled every single requirement of the 20-week program. You are fully eligible for your 50% refund.</p>
+            <form action="{{ url_for('roadmap.request_cashback', slug=roadmap.slug) }}" method="POST">
+                <button type="submit" class="btn btn-success btn-lg px-5 py-3 rounded-pill fw-bold shadow">
+                    Claim 50% Completion Cashback (₹{{ cashback_amount|int }})
+                </button>
+            </form>
+        </div>
+        {% elif not is_paid_student %}
+        <div class="p-3 rounded-3 text-secondary small" style="background: rgba(15, 23, 42, 0.5);">
+            <em>Note: You are enrolled under a free or promotional entitlement. Cashback applies to paid enrollments.</em>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    });
+</script>
+{% endblock %}

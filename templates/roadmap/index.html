@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Career Roadmaps & Launchpads with 50% Cashback — Skill Rock{% endblock %}
+
+{% block meta_description %}Explore structured 20-week Career Roadmaps on SkillRock. Learn Full Stack Development, build real-world portfolio projects, pass Capstone review, and earn a 50% Completion Cashback.{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-md-5">
+
+    <!-- Hero Banner -->
+    <div class="roadmap-hero mb-4 p-4 p-md-5 rounded-4 position-relative overflow-hidden" 
+         style="background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, rgba(15, 23, 42, 0.95) 100%), linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%); border: 1px solid rgba(99, 102, 241, 0.25); box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" 
+                     style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #FBBF24; font-size: 0.85rem; font-weight: 700;">
+                    <i data-lucide="award" style="width: 16px; height: 16px;"></i>
+                    <span>SKILLROCK CAREER INITIATIVE &bull; 50% COMPLETION CASHBACK</span>
+                </div>
+                <h1 class="display-6 fw-bold text-white mb-3" style="letter-spacing: -0.02em;">
+                    Structured Career Roadmaps for Real Developers
+                </h1>
+                <p class="text-secondary lead mb-4" style="max-width: 680px; font-size: 1.05rem; line-height: 1.6;">
+                    No generic surface tutorials. Follow an authoritative 20-week curriculum across 5 milestone phases. Build real production projects, pass rigorous Capstone review, and <strong>earn 50% of your fee back in cash</strong> upon finishing.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="#roadmapsCatalog" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm" style="background: #6366F1; border-color: #6366F1;">
+                        Explore Roadmaps <i data-lucide="arrow-down" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                    </a>
+                    <a href="#cashbackExplainer" class="btn btn-outline-light px-4 py-2 rounded-pill fw-semibold" style="border-color: rgba(255,255,255,0.2);">
+                        How Cashback Works
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center d-none d-lg-block">
+                <div class="p-4 rounded-4" style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);">
+                    <div class="text-warning display-5 fw-bold mb-1">50%</div>
+                    <div class="text-white fw-bold mb-2">Completion Cashback</div>
+                    <div class="text-secondary small">
+                        Finish your curriculum, submit all 4 phase projects & have your Capstone approved within 180 days to receive 50% refund to your original payment method.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Roadmaps Catalog Grid -->
+    <div id="roadmapsCatalog" class="mb-5">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h3 class="fw-bold text-white mb-1">Available Career Packages</h3>
+                <p class="text-secondary small mb-0">Engineered roadmaps designed for college students, career switchers, and aspiring developers.</p>
+            </div>
+            <span class="badge bg-dark border border-secondary text-secondary px-3 py-2 rounded-pill">
+                {{ packages|length }} Programs Available
+            </span>
+        </div>
+
+        <div class="row g-4">
+            {% for pkg in packages %}
+            {% set is_enrolled = pkg.slug in enrolled_slugs %}
+            {% set prog_pct = user_progress_map.get(pkg.slug, 0) %}
+            <div class="col-lg-6">
+                <div class="card h-100 rounded-4 border-0 position-relative overflow-hidden" 
+                     style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08) !important; transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                    
+                    <!-- Top Ribbon -->
+                    <div class="d-flex align-items-center justify-content-between px-4 pt-4 pb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge px-3 py-1 rounded-pill" style="background: rgba(99, 102, 241, 0.15); color: #818CF8; border: 1px solid rgba(99, 102, 241, 0.3);">
+                                {{ pkg.duration }} &bull; {{ pkg.phases|length }} PHASES
+                            </span>
+                            <span class="badge px-3 py-1 rounded-pill" style="background: rgba(16, 185, 129, 0.12); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3);">
+                                {{ pkg.level }}
+                            </span>
+                        </div>
+                        {% if pkg.cashback_enabled %}
+                        <span class="badge px-3 py-1 rounded-pill" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3);">
+                            <i data-lucide="gift" style="width: 13px; height: 13px; vertical-align: -1px;"></i> {{ pkg.cashback_percentage|int }}% CASHBACK
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body px-4 py-3">
+                        <h4 class="card-title fw-bold text-white mb-2">
+                            <a href="{{ url_for('roadmap.detail', slug=pkg.slug) }}" class="text-white text-decoration-none">
+                                {{ pkg.title }}
+                            </a>
+                        </h4>
+                        <p class="text-secondary small mb-3" style="line-height: 1.6;">
+                            {{ pkg.short_description }}
+                        </p>
+
+                        <!-- Tech Stack Tags -->
+                        <div class="mb-3">
+                            <div class="text-secondary small fw-semibold mb-2" style="font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                                Tech Stack Covered
+                            </div>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for tech in pkg.tech_stack[:8] %}
+                                <span class="badge px-2 py-1" style="background: rgba(15, 23, 42, 0.6); color: #CBD5E1; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.75rem;">
+                                    {{ tech }}
+                                </span>
+                                {% endfor %}
+                                {% if pkg.tech_stack|length > 8 %}
+                                <span class="badge px-2 py-1" style="background: rgba(15, 23, 42, 0.6); color: #94A3B8; font-size: 0.75rem;">
+                                    +{{ pkg.tech_stack|length - 8 }} more
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Highlights Row -->
+                        <div class="p-3 rounded-3 mb-3" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <div class="row g-2 text-center">
+                                <div class="col-4 border-end border-secondary border-opacity-25">
+                                    <div class="text-white fw-bold">{{ pkg.total_lessons_count }}</div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;">Lectures</div>
+                                </div>
+                                <div class="col-4 border-end border-secondary border-opacity-25">
+                                    <div class="text-white fw-bold">{{ pkg.projects|length }}</div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;">Phase Projects</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-warning fw-bold">1 Capstone</div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;">Human Review</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if is_enrolled %}
+                        <!-- Progress Bar if Enrolled -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between text-secondary small mb-1">
+                                <span>Your Progress</span>
+                                <span class="fw-bold text-white">{{ prog_pct }}%</span>
+                            </div>
+                            <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1);">
+                                <div class="progress-bar" style="width: {{ prog_pct }}%; background: #6366F1;"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Card Footer -->
+                    <div class="card-footer px-4 py-3 border-top border-secondary border-opacity-10 d-flex align-items-center justify-content-between" style="background: rgba(15, 23, 42, 0.4);">
+                        <div>
+                            {% if pkg.price > 0 %}
+                            <div class="d-flex align-items-baseline gap-2">
+                                <span class="fs-4 fw-bold text-white">₹{{ pkg.price|int }}</span>
+                                {% if pkg.original_price and pkg.original_price > pkg.price %}
+                                <span class="text-secondary text-decoration-line-through small">₹{{ pkg.original_price|int }}</span>
+                                {% endif %}
+                            </div>
+                            {% if pkg.cashback_enabled %}
+                            <div class="text-warning" style="font-size: 0.75rem;">
+                                Net Cost: ₹{{ (pkg.price * 0.5)|int }} after cashback
+                            </div>
+                            {% endif %}
+                            {% else %}
+                            <span class="fs-4 fw-bold text-success">FREE</span>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            {% if is_enrolled %}
+                            <a href="{{ url_for('roadmap.dashboard', slug=pkg.slug) }}" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold" style="background: #6366F1; border-color: #6366F1;">
+                                Resume Learning <i data-lucide="arrow-right" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                            </a>
+                            {% else %}
+                            <a href="{{ url_for('roadmap.detail', slug=pkg.slug) }}" class="btn btn-outline-light px-4 py-2 rounded-pill fw-semibold" style="border-color: rgba(255,255,255,0.2);">
+                                View Syllabus <i data-lucide="chevron-right" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 50% Completion Cashback Explainer Section -->
+    <div id="cashbackExplainer" class="p-4 p-md-5 rounded-4 mb-4" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <span class="badge px-3 py-1 rounded-pill mb-2" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3);">
+                    TRANSPARENT INCENTIVE
+                </span>
+                <h3 class="fw-bold text-white mb-3">How the 50% Completion Cashback Works</h3>
+                <p class="text-secondary small mb-4" style="line-height: 1.7;">
+                    Most online courses suffer from a 90% abandonment rate. At SkillRock, we put our money where our mouth is. We reward students who actually finish what they start. Complete the roadmap on schedule, and 50% of what you paid is refunded straight to your bank account or card.
+                </p>
+
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style="width: 32px; height: 32px; background: #6366F1;">1</div>
+                        <div>
+                            <div class="text-white fw-semibold small">Watch 100% of Lectures</div>
+                            <div class="text-secondary" style="font-size: 0.8rem;">Complete all 20 weekly video lecture chapters and marked exercises.</div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style="width: 32px; height: 32px; background: #6366F1;">2</div>
+                        <div>
+                            <div class="text-white fw-semibold small">Submit All 4 Phase Projects</div>
+                            <div class="text-secondary" style="font-size: 0.8rem;">Build the personal portfolio, task manager, secure auth API, and full stack database app.</div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style="width: 32px; height: 32px; background: #6366F1;">3</div>
+                        <div>
+                            <div class="text-white fw-semibold small">Pass Capstone Evaluation</div>
+                            <div class="text-secondary" style="font-size: 0.8rem;">Submit your live deployed Job Tracker capstone project and receive evaluator approval.</div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style="width: 32px; height: 32px; background: #6366F1;">4</div>
+                        <div>
+                            <div class="text-white fw-semibold small">Finish Within 180 Days</div>
+                            <div class="text-secondary" style="font-size: 0.8rem;">Ample time (~25 weeks for a 20-week program) to complete at a steady pace.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="p-4 rounded-4" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08);">
+                    <h5 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+                        <i data-lucide="shield-check" class="text-success" style="width: 20px; height: 20px;"></i>
+                        Transparent Rules & Integrity
+                    </h5>
+                    <ul class="text-secondary small mb-0 ps-3" style="line-height: 1.8;">
+                        <li><strong>Calculated from actual amount paid:</strong> Cashback is calculated strictly from what you paid during checkout (e.g. ₹499.50 back on a ₹999 enrollment).</li>
+                        <li><strong>Automated refund:</strong> Online payments are automatically refunded via Razorpay back to your original payment source. Manual UPI transfers are refunded via instant UPI payout.</li>
+                        <li><strong>Permanent verified certificate:</strong> You still receive your official Certificate of Completion with verification ID and QR code.</li>
+                        <li><strong>Fair rubric evaluations:</strong> Evaluators review actual code and live deployments with constructive feedback; if changes are requested, you have unlimited attempts to fix and re-submit within the 180-day window.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    });
+</script>
+{% endblock %}

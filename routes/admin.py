@@ -1702,3 +1702,334 @@ def payment_reject(payment_id):
     )
     return redirect(url_for("admin.payments_list"))
 
+
+# ==============================================================================
+# Career Roadmaps, Submissions & 50% Completion Cashback Administration
+# ==============================================================================
+
+@admin_bp.route("/roadmaps")
+def roadmaps_list():
+    """Master overview of all Career Roadmap Packages, pricing, and enrollments."""
+    from models.roadmap import RoadmapPackage, RoadmapProgress, RoadmapSubmission, RoadmapCashback
+    db = get_db()
+    packages = RoadmapPackage.get_all(published_only=False)
+    
+    # Calculate stats per roadmap
+    roadmap_stats = {}
+    for p in packages:
+        enrolled_count = db.user_access.count_documents({"item_type": "roadmap", "item_id": str(p.id), "is_active": True})
+        submissions_count = db.roadmap_submissions.count_documents({"roadmap_slug": p.slug})
+        pending_sub_count = db.roadmap_submissions.count_documents({"roadmap_slug": p.slug, "status": RoadmapSubmission.STATUS_PENDING})
+        cashback_req_count = db.roadmap_cashback.count_documents({"roadmap_slug": p.slug})
+        roadmap_stats[p.slug] = {
+            "enrolled": enrolled_count,
+            "submissions": submissions_count,
+            "pending_submissions": pending_sub_count,
+            "cashback_requests": cashback_req_count
+        }
+
+    return render_template(
+        "admin/roadmaps.html",
+        packages=packages,
+        roadmap_stats=roadmap_stats
+    )
+
+
+@admin_bp.route("/roadmaps/<slug>/edit", methods=["GET", "POST"])
+def roadmap_edit(slug):
+    """Configures roadmap pricing, original price, cashback %, deadline, and publish status."""
+    from models.roadmap import RoadmapPackage
+    pkg = RoadmapPackage.get_by_slug(slug)
+    if not pkg:
+        flash("Roadmap package not found.", "warning")
+        return redirect(url_for("admin.roadmaps_list"))
+
+    if request.method == "POST":
+        try:
+            pkg.price = float(request.form.get("price", pkg.price))
+            pkg.original_price = float(request.form.get("original_price", pkg.original_price))
+            pkg.cashback_enabled = bool(request.form.get("cashback_enabled") == "on" or request.form.get("cashback_enabled") == "true")
+            pkg.cashback_percentage = float(request.form.get("cashback_percentage", pkg.cashback_percentage))
+            pkg.completion_deadline_days = int(request.form.get("completion_deadline_days", pkg.completion_deadline_days))
+            pkg.is_published = bool(request.form.get("is_published") == "on" or request.form.get("is_published") == "true")
+            pkg.short_description = request.form.get("short_description", pkg.short_description).strip()
+            pkg.save()
+            flash(f"Roadmap '{pkg.title}' settings updated successfully!", "success")
+            return redirect(url_for("admin.roadmaps_list"))
+        except Exception as e:
+            logger.error(f"Error updating roadmap {slug}: {e}")
+            flash(f"Error updating roadmap: {e}", "danger")
+
+    return render_template("admin/roadmap_edit.html", roadmap=pkg)
+
+
+@admin_bp.route("/roadmaps/<slug>/toggle", methods=["POST"])
+def roadmap_toggle(slug):
+    """Toggles publishing state of a roadmap."""
+    from models.roadmap import RoadmapPackage
+    pkg = RoadmapPackage.get_by_slug(slug)
+    if not pkg:
+        flash("Roadmap package not found.", "warning")
+        return redirect(url_for("admin.roadmaps_list"))
+
+    pkg.is_published = not pkg.is_published
+    pkg.save()
+    status_str = "published" if pkg.is_published else "hidden as draft"
+    flash(f"Roadmap '{pkg.title}' is now {status_str}.", "info")
+    return redirect(url_for("admin.roadmaps_list"))
+
+
+@admin_bp.route("/roadmaps/submissions")
+def roadmap_submissions_list():
+    """Review queue for all student Phase Project and Capstone submissions."""
+    from models.roadmap import RoadmapSubmission, RoadmapPackage
+    db = get_db()
+    status_filter = request.args.get("status", "all").strip()
+
+    query = {}
+    if status_filter in (RoadmapSubmission.STATUS_PENDING, RoadmapSubmission.STATUS_APPROVED, RoadmapSubmission.STATUS_CHANGES):
+        query["status"] = status_filter
+
+    cursor = db.roadmap_submissions.find(query).sort("submitted_at", -1)
+    submissions = [RoadmapSubmission(doc) for doc in cursor]
+
+    # Metrics
+    total_count = db.roadmap_submissions.count_documents({})
+    pending_count = db.roadmap_submissions.count_documents({"status": RoadmapSubmission.STATUS_PENDING})
+    approved_count = db.roadmap_submissions.count_documents({"status": RoadmapSubmission.STATUS_APPROVED})
+    changes_count = db.roadmap_submissions.count_documents({"status": RoadmapSubmission.STATUS_CHANGES})
+
+    return render_template(
+        "admin/roadmap_submissions.html",
+        submissions=submissions,
+        status_filter=status_filter,
+        total_count=total_count,
+        pending_count=pending_count,
+        approved_count=approved_count,
+        changes_count=changes_count,
+    )
+
+
+@admin_bp.route("/roadmaps/submissions/<submission_id>/evaluate", methods=["POST"])
+def roadmap_submission_evaluate(submission_id):
+    """
+    Evaluates a student project submission against rubrics.
+    Updates submission status, score, admin feedback, and reviewer audit fields.
+    If Capstone is approved and student has 100% lessons, unlocks Certificate.
+    """
+    from models.roadmap import RoadmapSubmission, RoadmapPackage, RoadmapProgress
+    sub = RoadmapSubmission.get_by_id(submission_id)
+    if not sub:
+        flash("Submission record not found.", "warning")
+        return redirect(url_for("admin.roadmap_submissions_list"))
+
+    action = request.form.get("status", "").strip()
+    score_raw = request.form.get("score", "").strip()
+    feedback = request.form.get("admin_feedback", "").strip()
+
+    if action not in (RoadmapSubmission.STATUS_APPROVED, RoadmapSubmission.STATUS_CHANGES):
+        flash("Invalid evaluation status.", "danger")
+        return redirect(url_for("admin.roadmap_submissions_list"))
+
+    sub.status = action
+    sub.admin_feedback = feedback
+    if score_raw:
+        try:
+            sub.score = float(score_raw)
+        except ValueError:
+            pass
+
+    admin_identifier = getattr(current_user, "email", "admin")
+    sub.reviewed_by = admin_identifier
+    sub.reviewed_at = datetime.now(timezone.utc)
+    sub.save()
+
+    # If Capstone approved, check if student qualifies for certificate
+    if sub.is_capstone and action == RoadmapSubmission.STATUS_APPROVED:
+        pkg = RoadmapPackage.get_by_slug(sub.roadmap_slug)
+        prog = RoadmapProgress.get_user_progress(sub.user_id, sub.roadmap_slug)
+        if pkg and prog and prog.calculate_completion_percentage(pkg.total_lessons_count) >= 100.0:
+            cert = Certificate.get_by_user_course(sub.user_id, pkg.slug)
+            if not cert:
+                import hashlib
+                cert_id = Certificate.generate_cert_id()
+                now = datetime.now(timezone.utc)
+                clean_name = sub.user_name or "SkillRock Graduate"
+                raw_hash = f"{cert_id}:{sub.user_id}:{pkg.slug}:{clean_name}:{now.isoformat()}"
+                verification_hash = hashlib.sha256(raw_hash.encode("utf-8")).hexdigest()[:24]
+                cert = Certificate({
+                    "certificate_id": cert_id,
+                    "user_id": str(sub.user_id),
+                    "user_name": clean_name,
+                    "user_email": sub.user_email,
+                    "course_id": pkg.slug,
+                    "course_title": f"{pkg.title} — Career Roadmap",
+                    "submission_id": str(sub.id),
+                    "issued_at": now,
+                    "verification_hash": verification_hash,
+                    "name_locked": False,
+                })
+                cert.save()
+                logger.info(f"[ROADMAP CERTIFICATE AUTO-ISSUED] Certificate {cert_id} for user {sub.user_id}")
+
+    flash(f"Submission for '{sub.project_title}' marked as {sub.status.replace('_', ' ').title()}.", "success")
+    return redirect(url_for("admin.roadmap_submissions_list"))
+
+
+@admin_bp.route("/cashback")
+def cashback_list():
+    """
+    Master Review Console for 50% Completion Cashback Claims.
+    Displays student progress metrics, original payments, and refund controls.
+    """
+    from models.roadmap import RoadmapCashback
+    db = get_db()
+    status_filter = request.args.get("status", "all").strip()
+
+    query = {}
+    if status_filter in (
+        RoadmapCashback.STATUS_PENDING_REVIEW,
+        RoadmapCashback.STATUS_APPROVED,
+        RoadmapCashback.STATUS_PROCESSED,
+        RoadmapCashback.STATUS_REJECTED
+    ):
+        query["review_status"] = status_filter
+
+    cursor = db.roadmap_cashback.find(query).sort("requested_at", -1)
+    requests = [RoadmapCashback(doc) for doc in cursor]
+
+    # Metrics
+    total_count = db.roadmap_cashback.count_documents({})
+    pending_count = db.roadmap_cashback.count_documents({"review_status": RoadmapCashback.STATUS_PENDING_REVIEW})
+    approved_count = db.roadmap_cashback.count_documents({"review_status": RoadmapCashback.STATUS_APPROVED})
+    processed_count = db.roadmap_cashback.count_documents({"review_status": RoadmapCashback.STATUS_PROCESSED})
+    rejected_count = db.roadmap_cashback.count_documents({"review_status": RoadmapCashback.STATUS_REJECTED})
+
+    return render_template(
+        "admin/cashback.html",
+        requests=requests,
+        status_filter=status_filter,
+        total_count=total_count,
+        pending_count=pending_count,
+        approved_count=approved_count,
+        processed_count=processed_count,
+        rejected_count=rejected_count,
+    )
+
+
+@admin_bp.route("/cashback/<request_id>/process", methods=["POST"])
+def cashback_process(request_id):
+    """
+    Processes a student's 50% Completion Cashback refund.
+    Attempts Razorpay gateway refund if original payment was online.
+    Falls back gracefully to manual UPI / bank transfer recording with full audit logging.
+    """
+    from models.roadmap import RoadmapCashback
+    from routes.payment import get_razorpay_client
+    req = RoadmapCashback.get_by_id(request_id)
+    if not req:
+        flash("Cashback request not found.", "warning")
+        return redirect(url_for("admin.cashback_list"))
+
+    admin_identifier = getattr(current_user, "email", "admin")
+    now_utc = datetime.now(timezone.utc)
+    mode = request.form.get("mode", "gateway").strip()  # "gateway" or "manual"
+    notes = request.form.get("notes", "").strip()
+
+    refund_success = False
+    refund_id = ""
+
+    if mode == "gateway":
+        # Check if original payment was via Razorpay
+        db = get_db()
+        orig_payment = db.payments.find_one({"payment_id": req.original_payment_id}) or {}
+        rzp_payment_id = orig_payment.get("razorpay_payment_id") or (
+            req.original_payment_id if str(req.original_payment_id).startswith("pay_") else None
+        )
+
+        if rzp_payment_id:
+            try:
+                client = get_razorpay_client()
+                if client:
+                    amount_paise = int(round(req.cashback_amount * 100))
+                    refund_res = client.payment.refund(
+                        rzp_payment_id,
+                        {
+                            "amount": amount_paise,
+                            "notes": {
+                                "reason": f"SkillRock 50% Completion Cashback: {req.roadmap_title}",
+                                "user_id": req.user_id,
+                                "approved_by": admin_identifier
+                            }
+                        }
+                    )
+                    refund_id = refund_res.get("id", "")
+                    refund_success = True
+                    req.payment_provider_refund_id = refund_id
+                    req.refund_mode = "gateway"
+                    req.refund_status = "processed"
+                    req.review_status = RoadmapCashback.STATUS_PROCESSED
+                    req.processed_at = now_utc
+                    req.add_audit_entry(
+                        action="gateway_refund_success",
+                        by=admin_identifier,
+                        note=f"Razorpay refund {refund_id} processed for ₹{req.cashback_amount} to {rzp_payment_id}."
+                    )
+                    flash(f"⚡ Razorpay Refund of ₹{req.cashback_amount} processed successfully! Refund ID: {refund_id}", "success")
+                else:
+                    flash("Razorpay client not configured; please use manual refund mode.", "warning")
+            except Exception as e:
+                logger.error(f"[CASHBACK RAZORPAY REFUND ERROR] {e}")
+                req.failure_reason = str(e)
+                req.add_audit_entry(
+                    action="gateway_refund_failed",
+                    by=admin_identifier,
+                    note=f"Razorpay error: {e}. Admin can retry or switch to manual transfer."
+                )
+                flash(f"Razorpay refund attempt failed ({e}). You may process as Manual Bank/UPI Transfer.", "danger")
+        else:
+            flash(f"Original payment {req.original_payment_id} has no online gateway reference. Process via Manual Transfer.", "warning")
+
+    if mode == "manual" or (not refund_success and request.form.get("force_manual") == "1"):
+        req.refund_mode = "manual_upi"
+        req.refund_status = "manual_completed"
+        req.review_status = RoadmapCashback.STATUS_PROCESSED
+        req.processed_at = now_utc
+        req.admin_notes = notes
+        req.add_audit_entry(
+            action="manual_refund_completed",
+            by=admin_identifier,
+            note=f"Manually transferred ₹{req.cashback_amount} via UPI/Bank. Notes: {notes}"
+        )
+        flash(f"✅ Cashback of ₹{req.cashback_amount} recorded as manual transfer successfully.", "success")
+
+    req.save()
+    return redirect(url_for("admin.cashback_list"))
+
+
+@admin_bp.route("/cashback/<request_id>/reject", methods=["POST"])
+def cashback_reject(request_id):
+    """Rejects a cashback claim with admin notes explaining reason to student."""
+    from models.roadmap import RoadmapCashback
+    req = RoadmapCashback.get_by_id(request_id)
+    if not req:
+        flash("Cashback request not found.", "warning")
+        return redirect(url_for("admin.cashback_list"))
+
+    admin_identifier = getattr(current_user, "email", "admin")
+    reason = request.form.get("reason", "").strip() or "Criteria verification did not pass requirements."
+
+    req.review_status = RoadmapCashback.STATUS_REJECTED
+    req.failure_reason = reason
+    req.admin_notes = reason
+    req.add_audit_entry(
+        action="cashback_rejected",
+        by=admin_identifier,
+        note=f"Claim rejected: {reason}"
+    )
+    req.save()
+
+    flash(f"Cashback request for {req.user_name} marked as Rejected.", "warning")
+    return redirect(url_for("admin.cashback_list"))
+
+

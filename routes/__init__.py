@@ -11,6 +11,7 @@ from routes.admin import admin_bp
 from routes.learning import learning_bp
 from routes.test_series import test_series_bp
 from routes.payment import payment_bp
+from routes.roadmap import roadmap_bp
 
 __all__ = [
     "auth_bp",
@@ -26,4 +27,5 @@ __all__ = [
     "learning_bp",
     "test_series_bp",
     "payment_bp",
+    "roadmap_bp",
 ]

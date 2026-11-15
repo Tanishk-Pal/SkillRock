@@ -1,0 +1,179 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Roadmap Project Review Queue{% endblock %}
+{% block breadcrumb %}Roadmap Submissions{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div>
+            <div class="admin-card-title">
+                <i data-lucide="check-square"></i>
+                <span>Career Roadmap Project & Capstone Queue</span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
+                Evaluate student repository code, test live deployment links against rubrics, and certify completed work.
+            </p>
+        </div>
+        <a href="{{ url_for('admin.roadmaps_list') }}" class="admin-btn admin-btn-secondary">
+            <i data-lucide="map"></i>
+            <span>Roadmaps Catalog</span>
+        </a>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
+        <a href="{{ url_for('admin.roadmap_submissions_list', status='all') }}" class="admin-btn {% if status_filter == 'all' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">
+            All Submissions ({{ total_count }})
+        </a>
+        <a href="{{ url_for('admin.roadmap_submissions_list', status='pending_review') }}" class="admin-btn {% if status_filter == 'pending_review' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #F59E0B; margin-right: 4px;"></span>
+            Pending Review ({{ pending_count }})
+        </a>
+        <a href="{{ url_for('admin.roadmap_submissions_list', status='approved') }}" class="admin-btn {% if status_filter == 'approved' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981; margin-right: 4px;"></span>
+            Approved ({{ approved_count }})
+        </a>
+        <a href="{{ url_for('admin.roadmap_submissions_list', status='changes_requested') }}" class="admin-btn {% if status_filter == 'changes_requested' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">
+            Changes Requested ({{ changes_count }})
+        </a>
+    </div>
+
+    <!-- Submissions Table -->
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Roadmap & Project</th>
+                    <th>Submitted</th>
+                    <th>Repository & Demo</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if not submissions %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--admin-text-muted);">
+                        No submissions found in this category.
+                    </td>
+                </tr>
+                {% endif %}
+
+                {% for sub in submissions %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 700; color: var(--admin-text-main);">{{ sub.user_name or 'Student' }}</div>
+                        <div style="font-size: 0.75rem; color: var(--admin-text-muted);">{{ sub.user_email }}</div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 600; color: var(--admin-text-main); display: flex; align-items: center; gap: 6px;">
+                            <span>{{ sub.project_title }}</span>
+                            {% if sub.is_capstone %}
+                            <span class="admin-badge" style="background: rgba(245, 158, 11, 0.2); color: #F59E0B; font-size: 0.68rem;">CAPSTONE</span>
+                            {% endif %}
+                        </div>
+                        <div style="font-size: 0.72rem; color: var(--admin-text-muted); font-family: monospace;">{{ sub.roadmap_slug }}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.8rem; color: var(--admin-text-main);">
+                            {{ sub.submitted_at.strftime('%d %b %Y') if sub.submitted_at else 'N/A' }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            {% if sub.github_url %}
+                            <a href="{{ sub.github_url }}" target="_blank" rel="noopener noreferrer" style="font-size: 0.78rem; color: #38BDF8; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="github" style="width: 13px; height: 13px;"></i> Repo
+                            </a>
+                            {% endif %}
+                            {% if sub.deployment_url %}
+                            <span style="color: var(--admin-text-muted);">&bull;</span>
+                            <a href="{{ sub.deployment_url }}" target="_blank" rel="noopener noreferrer" style="font-size: 0.78rem; color: #10B981; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="external-link" style="width: 13px; height: 13px;"></i> Live Demo
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% if sub.notes %}
+                        <div style="font-size: 0.72rem; color: var(--admin-text-muted); margin-top: 3px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ sub.notes }}">
+                            Note: {{ sub.notes }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if sub.status == 'approved' %}
+                        <span class="admin-badge admin-badge-success">Approved</span>
+                        {% if sub.score is not none %}
+                        <span style="font-size: 0.75rem; color: var(--admin-text-muted); margin-left: 4px;">({{ sub.score }}%)</span>
+                        {% endif %}
+                        {% elif sub.status == 'changes_requested' %}
+                        <span class="admin-badge admin-badge-danger">Changes Requested</span>
+                        {% else %}
+                        <span class="admin-badge admin-badge-warning">Pending Review</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <button onclick="openEvalModal('{{ sub.id }}', '{{ sub.user_name|e }}', '{{ sub.project_title|e }}', '{{ sub.github_url|e }}', '{{ sub.deployment_url|e }}', '{{ sub.status }}', '{{ sub.score or '' }}', '{{ sub.admin_feedback|e }}')" 
+                                class="admin-btn admin-btn-secondary" style="padding: 6px 12px; font-size: 0.78rem;">
+                            <i data-lucide="clipboard-check"></i>
+                            <span>Evaluate</span>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Evaluation Modal -->
+<div id="evalModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--admin-bg-card); border: 1px solid var(--admin-border); border-radius: 12px; max-width: 560px; width: 100%; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="font-weight: 700; font-size: 1.1rem; color: var(--admin-text-main);" id="modalProjectTitle">Evaluate Submission</div>
+            <button onclick="closeEvalModal()" style="background: none; border: none; color: var(--admin-text-muted); cursor: pointer; font-size: 1.2rem;">&times;</button>
+        </div>
+
+        <form id="evalForm" method="POST">
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--admin-text-main); margin-bottom: 4px;">Evaluation Decision</label>
+                <select name="status" id="modalStatusSelect" required style="width: 100%; padding: 8px 12px; background: var(--admin-bg-input); border: 1px solid var(--admin-border); border-radius: 6px; color: var(--admin-text-main);">
+                    <option value="approved">Approve Submission (Pass)</option>
+                    <option value="changes_requested">Request Changes (Needs Improvement)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--admin-text-main); margin-bottom: 4px;">Score (0 - 100)</label>
+                <input type="number" step="0.5" min="0" max="100" name="score" id="modalScoreInput" placeholder="e.g. 88.5" style="width: 100%; padding: 8px 12px; background: var(--admin-bg-input); border: 1px solid var(--admin-border); border-radius: 6px; color: var(--admin-text-main);">
+            </div>
+
+            <div style="margin-bottom: 18px;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--admin-text-main); margin-bottom: 4px;">Evaluator Feedback & Code Review Notes</label>
+                <textarea name="admin_feedback" id="modalFeedbackInput" rows="4" placeholder="Provide constructive technical feedback on architecture, tests, clean code, or what to fix..." style="width: 100%; padding: 8px 12px; background: var(--admin-bg-input); border: 1px solid var(--admin-border); border-radius: 6px; color: var(--admin-text-main);"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" onclick="closeEvalModal()" class="admin-btn admin-btn-secondary">Cancel</button>
+                <button type="submit" class="admin-btn admin-btn-primary">Save Evaluation</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEvalModal(id, studentName, projectTitle, githubUrl, deployUrl, status, score, feedback) {
+        document.getElementById('modalProjectTitle').innerText = `Evaluate: ${projectTitle} (${studentName})`;
+        document.getElementById('evalForm').action = `/admin/roadmaps/submissions/${id}/evaluate`;
+        document.getElementById('modalStatusSelect').value = (status === 'approved' || status === 'changes_requested') ? status : 'approved';
+        document.getElementById('modalScoreInput').value = score || '';
+        document.getElementById('modalFeedbackInput').value = feedback || '';
+        document.getElementById('evalModal').style.display = 'flex';
+    }
+
+    function closeEvalModal() {
+        document.getElementById('evalModal').style.display = 'none';
+    }
+</script>
+{% endblock %}

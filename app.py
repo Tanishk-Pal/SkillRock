@@ -25,6 +25,8 @@ from models import (
     ensure_admin_user,
     ensure_default_courses,
     ensure_default_test_series,
+    ensure_default_roadmaps,
+    RoadmapPackage,
     TestDefinition,
     TestPack,
     TestAttempt
@@ -42,7 +44,8 @@ from routes import (
     admin_bp,
     learning_bp,
     test_series_bp,
-    payment_bp
+    payment_bp,
+    roadmap_bp
 )
 
 def create_app(config_class=Config):
@@ -59,6 +62,7 @@ def create_app(config_class=Config):
             ensure_admin_user()
             ensure_default_courses()
             ensure_default_test_series()
+            ensure_default_roadmaps()
         except Exception as e_init:
             import logging
             logging.getLogger(__name__).warning(f"Database initialization/seed notice: {e_init}")
@@ -88,6 +92,7 @@ def create_app(config_class=Config):
     app.register_blueprint(learning_bp)
     app.register_blueprint(test_series_bp)
     app.register_blueprint(payment_bp)
+    app.register_blueprint(roadmap_bp)
 
     # Provide global utilities & model classes safely in Jinja templates
     from services.payment_service import verify_student_unlock
@@ -98,6 +103,7 @@ def create_app(config_class=Config):
         Course=Course,
         Assignment=Assignment,
         Submission=Submission,
+        RoadmapPackage=RoadmapPackage,
         verify_student_unlock=verify_student_unlock
     )
 

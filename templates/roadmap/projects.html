@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}Projects & Capstone Hub — {{ roadmap.title }} — Skill Rock{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-md-5">
+
+    <!-- Breadcrumb & Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('roadmap.catalog') }}" class="text-secondary text-decoration-none">Roadmaps</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('roadmap.dashboard', slug=roadmap.slug) }}" class="text-secondary text-decoration-none">{{ roadmap.title }}</a></li>
+                    <li class="breadcrumb-item active text-white" aria-current="page">Projects Hub</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold text-white mb-0">Practical Projects & Final Capstone Hub</h2>
+        </div>
+
+        <a href="{{ url_for('roadmap.dashboard', slug=roadmap.slug) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" style="border-color: rgba(255,255,255,0.15);">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px; vertical-align: -1px;"></i> Return to Dashboard
+        </a>
+    </div>
+
+    <!-- Intro Banner -->
+    <div class="p-4 rounded-4 mb-4" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08);">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 44px; height: 44px; background: rgba(99, 102, 241, 0.2); color: #818CF8;">
+                <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
+            </div>
+            <div>
+                <h5 class="text-white fw-bold mb-1">Rigorous Code & Rubric Evaluation</h5>
+                <p class="text-secondary small mb-0">
+                    To maintain the highest industry standards and qualify for both the <strong>Verified Certificate</strong> and <strong>50% Completion Cashback</strong>, you must build all 4 phase milestone projects and pass evaluator review on your Final Capstone project.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Phase Milestone Projects -->
+    <h4 class="fw-bold text-white mb-3">Phase Milestone Projects (4 Total)</h4>
+
+    <div class="row g-4 mb-5">
+        {% for proj in roadmap.projects %}
+        {% set sub = submissions_by_project.get(proj.id) %}
+        <div class="col-lg-6">
+            <div class="card h-100 rounded-4 border-0" style="background: #1E293B; border: 1px solid rgba(255, 255, 255, 0.08) !important;">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <!-- Status Badge Top -->
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="badge px-3 py-1 rounded-pill" style="background: rgba(99, 102, 241, 0.15); color: #818CF8; border: 1px solid rgba(99, 102, 241, 0.3);">
+                                Phase {{ loop.index }} Project
+                            </span>
+                            {% if sub %}
+                                {% if sub.status == 'approved' %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1 rounded-pill">
+                                    <i data-lucide="check-circle" style="width: 13px; height: 13px; vertical-align: -1px;"></i> Approved
+                                </span>
+                                {% elif sub.status == 'changes_requested' %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-1 rounded-pill">
+                                    <i data-lucide="alert-circle" style="width: 13px; height: 13px; vertical-align: -1px;"></i> Changes Requested
+                                </span>
+                                {% else %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-1 rounded-pill">
+                                    <i data-lucide="clock" style="width: 13px; height: 13px; vertical-align: -1px;"></i> In Review
+                                </span>
+                                {% endif %}
+                            {% else %}
+                            <span class="badge bg-secondary bg-opacity-25 text-white px-3 py-1 rounded-pill">
+                                Not Submitted
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <h4 class="text-white fw-bold mb-2">{{ proj.title }}</h4>
+                        <p class="text-secondary small mb-3">{{ proj.description }}</p>
+
+                        <div class="p-3 rounded-3 mb-3" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <div class="text-white small fw-semibold mb-1">Required Deliverables:</div>
+                            <ul class="ps-3 text-secondary small mb-0" style="font-size: 0.8rem;">
+                                {% for d in proj.deliverables %}
+                                <li>{{ d }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <!-- Previous Submission Review Info if any -->
+                        {% if sub and sub.admin_feedback %}
+                        <div class="p-3 rounded-3 mb-3" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2);">
+                            <div class="text-white small fw-bold mb-1">Evaluator Feedback:</div>
+                            <div class="text-secondary small">{{ sub.admin_feedback }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submission Form / View -->
+                    <div>
+                        <button class="btn btn-primary w-100 py-2 rounded-pill fw-semibold shadow-sm" 
+                                type="button" data-bs-toggle="collapse" data-bs-target="#submitForm{{ proj.id }}" 
+                                aria-expanded="false" style="background: #6366F1; border-color: #6366F1;">
+                            {% if sub %}Update / Resubmit Code{% else %}Submit Project Repository{% endif %}
+                        </button>
+
+                        <div class="collapse mt-3" id="submitForm{{ proj.id }}">
+                            <form action="{{ url_for('roadmap.submit_project', slug=roadmap.slug, project_id=proj.id) }}" method="POST" class="p-3 rounded-3" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                <div class="mb-3">
+                                    <label class="form-label text-white small">GitHub Repository URL <span class="text-danger">*</span></label>
+                                    <input type="url" name="github_url" required class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="https://github.com/username/project" value="{{ sub.github_url if sub else '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-white small">Live Demo URL (Optional)</label>
+                                    <input type="url" name="deployment_url" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="https://my-app.vercel.app" value="{{ sub.deployment_url if sub else '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-white small">Student Notes</label>
+                                    <textarea name="notes" rows="2" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Brief explanation of your architecture, challenges, or setup...">{{ sub.notes if sub else '' }}</textarea>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-sm w-100 rounded-pill fw-bold">
+                                    Confirm Submission
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Final Capstone Project Section -->
+    {% if capstone %}
+    {% set cap_sub = submissions_by_project.get(capstone.id) %}
+    <div class="p-4 p-md-5 rounded-4 mb-4 position-relative overflow-hidden" 
+         style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1px solid rgba(245, 158, 11, 0.35);">
+        
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+            <span class="badge px-3 py-1 rounded-pill" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.4);">
+                FINAL PRODUCTION CAPSTONE
+            </span>
+
+            {% if cap_sub %}
+                {% if cap_sub.status == 'approved' %}
+                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-4 py-2 rounded-pill fs-6 fw-bold">
+                    <i data-lucide="check-circle" style="width: 16px; height: 16px; vertical-align: -2px;"></i> Capstone Approved!
+                </span>
+                {% elif cap_sub.status == 'changes_requested' %}
+                <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 px-4 py-2 rounded-pill fs-6 fw-bold">
+                    <i data-lucide="alert-circle" style="width: 16px; height: 16px; vertical-align: -2px;"></i> Changes Requested by Reviewer
+                </span>
+                {% else %}
+                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 px-4 py-2 rounded-pill fs-6 fw-bold">
+                    <i data-lucide="clock" style="width: 16px; height: 16px; vertical-align: -2px;"></i> Submitted &bull; In Evaluator Queue
+                </span>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <h3 class="text-white fw-bold mb-2">{{ capstone.title }}</h3>
+        <p class="text-secondary lead mb-4" style="max-width: 800px; font-size: 1rem; line-height: 1.6;">
+            {{ capstone.description }}
+        </p>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="p-3 rounded-3 h-100" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08);">
+                    <h6 class="text-white fw-bold mb-2">Mandatory Architectural Requirements</h6>
+                    <ul class="ps-3 text-secondary small mb-0" style="line-height: 1.8;">
+                        {% for req in (capstone.required_features or capstone.requirements or []) %}
+                        <li>{{ req }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="p-3 rounded-3 h-100" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08);">
+                    <h6 class="text-white fw-bold mb-2">Evaluator Grading Rubric</h6>
+                    <div class="d-flex flex-column gap-2">
+                        {% for r in capstone.rubric %}
+                        <div>
+                            <div class="d-flex justify-content-between text-secondary small mb-1">
+                                <span class="text-white">{{ r.criterion }}</span>
+                                <span class="fw-bold text-warning">{{ r.weight }}%</span>
+                            </div>
+                            <div class="progress" style="height: 4px; background: rgba(255,255,255,0.1);">
+                                <div class="progress-bar bg-warning" style="width: {{ r.weight }}%;"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Capstone Evaluator Feedback if any -->
+        {% if cap_sub and cap_sub.admin_feedback %}
+        <div class="p-4 rounded-3 mb-4" style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3);">
+            <div class="text-white fw-bold mb-1 d-flex align-items-center gap-2">
+                <i data-lucide="message-square" style="width: 16px; height: 16px;"></i>
+                Reviewer Evaluation Notes:
+            </div>
+            <div class="text-light small" style="line-height: 1.6;">{{ cap_sub.admin_feedback }}</div>
+            {% if cap_sub.score is not none %}
+            <div class="mt-2 text-warning small fw-bold">Official Score: {{ cap_sub.score }} / 100</div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Capstone Submission Form -->
+        <div class="p-4 rounded-3" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <h5 class="text-white fw-bold mb-3">Submit Final Capstone for Review</h5>
+            <form action="{{ url_for('roadmap.submit_project', slug=roadmap.slug, project_id=capstone.id) }}" method="POST">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-white small">GitHub Repository URL <span class="text-danger">*</span></label>
+                        <input type="url" name="github_url" required class="form-control bg-dark text-white border-secondary" placeholder="https://github.com/username/job-application-tracker" value="{{ cap_sub.github_url if cap_sub else '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-white small">Live Production Deployment URL <span class="text-danger">*</span></label>
+                        <input type="url" name="deployment_url" required class="form-control bg-dark text-white border-secondary" placeholder="https://job-tracker.onrender.com or vercel.app" value="{{ cap_sub.deployment_url if cap_sub else '' }}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-white small">Project Overview & Verification Notes</label>
+                        <textarea name="notes" rows="3" class="form-control bg-dark text-white border-secondary" placeholder="Include demo credentials (if applicable), database connection approach, and any key feature highlights...">{{ cap_sub.notes if cap_sub else '' }}</textarea>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-warning px-5 py-2 rounded-pill fw-bold text-dark shadow-sm">
+                            <i data-lucide="send" style="width: 16px; height: 16px; vertical-align: -2px;"></i>
+                            {% if cap_sub %}Update Capstone Submission{% else %}Submit Capstone for Human Review{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    });
+</script>
+{% endblock %}
