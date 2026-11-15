@@ -806,48 +806,58 @@
 
                 </div>
 
-                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">About This Course</h3>
-
-                <div id="courseAboutWrapper" class="course-about-container">
-
-                    <p style="font-size: 0.94rem; color: var(--text-secondary); line-height: 1.65; white-space: pre-line; margin-bottom: 8px;">
-
+                                <!-- 1. Foldable Course Description -->
+                <div class="skillrock-foldable-item" style="border: 1.5px solid var(--border-color); border-radius: 12px; margin-bottom: 14px; overflow: hidden; background: var(--bg-hover);">
+                    <div onclick="toggleFoldSection('aboutBody', 'aboutChevron', 'aboutPrompt')" style="padding: 13px 18px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="book-open" style="width: 17px; height: 17px; color: var(--primary-action);"></i>
+                            <span style="font-size: 0.98rem; font-weight: 800; color: var(--text-main);">About This Course</span>
+                            <span style="background: rgba(99, 102, 241, 0.15); color: #818CF8; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">Overview</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 700; color: var(--primary-action);">
+                            <span id="aboutPrompt">Click to view full details</span>
+                            <i data-lucide="chevron-down" id="aboutChevron" style="width: 16px; height: 16px; transition: transform 0.2s ease;"></i>
+                        </div>
+                    </div>
+                    <div id="aboutTeaserLine" onclick="toggleFoldSection('aboutBody', 'aboutChevron', 'aboutPrompt')" style="padding: 0 18px 12px 18px; font-size: 0.86rem; color: var(--text-secondary); cursor: pointer; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">
                         {{ course.description }}
-
-                    </p>
-
+                    </div>
+                    <div id="aboutBody" style="display: none; padding: 16px 18px; border-top: 1px solid var(--border-color); background: var(--bg-card);">
+                        <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.65; white-space: pre-line; margin: 0;">
+                            {{ course.description }}
+                        </p>
+                    </div>
                 </div>
 
-                <button type="button" id="btnToggleAboutMobile" class="btn-toggle-about-mobile" onclick="toggleAboutDescription()">
-
-                    <span id="btnToggleAboutText">Show more</span> ▾
-
-                </button>
-
-                <!-- Learning Objectives Checklist -->
-
+                <!-- 2. Foldable Learning Objectives -->
                 {% if course.learning_objectives %}
-
-                    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">What You Will Learn</h3>
-
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 10px;">
-
-                        {% for obj in course.learning_objectives %}
-
-                            <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.9rem; color: var(--text-secondary);">
-
-                                <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
-
-                                <span>{{ obj }}</span>
-
-                            </div>
-
-                        {% endfor %}
-
+                <div class="skillrock-foldable-item" style="border: 1.5px solid var(--border-color); border-radius: 12px; margin-bottom: 10px; overflow: hidden; background: var(--bg-hover);">
+                    <div onclick="toggleFoldSection('objectivesBody', 'objectivesChevron', 'objectivesPrompt')" style="padding: 13px 18px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="target" style="width: 17px; height: 17px; color: #10B981;"></i>
+                            <span style="font-size: 0.98rem; font-weight: 800; color: var(--text-main);">What You Will Learn</span>
+                            <span style="background: rgba(16, 185, 129, 0.15); color: #10B981; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">{{ course.learning_objectives|length }} Outcomes</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 700; color: #10B981;">
+                            <span id="objectivesPrompt">Click to view outcomes</span>
+                            <i data-lucide="chevron-down" id="objectivesChevron" style="width: 16px; height: 16px; transition: transform 0.2s ease;"></i>
+                        </div>
                     </div>
-
+                    <div id="objectivesTeaserLine" onclick="toggleFoldSection('objectivesBody', 'objectivesChevron', 'objectivesPrompt')" style="padding: 0 18px 12px 18px; font-size: 0.86rem; color: var(--text-secondary); cursor: pointer; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">
+                        Covers: {{ course.learning_objectives | join(" • ") }}
+                    </div>
+                    <div id="objectivesBody" style="display: none; padding: 16px 18px; border-top: 1px solid var(--border-color); background: var(--bg-card);">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+                            {% for obj in course.learning_objectives %}
+                            <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.88rem; color: var(--text-secondary);">
+                                <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
+                                <span>{{ obj }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
                 {% endif %}
-
             </div>
 
             <!-- 5. Practical Project Assignment Section -->
@@ -2429,5 +2439,22 @@
 
 {% endif %}
 
+<script>
+function toggleFoldSection(bodyId, chevronId, promptId) {
+    const body = document.getElementById(bodyId);
+    const chevron = document.getElementById(chevronId);
+    const prompt = document.getElementById(promptId);
+    if (!body) return;
+
+    const isVisible = body.style.display !== "none";
+    body.style.display = isVisible ? "none" : "block";
+    if (chevron) {
+        chevron.style.transform = isVisible ? "rotate(0deg)" : "rotate(180deg)";
+    }
+    if (prompt) {
+        prompt.textContent = isVisible ? "Click to view full details" : "Click to fold / hide";
+    }
+}
+</script>
 {% endblock %}
 

@@ -693,6 +693,13 @@
                         <span>Original ₹999 • SkillRock Student Price</span>
                     </div>
                     {% endif %}
+
+                    <!-- Quick 1-Click Pay in Summary Card -->
+                    <button type="button" onclick="document.getElementById('btnRazorpayModal').click()" class="td-quick-pay-left-btn" style="width: 100%; margin-top: 12px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: #FFFFFF; border: none; padding: 11px 14px; border-radius: 10px; font-weight: 800; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35); transition: all 0.15s ease;">
+                        <i data-lucide="zap" style="width: 15px; height: 15px; fill: #FFFFFF;"></i>
+                        <span>Pay ₹{{ price|int }} Now (1-Click)</span>
+                        <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+                    </button>
                 </div>
 
                 <!-- Student Identity Pill -->
@@ -824,6 +831,43 @@
                 <!-- Main Active Payment Pane (Razorpay-First Gateway) -->
                 <div class="td-pay-pane">
 
+                    <!-- TOP PRIMARY PAYMENT ACTION BAR: Front & Center at the Top -->
+                    <div style="background: linear-gradient(135deg, rgba(122, 0, 138, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%); border: 2px solid #D8B4FE; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(122, 0, 138, 0.12);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                            <div>
+                                <span style="font-size: 0.74rem; font-weight: 800; color: #7A008A; text-transform: uppercase; letter-spacing: 0.5px;">Total Payable</span>
+                                <div style="font-size: 1.85rem; font-weight: 900; color: #0F172A; line-height: 1.1;">₹{{ price|int }}</div>
+                            </div>
+                            <span style="font-size: 0.74rem; font-weight: 800; background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; padding: 4px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i> Razorpay Instant Auto-Unlock
+                            </span>
+                        </div>
+
+                        <!-- MASTER RAZORPAY CTA BUTTON (Placed at the very TOP) -->
+                        <button type="button" id="btnRazorpayModal" class="td-rzp-master-btn" style="width: 100%; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #7A008A 0%, #580064 100%); color: #FFFFFF; padding: 16px 22px; border-radius: 14px; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 8px 24px rgba(122, 0, 138, 0.35);">
+                            <div style="display: flex; align-items: center; gap: 12px; text-align: left;">
+                                <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i data-lucide="lock" style="width: 20px; height: 20px; color: #FFF;"></i>
+                                </div>
+                                <div>
+                                    <div id="rzpBtnText" style="font-size: 1.05rem; font-weight: 800; letter-spacing: 0.3px;">Proceed to Pay ₹{{ price|int }} via Razorpay</div>
+                                    <div style="font-size: 0.74rem; color: #E9D5FF; font-weight: 500;">Cards, UPI (GPay/PhonePe), Netbanking, Wallets</div>
+                                </div>
+                            </div>
+                            <i data-lucide="arrow-right" style="width: 22px; height: 22px; color: #FFFFFF; flex-shrink: 0;"></i>
+                        </button>
+
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 10px; font-size: 0.72rem; color: #64748B; font-weight: 600; flex-wrap: wrap;">
+                            <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="shield" style="width: 12px; height: 12px; color: #10B981;"></i> 100% Safe & Secure
+                            </span>
+                            <span>•</span>
+                            <span>PCI-DSS Level 1</span>
+                            <span>•</span>
+                            <span>256-Bit Encryption</span>
+                        </div>
+                    </div>
+
                     <!-- Active Method Detail Card -->
                     <div id="methodDetailCard" style="background: #FBF8FF; border: 1.5px solid #E9D5FF; border-radius: 16px; padding: 20px; margin-bottom: 20px;">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
@@ -900,18 +944,11 @@
                         </div>
                     </div>
 
-                    <!-- Master Razorpay Proceed CTA Button -->
-                    <button type="button" id="btnRazorpayModal" class="td-rzp-master-btn" style="width: 100%; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #7A008A 0%, #580064 100%); color: #FFFFFF; padding: 16px 24px; border-radius: 14px; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 8px 24px rgba(122, 0, 138, 0.35);">
-                        <div style="display: flex; align-items: center; gap: 14px; text-align: left;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center;">
-                                <i data-lucide="lock" style="width: 20px; height: 20px; color: #FFF;"></i>
-                            </div>
-                            <div>
-                                <div id="rzpBtnText" style="font-size: 1.05rem; font-weight: 800; letter-spacing: 0.3px;">Proceed to Pay ₹{{ price|int }} via Razorpay</div>
-                                <div style="font-size: 0.74rem; color: #E9D5FF; font-weight: 500;">Cards, UPI, Netbanking, Wallets • Instant Activation</div>
-                            </div>
-                        </div>
-                        <i data-lucide="arrow-right" style="width: 22px; height: 22px; color: #FFFFFF;"></i>
+                    <!-- Secondary Quick Proceed Button at bottom of benefits -->
+                    <button type="button" onclick="document.getElementById('btnRazorpayModal').click()" class="td-rzp-secondary-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: #EDE9FE; color: #6D28D9; border: 1.5px solid #C4B5FD; padding: 13px 20px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; cursor: pointer; transition: all 0.15s ease;">
+                        <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
+                        <span>Pay ₹{{ price|int }} via Razorpay</span>
+                        <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
                     </button>
 
                     <!-- Security & Certification Trust Footer -->

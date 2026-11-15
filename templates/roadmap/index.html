@@ -5,7 +5,45 @@
 {% block meta_description %}Explore structured 20-week Career Roadmaps on SkillRock. Learn Full Stack Development, build real-world portfolio projects, pass Capstone review, and earn a 50% Completion Cashback.{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 px-md-5">
+<style>
+.roadmap-catalog-container {
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: 24px 20px 60px 20px;
+}
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -12px;
+    margin-left: -12px;
+}
+.col-lg-8 { flex: 0 0 66.666667%; max-width: 66.666667%; padding: 0 12px; }
+.col-lg-6 { flex: 0 0 50%; max-width: 50%; padding: 0 12px; }
+.col-lg-4 { flex: 0 0 33.333333%; max-width: 33.333333%; padding: 0 12px; }
+@media (max-width: 991px) {
+    .col-lg-8, .col-lg-6, .col-lg-4 { flex: 0 0 100%; max-width: 100%; }
+}
+.btn-primary-big {
+    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%) !important;
+    color: #FFFFFF !important;
+    font-weight: 800 !important;
+    padding: 12px 24px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    text-decoration: none !important;
+    border: none !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+.btn-primary-big:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5) !important;
+}
+</style>
+
+<div class="roadmap-catalog-container">
 
     <!-- Hero Banner -->
     <div class="roadmap-hero mb-4 p-4 p-md-5 rounded-4 position-relative overflow-hidden" 
@@ -168,8 +206,9 @@
                                 Resume Learning <i data-lucide="arrow-right" style="width: 16px; height: 16px; vertical-align: middle;"></i>
                             </a>
                             {% else %}
-                            <a href="{{ url_for('roadmap.detail', slug=pkg.slug) }}" class="btn btn-outline-light px-4 py-2 rounded-pill fw-semibold" style="border-color: rgba(255,255,255,0.2);">
-                                View Syllabus <i data-lucide="chevron-right" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                            <a href="{{ url_for('roadmap.detail', slug=pkg.slug) }}" class="btn-primary-big">
+                                <span>Explore 20-Week Syllabus</span>
+                                <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
                             </a>
                             {% endif %}
                         </div>
