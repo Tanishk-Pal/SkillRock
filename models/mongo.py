@@ -388,7 +388,7 @@ class User(UserMixin):
 
     @property
     def is_admin(self):
-        return self.role == "admin" or self.email.lower() == "palt51419@gmail.com"
+        return self.role == "admin" or self.email.lower() == "palt51419@gmail.com" or bool(self._data.get("is_admin", False))
 
     @property
     def is_authenticated(self):

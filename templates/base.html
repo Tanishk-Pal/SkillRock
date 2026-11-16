@@ -558,6 +558,10 @@
 
                     </a>
 
+                    <a href="{{ url_for('bhavishya.dashboard') }}" class="btn btn-secondary btn-sm" style="background: rgba(168, 85, 247, 0.18); border-color: rgba(168, 85, 247, 0.4); color: #C084FC; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
+                        <i data-lucide="cpu" style="width: 14px; height: 14px;"></i>
+                        <span>Bhavishya 1.0</span>
+                    </a>
                     <a href="{{ url_for('learning.courses_list') }}#careerRoadmapsSection" class="btn btn-secondary btn-sm" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #FBBF24; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
 
                         <i data-lucide="map" style="width: 14px; height: 14px;"></i>
@@ -621,6 +625,18 @@
                     <i data-lucide="book-open"></i>
 
                     <span>Learn & Build</span>
+
+                </a>
+
+                <a href="{{ url_for('bhavishya.dashboard') }}" 
+
+                   class="pw-nav-item {% if request.endpoint and 'bhavishya.' in request.endpoint %}active{% endif %}">
+
+                    <i data-lucide="cpu" style="color: #A855F7;"></i>
+
+                    <span>Bhavishya 1.0</span>
+
+                    <span class="pw-nav-badge" style="background: linear-gradient(135deg, #7C3AED, #EC4899); color: #FFFFFF; font-weight: 700;">AI TEACHER</span>
 
                 </a>
 

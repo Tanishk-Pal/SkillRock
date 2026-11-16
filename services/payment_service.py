@@ -96,6 +96,8 @@ def generate_upi_qr_base64(amount, item_type, item_id, item_title="", session_to
         short_type = "CRS"
     elif item_type == "roadmap":
         short_type = "RDM"
+    elif item_type == "bhavishya":
+        short_type = "BHV"
     else:
         short_type = "TST"
     short_id = str(item_id).replace("-", "")[:8].upper()
@@ -184,6 +186,13 @@ def get_item_by_type_and_id(item_type, item_id):
             pkg = RoadmapPackage.get_by_slug(str_id)
         return pkg
 
+    elif item_type == "bhavishya":
+        from models.bhavishya import BhavishyaPackage, BhavishyaSubject
+        if str_id in ("bhavishya-1-0", "bhavishya", "package", "bhavishya-package"):
+            return BhavishyaPackage()
+        subj = BhavishyaSubject.get_by_slug(str_id) or BhavishyaSubject.get_by_id(str_id)
+        return subj or BhavishyaPackage()
+
     return None
 
 
@@ -218,6 +227,14 @@ def verify_student_unlock(user, item_type, item_id):
 
     # Item is paid -> Verify active record in user_access collection
     db = get_db()
+    if item_type == "bhavishya":
+        access_doc = db.user_access.find_one({
+            "user_id": str(user.id),
+            "item_type": "bhavishya",
+            "is_active": True,
+        })
+        return bool(access_doc)
+
     access_doc = db.user_access.find_one({
         "user_id": str(user.id),
         "item_type": item_type,
@@ -303,6 +320,14 @@ def grant_student_access(user_id, item_type, item_id, granted_by="admin", paymen
                     prog.save()
         except Exception as e:
             logger.warning(f"Roadmap progress hook on grant_student_access error: {e}")
+
+    # Automatically initialize progress if bhavishya
+    if item_type == "bhavishya":
+        try:
+            from models.bhavishya import BhavishyaProgress
+            BhavishyaProgress.get_or_create_for_user(uid)
+        except Exception as e:
+            logger.warning(f"Bhavishya progress hook on grant_student_access error: {e}")
 
     return True
 

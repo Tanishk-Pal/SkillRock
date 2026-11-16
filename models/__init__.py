@@ -20,6 +20,18 @@ from models.roadmap import (
     ensure_default_roadmaps
 )
 
+from models.bhavishya import (
+    BhavishyaPackage,
+    BhavishyaSubject,
+    BhavishyaProgress,
+    BhavishyaMemory,
+    BhavishyaSubmission,
+    BhavishyaSimulatorAttempt,
+    BhavishyaCashback,
+    BhavishyaUsage
+)
+from models.default_bhavishya_curriculum import ensure_default_bhavishya_subjects
+
 from models.mongo import (
     db,
     get_db,
@@ -85,4 +97,13 @@ __all__ = [
     "RoadmapSubmission",
     "RoadmapCashback",
     "ensure_default_roadmaps",
+    "BhavishyaPackage",
+    "BhavishyaSubject",
+    "BhavishyaProgress",
+    "BhavishyaMemory",
+    "BhavishyaSubmission",
+    "BhavishyaSimulatorAttempt",
+    "BhavishyaCashback",
+    "BhavishyaUsage",
+    "ensure_default_bhavishya_subjects",
 ]

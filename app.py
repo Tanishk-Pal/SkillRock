@@ -26,7 +26,10 @@ from models import (
     ensure_default_courses,
     ensure_default_test_series,
     ensure_default_roadmaps,
+    ensure_default_bhavishya_subjects,
     RoadmapPackage,
+    BhavishyaSubject,
+    BhavishyaPackage,
     TestDefinition,
     TestPack,
     TestAttempt
@@ -45,7 +48,8 @@ from routes import (
     learning_bp,
     test_series_bp,
     payment_bp,
-    roadmap_bp
+    roadmap_bp,
+    bhavishya_bp
 )
 
 def create_app(config_class=Config):
@@ -63,6 +67,7 @@ def create_app(config_class=Config):
             ensure_default_courses()
             ensure_default_test_series()
             ensure_default_roadmaps()
+            ensure_default_bhavishya_subjects()
         except Exception as e_init:
             import logging
             logging.getLogger(__name__).warning(f"Database initialization/seed notice: {e_init}")
@@ -93,6 +98,7 @@ def create_app(config_class=Config):
     app.register_blueprint(test_series_bp)
     app.register_blueprint(payment_bp)
     app.register_blueprint(roadmap_bp)
+    app.register_blueprint(bhavishya_bp)
 
     # Provide global utilities & model classes safely in Jinja templates
     from services.payment_service import verify_student_unlock
@@ -104,6 +110,8 @@ def create_app(config_class=Config):
         Assignment=Assignment,
         Submission=Submission,
         RoadmapPackage=RoadmapPackage,
+        BhavishyaSubject=BhavishyaSubject,
+        BhavishyaPackage=BhavishyaPackage,
         verify_student_unlock=verify_student_unlock
     )
 
@@ -134,7 +142,7 @@ def create_app(config_class=Config):
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(self), geolocation=()"
         response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
 
         # HTTP Strict Transport Security (HSTS) on HTTPS / Reverse-Proxy

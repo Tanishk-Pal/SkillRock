@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}Bhavishya 1.0 — AI-Powered Career Preparation Platform | SkillRock{% endblock %}
+{% block meta_description %}Learn with your personal AI Teacher on SkillRock Bhavishya 1.0. 24 weeks, 19 subjects, interactive voice classroom, coding lab, and 50% completion cashback.{% endblock %}
+
+{% block content %}
+<div class="bhavishya-container" style="max-width: 1320px; margin: 0 auto; padding: 24px 16px 80px;">
+
+    <!-- 1. Hero Header Banner -->
+    <div class="bh-hero-card" style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.95), rgba(15, 23, 42, 0.98)); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 20px; padding: 36px 32px; margin-bottom: 28px; position: relative; overflow: hidden; box-shadow: 0 16px 40px -10px rgba(124, 58, 237, 0.25);">
+        <div style="position: absolute; top: -60px; right: -60px; width: 240px; height: 240px; background: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+        
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; position: relative; z-index: 2;">
+            <div style="max-width: 780px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                    <span style="background: linear-gradient(135deg, #7C3AED, #EC4899); color: #FFFFFF; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 12px; border-radius: 9999px;">AI-Powered Career Platform</span>
+                    <span style="background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.4); color: #FBBF24; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 9999px;">💰 50% Completion Cashback</span>
+                </div>
+                <h1 style="font-size: 34px; font-weight: 800; color: #FFFFFF; margin: 0 0 10px; letter-spacing: -0.02em; line-height: 1.2;">
+                    SkillRock <span style="background: linear-gradient(135deg, #A855F7, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Bhavishya 1.0</span>
+                </h1>
+                <p style="color: #94A3B8; font-size: 16px; margin: 0 0 18px; line-height: 1.5;">
+                    Your Personal AI Teacher. Your Complete Career Preparation Journey. 24 weeks of interactive voice-guided learning, live coding labs, recruitment simulations, and verified industry credentials.
+                </p>
+                <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; color: #CBD5E1; font-size: 13px; font-weight: 500;">
+                    <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="calendar" style="width: 15px; color: #38BDF8;"></i> 24 Weeks (10-12 hrs/wk)</span>
+                    <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="layers" style="width: 15px; color: #A855F7;"></i> 19 Comprehensive Subjects</span>
+                    <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="mic" style="width: 15px; color: #EC4899;"></i> 2-Way Voice AI Classroom</span>
+                    <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="award" style="width: 15px; color: #10B981;"></i> QR-Verified Certificate</span>
+                </div>
+            </div>
+
+            <!-- Right: Pricing & Enrollment Action -->
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 22px; min-width: 260px; text-align: center; backdrop-filter: blur(8px);">
+                <div style="font-size: 12px; color: #94A3B8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">Complete 24-Week Access</div>
+                <div style="display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="font-size: 36px; font-weight: 800; color: #F8FAFC;">₹299</span>
+                    <span style="font-size: 16px; color: #64748B; text-decoration: line-through;">₹2,499</span>
+                </div>
+                <div style="font-size: 12px; color: #10B981; font-weight: 700; margin-bottom: 16px;">
+                    Get ₹149.50 Back on 100% Completion
+                </div>
+
+                {% if is_unlocked %}
+                    <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399; padding: 10px 20px; border-radius: 9999px; font-weight: 700; font-size: 14px;">
+                        <span style="width: 8px; height: 8px; background: #10B981; border-radius: 50%; box-shadow: 0 0 8px #10B981;"></span>
+                        Enrolled & Active Access
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('payment.checkout', item_type='bhavishya', item_id='bhavishya-1-0') }}" 
+                       class="btn" 
+                       style="display: block; width: 100%; background: linear-gradient(135deg, #7C3AED, #5B46F6); color: #FFFFFF; font-weight: 700; padding: 12px 24px; border-radius: 12px; text-decoration: none; box-shadow: 0 8px 24px -4px rgba(124, 58, 237, 0.4); transition: transform 0.15s ease;"
+                       onmouseover="this.style.transform='translateY(-2px)'"
+                       onmouseout="this.style.transform='translateY(0)'">
+                        Enroll in Bhavishya 1.0 →
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Interactive KPI Stats Bar -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 28px;">
+        <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="color: #94A3B8; font-size: 13px; font-weight: 600;">Overall Progress</span>
+                <i data-lucide="trending-up" style="width: 18px; color: #38BDF8;"></i>
+            </div>
+            <div style="font-size: 26px; font-weight: 800; color: #F8FAFC;">{{ overall_percentage }}%</div>
+            <div style="font-size: 12px; color: #64748B; margin-top: 4px;">{{ completed_count }} of {{ total_lessons }} lessons finished</div>
+            <div style="height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 9999px; margin-top: 10px; overflow: hidden;">
+                <div style="height: 100%; width: {{ overall_percentage }}%; background: linear-gradient(90deg, #38BDF8, #818CF8); border-radius: 9999px;"></div>
+            </div>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="color: #94A3B8; font-size: 13px; font-weight: 600;">Active Streak</span>
+                <i data-lucide="flame" style="width: 18px; color: #F97316;"></i>
+            </div>
+            <div style="font-size: 26px; font-weight: 800; color: #F8FAFC;">{{ progress.active_streak_days if progress else 1 }} Days</div>
+            <div style="font-size: 12px; color: #10B981; margin-top: 4px; font-weight: 600;">Consistent learning habit active</div>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="color: #94A3B8; font-size: 13px; font-weight: 600;">Placement Readiness</span>
+                <i data-lucide="target" style="width: 18px; color: #A855F7;"></i>
+            </div>
+            <div style="font-size: 26px; font-weight: 800; color: #F8FAFC;">{{ progress.placement_readiness_score if progress else 0 }} / 100</div>
+            <div style="font-size: 12px; color: #94A3B8; margin-top: 4px;">Based on 5-Round Simulator</div>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="color: #94A3B8; font-size: 13px; font-weight: 600;">50% Refund Status</span>
+                <i data-lucide="check-check" style="width: 18px; color: #10B981;"></i>
+            </div>
+            <div style="font-size: 18px; font-weight: 800; color: #FBBF24; text-transform: capitalize;">
+                {{ (cashback_status or 'in_progress').replace('_', ' ') }}
+            </div>
+            <a href="{{ url_for('bhavishya.cashback_claim') }}" style="font-size: 12px; color: #38BDF8; text-decoration: none; display: inline-block; margin-top: 6px; font-weight: 600;">
+                Check Eligibility & Claim →
+            </a>
+        </div>
+    </div>
+
+    <!-- 3. Continue Learning Jump Card -->
+    {% if continue_subject and continue_lesson %}
+    <div style="background: linear-gradient(90deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 16px; padding: 20px 24px; margin-bottom: 32px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; color: #38BDF8;">
+                <i data-lucide="play-circle" style="width: 24px; height: 24px;"></i>
+            </div>
+            <div>
+                <div style="color: #94A3B8; font-size: 12px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Continue Learning Session</div>
+                <div style="color: #F8FAFC; font-size: 17px; font-weight: 700;">{{ continue_subject.title }}: {{ continue_lesson.title }}</div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <a href="{{ url_for('bhavishya.roadmap') }}" class="btn" style="background: rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; text-decoration: none;">
+                <i data-lucide="map" style="width: 14px; margin-right: 4px;"></i> View 24-Wk Roadmap
+            </a>
+            <a href="{{ url_for('bhavishya.classroom', subject_slug=continue_subject.slug, lesson_id=continue_lesson.id) }}" class="btn" style="background: linear-gradient(135deg, #0284C7, #0369A1); color: #FFFFFF; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; text-decoration: none;">
+                Resume with Prof. Bhavishya →
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 4. CATEGORY A: TECHNICAL SKILLS (01 - 08) -->
+    <div style="margin-bottom: 36px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
+            <div>
+                <div style="color: #38BDF8; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;">Category A</div>
+                <h2 style="font-size: 22px; font-weight: 800; color: #F8FAFC; margin: 2px 0 0;">Technical Foundations for AI & Software Roles (01–08)</h2>
+            </div>
+            <span style="font-size: 12px; color: #94A3B8; font-weight: 600;">8 Core Subjects</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px;">
+            {% for subj in tech_subjects %}
+                {% set subj_pct = progress.calculate_subject_progress(subj) if progress else 0 %}
+                <div class="bh-subject-card" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.15s ease, border-color 0.15s ease; position: relative; overflow: hidden;"
+                     onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='{{ subj.color_accent }}';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.08)';">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid {{ subj.color_accent }}44; display: flex; align-items: center; justify-content: center; color: {{ subj.color_accent }};">
+                                <i data-lucide="{{ subj.icon }}" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <span style="font-size: 11px; font-weight: 700; color: {{ subj.color_accent }}; background: {{ subj.color_accent }}18; padding: 3px 8px; border-radius: 6px;">{{ subj.difficulty }}</span>
+                        </div>
+                        <h3 style="font-size: 17px; font-weight: 700; color: #F8FAFC; margin: 0 0 8px; line-height: 1.3;">{{ subj.title }}</h3>
+                        <p style="font-size: 13px; color: #94A3B8; line-height: 1.45; margin: 0 0 16px;">{{ subj.short_description }}</p>
+                    </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748B; margin-bottom: 6px;">
+                            <span>{{ subj.estimated_hours }} Hours · {{ subj.total_lessons_count }} Lessons</span>
+                            <span style="font-weight: 700; color: #CBD5E1;">{{ subj_pct }}%</span>
+                        </div>
+                        <div style="height: 5px; background: rgba(255, 255, 255, 0.08); border-radius: 9999px; margin-bottom: 16px; overflow: hidden;">
+                            <div style="height: 100%; width: {{ subj_pct }}%; background: {{ subj.color_accent }}; border-radius: 9999px;"></div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <a href="{{ url_for('bhavishya.subject_detail', slug=subj.slug) }}" 
+                               style="flex: 1; text-align: center; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #E2E8F0; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">
+                                View Syllabus
+                            </a>
+                            <a href="{{ url_for('bhavishya.subject_detail', slug=subj.slug) }}" 
+                               style="flex: 1; text-align: center; background: {{ subj.color_accent }}22; border: 1px solid {{ subj.color_accent }}55; color: {{ subj.color_accent }}; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
+                                {% if subj_pct > 0 %}Continue →{% else %}Start Lesson →{% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 5. CATEGORY B: PLACEMENT PREPARATION (09 - 14) -->
+    <div style="margin-bottom: 36px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
+            <div>
+                <div style="color: #A855F7; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;">Category B</div>
+                <h2 style="font-size: 22px; font-weight: 800; color: #F8FAFC; margin: 2px 0 0;">Placement & Interview Recruitment Preparation (09–14)</h2>
+            </div>
+            <span style="font-size: 12px; color: #94A3B8; font-weight: 600;">6 Modules</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px;">
+            {% for subj in placement_subjects %}
+                {% set subj_pct = progress.calculate_subject_progress(subj) if progress else 0 %}
+                <div class="bh-subject-card" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.15s ease, border-color 0.15s ease;"
+                     onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='{{ subj.color_accent }}';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.08)';">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid {{ subj.color_accent }}44; display: flex; align-items: center; justify-content: center; color: {{ subj.color_accent }};">
+                                <i data-lucide="{{ subj.icon }}" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <span style="font-size: 11px; font-weight: 700; color: {{ subj.color_accent }}; background: {{ subj.color_accent }}18; padding: 3px 8px; border-radius: 6px;">{{ subj.difficulty }}</span>
+                        </div>
+                        <h3 style="font-size: 17px; font-weight: 700; color: #F8FAFC; margin: 0 0 8px; line-height: 1.3;">{{ subj.title }}</h3>
+                        <p style="font-size: 13px; color: #94A3B8; line-height: 1.45; margin: 0 0 16px;">{{ subj.short_description }}</p>
+                    </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748B; margin-bottom: 6px;">
+                            <span>{{ subj.estimated_hours }} Hours · {{ subj.total_lessons_count }} Modules</span>
+                            <span style="font-weight: 700; color: #CBD5E1;">{{ subj_pct }}%</span>
+                        </div>
+                        <div style="height: 5px; background: rgba(255, 255, 255, 0.08); border-radius: 9999px; margin-bottom: 16px; overflow: hidden;">
+                            <div style="height: 100%; width: {{ subj_pct }}%; background: {{ subj.color_accent }}; border-radius: 9999px;"></div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <a href="{{ url_for('bhavishya.subject_detail', slug=subj.slug) }}" 
+                               style="flex: 1; text-align: center; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #E2E8F0; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">
+                                View Syllabus
+                            </a>
+                            <a href="{{ url_for('bhavishya.subject_detail', slug=subj.slug) }}" 
+                               style="flex: 1; text-align: center; background: {{ subj.color_accent }}22; border: 1px solid {{ subj.color_accent }}55; color: {{ subj.color_accent }}; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
+                                Practice →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 6. CATEGORY C: PRACTICAL PROJECTS AND CAREER PORTFOLIO (15 - 19) -->
+    <div style="margin-bottom: 40px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
+            <div>
+                <div style="color: #EC4899; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;">Category C</div>
+                <h2 style="font-size: 22px; font-weight: 800; color: #F8FAFC; margin: 2px 0 0;">Practical Projects, Placement Simulator & Capstone (15–19)</h2>
+            </div>
+            <span style="font-size: 12px; color: #94A3B8; font-weight: 600;">5 Major Milestones</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px;">
+            {% for subj in project_subjects %}
+                {% set subj_pct = progress.calculate_subject_progress(subj) if progress else 0 %}
+                <div class="bh-subject-card" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.15s ease, border-color 0.15s ease;"
+                     onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='{{ subj.color_accent }}';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.08)';">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid {{ subj.color_accent }}44; display: flex; align-items: center; justify-content: center; color: {{ subj.color_accent }};">
+                                <i data-lucide="{{ subj.icon }}" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <span style="font-size: 11px; font-weight: 700; color: {{ subj.color_accent }}; background: {{ subj.color_accent }}18; padding: 3px 8px; border-radius: 6px;">{{ subj.difficulty }}</span>
+                        </div>
+                        <h3 style="font-size: 17px; font-weight: 700; color: #F8FAFC; margin: 0 0 8px; line-height: 1.3;">{{ subj.title }}</h3>
+                        <p style="font-size: 13px; color: #94A3B8; line-height: 1.45; margin: 0 0 16px;">{{ subj.short_description }}</p>
+                    </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748B; margin-bottom: 6px;">
+                            <span>{{ subj.estimated_hours }} Hours</span>
+                            <span style="font-weight: 700; color: #CBD5E1;">{{ subj_pct }}%</span>
+                        </div>
+                        <div style="height: 5px; background: rgba(255, 255, 255, 0.08); border-radius: 9999px; margin-bottom: 16px; overflow: hidden;">
+                            <div style="height: 100%; width: {{ subj_pct }}%; background: {{ subj.color_accent }}; border-radius: 9999px;"></div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            {% if subj.slug == 'placement-simulator' %}
+                                <a href="{{ url_for('bhavishya.simulator') }}" 
+                                   style="flex: 1; text-align: center; background: linear-gradient(135deg, #059669, #10B981); color: #FFFFFF; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
+                                    Launch 5-Round Simulator →
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('bhavishya.subject_detail', slug=subj.slug) }}" 
+                                   style="flex: 1; text-align: center; background: {{ subj.color_accent }}22; border: 1px solid {{ subj.color_accent }}55; color: {{ subj.color_accent }}; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
+                                    Open Project Portal →
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 7. Bottom Guarantee & 50% Cashback Footer Banner -->
+    <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 16px; padding: 24px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 18px;">
+        <div style="max-width: 680px;">
+            <div style="display: flex; align-items: center; gap: 8px; color: #FBBF24; font-weight: 700; font-size: 15px; margin-bottom: 6px;">
+                <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
+                The SkillRock 50% Completion Cashback Commitment
+            </div>
+            <p style="color: #94A3B8; font-size: 13px; line-height: 1.5; margin: 0;">
+                We reward students who stay committed. If you complete 100% of all Bhavishya mandatory lessons, pass the 5-round recruitment simulator, and submit your capstone project within 24 weeks, you receive a direct 50% refund (₹149.50) back to your account.
+            </p>
+        </div>
+        <a href="{{ url_for('bhavishya.cashback_claim') }}" class="btn" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #FBBF24; font-weight: 700; padding: 10px 20px; border-radius: 10px; font-size: 13px; text-decoration: none;">
+            View Refund Terms & Tracker →
+        </a>
+    </div>
+
+</div>
+{% endblock %}

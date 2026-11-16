@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}24-Week Career Preparation Roadmap — Bhavishya 1.0 | SkillRock{% endblock %}
+{% block meta_description %}Interactive 24-week roadmap for Bhavishya 1.0: Technical Skills, Placement Preparation, and Industry Projects.{% endblock %}
+
+{% block content %}
+<div class="bh-roadmap-container" style="max-width: 1200px; margin: 0 auto; padding: 24px 16px 80px;">
+
+    <!-- Top Header -->
+    <div style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.95), rgba(15, 23, 42, 0.98)); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 20px; padding: 32px; margin-bottom: 28px; box-shadow: 0 16px 36px -10px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <div style="color: #A855F7; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">
+                    Full 24-Week Interactive Journey
+                </div>
+                <h1 style="font-size: 30px; font-weight: 800; color: #FFFFFF; margin: 0 0 8px; letter-spacing: -0.02em;">
+                    Bhavishya 1.0 Curriculum Roadmap
+                </h1>
+                <p style="color: #94A3B8; font-size: 15px; margin: 0;">
+                    Structured progression through 6 phases, 19 subjects, 10–12 hours per week, culminating in the evaluated Capstone & Placement Simulator.
+                </p>
+            </div>
+
+            <a href="{{ url_for('bhavishya.dashboard') }}" class="btn" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #E2E8F0; padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; text-decoration: none;">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- 6 Interactive Phases Timeline -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+
+        <!-- Phase 1: Weeks 1 - 4 -->
+        <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 18px; padding: 24px; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="background: #0284C7; color: #FFFFFF; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 9999px;">Weeks 1–4</span>
+                    <h2 style="font-size: 18px; font-weight: 800; color: #F8FAFC; margin: 0;">Phase 1: Foundations & Daily Verbal Communication</h2>
+                </div>
+                <span style="color: #38BDF8; font-size: 12px; font-weight: 600;">Core Python, Basic DSA, Aptitude & Spoken English</span>
+            </div>
+            <p style="color: #94A3B8; font-size: 14px; line-height: 1.5; margin: 0 0 16px;">
+                Build rock-solid Python programming fundamentals, basic linear data structures (Arrays, Linked Lists, Stacks), daily speed-math aptitude routines, and verbal English fluency via microphone sessions.
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="{{ url_for('bhavishya.subject_detail', slug='python-programming') }}" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38BDF8; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">01. Python Programming →</a>
+                <a href="{{ url_for('bhavishya.subject_detail', slug='data-structures-and-algorithms') }}" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #C084FC; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">02. DSA Foundations →</a>
+                <a href="{{ url_for('bhavishya.subject_detail', slug='english-and-communication') }}" style="background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.4); color: #38BDF8; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">10. Spoken English & Comm →</a>
+            </div>
+        </div>
+
+        <!-- Phase 2: Weeks 5 - 8 -->
+        <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 18px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="background: #7C3AED; color: #FFFFFF; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 9999px;">Weeks 5–8</span>
+                    <h2 style="font-size: 18px; font-weight: 800; color: #F8FAFC; margin: 0;">Phase 2: Algorithmic Problem Solving & Mathematics for AI</h2>
+                </div>
+                <span style="color: #C084FC; font-size: 12px; font-weight: 600;">Trees, Graphs, DP, Linear Algebra & Probability</span>
+            </div>
+            <p style="color: #94A3B8; font-size: 14px; line-height: 1.5; margin: 0 0 16px;">
+                Tackle complex interview coding patterns (Binary Trees, Graphs BFS/DFS, Dynamic Programming) alongside essential machine learning mathematics: vector dot products, matrices, gradients, and probability distributions.
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="{{ url_for('bhavishya.subject_detail', slug='mathematics-and-statistics') }}" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">03. Math & Statistics →</a>
+                <a href="{{ url_for('bhavishya.subject_detail', slug='aptitude-and-logical-reasoning') }}" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #FBBF24; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">09. Aptitude & Reasoning →</a>
+            </div>
+        </div>
+
+        <!-- Phase 3: Weeks 9 - 12 -->
+        <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 18px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="background: #D97706; color: #FFFFFF; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 9999px;">Weeks 9–12</span>
+                    <h2 style="font-size: 18px; font-weight: 800; color: #F8FAFC; margin: 0;">Phase 3: Relational Data, Pandas Analytics & Core AI</h2>
+                </div>
+                <span style="color: #FBBF24; font-size: 12px; font-weight: 600;">SQL Joins, Normalization, NumPy, Pandas & Search</span>
+            </div>
+            <p style="color: #94A3B8; font-size: 14px; line-height: 1.5; margin: 0 0 16px;">
+                Architect normalized relational databases, execute complex SQL queries, wrangle dirty tabular data using Pandas and NumPy, and discover intelligent agents and heuristic A* search algorithms.
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="{{ url_for('bhavishya.subject_detail', slug='sql-and-data-management') }}" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #FBBF24; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">04. SQL & Data Mgmt →</a>
+                <a href="{{ url_for('bhavishya.subject_detail', slug='ai-fundamentals') }}" style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.4); color: #F472B6; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">05. AI Fundamentals →</a>
+                <a href="{{ url_for('bhavishya.subject_detail', slug='data-analytics-project') }}" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #60A5FA; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">16. Data Analytics Project →</a>
+            </div>
+        </div>
+
+        <!-- Phase 4: Weeks 13 - 16 -->
+        <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 18px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="background: #0891B2; color: #FFFFFF; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 9999px;">Weeks 13–16</span>
+                    <h2 style="font-size: 18px; font-weight: 800; color: #F8FAFC; margin: 0;">Phase 4: Machine Learning Engineering</h2>
+                </div>
+                <span style="color: #22D3EE; font-size: 12px; font-weight: 600;">Supervised/Unsupervised Models & Predictive Pipelines</span>
+            </div>
+            <p style="color: #94A3B8; font-size: 14px; line-height: 1.5; margin: 0 0 16px;">
+                Train, tune, evaluate, and prevent overfitting with Scikit-Learn: Linear/Logistic Regression, Tree Ensembles (Random Forests, Gradient Boosting), K-Means, and production evaluation metrics (Precision, Recall, ROC-AUC).
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="{{ url_for('bhavishya.subject_detail', slug='machine-learning') }}" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.4); color: #22D3EE; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">06. Machine Learning →</a>
+                <a href="{{ url_for('bhavishya.subject_detail', slug='ml-predictive-project') }}" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.4); color: #818CF8; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">17. ML Predictive Project →</a>
+            </div>
+        </div>
+
+        <!-- Phase 5: Weeks 17 - 19 -->
+        <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 18px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="background: #6D28D9; color: #FFFFFF; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 9999px;">Weeks 17–19</span>
+                    <h2 style="font-size: 18px; font-weight: 800; color: #F8FAFC; margin: 0;">Phase 5: Deep Learning, Generative AI & Deployment</h2>
+                </div>
+                <span style="color: #A78BFA; font-size: 12px; font-weight: 600;">Transformers, LLMs, Vector DBs, RAG & FastAPI</span>
+            </div>
+            <p style="color: #94A3B8; font-size: 14px; line-height: 1.5; margin: 0 0 16px;">
+                Master neural backpropagation, Transformer self-attention, prompt engineering, vector database indexing, and build production Retrieval-Augmented Generation (RAG) applications containerized with Docker and served via FastAPI.
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="{{ url_for('bhavishya.subject_detail', slug='deep-learning-and-genai') }}" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.4); color: #A78BFA; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">07. DL & GenAI →</a>
+                <a href="{{ url_for('bhavishya.subject_detail', slug='developer-tools-and-deployment') }}" style="background: rgba(20, 184, 166, 0.15); border: 1px solid rgba(20, 184, 166, 0.4); color: #2DD4BF; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">08. Tools & Deploy →</a>
+                <a href="{{ url_for('bhavishya.subject_detail', slug='genai-application-project') }}" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #C084FC; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">18. GenAI Chatbot Project →</a>
+            </div>
+        </div>
+
+        <!-- Phase 6: Weeks 20 - 24 -->
+        <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(236, 72, 153, 0.35); border-radius: 18px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="background: #BE185D; color: #FFFFFF; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 9999px;">Weeks 20–24</span>
+                    <h2 style="font-size: 18px; font-weight: 800; color: #F8FAFC; margin: 0;">Phase 6: Recruitment Arena, Evaluated Capstone & 50% Refund</h2>
+                </div>
+                <span style="color: #F472B6; font-size: 12px; font-weight: 600;">Multi-Agent GD, Mock Interviews, Capstone & Credentials</span>
+            </div>
+            <p style="color: #94A3B8; font-size: 14px; line-height: 1.5; margin: 0 0 16px;">
+                Polish your ATS resume, LinkedIn profile, and GitHub READMEs. Step into the 4-agent simulated GD table and AI mock interview booths. Submit your end-to-end cloud-deployed Capstone project, claim your verified completion certificate, and unlock your 50% fee refund!
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="{{ url_for('bhavishya.simulator') }}" style="background: linear-gradient(135deg, #059669, #10B981); color: #FFFFFF; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">15. Placement Simulator →</a>
+                <a href="{{ url_for('bhavishya.subject_detail', slug='group-discussion-simulator') }}" style="background: rgba(132, 204, 22, 0.15); border: 1px solid rgba(132, 204, 22, 0.4); color: #A3E635; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">11. AI GD Simulator →</a>
+                <a href="{{ url_for('bhavishya.subject_detail', slug='technical-interview-prep') }}" style="background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.4); color: #FB923C; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">12. Tech Interview →</a>
+                <a href="{{ url_for('bhavishya.subject_detail', slug='ai-ml-capstone-project') }}" style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.4); color: #F472B6; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">19. Evaluated Capstone →</a>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

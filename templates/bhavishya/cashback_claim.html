@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}50% Completion Cashback Tracker — Bhavishya 1.0 | SkillRock{% endblock %}
+{% block meta_description %}Claim your 50% fee refund (₹149.50) upon 100% completion of Bhavishya 1.0 on SkillRock.{% endblock %}
+
+{% block content %}
+<div class="bh-cashback-container" style="max-width: 1000px; margin: 0 auto; padding: 24px 16px 80px;">
+
+    <!-- Breadcrumb -->
+    <div style="display: flex; align-items: center; gap: 8px; color: #94A3B8; font-size: 13px; margin-bottom: 20px;">
+        <a href="{{ url_for('bhavishya.dashboard') }}" style="color: #94A3B8; text-decoration: none;">Bhavishya 1.0</a>
+        <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+        <span style="color: #E2E8F0; font-weight: 600;">50% Completion Cashback</span>
+    </div>
+
+    <!-- Header Card -->
+    <div style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.95), rgba(15, 23, 42, 0.98)); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 20px; padding: 32px; margin-bottom: 28px; box-shadow: 0 16px 36px -10px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+            <div style="max-width: 650px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <span style="background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #FBBF24; font-size: 11px; font-weight: 800; padding: 4px 12px; border-radius: 9999px;">
+                        Guaranteed Completion Incentive
+                    </span>
+                    <span style="background: rgba(16, 185, 129, 0.15); color: #34D399; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px;">
+                        ₹149.50 Net Cost
+                    </span>
+                </div>
+                <h1 style="font-size: 30px; font-weight: 800; color: #FFFFFF; margin: 0 0 10px;">
+                    50% Completion Cashback Tracker
+                </h1>
+                <p style="color: #94A3B8; font-size: 15px; margin: 0; line-height: 1.5;">
+                    At SkillRock, we believe students should be rewarded for finishing their education. Complete all 19 Bhavishya subjects and recruitment assessments within 24 weeks to get 50% of your fee back!
+                </p>
+            </div>
+
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 20px 24px; text-align: center; min-width: 200px;">
+                <div style="font-size: 11px; color: #94A3B8; text-transform: uppercase; font-weight: 700;">Refund Amount</div>
+                <div style="font-size: 32px; font-weight: 800; color: #FBBF24; margin: 4px 0;">₹149.50</div>
+                <div style="font-size: 12px; color: #10B981; font-weight: 600;">50% of ₹299 Package</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Tracking Banner -->
+    <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 24px; margin-bottom: 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div style="font-size: 15px; font-weight: 700; color: #F8FAFC;">Current Claim Status</div>
+            <span style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #FBBF24; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); padding: 4px 12px; border-radius: 9999px;">
+                {{ (record.status if record else 'in_progress').replace('_', ' ') }}
+            </span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #94A3B8; margin-bottom: 6px;">
+            <span>Syllabus Completion Progress</span>
+            <span style="font-weight: 700; color: #F8FAFC;">{{ completion_pct }}% / 100%</span>
+        </div>
+        <div style="height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 9999px; margin-bottom: 18px; overflow: hidden;">
+            <div style="height: 100%; width: {{ completion_pct }}%; background: linear-gradient(90deg, #F59E0B, #10B981); border-radius: 9999px;"></div>
+        </div>
+
+        <!-- 10 Conditions Checklist -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; color: #CBD5E1;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: {% if completion_pct >= 20 %}#10B981{% else %}#64748B{% endif %}; font-weight: 700;">{% if completion_pct >= 20 %}✓{% else %}○{% endif %}</span>
+                <span>Complete Category A Technical Lessons</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: {% if completion_pct >= 50 %}#10B981{% else %}#64748B{% endif %}; font-weight: 700;">{% if completion_pct >= 50 %}✓{% else %}○{% endif %}</span>
+                <span>Complete Category B Placement Modules</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: {% if completion_pct >= 75 %}#10B981{% else %}#64748B{% endif %}; font-weight: 700;">{% if completion_pct >= 75 %}✓{% else %}○{% endif %}</span>
+                <span>Pass 5-Round Placement Simulator</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: {% if is_eligible %}#10B981{% else %}#64748B{% endif %}; font-weight: 700;">{% if is_eligible %}✓{% else %}○{% endif %}</span>
+                <span>Submit Final Evaluated Capstone Project</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Claim Submission Form -->
+    <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 32px;">
+        <h2 style="font-size: 20px; font-weight: 800; color: #F8FAFC; margin: 0 0 8px;">Submit or Update Your Cashback Claim</h2>
+        <p style="color: #94A3B8; font-size: 14px; margin: 0 0 24px;">
+            Provide your verified UPI ID where our finance department will disburse your ₹149.50 completion cashback after administrative review.
+        </p>
+
+        <form method="POST" action="{{ url_for('bhavishya.cashback_claim') }}">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 13px; font-weight: 700; color: #CBD5E1; margin-bottom: 8px;">Your UPI ID (e.g. 9876543210@paytm, username@okaxis, etc.)</label>
+                <input type="text" name="upi_id" value="{{ record.upi_id if record else '' }}" required placeholder="yourname@upi" 
+                       style="width: 100%; max-width: 500px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 12px 16px; color: #FFFFFF; font-size: 14px; outline: none;">
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-size: 13px; font-weight: 700; color: #CBD5E1; margin-bottom: 4px;">Registered Email Address</label>
+                <input type="email" value="{{ current_user.email }}" disabled style="width: 100%; max-width: 500px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 16px; color: #94A3B8; font-size: 14px;">
+                <div style="font-size: 12px; color: #64748B; margin-top: 4px;">You can also email your claim details directly to <strong>Palt51419@gmail.com</strong>.</div>
+            </div>
+
+            <button type="submit" class="btn" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: #FFFFFF; font-weight: 800; padding: 12px 28px; border-radius: 10px; font-size: 14px; border: none; cursor: pointer; box-shadow: 0 8px 24px -4px rgba(245, 158, 11, 0.4);">
+                Submit Cashback Verification Claim (₹149.50) →
+            </button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

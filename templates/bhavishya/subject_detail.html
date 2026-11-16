@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}{{ subject.title }} — Bhavishya 1.0 | SkillRock{% endblock %}
+{% block meta_description %}{{ subject.short_description }}{% endblock %}
+
+{% block content %}
+<div class="bh-subject-detail-container" style="max-width: 1200px; margin: 0 auto; padding: 24px 16px 80px;">
+
+    <!-- Breadcrumb -->
+    <div style="display: flex; align-items: center; gap: 8px; color: #94A3B8; font-size: 13px; margin-bottom: 20px;">
+        <a href="{{ url_for('bhavishya.dashboard') }}" style="color: #94A3B8; text-decoration: none;">Bhavishya 1.0</a>
+        <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+        <span style="color: #E2E8F0; font-weight: 600;">{{ subject.title }}</span>
+    </div>
+
+    <!-- Subject Hero Header -->
+    <div style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.95), rgba(15, 23, 42, 0.98)); border: 1px solid {{ subject.color_accent }}44; border-radius: 20px; padding: 32px; margin-bottom: 28px; position: relative; overflow: hidden; box-shadow: 0 16px 36px -10px rgba(0,0,0,0.5);">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 24px;">
+            <div style="max-width: 760px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                    <span style="background: {{ subject.color_accent }}22; border: 1px solid {{ subject.color_accent }}55; color: {{ subject.color_accent }}; font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 6px;">
+                        {{ subject.category }}
+                    </span>
+                    <span style="background: rgba(255,255,255,0.06); color: #CBD5E1; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px;">
+                        {{ subject.difficulty }}
+                    </span>
+                </div>
+                <h1 style="font-size: 30px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px; letter-spacing: -0.02em;">
+                    {{ subject.title }}
+                </h1>
+                <p style="color: #94A3B8; font-size: 15px; line-height: 1.55; margin: 0 0 20px;">
+                    {{ subject.full_description }}
+                </p>
+                <div style="display: flex; flex-wrap: wrap; gap: 18px; color: #CBD5E1; font-size: 13px;">
+                    <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="clock" style="width: 15px; color: #38BDF8;"></i> {{ subject.estimated_hours }} Hours Estimated</span>
+                    <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="book-open" style="width: 15px; color: #A855F7;"></i> {{ subject.chapters|length }} Chapters</span>
+                    <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="layers" style="width: 15px; color: #EC4899;"></i> {{ subject.total_lessons_count }} Interactive Lessons</span>
+                    <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="check-circle" style="width: 15px; color: #10B981;"></i> {{ subject_progress_pct }}% Completed</span>
+                </div>
+            </div>
+
+            <!-- Right CTA Action Card -->
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 22px; min-width: 250px; text-align: center;">
+                <div style="font-size: 12px; color: #94A3B8; text-transform: uppercase; font-weight: 700; margin-bottom: 6px;">Subject Completion</div>
+                <div style="font-size: 32px; font-weight: 800; color: {{ subject.color_accent }}; margin-bottom: 8px;">{{ subject_progress_pct }}%</div>
+                <div style="height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 9999px; margin-bottom: 18px; overflow: hidden;">
+                    <div style="height: 100%; width: {{ subject_progress_pct }}%; background: {{ subject.color_accent }}; border-radius: 9999px;"></div>
+                </div>
+
+                {% if is_unlocked %}
+                    {% if first_lesson_id %}
+                        <a href="{{ url_for('bhavishya.classroom', subject_slug=subject.slug, lesson_id=first_lesson_id) }}" 
+                           class="btn" 
+                           style="display: block; width: 100%; background: linear-gradient(135deg, #7C3AED, #5B46F6); color: #FFFFFF; font-weight: 700; padding: 12px 20px; border-radius: 10px; font-size: 13px; text-decoration: none; box-shadow: 0 8px 20px -4px rgba(124, 58, 237, 0.4);">
+                            <i data-lucide="play" style="width: 14px; margin-right: 4px;"></i> Launch AI Classroom →
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('payment.checkout', item_type='bhavishya', item_id='bhavishya-1-0') }}" 
+                       class="btn" 
+                       style="display: block; width: 100%; background: linear-gradient(135deg, #7C3AED, #5B46F6); color: #FFFFFF; font-weight: 700; padding: 12px 20px; border-radius: 10px; font-size: 13px; text-decoration: none;">
+                        Enroll to Unlock (₹299) →
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Prerequisites Check (if any) -->
+    {% if prereqs %}
+    <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 16px 20px; margin-bottom: 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i data-lucide="alert-circle" style="width: 18px; color: #F59E0B;"></i>
+            <span style="color: #E2E8F0; font-size: 13px; font-weight: 600;">Recommended Prerequisites:</span>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                {% for pr in prereqs %}
+                    <a href="{{ url_for('bhavishya.subject_detail', slug=pr.subject.slug) }}" style="font-size: 12px; background: rgba(255,255,255,0.06); border: 1px solid {% if pr.is_satisfied %}rgba(16, 185, 129, 0.4){% else %}rgba(245, 158, 11, 0.4){% endif %}; color: {% if pr.is_satisfied %}#34D399{% else %}#FBBF24{% endif %}; padding: 2px 10px; border-radius: 9999px; text-decoration: none;">
+                        {{ pr.subject.title }} {% if pr.is_satisfied %}✓{% endif %}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Chapter List & Lessons Breakdown -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        {% for ch in subject.chapters %}
+            <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; overflow: hidden;">
+                <div style="padding: 18px 24px; background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid rgba(255, 255, 255, 0.06); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 16px; font-weight: 700; color: #F8FAFC;">{{ ch.title }}</div>
+                    <span style="font-size: 12px; color: #64748B;">{{ ch.lessons|length }} Lessons</span>
+                </div>
+
+                <div style="padding: 12px 24px; display: flex; flex-direction: column; gap: 10px;">
+                    {% for l in ch.lessons %}
+                        {% set is_done = progress.is_lesson_completed(l.id) if progress else False %}
+                        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 12px; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: {% if is_done %}rgba(16, 185, 129, 0.15){% else %}rgba(255, 255, 255, 0.05){% endif %}; display: flex; align-items: center; justify-content: center; color: {% if is_done %}#10B981{% else %}#64748B{% endif %}; font-size: 12px; font-weight: 700;">
+                                    {% if is_done %}✓{% else %}{{ loop.index }}{% endif %}
+                                </div>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 600; color: #F1F5F9;">{{ l.title }}</div>
+                                    <div style="font-size: 12px; color: #64748B; margin-top: 2px;">
+                                        {{ l.duration_mins }} mins · 
+                                        <span style="color: {% if l.type == 'coding_lab' %}#38BDF8{% else %}#A855F7{% endif %}; font-weight: 600; text-transform: capitalize;">
+                                            {{ l.type.replace('_', ' ') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                {% if is_unlocked %}
+                                    <a href="{{ url_for('bhavishya.classroom', subject_slug=subject.slug, lesson_id=l.id) }}" 
+                                       class="btn btn-sm" 
+                                       style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #C084FC; font-weight: 700; padding: 6px 14px; border-radius: 8px; font-size: 12px; text-decoration: none;">
+                                        {% if is_done %}Review Lesson{% else %}Enter Classroom →{% endif %}
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('payment.checkout', item_type='bhavishya', item_id='bhavishya-1-0') }}" 
+                                       class="btn btn-sm" 
+                                       style="background: rgba(255, 255, 255, 0.06); color: #94A3B8; padding: 6px 14px; border-radius: 8px; font-size: 12px; text-decoration: none;">
+                                        🔒 Locked
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

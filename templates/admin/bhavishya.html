@@ -1,0 +1,110 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Bhavishya 1.0 AI Platform Management{% endblock %}
+{% block breadcrumb %}Bhavishya 1.0{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div>
+            <div class="admin-card-title">
+                <i data-lucide="cpu"></i>
+                <span>Bhavishya 1.0 Platform Console</span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
+                Inspect the 19 Bhavishya subjects, monitor AI Teacher sessions, review enrollments, and track 50% cashback claims.
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.cashback_list') }}" class="admin-btn admin-btn-primary">
+                <i data-lucide="gift"></i>
+                <span>Cashback Claims Console ({{ cashback_claims_count }})</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Metric Overview Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px;">
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--admin-border); border-radius: 12px; padding: 16px;">
+            <div style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 700;">Package Price</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #34D399; margin-top: 4px;">₹{{ package.price }}</div>
+            <div style="font-size: 0.75rem; color: var(--admin-text-muted);">50% Refund: ₹149.50</div>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--admin-border); border-radius: 12px; padding: 16px;">
+            <div style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 700;">Active Enrolled Students</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #38BDF8; margin-top: 4px;">{{ enrolled_count }}</div>
+            <div style="font-size: 0.75rem; color: var(--admin-text-muted);">In user_access collection</div>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--admin-border); border-radius: 12px; padding: 16px;">
+            <div style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 700;">Active Learning Profiles</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #A855F7; margin-top: 4px;">{{ progress_count }}</div>
+            <div style="font-size: 0.75rem; color: var(--admin-text-muted);">Persistent student memory</div>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--admin-border); border-radius: 12px; padding: 16px;">
+            <div style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 700;">Total Curriculum Subjects</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #EC4899; margin-top: 4px;">{{ subjects|length }}</div>
+            <div style="font-size: 0.75rem; color: var(--admin-text-muted);">Across 3 categories</div>
+        </div>
+    </div>
+
+    <!-- Subjects Table -->
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th># Order</th>
+                    <th>Subject Title & Slug</th>
+                    <th>Category</th>
+                    <th>Duration & Lessons</th>
+                    <th>Difficulty</th>
+                    <th>Published Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subj in subjects %}
+                <tr>
+                    <td style="font-weight: 800; color: var(--admin-text-muted);">{{ subj.order }}</td>
+                    <td>
+                        <div style="font-weight: 700; color: var(--admin-text-main);">{{ subj.title }}</div>
+                        <div style="font-size: 0.75rem; color: var(--admin-text-muted); font-family: monospace;">{{ subj.slug }}</div>
+                    </td>
+                    <td>
+                        <span style="font-size: 0.75rem; font-weight: 700; color: {{ subj.color_accent }};">
+                            {{ subj.category }}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.82rem; color: var(--admin-text-main);">{{ subj.estimated_hours }} Hours</div>
+                        <div style="font-size: 0.75rem; color: var(--admin-text-muted);">{{ subj.chapters|length }} Chapters &bull; {{ subj.total_lessons_count }} Lessons</div>
+                    </td>
+                    <td>
+                        <span style="font-size: 0.75rem; color: var(--admin-text-muted);">{{ subj.difficulty }}</span>
+                    </td>
+                    <td>
+                        {% if subj.is_published %}
+                            <span style="color: #10B981; font-weight: 700; font-size: 0.78rem;">● Published</span>
+                        {% else %}
+                            <span style="color: #64748B; font-weight: 700; font-size: 0.78rem;">○ Draft / Hidden</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <form method="POST" action="{{ url_for('admin.bhavishya_toggle_subject', slug=subj.slug) }}" style="display: inline;">
+                            <button type="submit" class="admin-btn admin-btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;">
+                                {% if subj.is_published %}Unpublish{% else %}Publish{% endif %}
+                            </button>
+                        </form>
+                        <a href="{{ url_for('bhavishya.subject_detail', slug=subj.slug) }}" target="_blank" class="admin-btn admin-btn-secondary" style="font-size: 0.75rem; padding: 4px 10px; margin-left: 6px;">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

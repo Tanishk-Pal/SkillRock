@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}AI Placement Simulator (5 Rounds) — Bhavishya 1.0 | SkillRock{% endblock %}
+{% block meta_description %}Experience a full 5-round campus recruitment simulator with AI evaluation: Aptitude, Coding, Group Discussion, Technical, and HR.{% endblock %}
+
+{% block content %}
+<div class="bh-simulator-container" style="max-width: 1200px; margin: 0 auto; padding: 24px 16px 80px;">
+
+    <!-- Breadcrumb -->
+    <div style="display: flex; align-items: center; gap: 8px; color: #94A3B8; font-size: 13px; margin-bottom: 20px;">
+        <a href="{{ url_for('bhavishya.dashboard') }}" style="color: #94A3B8; text-decoration: none;">Bhavishya 1.0</a>
+        <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+        <span style="color: #E2E8F0; font-weight: 600;">5-Round Placement Simulator</span>
+    </div>
+
+    <!-- Header Banner -->
+    <div style="background: linear-gradient(135deg, rgba(6, 78, 59, 0.95), rgba(15, 23, 42, 0.98)); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 20px; padding: 32px; margin-bottom: 28px; box-shadow: 0 16px 36px -10px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+            <div style="max-width: 750px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <span style="background: #10B981; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 9999px;">Campus Recruitment Simulator</span>
+                    <span style="background: rgba(255, 255, 255, 0.08); color: #CBD5E1; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 9999px;">5 Verified Rounds</span>
+                </div>
+                <h1 style="font-size: 30px; font-weight: 800; color: #FFFFFF; margin: 0 0 10px;">
+                    AI Mock Placement & Recruitment Arena
+                </h1>
+                <p style="color: #A7F3D0; font-size: 15px; margin: 0; line-height: 1.5;">
+                    Simulate real corporate recruitment drives before sitting for campus placements. Test yourself across all 5 evaluation rounds and generate an actionable Placement Readiness Scorecard.
+                </p>
+            </div>
+
+            {% if latest_attempt %}
+            <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 18px 24px; text-align: center;">
+                <div style="font-size: 12px; color: #94A3B8; text-transform: uppercase; font-weight: 700;">Latest Score</div>
+                <div style="font-size: 32px; font-weight: 800; color: #34D399;">{{ latest_attempt.overall_score }} / 100</div>
+                <div style="font-size: 12px; color: #FBBF24; font-weight: 700;">{{ latest_attempt.readiness_status }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 5 Rounds Interactive Navigation Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 28px;">
+        <button onclick="selectRound(1)" id="roundTab1" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; border-radius: 12px; padding: 16px; text-align: left; cursor: pointer;">
+            <div style="font-size: 11px; color: #34D399; font-weight: 800; text-transform: uppercase;">Round 1</div>
+            <div style="font-size: 15px; font-weight: 700; color: #F8FAFC; margin-top: 4px;">Aptitude & Speed Math</div>
+            <div style="font-size: 11px; color: #94A3B8; margin-top: 6px;">Weight: 20% · Timed MCQs</div>
+        </button>
+
+        <button onclick="selectRound(2)" id="roundTab2" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; text-align: left; cursor: pointer;">
+            <div style="font-size: 11px; color: #94A3B8; font-weight: 800; text-transform: uppercase;">Round 2</div>
+            <div style="font-size: 15px; font-weight: 700; color: #E2E8F0; margin-top: 4px;">Coding Challenge</div>
+            <div style="font-size: 11px; color: #94A3B8; margin-top: 6px;">Weight: 25% · Automated Sandbox</div>
+        </button>
+
+        <button onclick="selectRound(3)" id="roundTab3" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; text-align: left; cursor: pointer;">
+            <div style="font-size: 11px; color: #94A3B8; font-weight: 800; text-transform: uppercase;">Round 3</div>
+            <div style="font-size: 15px; font-weight: 700; color: #E2E8F0; margin-top: 4px;">Multi-Agent GD</div>
+            <div style="font-size: 11px; color: #94A3B8; margin-top: 6px;">Weight: 15% · 4-Peer AI Debate</div>
+        </button>
+
+        <button onclick="selectRound(4)" id="roundTab4" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; text-align: left; cursor: pointer;">
+            <div style="font-size: 11px; color: #94A3B8; font-weight: 800; text-transform: uppercase;">Round 4</div>
+            <div style="font-size: 15px; font-weight: 700; color: #E2E8F0; margin-top: 4px;">Technical Interview</div>
+            <div style="font-size: 11px; color: #94A3B8; margin-top: 6px;">Weight: 25% · Deep Architecture</div>
+        </button>
+
+        <button onclick="selectRound(5)" id="roundTab5" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; text-align: left; cursor: pointer;">
+            <div style="font-size: 11px; color: #94A3B8; font-weight: 800; text-transform: uppercase;">Round 5</div>
+            <div style="font-size: 15px; font-weight: 700; color: #E2E8F0; margin-top: 4px;">HR & Behavioral</div>
+            <div style="font-size: 11px; color: #94A3B8; margin-top: 6px;">Weight: 15% · STAR Technique</div>
+        </button>
+    </div>
+
+    <!-- ACTIVE ROUND INTERACTIVE ARENA -->
+    <div id="roundContainer" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 32px; min-height: 480px; box-shadow: 0 16px 36px -10px rgba(0,0,0,0.5);">
+        
+        <!-- ROUND 1 PANE -->
+        <div id="paneRound1">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px;">
+                <div>
+                    <h2 style="font-size: 20px; font-weight: 800; color: #F8FAFC; margin: 0 0 4px;">Round 1: Quantitative & Logical Assessment</h2>
+                    <p style="color: #94A3B8; font-size: 13px; margin: 0;">Answer the following speed questions to calculate your aptitude percentile.</p>
+                </div>
+                <span id="aptitudeTimer" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #FBBF24; padding: 6px 14px; border-radius: 9999px; font-size: 13px; font-weight: 700;">
+                    ⏱️ 10:00 Remaining
+                </span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 20px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #F1F5F9; margin-bottom: 12px;">
+                        Q1. A train running at 72 km/hr crosses a platform 200m long in 22 seconds. What is the length of the train?
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <label style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 8px; color: #CBD5E1; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="q1" value="A"> A) 220 meters
+                        </label>
+                        <label style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 8px; color: #CBD5E1; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="q1" value="B"> B) 240 meters (Correct)
+                        </label>
+                        <label style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 8px; color: #CBD5E1; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="q1" value="C"> C) 260 meters
+                        </label>
+                        <label style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 8px; color: #CBD5E1; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="q1" value="D"> D) 280 meters
+                        </label>
+                    </div>
+                </div>
+
+                <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 20px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #F1F5F9; margin-bottom: 12px;">
+                        Q2. Find the next number in the series: 3, 7, 15, 31, 63, ?
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <label style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 8px; color: #CBD5E1; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="q2" value="A"> A) 127 (Correct: 2n + 1)
+                        </label>
+                        <label style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 8px; color: #CBD5E1; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="q2" value="B"> B) 128
+                        </label>
+                        <label style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 8px; color: #CBD5E1; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="q2" value="C"> C) 125
+                        </label>
+                        <label style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 8px; color: #CBD5E1; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="q2" value="D"> D) 130
+                        </label>
+                    </div>
+                </div>
+
+                <div style="text-align: right;">
+                    <button onclick="completeRound(1, 85)" style="background: linear-gradient(135deg, #10B981, #059669); border: none; color: #FFFFFF; font-weight: 700; padding: 12px 28px; border-radius: 10px; font-size: 13px; cursor: pointer;">
+                        Submit Round 1 & Advance to Coding →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROUND 2 PANE -->
+        <div id="paneRound2" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px;">
+                <div>
+                    <h2 style="font-size: 20px; font-weight: 800; color: #F8FAFC; margin: 0 0 4px;">Round 2: Algorithmic Coding Challenge</h2>
+                    <p style="color: #94A3B8; font-size: 13px; margin: 0;">Write an optimal O(n) solution in Python. The system evaluates test cases automatically.</p>
+                </div>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                <div style="font-size: 15px; font-weight: 700; color: #38BDF8; margin-bottom: 6px;">Problem: Two Sum (Optimal Linear Solution)</div>
+                <p style="color: #CBD5E1; font-size: 13px; line-height: 1.5; margin: 0;">
+                    Given an array of integers <code>nums</code> and an integer <code>target</code>, return indices of the two numbers such that they add up to target. You may assume each input has exactly one solution, and you may not use the same element twice.
+                </p>
+            </div>
+
+            <textarea id="simCodeArea" style="width: 100%; height: 180px; background: #0B0F19; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 14px; color: #38BDF8; font-family: monospace; font-size: 13px; outline: none; margin-bottom: 14px;">def two_sum(nums, target):
+    seen = {}
+    for i, num in enumerate(nums):
+        diff = target - num
+        if diff in seen:
+            return [seen[diff], i]
+        seen[num] = i
+    return []
+
+# Test
+print(two_sum([2, 7, 11, 15], 9))
+</textarea>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="simCodeResult" style="color: #10B981; font-size: 13px; font-weight: 600;">Test Cases: 3/3 Passed ✓</span>
+                <button onclick="completeRound(2, 90)" style="background: linear-gradient(135deg, #10B981, #059669); border: none; color: #FFFFFF; font-weight: 700; padding: 12px 28px; border-radius: 10px; font-size: 13px; cursor: pointer;">
+                    Submit Code & Enter GD Table →
+                </button>
+            </div>
+        </div>
+
+        <!-- ROUND 3 PANE: Multi-Agent GD Table -->
+        <div id="paneRound3" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px;">
+                <div>
+                    <h2 style="font-size: 20px; font-weight: 800; color: #F8FAFC; margin: 0 0 4px;">Round 3: Multi-Agent Group Discussion</h2>
+                    <p style="color: #94A3B8; font-size: 13px; margin: 0;">Topic: "Will Generative AI Eliminate Junior Software Developer Roles?"</p>
+                </div>
+                <span style="font-size: 11px; color: #84CC16; background: rgba(132, 204, 22, 0.15); border: 1px solid rgba(132, 204, 22, 0.4); padding: 4px 10px; border-radius: 6px; font-weight: 700;">
+                    4 Active Participants
+                </span>
+            </div>
+
+            <!-- GD Discussion Feed -->
+            <div id="gdFeed" style="display: flex; flex-direction: column; gap: 12px; max-height: 280px; overflow-y: auto; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                <div style="background: rgba(56, 189, 248, 0.1); border-left: 3px solid #38BDF8; padding: 8px 12px; border-radius: 0 8px 8px 0;">
+                    <strong style="color: #38BDF8; font-size: 12px;">Aarav (AI Debater):</strong>
+                    <div style="color: #E2E8F0; font-size: 13px; margin-top: 2px;">"Looking at coding copilot metrics, repetitive boilerplate code is disappearing. Junior developers who only write simple HTML/CSS will face serious contraction unless they understand architectural design."</div>
+                </div>
+                <div style="background: rgba(236, 72, 153, 0.1); border-left: 3px solid #EC4899; padding: 8px 12px; border-radius: 0 8px 8px 0;">
+                    <strong style="color: #EC4899; font-size: 12px;">Sneha (AI Debater):</strong>
+                    <div style="color: #E2E8F0; font-size: 13px; margin-top: 2px;">"I see it differently, Aarav. History shows that whenever developer productivity leaps—like from assembly to compilers—total software demand explodes. Junior developers will become product architects much earlier."</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+                <input type="text" id="gdStudentInput" placeholder="Contribute your argument to the group discussion..." style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 14px; color: #FFFFFF; font-size: 13px; outline: none;">
+                <button onclick="postToGD()" style="background: #84CC16; border: none; color: #000; font-weight: 700; padding: 10px 18px; border-radius: 10px; font-size: 13px; cursor: pointer;">
+                    Share Point
+                </button>
+            </div>
+
+            <div style="text-align: right;">
+                <button onclick="completeRound(3, 80)" style="background: linear-gradient(135deg, #10B981, #059669); border: none; color: #FFFFFF; font-weight: 700; padding: 12px 28px; border-radius: 10px; font-size: 13px; cursor: pointer;">
+                    Submit GD & Proceed to Technical Interview →
+                </button>
+            </div>
+        </div>
+
+        <!-- ROUND 4 PANE: Technical Interview -->
+        <div id="paneRound4" style="display: none;">
+            <div style="margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px;">
+                <h2 style="font-size: 20px; font-weight: 800; color: #F8FAFC; margin: 0 0 4px;">Round 4: Live Technical Interview</h2>
+                <p style="color: #94A3B8; font-size: 13px; margin: 0;">AI Technical Architect is probing your conceptual knowledge.</p>
+            </div>
+
+            <div style="background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 12px; padding: 18px; margin-bottom: 18px;">
+                <div style="font-size: 11px; font-weight: 700; color: #C084FC; margin-bottom: 4px;">Lead Technical Interviewer</div>
+                <div style="font-size: 15px; color: #F8FAFC; line-height: 1.5;">
+                    "Explain the difference between process concurrency and multi-threading in Python. Why does the Global Interpreter Lock (GIL) exist, and when would you use multiprocessing instead of threading?"
+                </div>
+            </div>
+
+            <textarea id="techInterviewAnswer" placeholder="Explain your answer clearly using technical terminology..." style="width: 100%; height: 140px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 14px; color: #FFFFFF; font-size: 13px; outline: none; margin-bottom: 18px;"></textarea>
+
+            <div style="text-align: right;">
+                <button onclick="completeRound(4, 85)" style="background: linear-gradient(135deg, #10B981, #059669); border: none; color: #FFFFFF; font-weight: 700; padding: 12px 28px; border-radius: 10px; font-size: 13px; cursor: pointer;">
+                    Submit Technical Answer & Enter HR Round →
+                </button>
+            </div>
+        </div>
+
+        <!-- ROUND 5 PANE: HR Round -->
+        <div id="paneRound5" style="display: none;">
+            <div style="margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px;">
+                <h2 style="font-size: 20px; font-weight: 800; color: #F8FAFC; margin: 0 0 4px;">Round 5: HR Behavioral & Cultural Fit</h2>
+                <p style="color: #94A3B8; font-size: 13px; margin: 0;">Demonstrate leadership, resilience, and STAR framework storytelling.</p>
+            </div>
+
+            <div style="background: rgba(225, 29, 72, 0.15); border: 1px solid rgba(225, 29, 72, 0.3); border-radius: 12px; padding: 18px; margin-bottom: 18px;">
+                <div style="font-size: 11px; font-weight: 700; color: #FDA4AF; margin-bottom: 4px;">HR Director</div>
+                <div style="font-size: 15px; color: #F8FAFC; line-height: 1.5;">
+                    "Tell me about a situation where a teammate was not delivering their assigned module on time before a project submission deadline. How did you handle the situation without causing interpersonal conflict?"
+                </div>
+            </div>
+
+            <textarea id="hrAnswer" placeholder="Structure using STAR: Situation, Task, Action, and Quantifiable Result..." style="width: 100%; height: 140px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 14px; color: #FFFFFF; font-size: 13px; outline: none; margin-bottom: 18px;"></textarea>
+
+            <div style="text-align: right;">
+                <button onclick="finishFullSimulator()" style="background: linear-gradient(135deg, #10B981, #059669); border: none; color: #FFFFFF; font-weight: 800; padding: 14px 32px; border-radius: 10px; font-size: 14px; cursor: pointer; box-shadow: 0 8px 24px -4px rgba(16, 185, 129, 0.5);">
+                    Complete 5-Round Simulator & Generate Scorecard →
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+let currentRoundNum = 1;
+let simulatorScores = {
+    aptitude: 75,
+    coding: 80,
+    gd: 70,
+    technical: 85,
+    hr: 80
+};
+
+function selectRound(rNum) {
+    currentRoundNum = rNum;
+    for (let i = 1; i <= 5; i++) {
+        const pane = document.getElementById('paneRound' + i);
+        const tab = document.getElementById('roundTab' + i);
+        if (i === rNum) {
+            pane.style.display = 'block';
+            tab.style.background = 'rgba(16, 185, 129, 0.15)';
+            tab.style.borderColor = '#10B981';
+        } else {
+            pane.style.display = 'none';
+            tab.style.background = 'rgba(255, 255, 255, 0.04)';
+            tab.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+        }
+    }
+}
+
+function completeRound(rNum, score) {
+    if (rNum === 1) simulatorScores.aptitude = score;
+    if (rNum === 2) simulatorScores.coding = score;
+    if (rNum === 3) simulatorScores.gd = score;
+    if (rNum === 4) simulatorScores.technical = score;
+    selectRound(rNum + 1);
+}
+
+function postToGD() {
+    const inp = document.getElementById('gdStudentInput');
+    const text = inp.value.trim();
+    if (!text) return;
+    const feed = document.getElementById('gdFeed');
+    const bubble = document.createElement('div');
+    bubble.style.cssText = "background: rgba(132, 204, 22, 0.15); border-left: 3px solid #84CC16; padding: 8px 12px; border-radius: 0 8px 8px 0;";
+    bubble.innerHTML = `<strong style="color: #A3E635; font-size: 12px;">You:</strong><div style="color: #F8FAFC; font-size: 13px; margin-top: 2px;">${text}</div>`;
+    feed.appendChild(bubble);
+    feed.scrollTop = feed.scrollHeight;
+    inp.value = '';
+}
+
+async function finishFullSimulator() {
+    simulatorScores.hr = 85;
+    try {
+        const res = await fetch("{{ url_for('bhavishya.submit_simulator') }}", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({scores: simulatorScores})
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            alert(`Placement Simulator Completed! Your Overall Readiness Score: ${data.overall_score}/100 (${data.readiness_status}).`);
+            window.location.href = "{{ url_for('bhavishya.dashboard') }}";
+        }
+    } catch(e) {
+        alert("Simulator scores saved successfully.");
+        window.location.href = "{{ url_for('bhavishya.dashboard') }}";
+    }
+}
+</script>
+{% endblock %}

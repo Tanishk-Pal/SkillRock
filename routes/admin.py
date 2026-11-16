@@ -2033,3 +2033,40 @@ def cashback_reject(request_id):
     return redirect(url_for("admin.cashback_list"))
 
 
+# ==============================================================================
+# Bhavishya 1.0 AI-Powered Platform Administration
+# ==============================================================================
+
+@admin_bp.route("/bhavishya")
+def bhavishya_admin():
+    """Bhavishya 1.0 management console for subjects, chapters, and enrollments."""
+    from models.bhavishya import BhavishyaSubject, BhavishyaPackage
+    db = get_db()
+    subjects = BhavishyaSubject.get_all(published_only=False)
+    enrolled_count = db.user_access.count_documents({"item_type": "bhavishya", "is_active": True})
+    progress_count = db.bhavishya_progress.count_documents({})
+    cashback_claims_count = db.bhavishya_cashback.count_documents({})
+
+    return render_template(
+        "admin/bhavishya.html",
+        subjects=subjects,
+        package=BhavishyaPackage(),
+        enrolled_count=enrolled_count,
+        progress_count=progress_count,
+        cashback_claims_count=cashback_claims_count,
+    )
+
+
+@admin_bp.route("/bhavishya/subject/<slug>/toggle", methods=["POST"])
+def bhavishya_toggle_subject(slug):
+    """Toggles subject is_published status."""
+    from models.bhavishya import BhavishyaSubject
+    subj = BhavishyaSubject.get_by_slug(slug)
+    if subj:
+        subj.is_published = not subj.is_published
+        subj.save()
+        flash(f"Subject '{subj.title}' publish status set to: {subj.is_published}", "success")
+    return redirect(url_for("admin.bhavishya_admin"))
+
+
+

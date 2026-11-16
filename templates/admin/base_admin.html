@@ -658,6 +658,10 @@
                 <i data-lucide="map"></i>
                 <span>Career Roadmaps</span>
             </a>
+            <a href="{{ url_for('admin.bhavishya_admin') }}" class="admin-nav-item {% if 'bhavishya' in request.endpoint %}active{% endif %}">
+                <i data-lucide="cpu"></i>
+                <span>Bhavishya 1.0 AI</span>
+            </a>
             <a href="{{ url_for('admin.roadmap_submissions_list') }}" class="admin-nav-item {% if 'roadmap_submissions' in request.endpoint %}active{% endif %}">
                 <i data-lucide="folder-check"></i>
                 <span>Roadmap Submissions</span>
