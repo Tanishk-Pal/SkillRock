@@ -273,6 +273,51 @@ class BhavishyaPlatformTestCase(unittest.TestCase):
         self.assertEqual(record.status, BhavishyaCashback.STATUS_UNDER_VERIFICATION)
         self.assertEqual(record.cashback_amount, 149.50)
 
+    # ==========================================================================
+    # 7. Bhavishya Payment Gateway Checkout & Ski Companion Tests
+    # ==========================================================================
+
+    def test_13_bhavishya_checkout_screen_loads(self):
+        """Verifies clicking Enroll in Bhavishya renders official ₹299 checkout (never redirects to /learning/courses)."""
+        self.login_student()
+
+        resp = self.client.get("/payment/checkout/bhavishya/bhavishya-1-0")
+        self.assertEqual(resp.status_code, 200)
+        body = resp.data.decode("utf-8")
+        self.assertIn("Bhavishya 1.0", body)
+        self.assertIn("299", body)
+        self.assertIn("Payment Options", body)
+
+    def test_14_ski_bot_hub_and_api(self):
+        """Verifies Ski Grok-style companion hub renders and chat/quote endpoints respond with high motivation."""
+        self.login_student()
+
+        # 1. Fullscreen Hub
+        resp = self.client.get("/ski")
+        self.assertEqual(resp.status_code, 200)
+        body = resp.data.decode("utf-8")
+        self.assertIn("Meet Ski", body)
+        self.assertIn("Grok", body)
+
+        # 2. Ski Chat API
+        chat_resp = self.client.post("/api/ski/chat", json={
+            "message": "Hey Ski, hype me up for coding!",
+            "mood": "hype"
+        })
+        self.assertEqual(chat_resp.status_code, 200)
+        data = chat_resp.get_json()
+        self.assertTrue(data.get("success"))
+        self.assertEqual(data.get("bot_name"), "Ski")
+        self.assertTrue(len(data.get("reply", "")) > 5)
+
+        # 3. Ski Quote API
+        quote_resp = self.client.get("/api/ski/quote?mood=roast")
+        self.assertEqual(quote_resp.status_code, 200)
+        qdata = quote_resp.get_json()
+        self.assertTrue(qdata.get("success"))
+        self.assertTrue(len(qdata.get("quote", "")) > 10)
+
+
 
 if __name__ == "__main__":
     unittest.main()

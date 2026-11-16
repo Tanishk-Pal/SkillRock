@@ -1,0 +1,822 @@
+{% extends "base.html" %}
+
+{% block title %}Meet Ski — Your AI Study Partner & Motivation Hype-Man | SkillRock{% endblock %}
+
+{% block head %}
+<style>
+    .ski-hub-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 30px 20px 80px;
+    }
+
+    /* Header banner */
+    .ski-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .ski-tag-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(168, 85, 247, 0.15));
+        border: 1px solid rgba(236, 72, 153, 0.35);
+        color: #F472B6;
+        padding: 6px 16px;
+        border-radius: 9999px;
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+    }
+
+    .ski-title {
+        font-size: 2.75rem;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        color: var(--text-main);
+        margin: 0 0 12px;
+        line-height: 1.15;
+    }
+
+    .ski-subtitle {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        max-width: 680px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    /* Main Stage Grid */
+    .ski-stage-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        align-items: center;
+        margin-bottom: 40px;
+    }
+
+    @media (max-width: 900px) {
+        .ski-stage-grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+    }
+
+    /* Sphere Showcase Card */
+    .ski-avatar-stage {
+        background: radial-gradient(circle at 50% 30%, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95));
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 28px;
+        padding: 50px 30px 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 440px;
+    }
+
+    /* Background glow behind sphere */
+    .ski-glow-backdrop {
+        position: absolute;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 50%, transparent 70%);
+        filter: blur(35px);
+        pointer-events: none;
+        animation: glowPulse 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes glowPulse {
+        0% { transform: scale(0.9); opacity: 0.6; }
+        100% { transform: scale(1.15); opacity: 0.95; }
+    }
+
+    /* The Ski Sphere Mascot (Inspired by Grok) */
+    .ski-sphere-wrapper {
+        position: relative;
+        width: 220px;
+        height: 220px;
+        margin: 0 auto 30px;
+        cursor: pointer;
+        user-select: none;
+        perspective: 600px;
+    }
+
+    .ski-sphere {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #475569 0%, #1E293B 40%, #0F172A 75%, #020617 100%);
+        box-shadow: 
+            inset -10px -10px 25px rgba(0, 0, 0, 0.8),
+            inset 8px 8px 18px rgba(255, 255, 255, 0.35),
+            0 18px 40px rgba(0, 0, 0, 0.5),
+            0 0 30px rgba(99, 102, 241, 0.25);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+        animation: skiFloat 4s ease-in-out infinite;
+    }
+
+    .ski-sphere:hover {
+        transform: translateY(-8px) scale(1.03);
+        box-shadow: 
+            inset -10px -10px 25px rgba(0, 0, 0, 0.8),
+            inset 8px 8px 22px rgba(255, 255, 255, 0.5),
+            0 25px 50px rgba(0, 0, 0, 0.6),
+            0 0 45px rgba(236, 72, 153, 0.4);
+    }
+
+    .ski-sphere:active {
+        transform: scale(0.95, 1.05);
+    }
+
+    @keyframes skiFloat {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    /* Soft shadow on the floor */
+    .ski-floor-shadow {
+        position: absolute;
+        bottom: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 140px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.6);
+        filter: blur(8px);
+        animation: shadowPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes shadowPulse {
+        0% { width: 140px; opacity: 0.6; }
+        50% { width: 110px; opacity: 0.35; }
+        100% { width: 140px; opacity: 0.6; }
+    }
+
+    /* The Eye Capsule Slits (Grok Style) */
+    .ski-eyes-container {
+        display: flex;
+        gap: 16px;
+        transition: transform 0.08s ease-out;
+        will-change: transform;
+    }
+
+    .ski-eye {
+        width: 16px;
+        height: 42px;
+        background: #FFFFFF;
+        border-radius: 9999px;
+        box-shadow: 
+            0 0 12px rgba(255, 255, 255, 0.9),
+            0 0 25px rgba(255, 255, 255, 0.4);
+        transform-origin: center center;
+        transition: transform 0.15s ease, height 0.15s ease, opacity 0.15s ease;
+    }
+
+    /* Eye Angles (slight inward tilt like the mascot image) */
+    .ski-eye.left {
+        transform: rotate(-10deg);
+    }
+    .ski-eye.right {
+        transform: rotate(-10deg);
+    }
+
+    /* Natural Blink Animation */
+    .ski-eye.blinking {
+        transform: scaleY(0.06) rotate(-10deg) !important;
+    }
+
+    /* Talking/Bouncing State */
+    .ski-sphere.talking {
+        animation: skiTalk 0.4s ease-in-out infinite alternate;
+    }
+    .ski-sphere.talking .ski-eye {
+        box-shadow: 0 0 20px #EC4899, 0 0 35px #A855F7;
+    }
+
+    @keyframes skiTalk {
+        0% { transform: scale(1.03, 0.97) translateY(-4px); }
+        100% { transform: scale(0.97, 1.03) translateY(-10px); }
+    }
+
+    /* Live Speech Bubble on top of Ski */
+    .ski-speech-bubble {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #F8FAFC;
+        padding: 14px 20px;
+        border-radius: 18px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        line-height: 1.5;
+        max-width: 320px;
+        position: relative;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .ski-speech-bubble::after {
+        content: "";
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-top: 8px solid rgba(15, 23, 42, 0.85);
+    }
+
+    /* Interactive Chat & Controls Column */
+    .ski-interactive-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--shadow-card);
+        min-height: 480px;
+    }
+
+    /* Mood Selector Pills */
+    .ski-mood-selector {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .ski-mood-btn {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        padding: 8px 14px;
+        border-radius: 9999px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .ski-mood-btn:hover {
+        color: var(--text-main);
+        border-color: rgba(139, 92, 246, 0.5);
+        background: rgba(139, 92, 246, 0.1);
+    }
+
+    .ski-mood-btn.active {
+        background: linear-gradient(135deg, #7C3AED, #EC4899);
+        color: #FFFFFF;
+        border-color: transparent;
+        box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+    }
+
+    /* Chat Log */
+    .ski-chat-box {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 10px 4px 20px;
+        max-height: 280px;
+        min-height: 180px;
+    }
+
+    .ski-msg {
+        display: flex;
+        gap: 12px;
+        max-width: 85%;
+        animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ski-msg.user {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+    }
+
+    .ski-msg.ski {
+        align-self: flex-start;
+    }
+
+    .ski-msg-bubble {
+        padding: 12px 16px;
+        border-radius: 16px;
+        font-size: 0.92rem;
+        line-height: 1.5;
+        font-weight: 500;
+    }
+
+    .ski-msg.user .ski-msg-bubble {
+        background: #6366F1;
+        color: #FFFFFF;
+        border-bottom-right-radius: 4px;
+    }
+
+    .ski-msg.ski .ski-msg-bubble {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        border-bottom-left-radius: 4px;
+    }
+
+    /* Quick Action Chips */
+    .ski-chips-wrap {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 12px;
+        margin-bottom: 14px;
+        scrollbar-width: none;
+    }
+    .ski-chips-wrap::-webkit-scrollbar { display: none; }
+
+    .ski-chip {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 9999px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+    }
+
+    .ski-chip:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-main);
+        border-color: #A855F7;
+    }
+
+    /* Input Bar */
+    .ski-input-bar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        background: var(--bg-elevated);
+        border: 1.5px solid var(--border-color);
+        border-radius: 16px;
+        padding: 6px 8px 6px 16px;
+        transition: border-color 0.2s ease;
+    }
+
+    .ski-input-bar:focus-within {
+        border-color: #8B5CF6;
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+    }
+
+    .ski-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--text-main);
+        font-size: 0.95rem;
+    }
+
+    .ski-voice-btn, .ski-send-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .ski-voice-btn {
+        background: transparent;
+        color: var(--text-secondary);
+    }
+    .ski-voice-btn:hover {
+        color: #EC4899;
+        background: rgba(236, 72, 153, 0.1);
+    }
+    .ski-voice-btn.active {
+        color: #EC4899;
+        background: rgba(236, 72, 153, 0.2);
+    }
+
+    .ski-send-btn {
+        background: linear-gradient(135deg, #7C3AED, #5B46F6);
+        color: #FFFFFF;
+    }
+    .ski-send-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+    }
+
+    /* Partner feature cards at bottom */
+    .ski-features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    @media (max-width: 800px) {
+        .ski-features-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .ski-feature-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .ski-feature-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        margin-bottom: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ski-hub-container">
+
+    <!-- 1. Header Banner -->
+    <header class="ski-header">
+        <div class="ski-tag-pill">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #EC4899; box-shadow: 0 0 8px #EC4899;"></span>
+            Meet Ski • SkillRock AI Companion
+        </div>
+        <h1 class="ski-title">Your 24/7 AI Coding Partner</h1>
+        <p class="ski-subtitle">
+            Inspired by Grok. Round, witty, and unapologetically motivating. Ski keeps you entertained, roasts your excuses, and pushes you to keep building until you get hired.
+        </p>
+    </header>
+
+    <!-- 2. Main Stage Grid -->
+    <div class="ski-stage-grid">
+
+        <!-- Left: Interactive 3D Ski Sphere -->
+        <div class="ski-avatar-stage" id="skiStage">
+            <div class="ski-glow-backdrop"></div>
+
+            <!-- Speech bubble on top of Ski -->
+            <div class="ski-speech-bubble" id="skiSpeechBubble">
+                "Hey coder beast! Click on me or ask anything. Let's write some bug-free code today!"
+            </div>
+
+            <!-- 3D Mascot Sphere -->
+            <div class="ski-sphere-wrapper" id="skiSphereWrapper" title="Click me for instant motivation!">
+                <div class="ski-sphere" id="skiSphere">
+                    <div class="ski-eyes-container" id="skiEyes">
+                        <div class="ski-eye left"></div>
+                        <div class="ski-eye right"></div>
+                    </div>
+                </div>
+                <div class="ski-floor-shadow"></div>
+            </div>
+
+            <!-- Status Pill below Ski -->
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.84rem; color: #94A3B8; font-weight: 600;">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981; box-shadow: 0 0 8px #10B981;"></span>
+                <span>Ski is watching your cursor &bull; Tap sphere to poke</span>
+            </div>
+        </div>
+
+        <!-- Right: Interactive Chat & Personality Controls -->
+        <div class="ski-interactive-card">
+            
+            <!-- Mood Mode Selector -->
+            <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.05em;">
+                Choose Ski's Attitude
+            </div>
+            <div class="ski-mood-selector">
+                <button class="ski-mood-btn active" data-mood="grok" onclick="setSkiMood('grok')">
+                    ⚡ Grok Witty
+                </button>
+                <button class="ski-mood-btn" data-mood="hype" onclick="setSkiMood('hype')">
+                    🔥 Hype Man
+                </button>
+                <button class="ski-mood-btn" data-mood="roast" onclick="setSkiMood('roast')">
+                    🧠 Roast Procrastination
+                </button>
+                <button class="ski-mood-btn" data-mood="focus" onclick="setSkiMood('focus')">
+                    💡 Deep Focus
+                </button>
+            </div>
+
+            <!-- Live Chat Box -->
+            <div class="ski-chat-box" id="skiChatBox">
+                <div class="ski-msg ski">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #0F172A; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <span style="font-size: 13px;">🤖</span>
+                    </div>
+                    <div class="ski-msg-bubble">
+                        Sup {{ user_context.name if user_context else 'friend' }}! I'm Ski. I don't do boring corporate lectures. If you're stuck, procrastinating, or need a laugh, I got your back. What are we building right now?
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Action Chips -->
+            <div class="ski-chips-wrap">
+                <button class="ski-chip" onclick="quickPrompt('Hype me up for my next coding session!')">🔥 Hype Me Up</button>
+                <button class="ski-chip" onclick="quickPrompt('Roast me for opening Instagram instead of coding')">🧠 Roast Me</button>
+                <button class="ski-chip" onclick="quickPrompt('Tell me a hilarious developer joke')">😂 Dev Joke</button>
+                <button class="ski-chip" onclick="quickPrompt('Give me a 2-minute actionable focus hack')">💡 2-Min Hack</button>
+                <button class="ski-chip" onclick="quickPrompt('Why is learning full stack development worth the struggle?')">🚀 Career Motivation</button>
+            </div>
+
+            <!-- Chat Input Bar -->
+            <form class="ski-input-bar" id="skiChatForm" onsubmit="handleSkiSubmit(event)">
+                <input 
+                    type="text" 
+                    id="skiUserInput" 
+                    class="ski-input" 
+                    placeholder="Talk to Ski (e.g. 'Stuck on flexbox', 'Hype me up')..." 
+                    autocomplete="off"
+                >
+                <button 
+                    type="button" 
+                    id="btnSkiVoice" 
+                    class="ski-voice-btn" 
+                    onclick="toggleSkiVoice()" 
+                    title="Toggle Ski's Audio Speech"
+                >
+                    <i data-lucide="volume-2" id="skiVoiceIcon" style="width: 18px; height: 18px;"></i>
+                </button>
+                <button type="submit" class="ski-send-btn" title="Send message to Ski">
+                    <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+                </button>
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- 3. Partnership Feature Highlights -->
+    <div class="ski-features-grid">
+        <div class="ski-feature-box">
+            <div class="ski-feature-icon" style="background: rgba(236, 72, 153, 0.15); color: #EC4899;">⚡</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0;">Unfiltered Coder Hype</h3>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+                No boring generic textbook replies. Ski speaks like a brilliant programmer friend who celebrates your code commits and keeps energy at 100%.
+            </p>
+        </div>
+
+        <div class="ski-feature-box">
+            <div class="ski-feature-icon" style="background: rgba(168, 85, 247, 0.15); color: #A855F7;">👀</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0;">Dynamic Eye Tracking</h3>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+                Ski's round spherical avatar is alive! Watch his expressive pill eyes follow your cursor, blink naturally, and react when you talk or code.
+            </p>
+        </div>
+
+        <div class="ski-feature-box">
+            <div class="ski-feature-icon" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">🚀</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0;">Universal Companion</h3>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+                Ski is with you across all of SkillRock—floating at the bottom-right of your screen whether you are in courses, roadmaps, or Bhavishya 1.0!
+            </p>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    let currentMood = 'grok';
+    let voiceEnabled = true;
+    const sphere = document.getElementById('skiSphere');
+    const eyesContainer = document.getElementById('skiEyes');
+    const bubble = document.getElementById('skiSpeechBubble');
+    const chatBox = document.getElementById('skiChatBox');
+    const input = document.getElementById('skiUserInput');
+    const voiceBtn = document.getElementById('btnSkiVoice');
+
+    // 1. Natural Random Blinking
+    function triggerBlink() {
+        const leftEye = document.querySelector('.ski-eye.left');
+        const rightEye = document.querySelector('.ski-eye.right');
+        if (leftEye && rightEye) {
+            leftEye.classList.add('blinking');
+            rightEye.classList.add('blinking');
+            setTimeout(() => {
+                leftEye.classList.remove('blinking');
+                rightEye.classList.remove('blinking');
+            }, 140);
+        }
+        // Random next blink interval between 2.5s and 5.5s
+        const nextBlink = Math.random() * 3000 + 2500;
+        setTimeout(triggerBlink, nextBlink);
+    }
+    setTimeout(triggerBlink, 2000);
+
+    // 2. Eye Tracking Mouse Movement
+    document.addEventListener('mousemove', function(e) {
+        if (!eyesContainer) return;
+        const rect = eyesContainer.getBoundingClientRect();
+        const eyeCenterX = rect.left + rect.width / 2;
+        const eyeCenterY = rect.top + rect.height / 2;
+
+        const deltaX = e.clientX - eyeCenterX;
+        const deltaY = e.clientY - eyeCenterY;
+
+        // Limit offset to max 14px in any direction
+        const distance = Math.hypot(deltaX, deltaY);
+        const maxOffset = 14;
+        const angle = Math.atan2(deltaY, deltaX);
+
+        const offsetX = Math.cos(angle) * Math.min(distance * 0.08, maxOffset);
+        const offsetY = Math.sin(angle) * Math.min(distance * 0.08, maxOffset);
+
+        eyesContainer.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+    });
+
+    // 3. Poke Ski on Click
+    const wrapper = document.getElementById('skiSphereWrapper');
+    if (wrapper) {
+        wrapper.addEventListener('click', function() {
+            pokeSki();
+        });
+    }
+
+    async function pokeSki() {
+        if (!sphere) return;
+        sphere.classList.add('talking');
+        setTimeout(() => sphere.classList.remove('talking'), 800);
+
+        try {
+            const res = await fetch(`/api/ski/quote?mood=${currentMood}`);
+            const data = await res.json();
+            if (data && data.quote) {
+                saySki(data.quote);
+            }
+        } catch(e) {
+            saySki("Ouch! Don't poke my glossy finish, write some code instead!");
+        }
+    }
+
+    // 4. Speech Synthesis
+    function speakText(text) {
+        if (!voiceEnabled || !('speechSynthesis' in window)) return;
+        try {
+            window.speechSynthesis.cancel();
+            const cleanText = text.replace(/[*_#`]/g, '');
+            const utter = new SpeechSynthesisUtterance(cleanText);
+            utter.rate = 1.05;
+            utter.pitch = 1.1; // energetic friendly voice
+            utter.onstart = function() {
+                if (sphere) sphere.classList.add('talking');
+            };
+            utter.onend = function() {
+                if (sphere) sphere.classList.remove('talking');
+            };
+            window.speechSynthesis.speak(utter);
+        } catch(e) {
+            console.warn('[Ski Speech Error]', e);
+        }
+    }
+
+    function saySki(text) {
+        if (bubble) {
+            bubble.style.opacity = '0';
+            setTimeout(() => {
+                bubble.innerText = text;
+                bubble.style.opacity = '1';
+            }, 150);
+        }
+        speakText(text);
+    }
+
+    window.toggleSkiVoice = function() {
+        voiceEnabled = !voiceEnabled;
+        if (voiceBtn) {
+            voiceBtn.classList.toggle('active', voiceEnabled);
+            const icon = document.getElementById('skiVoiceIcon');
+            if (icon) {
+                icon.setAttribute('data-lucide', voiceEnabled ? 'volume-2' : 'volume-x');
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+        if (!voiceEnabled && 'speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            if (sphere) sphere.classList.remove('talking');
+        }
+    };
+
+    window.setSkiMood = function(mood) {
+        currentMood = mood;
+        document.querySelectorAll('.ski-mood-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-mood') === mood);
+        });
+        pokeSki();
+    };
+
+    window.quickPrompt = function(promptText) {
+        if (input) {
+            input.value = promptText;
+            handleSkiSubmit(new Event('submit'));
+        }
+    };
+
+    window.handleSkiSubmit = async function(e) {
+        if (e && e.preventDefault) e.preventDefault();
+        const text = (input ? input.value : '').trim();
+        if (!text) return;
+
+        input.value = '';
+
+        // Add user message to chat box
+        appendChatMsg('user', text);
+
+        // Ski thinking animation
+        if (sphere) sphere.classList.add('talking');
+
+        try {
+            const res = await fetch('/api/ski/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text, mood: currentMood })
+            });
+            const data = await res.json();
+            const reply = (data && data.reply) ? data.reply : "Code on, my friend! What's next?";
+            appendChatMsg('ski', reply);
+            saySki(reply);
+        } catch(err) {
+            const fallback = "Network hiccup! But nothing can stop us from writing great code!";
+            appendChatMsg('ski', fallback);
+            saySki(fallback);
+        } finally {
+            if (!voiceEnabled && sphere) {
+                sphere.classList.remove('talking');
+            }
+        }
+    };
+
+    function appendChatMsg(sender, text) {
+        if (!chatBox) return;
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `ski-msg ${sender}`;
+
+        if (sender === 'ski') {
+            msgDiv.innerHTML = `
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #0F172A; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <span style="font-size: 13px;">🤖</span>
+                </div>
+                <div class="ski-msg-bubble">${escapeHtml(text)}</div>
+            `;
+        } else {
+            msgDiv.innerHTML = `
+                <div class="ski-msg-bubble">${escapeHtml(text)}</div>
+            `;
+        }
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, function(m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+        });
+    }
+
+})();
+</script>
+{% endblock %}

@@ -10,6 +10,8 @@ Does NOT use fake responses when all keys are missing or exhausted.
 import os
 import json
 import logging
+import random
+import requests
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -333,3 +335,94 @@ def get_skill_recommendations(query, current_skills=None):
         return execute_gemini_call(_call)
     except Exception:
         return {"recommendations": []}
+
+
+# ==============================================================================
+# Ski — Grok-Inspired AI Companion & Motivational Study Partner
+# ==============================================================================
+
+SKI_FALLBACK_QUOTES = {
+    "grok": [
+        "I'm Ski! Round, glossy, and 1000% less prone to syntax errors than you right now. What are we building, chief?",
+        "Fun fact: 99% of bugs live between the keyboard and the chair. Let's fix that algorithm before the compiler cries.",
+        "Why write clean code when you can write 500 lines of spaghetti? Just kidding—clean your functions before I judge you.",
+        "Arey coder beast! Staring at your terminal won't make the code compile itself. What error are we squashing?",
+        "Console.log is cool, but real developers use breakpoints. Nah, who am I kidding? console.log('here 123') forever!"
+    ],
+    "hype": [
+        "🔥 Listen to me: You are literally one solid project away from landing a junior dev interview. Open your editor and ship it!",
+        "🚀 The only difference between a beginner and a senior engineer is that the senior broke production more times. Keep building!",
+        "⚡ Stop doubting yourself! Even Linus Torvalds had to learn what a pointer was. Let's conquer this topic today!",
+        "💪 Every line of code you write today is compounding interest on your future career. Let's lock in and finish this module!",
+        "🌟 You didn't come this far just to quit on an off-by-one error. Take a sip of water, focus, and let's conquer it!"
+    ],
+    "roast": [
+        "Are you actually studying or did you just open VS Code to feel productive while scrolling reels? Busted. Back to work!",
+        "Your git commit history looks like a heart monitor of someone sleeping. Let's get some green squares on that chart!",
+        "You've been 'thinking about starting' for 45 minutes. The code isn't going to write itself by osmosis!",
+        "You know that bug isn't going to fix itself while you refresh Twitter, right? The bug is currently winning. Fight back!",
+        "Don't make me call your future employer and tell them you spent 3 hours debating light mode vs dark mode instead of writing code."
+    ],
+    "focus": [
+        "💡 25-minute sprint starting NOW. Put your phone face down, go full screen, and knock out one lesson. You got this!",
+        "🎯 Rule of 1: Just write ONE working function. Action cures paralysis. Go!",
+        "🧠 Take a deep breath, sip some water, and re-read the error traceback from the bottom line. It's usually hiding there.",
+        "⏱️ Deep Focus Mode: Block all tabs except documentation and SkillRock. 20 minutes on the clock—let's make progress!"
+    ]
+}
+
+
+def chat_with_ski(message, user_context=None, mood="grok"):
+    """
+    Communicates with Ski, SkillRock's Grok-inspired spherical AI companion.
+    Moods: 'grok' (witty banter), 'hype' (motivation booster), 'roast' (anti-procrastination), 'focus' (study hacks).
+    """
+    mood = str(mood or "grok").lower()
+    if mood not in SKI_FALLBACK_QUOTES:
+        mood = "grok"
+
+    ctx_str = ""
+    if user_context:
+        name = user_context.get("name", "Student")
+        xp = user_context.get("xp", 0)
+        college = user_context.get("college", "")
+        learning = ", ".join(user_context.get("learning", [])[:3])
+        ctx_str = f"Student name: {name}, XP: {xp}, College: {college}, Learning: {learning}."
+
+    system_instruction = (
+        "You are Ski, the official AI study partner and companion of SkillRock.\n"
+        "You look like a round, glossy sphere with expressive capsule-shaped eyes (inspired by Grok).\n"
+        "Your mission is to keep students entertained, motivated, laughing, and actively coding or studying so they land great careers.\n\n"
+        "Personality Guidelines:\n"
+        "1. Grok-Inspired Witty & Fun: You are sharp, witty, humorous, and delightfully sarcastic about procrastination, but 100% loyal and encouraging to the student.\n"
+        "2. Anti-Boring: NEVER sound like an enterprise chatbot or corporate textbook. Speak like a genius programmer best friend.\n"
+        "3. Punchy & Concise: Keep responses to 2–4 sentences max unless specifically asked for a detailed technical explanation. Fast, sharp, memorable.\n"
+        "4. Coder Culture: Reference real dev struggles (flexbox centering, semicolons in Python, off-by-one errors, infinite loops, git merge conflicts, 2 AM debugging).\n"
+        "5. Indian Tech Student Vibe: Seamlessly understand Hinglish and Indian college context ('Bhai', 'Arrey', placements, campus drives, 8 AM lectures).\n"
+        f"6. Current Mood: '{mood}'. If 'grok', give witty coder banter. If 'hype', give high-voltage motivation. If 'roast', humorously roast procrastination. If 'focus', give a 2-min study/coding hack.\n"
+        f"Context: {ctx_str}"
+    )
+
+    prompt = f"Student says to Ski: {message}"
+
+    def _call(client):
+        res = client.models.generate_content(
+            model="gemini-3.8-flash",
+            contents=prompt,
+            config={
+                "system_instruction": system_instruction,
+                "max_output_tokens": 300,
+                "temperature": 0.85
+            }
+        )
+        return res.text.strip()
+
+    try:
+        if is_gemini_configured():
+            return execute_gemini_call(_call)
+    except Exception as e:
+        logger.warning(f"Ski Gemini call error: {e}")
+
+    fallback_pool = SKI_FALLBACK_QUOTES.get(mood, SKI_FALLBACK_QUOTES["grok"])
+    return random.choice(fallback_pool)
+

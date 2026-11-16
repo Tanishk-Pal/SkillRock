@@ -1,6 +1,14 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import current_user
-from services.ai_service import chat_with_skillbot, get_skill_recommendations, get_learning_roadmap, normalize_skill
+import random
+from services.ai_service import (
+    chat_with_skillbot,
+    get_skill_recommendations,
+    get_learning_roadmap,
+    normalize_skill,
+    chat_with_ski,
+    SKI_FALLBACK_QUOTES,
+)
 from models import Skill
 
 ai_bp = Blueprint("ai", __name__)
@@ -81,3 +89,64 @@ def api_normalize():
     raw_skill = data.get("skill", "").strip()
     normalized = normalize_skill(raw_skill)
     return jsonify({"original": raw_skill, "normalized": normalized})
+
+
+# ==============================================================================
+# Ski — Grok-Inspired AI Companion & Motivational Study Partner Routes
+# ==============================================================================
+
+@ai_bp.route("/ski")
+def ski_hub():
+    """
+    Ski — SkillRock's Grok-Inspired AI Study Partner & Motivation Mascot.
+    Full interactive companion hub with 3D sphere avatar, moods, sound, and quick quests.
+    """
+    user_context = None
+    if current_user.is_authenticated:
+        user_context = {
+            "name": current_user.name,
+            "college": current_user.college,
+            "branch": current_user.branch,
+            "xp": current_user.xp,
+            "level": current_user.level_name
+        }
+    return render_template("ski.html", user_context=user_context)
+
+
+@ai_bp.route("/api/ski/chat", methods=["POST"])
+def api_ski_chat():
+    data = request.get_json(silent=True) or {}
+    message = data.get("message", "").strip()
+    mood = data.get("mood", "grok").strip()
+    if not message:
+        return jsonify({"error": "Message is required."}), 400
+
+    user_context = None
+    if current_user.is_authenticated:
+        user_context = {
+            "name": current_user.name,
+            "college": current_user.college,
+            "branch": current_user.branch,
+            "xp": current_user.xp,
+            "level": current_user.level_name
+        }
+
+    reply = chat_with_ski(message, user_context=user_context, mood=mood)
+    return jsonify({
+        "success": True,
+        "reply": reply,
+        "mood": mood,
+        "bot_name": "Ski"
+    })
+
+
+@ai_bp.route("/api/ski/quote", methods=["GET"])
+def api_ski_quote():
+    mood = request.args.get("mood", "grok").lower()
+    pool = SKI_FALLBACK_QUOTES.get(mood, SKI_FALLBACK_QUOTES["grok"])
+    return jsonify({
+        "success": True,
+        "quote": random.choice(pool),
+        "mood": mood
+    })
+

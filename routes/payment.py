@@ -299,7 +299,7 @@ def checkout(item_type, item_id):
     - If item is free, redirects immediately to /enroll-free/<item_type>/<item_id>.
     - If user already unlocked item, redirects to the course/test player.
     """
-    if item_type not in ("course", "test_series", "roadmap"):
+    if item_type not in ("course", "test_series", "roadmap", "bhavishya"):
         flash("Invalid item category selected.", "danger")
         return redirect(url_for("learning.courses_list"))
 
@@ -323,6 +323,8 @@ def checkout(item_type, item_id):
             return redirect(url_for("learning.course_detail", slug=item.slug, player=1, _anchor="skillrockPlayerFrame"))
         elif item_type == "roadmap":
             return redirect(url_for("roadmap.dashboard", slug=item.slug))
+        elif item_type == "bhavishya":
+            return redirect(url_for("bhavishya.dashboard"))
         else:
             return redirect(url_for("test_series.test_detail", test_slug=item.slug))
 
@@ -551,6 +553,8 @@ def verify_razorpay_payment():
             redirect_url = url_for("test_series.test_detail", test_slug=item.slug)
         elif item_type == "roadmap" and item and getattr(item, "slug", None):
             redirect_url = url_for("roadmap.dashboard", slug=item.slug)
+        elif item_type == "bhavishya":
+            redirect_url = url_for("bhavishya.dashboard")
         return jsonify({
             "success": True,
             "message": "Payment already verified.",
@@ -641,6 +645,8 @@ def verify_razorpay_payment():
         redirect_url = url_for("test_series.test_detail", test_slug=item.slug)
     elif item_type == "roadmap" and item and getattr(item, "slug", None):
         redirect_url = url_for("roadmap.dashboard", slug=item.slug)
+    elif item_type == "bhavishya":
+        redirect_url = url_for("bhavishya.dashboard")
 
     return jsonify({
         "success": True,
@@ -657,7 +663,7 @@ def refresh_qr(item_type, item_id):
     Regenerates a fresh dynamic UPI QR code with a renewed 5-minute countdown window.
     Called asynchronously from client via AJAX when the previous 5-minute timer expires.
     """
-    if item_type not in ("course", "test_series", "roadmap"):
+    if item_type not in ("course", "test_series", "roadmap", "bhavishya"):
         return jsonify({"success": False, "error": "Invalid item type"}), 400
 
     item = get_item_by_type_and_id(item_type, item_id)
@@ -732,7 +738,7 @@ def submit_payment():
     item_id = request.form.get("item_id", "").strip()
     utr_raw = request.form.get("utr_number", "").strip()
 
-    if item_type not in ("course", "test_series", "roadmap") or not item_id:
+    if item_type not in ("course", "test_series", "roadmap", "bhavishya") or not item_id:
         flash("Invalid payment target item.", "danger")
         return redirect(url_for("learning.courses_list"))
 
@@ -856,6 +862,8 @@ def submit_payment():
             return redirect(url_for("learning.course_detail", slug=item.slug, player=1, _anchor="skillrockPlayerFrame"))
         elif item_type == "roadmap":
             return redirect(url_for("roadmap.dashboard", slug=item.slug))
+        elif item_type == "bhavishya":
+            return redirect(url_for("bhavishya.dashboard"))
         else:
             return redirect(url_for("test_series.test_detail", test_slug=item.slug))
 
@@ -1017,7 +1025,7 @@ def check_auto_status(item_type, item_id):
     Checks if user has been unlocked via Bank SMS webhook or admin verification.
     Returns unlocked: True with direct player redirect URL as soon as verified.
     """
-    if item_type not in ("course", "test_series", "roadmap"):
+    if item_type not in ("course", "test_series", "roadmap", "bhavishya"):
         return jsonify({"unlocked": False, "error": "Invalid item type"}), 400
 
     item = get_item_by_type_and_id(item_type, item_id)
@@ -1039,6 +1047,8 @@ def check_auto_status(item_type, item_id):
             redirect_url = url_for("learning.course_detail", slug=item.slug, player=1, _anchor="skillrockPlayerFrame")
         elif item_type == "roadmap":
             redirect_url = url_for("roadmap.dashboard", slug=item.slug)
+        elif item_type == "bhavishya":
+            redirect_url = url_for("bhavishya.dashboard")
         else:
             redirect_url = url_for("test_series.test_detail", test_slug=item.slug)
 
@@ -1112,7 +1122,7 @@ def enroll_free(item_type, item_id):
     - Grants instantaneous free access ONLY IF item.is_paid == False and price == 0 in MongoDB.
     - If a user calls this on a paid course (e.g. ₹699) or test, BLOCKS with HTTP 403 Forbidden!
     """
-    if item_type not in ("course", "test_series", "roadmap"):
+    if item_type not in ("course", "test_series", "roadmap", "bhavishya"):
         abort(400)
 
     item = get_item_by_type_and_id(item_type, item_id)
@@ -1145,5 +1155,7 @@ def enroll_free(item_type, item_id):
         return redirect(url_for("learning.course_detail", slug=item.slug, player=1, _anchor="skillrockPlayerFrame"))
     elif item_type == "roadmap":
         return redirect(url_for("roadmap.dashboard", slug=item.slug))
+    elif item_type == "bhavishya":
+        return redirect(url_for("bhavishya.dashboard"))
     else:
         return redirect(url_for("test_series.test_detail", test_slug=item.slug))

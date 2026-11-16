@@ -778,6 +778,16 @@
                     <span>Cancel & Return</span>
                     <i data-lucide="x" style="width: 14px; height: 14px;"></i>
                 </a>
+                {% elif item_type == 'roadmap' %}
+                <a href="{{ url_for('roadmap.detail', slug=item.slug) }}" class="td-cancel-btn">
+                    <span>Cancel & Return</span>
+                    <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                </a>
+                {% elif item_type == 'bhavishya' %}
+                <a href="{{ url_for('bhavishya.dashboard') }}" class="td-cancel-btn">
+                    <span>Cancel & Return</span>
+                    <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                </a>
                 {% else %}
                 <a href="{{ url_for('test_series.test_detail', test_slug=item.slug) }}" class="td-cancel-btn">
                     <span>Cancel & Return</span>
