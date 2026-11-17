@@ -118,6 +118,7 @@ def api_ski_chat():
     data = request.get_json(silent=True) or {}
     message = data.get("message", "").strip()
     mood = data.get("mood", "grok").strip()
+    current_url = data.get("current_url", "").strip()
     if not message:
         return jsonify({"error": "Message is required."}), 400
 
@@ -131,13 +132,19 @@ def api_ski_chat():
             "level": current_user.level_name
         }
 
-    reply = chat_with_ski(message, user_context=user_context, mood=mood)
-    return jsonify({
-        "success": True,
-        "reply": reply,
-        "mood": mood,
-        "bot_name": "Ski"
-    })
+    res_data = chat_with_ski(message, user_context=user_context, mood=mood, current_url=current_url)
+    if isinstance(res_data, str):
+        res_data = {
+            "reply": res_data,
+            "redirect_url": None,
+            "action": "chat",
+            "thinking_steps": ["Processed query with Ski."],
+            "bot_name": "Ski"
+        }
+
+    res_data["success"] = True
+    res_data["mood"] = mood
+    return jsonify(res_data)
 
 
 @ai_bp.route("/api/ski/quote", methods=["GET"])

@@ -1,8 +1,8 @@
 <!-- ==========================================================================
-     SkillRock — Ski: The Grok-Inspired AI Study Partner (Floating Companion)
+     SkillRock — Ski: The Living Web Pet & Jarvis Personal Assistant (Floating Widget)
      ========================================================================== -->
 <style>
-    /* Floating Mascot Trigger Sphere */
+    /* Floating Mascot Pet Container */
     #ski-floating-container {
         position: fixed;
         bottom: 24px;
@@ -12,77 +12,141 @@
         flex-direction: column;
         align-items: flex-end;
         font-family: inherit;
+        touch-action: none;
+        user-select: none;
     }
 
     @media (max-width: 768px) {
         #ski-floating-container {
-            bottom: 78px;
+            bottom: 80px;
             right: 16px;
         }
     }
 
-    /* Floating Sphere Trigger */
-    .ski-float-trigger {
-        width: 56px;
-        height: 56px;
+    /* Living Mascot Sphere */
+    .ski-pet-sphere {
+        width: 64px;
+        height: 64px;
         border-radius: 50%;
-        background: radial-gradient(circle at 35% 30%, #475569 0%, #1E293B 45%, #0F172A 75%, #020617 100%);
+        background: radial-gradient(circle at 35% 30%, #475569 0%, #1E293B 40%, #0F172A 75%, #020617 100%);
         box-shadow: 
-            inset -4px -4px 10px rgba(0, 0, 0, 0.8),
-            inset 3px 3px 8px rgba(255, 255, 255, 0.4),
-            0 8px 24px rgba(0, 0, 0, 0.45),
-            0 0 16px rgba(236, 72, 153, 0.35);
+            inset -5px -5px 12px rgba(0, 0, 0, 0.85),
+            inset 4px 4px 10px rgba(255, 255, 255, 0.45),
+            0 10px 28px rgba(0, 0, 0, 0.55),
+            0 0 20px rgba(236, 72, 153, 0.4);
         display: flex;
         align-items: center;
         justify-content: center;
-        cursor: pointer;
+        cursor: grab;
         position: relative;
-        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
-        user-select: none;
+        transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
+        animation: skiPetHover 3.8s ease-in-out infinite;
     }
 
-    .ski-float-trigger:hover {
-        transform: scale(1.1) translateY(-3px);
+    .ski-pet-sphere:active {
+        cursor: grabbing;
+        transform: scale(0.92);
+    }
+
+    .ski-pet-sphere:hover {
+        transform: scale(1.1) translateY(-4px);
         box-shadow: 
-            inset -4px -4px 10px rgba(0, 0, 0, 0.8),
-            inset 3px 3px 10px rgba(255, 255, 255, 0.5),
-            0 14px 30px rgba(0, 0, 0, 0.5),
-            0 0 24px rgba(236, 72, 153, 0.6);
+            inset -5px -5px 12px rgba(0, 0, 0, 0.85),
+            inset 4px 4px 12px rgba(255, 255, 255, 0.6),
+            0 16px 36px rgba(0, 0, 0, 0.6),
+            0 0 30px rgba(236, 72, 153, 0.7);
     }
 
-    .ski-float-trigger:active {
-        transform: scale(0.94);
+    @keyframes skiPetHover {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-7px) rotate(1.5deg); }
     }
 
-    /* Miniature Eyes inside trigger */
-    .ski-mini-eyes {
+    /* Talking Bounce */
+    .ski-pet-sphere.talking {
+        animation: skiPetTalk 0.35s ease-in-out infinite alternate !important;
+    }
+
+    @keyframes skiPetTalk {
+        0% { transform: scale(1.05, 0.95) translateY(-2px); }
+        100% { transform: scale(0.95, 1.05) translateY(-8px); }
+    }
+
+    /* Miniature Capsule Eyes */
+    .ski-pet-eyes {
         display: flex;
-        gap: 6px;
+        gap: 7px;
         transition: transform 0.08s ease-out;
+        will-change: transform;
     }
 
-    .ski-mini-eye {
-        width: 5px;
-        height: 14px;
+    .ski-pet-eye {
+        width: 6px;
+        height: 16px;
         background: #FFFFFF;
         border-radius: 9999px;
-        box-shadow: 0 0 6px rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.95);
         transform-origin: center center;
         transform: rotate(-10deg);
         transition: transform 0.12s ease;
     }
 
-    .ski-mini-eye.blinking {
+    .ski-pet-eye.blinking {
         transform: scaleY(0.08) rotate(-10deg) !important;
     }
 
-    /* Floating Tooltip Pill */
-    .ski-float-tooltip {
+    /* Live Observer Bubble (Appears above Ski when observing pages) */
+    .ski-observer-bubble {
         position: absolute;
-        right: 68px;
+        bottom: 74px;
+        right: 0;
+        background: rgba(15, 23, 42, 0.94);
+        border: 1.5px solid rgba(236, 72, 153, 0.35);
+        color: #F8FAFC;
+        padding: 8px 14px;
+        border-radius: 16px;
+        border-bottom-right-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        max-width: 250px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(236, 72, 153, 0.2);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(8px) scale(0.95);
+        transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: auto;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        line-height: 1.35;
+    }
+
+    .ski-observer-bubble.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+    }
+
+    .ski-observer-badge {
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 9999px;
+        background: linear-gradient(135deg, #EC4899, #8B5CF6);
+        color: #FFFFFF;
+        text-transform: uppercase;
+        flex-shrink: 0;
+    }
+
+    /* Floating Tooltip Pill */
+    .ski-pet-tooltip {
+        position: absolute;
+        right: 76px;
         top: 50%;
         transform: translateY(-50%);
-        background: rgba(15, 23, 42, 0.92);
+        background: rgba(15, 23, 42, 0.94);
         border: 1px solid rgba(255, 255, 255, 0.15);
         color: #F8FAFC;
         padding: 6px 14px;
@@ -95,42 +159,31 @@
         pointer-events: none;
         opacity: 0;
         visibility: hidden;
-        transition: all 0.25s ease;
+        transition: all 0.2s ease;
         display: flex;
         align-items: center;
         gap: 6px;
     }
 
-    .ski-float-tooltip::after {
-        content: "";
-        position: absolute;
-        right: -6px;
-        top: 50%;
-        transform: translateY(-50%);
-        border-top: 5px solid transparent;
-        border-bottom: 5px solid transparent;
-        border-left: 6px solid rgba(15, 23, 42, 0.92);
-    }
-
-    .ski-float-trigger:hover .ski-float-tooltip {
+    .ski-pet-sphere:hover .ski-pet-tooltip {
         opacity: 1;
         visibility: visible;
         transform: translateY(-50%) translateX(-4px);
     }
 
-    /* Companion Popup Window */
+    /* Popup Window */
     .ski-popup-window {
         position: absolute;
-        bottom: 70px;
+        bottom: 80px;
         right: 0;
-        width: 360px;
+        width: 375px;
         max-width: calc(100vw - 32px);
-        height: 500px;
-        max-height: calc(100vh - 130px);
+        height: 520px;
+        max-height: calc(100vh - 120px);
         background: var(--bg-card, #0F172A);
-        border: 1.5px solid rgba(255, 255, 255, 0.12);
+        border: 1.5px solid rgba(255, 255, 255, 0.14);
         border-radius: 24px;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 0 30px rgba(236, 72, 153, 0.15);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65), 0 0 35px rgba(236, 72, 153, 0.2);
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -139,7 +192,7 @@
         transform: translateY(20px) scale(0.95);
         transform-origin: bottom right;
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        backdrop-filter: blur(12px);
+        backdrop-filter: blur(14px);
     }
 
     .ski-popup-window.active {
@@ -148,14 +201,14 @@
         transform: translateY(0) scale(1);
     }
 
-    /* Popup Top Bar */
+    /* Popup Header */
     .ski-pop-header {
-        padding: 14px 18px;
+        padding: 12px 16px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: rgba(15, 23, 42, 0.6);
+        background: rgba(15, 23, 42, 0.7);
     }
 
     .ski-pop-header-left {
@@ -165,14 +218,14 @@
     }
 
     .ski-pop-mini-avatar {
-        width: 32px;
-        height: 32px;
+        width: 34px;
+        height: 34px;
         border-radius: 50%;
         background: radial-gradient(circle at 35% 30%, #475569, #0F172A);
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.25);
     }
 
     .ski-pop-title {
@@ -220,6 +273,11 @@
         color: var(--text-main, #F8FAFC);
     }
 
+    .ski-pop-btn.active {
+        color: #EC4899;
+        background: rgba(236, 72, 153, 0.15);
+    }
+
     /* Popup Messages Body */
     .ski-pop-body {
         flex: 1;
@@ -237,6 +295,7 @@
         line-height: 1.45;
         max-width: 88%;
         animation: skiFadeIn 0.2s ease;
+        word-break: break-word;
     }
 
     @keyframes skiFadeIn {
@@ -257,6 +316,97 @@
         color: var(--text-main, #F8FAFC);
         align-self: flex-start;
         border-bottom-left-radius: 4px;
+    }
+
+    /* Jarvis Autopilot Card */
+    .jarvis-autopilot-card {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(236, 72, 153, 0.25));
+        border: 1.5px solid rgba(236, 72, 153, 0.45);
+        border-radius: 14px;
+        padding: 12px 14px;
+        margin-top: 8px;
+        animation: pulseBorder 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulseBorder {
+        0% { border-color: rgba(236, 72, 153, 0.45); box-shadow: 0 0 10px rgba(236, 72, 153, 0.2); }
+        100% { border-color: rgba(139, 92, 246, 0.8); box-shadow: 0 0 20px rgba(139, 92, 246, 0.4); }
+    }
+
+    .autopilot-badge {
+        font-size: 0.68rem;
+        font-weight: 800;
+        color: #F472B6;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .autopilot-title {
+        font-size: 0.88rem;
+        font-weight: 800;
+        color: #FFFFFF;
+        margin-bottom: 6px;
+    }
+
+    .autopilot-timer {
+        font-size: 0.78rem;
+        color: #C4B5FD;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .autopilot-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .autopilot-btn {
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        transition: transform 0.15s ease;
+    }
+
+    .autopilot-btn.go {
+        background: linear-gradient(135deg, #7C3AED, #EC4899);
+        color: #FFFFFF;
+    }
+
+    .autopilot-btn.cancel {
+        background: rgba(255, 255, 255, 0.1);
+        color: #94A3B8;
+    }
+
+    /* Thinking Dots */
+    .ski-thinking-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        color: #94A3B8;
+        font-size: 0.8rem;
+        font-style: italic;
+    }
+
+    .ski-thinking-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #EC4899;
+        animation: skiDotPulse 1.2s infinite ease-in-out both;
+    }
+    .ski-thinking-dot:nth-child(1) { animation-delay: -0.32s; }
+    .ski-thinking-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes skiDotPulse {
+        0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+        40% { transform: scale(1); opacity: 1; }
     }
 
     /* Quick Chips Bar */
@@ -288,11 +438,11 @@
         border-color: rgba(236, 72, 153, 0.35);
     }
 
-    /* Popup Footer Form */
+    /* Input Row */
     .ski-pop-footer {
         padding: 10px 14px 14px;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(15, 23, 42, 0.5);
+        background: rgba(15, 23, 42, 0.6);
     }
 
     .ski-pop-input-row {
@@ -340,8 +490,14 @@
 
 <div id="ski-floating-container">
 
+    <!-- Live Ambient Page Observer Bubble -->
+    <div class="ski-observer-bubble" id="skiObserverBubble" onclick="toggleSkiPopup()">
+        <span class="ski-observer-badge">JARVIS</span>
+        <span id="skiObserverText">Hey! I'm watching your screen. Need help?</span>
+    </div>
+
     <!-- The Popup Companion Window -->
-    <div class="ski-popup-window" id="skiPopupWindow" role="dialog" aria-label="Ski Companion">
+    <div class="ski-popup-window" id="skiPopupWindow" role="dialog" aria-label="Ski Assistant">
         <!-- Top bar -->
         <div class="ski-pop-header">
             <div class="ski-pop-header-left">
@@ -351,11 +507,14 @@
                 <div>
                     <div class="ski-pop-title">
                         <span>Ski</span>
-                        <span class="ski-pop-badge">GROK PARTNER</span>
+                        <span class="ski-pop-badge">JARVIS PET</span>
                     </div>
                 </div>
             </div>
             <div class="ski-pop-actions">
+                <button type="button" class="ski-pop-btn active" id="btnPopVoice" onclick="togglePopVoice()" title="Toggle Voice Speech">
+                    <i data-lucide="volume-2" id="popVoiceIcon" style="width: 14px; height: 14px;"></i>
+                </button>
                 <a href="{{ url_for('ai.ski_hub') }}" class="ski-pop-btn" title="Open Fullscreen Ski Hub">
                     <i data-lucide="maximize-2" style="width: 14px; height: 14px;"></i>
                 </a>
@@ -368,16 +527,16 @@
         <!-- Chat messages log -->
         <div class="ski-pop-body" id="skiPopBody">
             <div class="ski-bubble bot">
-                Hey! I'm <strong>Ski</strong>, your round, witty AI study buddy. Procrastinating? Stuck on a bug? Hit a button below or talk to me! ⚡
+                Hey! I'm <strong>Ski</strong>, your personal local machine Jarvis pet. Ask me for any course (like <em>"Ski I want a super course on AI"</em>), or tell me what you're building! ⚡
             </div>
         </div>
 
         <!-- Quick prompt chips -->
         <div class="ski-pop-chips">
+            <button class="ski-mini-chip" onclick="quickPopPrompt('Ski I want a super course on AI')">🚀 Super AI Course</button>
+            <button class="ski-mini-chip" onclick="quickPopPrompt('Take me to Full Stack Roadmap')">🛠️ Full Stack</button>
             <button class="ski-mini-chip" onclick="quickPopPrompt('Hype me up!')">🔥 Hype Me</button>
-            <button class="ski-mini-chip" onclick="quickPopPrompt('Roast my procrastination!')">🧠 Roast Me</button>
             <button class="ski-mini-chip" onclick="quickPopPrompt('Tell me a dev joke')">😂 Joke</button>
-            <button class="ski-mini-chip" onclick="quickPopPrompt('2-minute study hack')">💡 Focus</button>
         </div>
 
         <!-- Input footer -->
@@ -387,7 +546,7 @@
                     type="text" 
                     id="skiPopInput" 
                     class="ski-pop-input" 
-                    placeholder="Ask Ski anything..." 
+                    placeholder="Ask Ski (e.g. 'Ski I want a super course on AI')..." 
                     autocomplete="off"
                 >
                 <button type="submit" class="ski-pop-send-btn" title="Send">
@@ -397,14 +556,14 @@
         </div>
     </div>
 
-    <!-- Floating Sphere Trigger Button -->
-    <div class="ski-float-trigger" id="skiFloatTrigger" onclick="toggleSkiPopup()" title="Ski — Your AI Study Companion">
-        <div class="ski-mini-eyes" id="skiMiniEyes">
-            <div class="ski-mini-eye left"></div>
-            <div class="ski-mini-eye right"></div>
+    <!-- Living Mascot Sphere (Draggable & Interactive) -->
+    <div class="ski-pet-sphere" id="skiPetTrigger" title="Ski — Drag to move • Click to chat">
+        <div class="ski-pet-eyes" id="skiPetEyes">
+            <div class="ski-pet-eye left"></div>
+            <div class="ski-pet-eye right"></div>
         </div>
-        <div class="ski-float-tooltip">
-            <span>⚡ Meet Ski • AI Companion</span>
+        <div class="ski-pet-tooltip">
+            <span>⚡ Meet Ski • Jarvis Pet</span>
         </div>
     </div>
 
@@ -412,27 +571,206 @@
 
 <script>
 (function() {
-    const trigger = document.getElementById('skiFloatTrigger');
+    const container = document.getElementById('ski-floating-container');
+    const trigger = document.getElementById('skiPetTrigger');
     const popup = document.getElementById('skiPopupWindow');
-    const miniEyes = document.getElementById('skiMiniEyes');
+    const petEyes = document.getElementById('skiPetEyes');
     const popBody = document.getElementById('skiPopBody');
     const popInput = document.getElementById('skiPopInput');
+    const obsBubble = document.getElementById('skiObserverBubble');
+    const obsText = document.getElementById('skiObserverText');
 
     let isOpen = false;
+    let voiceActive = true;
+    let autopilotTimer = null;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let initialLeft = 0;
+    let initialTop = 0;
+    let hasMoved = false;
 
+    // 1. Web Audio API Sci-Fi Jarvis Chime
+    let audioCtx = null;
+    function playJarvisChime() {
+        try {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const now = audioCtx.currentTime;
+
+            osc.type = 'sine';
+            // Sci-fi two-tone ascending chirp
+            osc.frequency.setValueAtTime(587.33, now); // D5
+            osc.frequency.exponentialRampToValueAtTime(880.00, now + 0.12); // A5
+
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + 0.36);
+        } catch(e) {
+            // Audio context silently ignored if blocked by autoplay policy
+        }
+    }
+
+    // 2. Personal Assistant Speech Synthesis
+    function speakJarvis(text) {
+        if (!voiceActive || !('speechSynthesis' in window)) return;
+        try {
+            window.speechSynthesis.cancel();
+            playJarvisChime();
+
+            const cleanText = text.replace(/[*_#`"']/g, '');
+            const utter = new SpeechSynthesisUtterance(cleanText);
+            utter.pitch = 0.95; // Sleek modern personal assistant tone
+            utter.rate = 1.02;
+
+            // Pick a good assistant voice if available
+            const voices = window.speechSynthesis.getVoices();
+            const preferred = voices.find(v => 
+                v.lang.startsWith('en') && (
+                    v.name.includes('Google') || 
+                    v.name.includes('Natural') || 
+                    v.name.includes('David') || 
+                    v.name.includes('Mark') || 
+                    v.name.includes('Samantha') ||
+                    v.name.includes('Guy')
+                )
+            );
+            if (preferred) utter.voice = preferred;
+
+            utter.onstart = function() {
+                if (trigger) trigger.classList.add('talking');
+            };
+            utter.onend = function() {
+                if (trigger) trigger.classList.remove('talking');
+            };
+            window.speechSynthesis.speak(utter);
+        } catch(e) {
+            console.warn('[Ski Voice]', e);
+        }
+    }
+
+    window.togglePopVoice = function() {
+        voiceActive = !voiceActive;
+        const btn = document.getElementById('btnPopVoice');
+        const icon = document.getElementById('popVoiceIcon');
+        if (btn) btn.classList.toggle('active', voiceActive);
+        if (icon) {
+            icon.setAttribute('data-lucide', voiceActive ? 'volume-2' : 'volume-x');
+            if (window.lucide) lucide.createIcons();
+        }
+        if (!voiceActive && 'speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            if (trigger) trigger.classList.remove('talking');
+        }
+    };
+
+    // 3. Popup Toggle
     window.toggleSkiPopup = function() {
         isOpen = !isOpen;
         if (popup) {
             popup.classList.toggle('active', isOpen);
-            if (isOpen && popInput) {
-                setTimeout(() => popInput.focus(), 150);
+            if (isOpen) {
+                if (obsBubble) obsBubble.classList.remove('active');
+                playJarvisChime();
+                if (popInput) setTimeout(() => popInput.focus(), 150);
             }
         }
     };
 
-    // Eye Tracking on Floating Trigger
+    // 4. Draggable Pet Mechanics with Edge Clamping & Position Persistence
+    const savedX = localStorage.getItem('ski_pet_pos_x');
+    const savedY = localStorage.getItem('ski_pet_pos_y');
+    if (savedX && savedY && container) {
+        container.style.right = 'auto';
+        container.style.bottom = 'auto';
+        container.style.left = savedX + 'px';
+        container.style.top = savedY + 'px';
+    }
+
+    if (trigger && container) {
+        trigger.addEventListener('mousedown', startDrag);
+        trigger.addEventListener('touchstart', startDrag, { passive: false });
+    }
+
+    function startDrag(e) {
+        // Only left button or touch
+        if (e.type === 'mousedown' && e.button !== 0) return;
+        isDragging = true;
+        hasMoved = false;
+
+        const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+
+        const rect = container.getBoundingClientRect();
+        dragStartX = clientX;
+        dragStartY = clientY;
+        initialLeft = rect.left;
+        initialTop = rect.top;
+
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchmove', onDrag, { passive: false });
+        document.addEventListener('touchend', endDrag);
+    }
+
+    function onDrag(e) {
+        if (!isDragging) return;
+        const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+
+        const deltaX = clientX - dragStartX;
+        const deltaY = clientY - dragStartY;
+
+        if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
+            hasMoved = true;
+            if (e.cancelable) e.preventDefault();
+        }
+
+        let newLeft = initialLeft + deltaX;
+        let newTop = initialTop + deltaY;
+
+        // Clamp to screen
+        newLeft = Math.max(12, Math.min(window.innerWidth - 76, newLeft));
+        newTop = Math.max(12, Math.min(window.innerHeight - 76, newTop));
+
+        container.style.right = 'auto';
+        container.style.bottom = 'auto';
+        container.style.left = newLeft + 'px';
+        container.style.top = newTop + 'px';
+    }
+
+    function endDrag(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('mouseup', endDrag);
+        document.removeEventListener('touchmove', onDrag);
+        document.removeEventListener('touchend', endDrag);
+
+        const rect = container.getBoundingClientRect();
+        localStorage.setItem('ski_pet_pos_x', Math.round(rect.left));
+        localStorage.setItem('ski_pet_pos_y', Math.round(rect.top));
+
+        if (!hasMoved) {
+            toggleSkiPopup();
+        }
+    }
+
+    // 5. Eye Tracking Mouse Movement
     document.addEventListener('mousemove', function(e) {
-        if (!miniEyes || !trigger) return;
+        if (!petEyes || !trigger) return;
         const rect = trigger.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
@@ -446,20 +784,50 @@
         const offX = Math.cos(angle) * Math.min(dist * 0.04, maxOffset);
         const offY = Math.sin(angle) * Math.min(dist * 0.04, maxOffset);
 
-        miniEyes.style.transform = `translate(${offX}px, ${offY}px)`;
+        petEyes.style.transform = `translate(${offX}px, ${offY}px)`;
     });
 
-    // Random Blinking
-    function blinkMiniEyes() {
-        const eyes = document.querySelectorAll('.ski-mini-eye');
+    // 6. Natural Blinking
+    function blinkPetEyes() {
+        const eyes = document.querySelectorAll('.ski-pet-eye');
         eyes.forEach(e => e.classList.add('blinking'));
         setTimeout(() => {
             eyes.forEach(e => e.classList.remove('blinking'));
         }, 130);
-        setTimeout(blinkMiniEyes, Math.random() * 3500 + 2500);
+        setTimeout(blinkPetEyes, Math.random() * 3500 + 2500);
     }
-    setTimeout(blinkMiniEyes, 2500);
+    setTimeout(blinkPetEyes, 2500);
 
+    // 7. Page & Course Observer
+    function initPageObserver() {
+        const path = window.location.pathname.toLowerCase();
+        let message = "I'm Ski, your personal Jarvis pet! Drag me or tap to chat.";
+
+        if (path.includes('/course/')) {
+            const h1 = document.querySelector('h1');
+            const courseTitle = h1 ? h1.innerText.trim() : "this course";
+            message = `Watching you study "${courseTitle.slice(0, 32)}..."! Let's crush this!`;
+        } else if (path.includes('/roadmap')) {
+            message = `Career Roadmap active! Track your milestones and stay focused.`;
+        } else if (path.includes('/bhavishya')) {
+            message = `Bhavishya 1.0 AI Classroom! Your personal instructor is live.`;
+        } else if (path.includes('/test-series')) {
+            message = `Test Arena! Stay sharp and test your limits.`;
+        }
+
+        if (obsText) obsText.innerText = message;
+        if (obsBubble && !isOpen) {
+            setTimeout(() => {
+                obsBubble.classList.add('active');
+                setTimeout(() => {
+                    if (!isOpen && obsBubble) obsBubble.classList.remove('active');
+                }, 6500);
+            }, 1800);
+        }
+    }
+    setTimeout(initPageObserver, 600);
+
+    // 8. Quick Chips
     window.quickPopPrompt = function(text) {
         if (popInput) {
             popInput.value = text;
@@ -467,6 +835,24 @@
         }
     };
 
+    // 9. Autopilot Navigation Execution
+    window.executeAutopilot = function(url) {
+        if (autopilotTimer) clearTimeout(autopilotTimer);
+        window.location.href = url;
+    };
+
+    window.cancelAutopilot = function() {
+        if (autopilotTimer) {
+            clearTimeout(autopilotTimer);
+            autopilotTimer = null;
+        }
+        const card = document.getElementById('activeAutopilotCard');
+        if (card) {
+            card.innerHTML = `<span style="color: #94A3B8; font-size: 0.78rem;">🚀 Autopilot cancelled. Staying on current page.</span>`;
+        }
+    };
+
+    // 10. Chat Message Submission & Autopilot Handling
     window.handlePopSubmit = async function(e) {
         if (e && e.preventDefault) e.preventDefault();
         const text = (popInput ? popInput.value : '').trim();
@@ -474,22 +860,87 @@
 
         popInput.value = '';
 
-        // Add user message
+        // Add user bubble
         appendPopMsg('user', text);
+
+        // Show thinking indicator
+        const thinkingElem = showPopThinking();
 
         try {
             const res = await fetch('/api/ski/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text, mood: 'grok' })
+                body: JSON.stringify({ 
+                    message: text, 
+                    mood: 'grok',
+                    current_url: window.location.pathname 
+                })
             });
             const data = await res.json();
-            const reply = (data && data.reply) ? data.reply : "Keep crushing those commits, chief!";
+            if (thinkingElem) thinkingElem.remove();
+
+            const reply = (data && data.reply) ? data.reply : "Code on, chief!";
             appendPopMsg('bot', reply);
+            speakJarvis(reply);
+
+            // Handle Autopilot Redirect Action
+            if (data && data.action === 'navigate' && data.redirect_url) {
+                renderAutopilotCard(data);
+            }
         } catch(err) {
-            appendPopMsg('bot', "Network glitch! But my motivation for you is 100% intact. Keep coding!");
+            if (thinkingElem) thinkingElem.remove();
+            appendPopMsg('bot', "Connection hiccup! But I'm right here with you. Try asking again!");
         }
     };
+
+    function showPopThinking() {
+        if (!popBody) return null;
+        const div = document.createElement('div');
+        div.className = 'ski-thinking-row';
+        div.innerHTML = `
+            <div class="ski-thinking-dot"></div>
+            <div class="ski-thinking-dot"></div>
+            <div class="ski-thinking-dot"></div>
+            <span>Jarvis scanning catalogue...</span>
+        `;
+        popBody.appendChild(div);
+        popBody.scrollTop = popBody.scrollHeight;
+        return div;
+    }
+
+    function renderAutopilotCard(data) {
+        if (!popBody) return;
+        const card = document.createElement('div');
+        card.className = 'jarvis-autopilot-card';
+        card.id = 'activeAutopilotCard';
+        card.innerHTML = `
+            <div class="autopilot-badge">🚀 JARVIS AUTOPILOT NAVIGATION</div>
+            <div class="autopilot-title">${data.target_title || 'Target Destination'}</div>
+            <div class="autopilot-timer">
+                <i data-lucide="compass" style="width: 14px; height: 14px;"></i>
+                <span>Redirecting in <strong id="autopilotCountdown">2</strong>s...</span>
+            </div>
+            <div class="autopilot-actions">
+                <button type="button" class="autopilot-btn cancel" onclick="cancelAutopilot()">Stay Here</button>
+                <button type="button" class="autopilot-btn go" onclick="executeAutopilot('${data.redirect_url}')">Go Now &rarr;</button>
+            </div>
+        `;
+        popBody.appendChild(card);
+        popBody.scrollTop = popBody.scrollHeight;
+        if (window.lucide) lucide.createIcons();
+
+        let secondsLeft = 2;
+        autopilotTimer = setInterval(() => {
+            secondsLeft -= 1;
+            const counter = document.getElementById('autopilotCountdown');
+            if (counter) counter.innerText = secondsLeft;
+            if (secondsLeft <= 0) {
+                clearInterval(autopilotTimer);
+                autopilotTimer = null;
+                window.location.href = data.redirect_url;
+            }
+        }, 1000);
+    }
 
     function appendPopMsg(sender, text) {
         if (!popBody) return;

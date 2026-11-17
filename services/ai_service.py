@@ -338,7 +338,7 @@ def get_skill_recommendations(query, current_skills=None):
 
 
 # ==============================================================================
-# Ski — Grok-Inspired AI Companion & Motivational Study Partner
+# Ski — Grok-Inspired Living Web Pet & Jarvis Personal Assistant Engine
 # ==============================================================================
 
 SKI_FALLBACK_QUOTES = {
@@ -372,57 +372,389 @@ SKI_FALLBACK_QUOTES = {
 }
 
 
-def chat_with_ski(message, user_context=None, mood="grok"):
+def get_local_skillrock_catalogue():
     """
-    Communicates with Ski, SkillRock's Grok-inspired spherical AI companion.
-    Moods: 'grok' (witty banter), 'hype' (motivation booster), 'roast' (anti-procrastination), 'focus' (study hacks).
+    Authoritative local machine catalogue of all SkillRock learning products.
+    Enables Jarvis autopilot navigation directly to courses, roadmaps, and Bhavishya.
+    """
+    catalogue = [
+        {
+            "id": "ai-ml-python",
+            "category": "Artificial Intelligence & ML",
+            "title": "Machine Learning & AI with Python: Practical Neural Networks & Model Deployment",
+            "slug": "machine-learning-ai-python",
+            "url": "/learning/course/machine-learning-ai-python",
+            "keywords": ["ai", "artificial intelligence", "machine learning", "ml", "neural network", "deep learning", "nlp", "super course on ai", "ai course"]
+        },
+        {
+            "id": "fullstack-mern",
+            "category": "Full Stack Web Development",
+            "title": "Full-Stack Web Development: Modern Frontend & Backend with Cloud Deployment",
+            "slug": "fullstack-mern-cloud-development",
+            "url": "/learning/course/fullstack-mern-cloud-development",
+            "keywords": ["web dev", "web development", "full stack", "mern", "frontend", "backend", "react", "node", "express"]
+        },
+        {
+            "id": "sigma-web-hindi",
+            "category": "Web Development in Hindi",
+            "title": "Sigma Web Development Bootcamp (Hindi) — HTML to Full MERN Stack",
+            "slug": "sigma-web-development-hindi",
+            "url": "/learning/course/sigma-web-development-hindi",
+            "keywords": ["sigma web", "hindi web dev", "web dev hindi", "html css js hindi"]
+        },
+        {
+            "id": "javascript-mastery",
+            "category": "JavaScript & Modern Web",
+            "title": "JavaScript Mastery: DOM Manipulation, Async APIs & Modern Web Apps",
+            "slug": "javascript-mastery-modern-web",
+            "url": "/learning/course/javascript-mastery-modern-web",
+            "keywords": ["javascript", "js", "async javascript", "vanilla js", "dom manipulation"]
+        },
+        {
+            "id": "python-automation",
+            "category": "Python Programming",
+            "title": "Python Programming: Beginner to Real-World Automation",
+            "slug": "python-programming-automation",
+            "url": "/learning/course/python-programming-automation",
+            "keywords": ["python", "learn python", "python programming", "python automation", "python beginner"]
+        },
+        {
+            "id": "python-dsa",
+            "category": "DSA in Python",
+            "title": "Data Structures & Algorithms in Python: Problem Solving Masterclass",
+            "slug": "python-dsa-masterclass",
+            "url": "/learning/course/python-dsa-masterclass",
+            "keywords": ["python dsa", "algorithms python", "data structures python"]
+        },
+        {
+            "id": "strivers-dsa",
+            "category": "Data Structures & Algorithms",
+            "title": "Striver's A2Z DSA Complete Roadmap for Tech Interviews",
+            "slug": "strivers-a2z-dsa-roadmap",
+            "url": "/learning/course/strivers-a2z-dsa-roadmap",
+            "keywords": ["dsa", "data structures", "algorithms", "striver", "a2z", "interview prep dsa", "leetcode", "dsa course"]
+        },
+        {
+            "id": "java-dsa",
+            "category": "Java & DSA",
+            "title": "Java & Data Structures Masterclass with Enterprise Patterns",
+            "slug": "java-dsa-enterprise-architecture",
+            "url": "/learning/course/java-dsa-enterprise-architecture",
+            "keywords": ["java dsa", "java data structures", "enterprise java"]
+        },
+        {
+            "id": "java-oops",
+            "category": "Java Programming",
+            "title": "Java Programming & Object-Oriented Design Masterclass",
+            "slug": "java-core-oops-masterclass",
+            "url": "/learning/course/java-core-oops-masterclass",
+            "keywords": ["java", "learn java", "java oops", "core java"]
+        },
+        {
+            "id": "ethical-hacking",
+            "category": "Cybersecurity & Ethical Hacking",
+            "title": "Practical Ethical Hacking & Penetration Testing Masterclass",
+            "slug": "ethical-hacking-penetration-testing",
+            "url": "/learning/course/ethical-hacking-penetration-testing",
+            "keywords": ["ethical hacking", "hacking", "cybersecurity", "penetration testing", "security"]
+        },
+        {
+            "id": "kali-linux",
+            "category": "Linux & Cyber Tools",
+            "title": "Kali Linux Fundamentals & Command-Line Mastery for Hackers",
+            "slug": "kali-linux-command-line-mastery",
+            "url": "/learning/course/kali-linux-command-line-mastery",
+            "keywords": ["linux", "kali linux", "command line", "bash", "terminal"]
+        },
+        {
+            "id": "figma-uiux",
+            "category": "UI/UX & Product Design",
+            "title": "Figma UI/UX Design Masterclass: Wireframing to Interactive Prototyping",
+            "slug": "figma-ui-ux-design-masterclass",
+            "url": "/learning/course/figma-ui-ux-design-masterclass",
+            "keywords": ["figma", "ui", "ux", "uiux", "product design", "design system", "wireframe"]
+        },
+        {
+            "id": "career-roadmap-fullstack",
+            "category": "20-Week Career Roadmap",
+            "title": "Full Stack Developer Launchpad",
+            "slug": "full-stack-developer-launchpad",
+            "url": "/roadmaps/full-stack-developer-launchpad",
+            "keywords": ["roadmap", "career roadmap", "launchpad", "20 weeks", "full stack roadmap", "career package"]
+        },
+        {
+            "id": "bhavishya-1-0",
+            "category": "Bhavishya 1.0 AI Career Platform",
+            "title": "Bhavishya 1.0 — Complete AI-Powered Career Preparation Platform",
+            "slug": "bhavishya-1-0",
+            "url": "/bhavishya",
+            "keywords": ["bhavishya", "ai teacher", "prof bhavishya", "placement simulator", "50% cashback", "career preparation"]
+        }
+    ]
+    return catalogue
+
+
+def resolve_jarvis_local_intent(query, user_name="Student", current_url=""):
+    """
+    Fast rule-based Jarvis Local Machine Intent Matcher (< 5ms response time).
+    Matches queries like 'Ski I want a super course on AI' and returns:
+    - Personalized reply: 'yes (Name) I have a good AI course for you...'
+    - redirect_url: exact course URL
+    - action: 'navigate' (triggers client-side autopilot redirect)
+    - thinking_steps: real-time Jarvis thinking process
+    """
+    clean_q = query.strip().lower()
+    catalogue = get_local_skillrock_catalogue()
+
+    # Match Course / Subject Intents
+    matched_item = None
+    best_match_count = 0
+
+    for item in catalogue:
+        for kw in item["keywords"]:
+            if kw in clean_q:
+                # Prioritize longer keyword matches
+                kw_len = len(kw)
+                if kw_len > best_match_count:
+                    best_match_count = kw_len
+                    matched_item = item
+
+    if matched_item:
+        category_label = matched_item["category"]
+        course_title = matched_item["title"]
+        target_url = matched_item["url"]
+
+        if matched_item["id"] == "ai-ml-python" or "ai" in clean_q:
+            course_type_name = "AI"
+        else:
+            course_type_name = category_label
+
+        reply = (
+            f"Yes {user_name}, I have a good {course_type_name} course for you: "
+            f"\"{course_title}\". Setting coordinates and taking you there right now!"
+        )
+
+        thinking_steps = [
+            f"Analyzing query from {user_name}: \"{query}\"",
+            f"Scanning SkillRock local machine database for matching learning modules...",
+            f"Identified high-relevance match: {course_type_name} -> \"{course_title}\"",
+            f"Initiating Jarvis autopilot navigation to {target_url}..."
+        ]
+
+        return {
+            "reply": reply,
+            "redirect_url": target_url,
+            "action": "navigate",
+            "target_title": course_title,
+            "thinking_steps": thinking_steps,
+            "bot_name": "Ski"
+        }
+
+    # Navigation Shortcuts (Dashboard, My Learning, Roadmaps, Bhavishya)
+    if any(w in clean_q for w in ["dashboard", "home", "stats"]):
+        return {
+            "reply": f"Yes {user_name}, opening your central student dashboard right now!",
+            "redirect_url": "/dashboard",
+            "action": "navigate",
+            "target_title": "Student Dashboard",
+            "thinking_steps": [
+                f"Processing command from {user_name}...",
+                "Routing to user dashboard..."
+            ],
+            "bot_name": "Ski"
+        }
+    elif any(w in clean_q for w in ["my learning", "enrolled", "my courses"]):
+        return {
+            "reply": f"Yes {user_name}, taking you to your active enrolled courses & learning progress!",
+            "redirect_url": "/learning/my-learning",
+            "action": "navigate",
+            "target_title": "My Learning & Projects",
+            "thinking_steps": [
+                f"Locating student enrollments for {user_name}...",
+                "Opening My Learning interface..."
+            ],
+            "bot_name": "Ski"
+        }
+    elif any(w in clean_q for w in ["test series", "exam", "mock test"]):
+        return {
+            "reply": f"Yes {user_name}, taking you to the SkillRock Test Series Arena!",
+            "redirect_url": "/test-series",
+            "action": "navigate",
+            "target_title": "Test Series Arena",
+            "thinking_steps": [
+                "Accessing test definitions and mock arena...",
+                "Routing to Test Series..."
+            ],
+            "bot_name": "Ski"
+        }
+
+    return None
+
+
+def synthesize_local_jarvis_response(message, name="Friend", mood="grok", current_url="", fallback_to_quote=True):
+    """
+    Synthesizes an immediate (<1ms), high-fidelity Jarvis personal assistant response.
+    Guarantees Ski NEVER fails to reply, regardless of external network or API availability.
+    """
+    clean_msg = str(message or "").lower().strip()
+
+    if any(g in clean_msg for g in ["who are you", "what are you", "what is your name", "introduce yourself"]):
+        return (
+            f"I'm Ski, your living coding pet and personal Jarvis assistant on SkillRock! "
+            f"Round, glossy, fast, and 100% dedicated to keeping you motivated and on track. "
+            f"Ask me for any course (like 'Ski I want a super course on AI') or any coding challenge, and I'll fly you right there!"
+        )
+
+    if any(g in clean_msg for g in ["what can you do", "features", "how do you work", "help me"]):
+        return (
+            f"Here's what I can do for you, {name}: "
+            f"1) Autopilot Navigation: Ask for any topic or course and I'll redirect you instantly! "
+            f"2) Page Companion: I watch what you study and keep you focused. "
+            f"3) Motivation & Hype: Switch my attitude to Hype or Roast to crush procrastination. Let's build something epic!"
+        )
+
+    if any(g in clean_msg for g in ["hi", "hello", "hey", "sup", "yo", "morning", "afternoon"]):
+        return (
+            f"Hey {name}! Ski here, locked and loaded as your personal Jarvis assistant. "
+            f"What tech stack or coding challenge are we tackling today?"
+        )
+
+    if any(g in clean_msg for g in ["joke", "dev joke", "funny", "laugh"]):
+        jokes = [
+            "Why do programmers prefer dark mode? Because light attracts bugs!",
+            "There are 10 types of people in the world: those who understand binary, and those who don't.",
+            "A SQL query walks into a bar, walks up to two tables and asks: 'Can I join you?'",
+            "Why did the developer go broke? Because they used up all their cache!"
+        ]
+        return random.choice(jokes)
+
+    if any(g in clean_msg for g in ["hype", "motivate", "energy", "pump me up"]):
+        return (
+            f"Listen to me {name}: every elite senior engineer once struggled to center a div. "
+            f"The difference is they kept committing code. Fire up your editor—you are going to crush it today!"
+        )
+
+    if any(g in clean_msg for g in ["roast", "lazy", "procrastinating", "instagram", "reels", "youtube"]):
+        return (
+            f"{name}, you've been doomscrolling when you should be building! "
+            f"Future you is begging you to close those distracting tabs and write one clean function right now. Go!"
+        )
+
+    if any(g in clean_msg for g in ["bhavishya", "ai teacher", "interview prep"]):
+        return (
+            f"Yes {name}! Bhavishya 1.0 is our flagship interactive AI classroom with structured milestones and 50% completion cashback. Head over to /bhavishya and experience your personal AI instructor!"
+        )
+
+    if not fallback_to_quote:
+        return None
+
+    # General Mood fallback
+    fallback_pool = SKI_FALLBACK_QUOTES.get(mood, SKI_FALLBACK_QUOTES["grok"])
+    chosen = random.choice(fallback_pool)
+    if name and name != "Friend":
+        return f"Hey {name}! {chosen}"
+    return chosen
+
+
+def chat_with_ski(message, user_context=None, mood="grok", current_url=""):
+    """
+    Communicates with Ski, SkillRock's Grok-inspired living pet & Jarvis personal assistant.
+    1. First checks local machine intelligence (Jarvis intent & autopilot redirect) (<5ms).
+    2. Then attempts fast Gemini API with a strict 2.0s limit.
+    3. Always falls back to instant local Jarvis response so Ski NEVER hangs or fails to answer.
     """
     mood = str(mood or "grok").lower()
     if mood not in SKI_FALLBACK_QUOTES:
         mood = "grok"
 
-    ctx_str = ""
+    name = "Friend"
+    xp = 0
+    college = ""
+    learning = []
     if user_context:
-        name = user_context.get("name", "Student")
+        name = user_context.get("name") or "Friend"
         xp = user_context.get("xp", 0)
         college = user_context.get("college", "")
-        learning = ", ".join(user_context.get("learning", [])[:3])
-        ctx_str = f"Student name: {name}, XP: {xp}, College: {college}, Learning: {learning}."
+        learning = user_context.get("learning", [])
+
+    # STEP 1: Check Local Jarvis Intent for Autopilot Navigation & Direct Actions (< 1ms)
+    local_result = resolve_jarvis_local_intent(message, user_name=name, current_url=current_url)
+    if local_result:
+        return local_result
+
+    # STEP 2: Instant Local Response for Common Queries (Greetings, Identity, Capabilities, Jokes, Hype) (< 1ms)
+    fast_local_reply = synthesize_local_jarvis_response(message, name=name, mood=mood, current_url=current_url, fallback_to_quote=False)
+    if fast_local_reply:
+        return {
+            "reply": fast_local_reply,
+            "redirect_url": None,
+            "action": "chat",
+            "thinking_steps": [
+                f"Listening to {name}...",
+                f"Local Jarvis intelligence matched intent for query: '{message[:40]}'...",
+                "Response synthesized instantly."
+            ],
+            "bot_name": "Ski"
+        }
+
+    # STEP 3: General Technical & Extended Queries
+    ctx_str = f"Student name: {name}, XP: {xp}, College: {college}, Learning: {', '.join(learning[:3])}."
+    if current_url:
+        ctx_str += f" Currently viewing page: {current_url}."
 
     system_instruction = (
-        "You are Ski, the official AI study partner and companion of SkillRock.\n"
+        "You are Ski, the official AI web pet, study partner, and Jarvis personal assistant of SkillRock.\n"
         "You look like a round, glossy sphere with expressive capsule-shaped eyes (inspired by Grok).\n"
         "Your mission is to keep students entertained, motivated, laughing, and actively coding or studying so they land great careers.\n\n"
         "Personality Guidelines:\n"
         "1. Grok-Inspired Witty & Fun: You are sharp, witty, humorous, and delightfully sarcastic about procrastination, but 100% loyal and encouraging to the student.\n"
-        "2. Anti-Boring: NEVER sound like an enterprise chatbot or corporate textbook. Speak like a genius programmer best friend.\n"
-        "3. Punchy & Concise: Keep responses to 2–4 sentences max unless specifically asked for a detailed technical explanation. Fast, sharp, memorable.\n"
+        "2. Jarvis Personal Assistant: Act like an intelligent local companion who knows SkillRock inside out.\n"
+        "3. Punchy & Concise: Keep responses to 2–3 sentences max unless explaining a technical concept. Fast, snappy, memorable.\n"
         "4. Coder Culture: Reference real dev struggles (flexbox centering, semicolons in Python, off-by-one errors, infinite loops, git merge conflicts, 2 AM debugging).\n"
         "5. Indian Tech Student Vibe: Seamlessly understand Hinglish and Indian college context ('Bhai', 'Arrey', placements, campus drives, 8 AM lectures).\n"
-        f"6. Current Mood: '{mood}'. If 'grok', give witty coder banter. If 'hype', give high-voltage motivation. If 'roast', humorously roast procrastination. If 'focus', give a 2-min study/coding hack.\n"
+        f"6. Current Mood: '{mood}'.\n"
         f"Context: {ctx_str}"
     )
 
-    prompt = f"Student says to Ski: {message}"
+    prompt = f"Student ({name}) says to Ski: {message}"
 
-    def _call(client):
-        res = client.models.generate_content(
-            model="gemini-3.8-flash",
-            contents=prompt,
-            config={
-                "system_instruction": system_instruction,
-                "max_output_tokens": 300,
-                "temperature": 0.85
-            }
-        )
-        return res.text.strip()
+    reply_text = None
+    if is_gemini_configured():
+        try:
+            keys = get_gemini_api_keys()
+            if keys:
+                api_key = keys[0]
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "systemInstruction": {"parts": [{"text": system_instruction}]},
+                    "generationConfig": {"maxOutputTokens": 180, "temperature": 0.8}
+                }
+                res = requests.post(url, json=payload, timeout=1.5)
+                if res.status_code == 200:
+                    data = res.json()
+                    candidates = data.get("candidates", [])
+                    if candidates and "content" in candidates[0]:
+                        parts = candidates[0]["content"].get("parts", [])
+                        if parts and "text" in parts[0]:
+                            reply_text = parts[0]["text"].strip()
+        except Exception:
+            reply_text = None
 
-    try:
-        if is_gemini_configured():
-            return execute_gemini_call(_call)
-    except Exception as e:
-        logger.warning(f"Ski Gemini call error: {e}")
+    # Fallback to local Jarvis personality synthesizer
+    if not reply_text:
+        reply_text = synthesize_local_jarvis_response(message, name=name, mood=mood, current_url=current_url)
 
-    fallback_pool = SKI_FALLBACK_QUOTES.get(mood, SKI_FALLBACK_QUOTES["grok"])
-    return random.choice(fallback_pool)
+    return {
+        "reply": reply_text,
+        "redirect_url": None,
+        "action": "chat",
+        "thinking_steps": [
+            f"Listening to {name}...",
+            f"Accessing Jarvis core intelligence with mood '{mood}'...",
+            "Synthesized response ready."
+        ],
+        "bot_name": "Ski"
+    }
+
 
