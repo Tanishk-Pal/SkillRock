@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Ski Assistant — Your Personal Jarvis & Living Web Pet | SkillRock{% endblock %}
+{% block title %}Ski Assistant — Your Cute 5-Year-Old Living Pet & Jarvis | SkillRock{% endblock %}
 
 {% block head %}
 <style>
@@ -194,17 +194,23 @@
         transform: scaleY(0.06) rotate(-10deg) !important;
     }
 
+    /* Listening glow */
+    .ski-sphere.listening .ski-eye {
+        box-shadow: 0 0 25px #EC4899, 0 0 40px #A855F7 !important;
+        transform: scale(1.15) rotate(-10deg) !important;
+    }
+
     /* Talking/Bouncing State */
     .ski-sphere.talking {
-        animation: skiTalk 0.38s ease-in-out infinite alternate;
+        animation: skiTalk 0.3s ease-in-out infinite alternate;
     }
     .ski-sphere.talking .ski-eye {
         box-shadow: 0 0 20px #EC4899, 0 0 35px #A855F7;
     }
 
     @keyframes skiTalk {
-        0% { transform: scale(1.03, 0.97) translateY(-3px); }
-        100% { transform: scale(0.97, 1.03) translateY(-9px); }
+        0% { transform: scale(1.05, 0.95) translateY(-3px); }
+        100% { transform: scale(0.95, 1.05) translateY(-9px); }
     }
 
     /* Speech Bubble on top of Ski */
@@ -255,7 +261,7 @@
         display: flex;
         gap: 8px;
         flex-wrap: wrap;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
     }
 
     .ski-mood-btn {
@@ -284,6 +290,28 @@
         color: #FFFFFF;
         border-color: transparent;
         box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+    }
+
+    /* Wake Word Listening Banner */
+    .ski-hub-voice-bar {
+        background: rgba(236, 72, 153, 0.1);
+        border: 1px solid rgba(236, 72, 153, 0.3);
+        color: #F472B6;
+        padding: 8px 14px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .ski-hub-voice-bar.listening {
+        background: linear-gradient(135deg, #EC4899, #8B5CF6);
+        color: #FFFFFF;
+        box-shadow: 0 0 15px rgba(236, 72, 153, 0.4);
     }
 
     /* Chat Log */
@@ -520,7 +548,7 @@
         background: var(--bg-elevated);
         border: 1.5px solid var(--border-color);
         border-radius: 16px;
-        padding: 6px 8px 6px 16px;
+        padding: 6px 8px 6px 14px;
         transition: border-color 0.2s ease;
     }
 
@@ -538,7 +566,7 @@
         font-size: 0.95rem;
     }
 
-    .ski-voice-btn, .ski-send-btn {
+    .ski-hub-mic-btn, .ski-voice-btn, .ski-send-btn {
         width: 40px;
         height: 40px;
         border-radius: 12px;
@@ -548,6 +576,20 @@
         justify-content: center;
         cursor: pointer;
         transition: all 0.2s ease;
+    }
+
+    .ski-hub-mic-btn {
+        background: transparent;
+        color: var(--text-secondary);
+    }
+    .ski-hub-mic-btn:hover {
+        color: #EC4899;
+        background: rgba(236, 72, 153, 0.15);
+    }
+    .ski-hub-mic-btn.listening {
+        background: #EC4899;
+        color: #FFFFFF;
+        animation: skiMicBlink 0.8s infinite alternate;
     }
 
     .ski-voice-btn {
@@ -616,11 +658,11 @@
     <header class="ski-header">
         <div class="ski-tag-pill">
             <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #EC4899; box-shadow: 0 0 8px #EC4899;"></span>
-            Meet Ski • SkillRock Jarvis Assistant & Pet
+            Meet Ski • Cute 5-Year-Old Pet & Personal Jarvis
         </div>
-        <h1 class="ski-title">Your Personal Jarvis & Living Web Pet</h1>
+        <h1 class="ski-title">Ski — Your Living Web Pet & Voice Companion</h1>
         <p class="ski-subtitle">
-            Ski knows your entire SkillRock learning catalogue. Ask for courses, get motivation, debug issues, and let Ski autopilot your learning journey.
+            Bolo <em>"Ski"</em> ya <em>"SkillRock"</em> aur Ski sunegi! She speaks in sweet, playful Hinglish with a cute 5-year-old girl voice, wanders across screens by herself, and autopilots you to courses!
         </p>
     </header>
 
@@ -633,11 +675,11 @@
 
             <!-- Speech bubble on top of Ski -->
             <div class="ski-speech-bubble" id="skiSpeechBubble">
-                "Hey {{ user_context.name if user_context else 'builder' }}! Ask me anything (e.g. 'Ski I want a super course on AI')!"
+                "Hii {{ user_context.name if user_context else 'bhaiya/didi' }}! Bolo na 'Ski' ya 'SkillRock' aur main sunungi!"
             </div>
 
             <!-- 3D Mascot Sphere -->
-            <div class="ski-sphere-wrapper" id="skiSphereWrapper" title="Click me for instant motivation!">
+            <div class="ski-sphere-wrapper" id="skiSphereWrapper" title="Mujhe click karo ya poke karo!">
                 <div class="ski-sphere" id="skiSphere">
                     <div class="ski-eyes-container" id="skiEyes">
                         <div class="ski-eye left"></div>
@@ -650,7 +692,7 @@
             <!-- Status Pill below Ski -->
             <div style="display: flex; align-items: center; gap: 8px; font-size: 0.84rem; color: #94A3B8; font-weight: 600;">
                 <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981; box-shadow: 0 0 8px #10B981;"></span>
-                <span>Ski Jarvis Engine Online &bull; Tap sphere to poke</span>
+                <span>Ski Voice &amp; Jarvis Online &bull; Tap sphere to poke</span>
             </div>
         </div>
 
@@ -663,28 +705,37 @@
             </div>
             <div class="ski-mood-selector">
                 <button class="ski-mood-btn active" data-mood="grok" onclick="setSkiMood('grok')">
-                    ⚡ Grok Witty
+                    ⚡ Cute Banter
                 </button>
                 <button class="ski-mood-btn" data-mood="hype" onclick="setSkiMood('hype')">
-                    🔥 Hype Man
+                    🔥 Cheer Leader
                 </button>
                 <button class="ski-mood-btn" data-mood="roast" onclick="setSkiMood('roast')">
-                    🧠 Roast Procrastination
+                    🧠 Cute Scolding
                 </button>
                 <button class="ski-mood-btn" data-mood="focus" onclick="setSkiMood('focus')">
                     💡 Deep Focus
                 </button>
             </div>
 
+            <!-- Wake-Word Voice Status Bar -->
+            <div class="ski-hub-voice-bar" id="skiHubVoiceBar" onclick="toggleHubVoiceListening()">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="mic" id="hubMicIcon" style="width: 16px; height: 16px;"></i>
+                    <span id="hubVoiceStatusText">Wake Word: Bolo "Ski" ya "SkillRock"</span>
+                </div>
+                <span style="font-size: 0.72rem; opacity: 0.85;">Tap to Toggle Voice</span>
+            </div>
+
             <!-- Live Chat Box with Thinking States -->
             <div class="ski-chat-box" id="skiChatBox">
                 <div class="ski-msg ski">
                     <div style="width: 32px; height: 32px; border-radius: 50%; background: #0F172A; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <span style="font-size: 13px;">🤖</span>
+                        <span style="font-size: 14px;">👧</span>
                     </div>
                     <div class="ski-msg-bubble">
-                        Sup {{ user_context.name if user_context else 'friend' }}! I'm <strong>Ski</strong>, your personal local machine Jarvis assistant. 
-                        Ask me for any course (try <em>"Ski I want a super course on AI"</em>) and I'll fly you directly there with autopilot!
+                        Hii {{ user_context.name if user_context else 'bhaiya/didi' }}! Main hoon <strong>Ski</strong>, aapki cute 5-year-old coding buddy! 
+                        Aap bolke pucho ya type karo (try <em>"Ski I want a super course on AI"</em>) aur main aapko wahan fly karke le chalungi, yayy!
                     </div>
                 </div>
             </div>
@@ -692,10 +743,10 @@
             <!-- Quick Action Chips -->
             <div class="ski-chips-wrap">
                 <button class="ski-chip" onclick="quickPrompt('Ski I want a super course on AI')">🚀 Super AI Course</button>
-                <button class="ski-chip" onclick="quickPrompt('Take me to Full Stack Roadmap')">🛠️ Full Stack Roadmap</button>
-                <button class="ski-chip" onclick="quickPrompt('Who are you?')">🤖 Who Are You?</button>
-                <button class="ski-chip" onclick="quickPrompt('Hype me up for my next coding session!')">🔥 Hype Me Up</button>
-                <button class="ski-chip" onclick="quickPrompt('Tell me a hilarious developer joke')">😂 Dev Joke</button>
+                <button class="ski-chip" onclick="quickPrompt('Mujhe Full Stack Roadmap pe le chalo')">🛠️ Full Stack Roadmap</button>
+                <button class="ski-chip" onclick="quickPrompt('Who are you?')">👧 Who Are You?</button>
+                <button class="ski-chip" onclick="quickPrompt('Hype me up!')">🔥 Cheer Me Up</button>
+                <button class="ski-chip" onclick="quickPrompt('Ek mast dev joke sunao na')">😂 Dev Joke</button>
             </div>
 
             <!-- Chat Input Bar -->
@@ -704,15 +755,24 @@
                     type="text" 
                     id="skiUserInput" 
                     class="ski-input" 
-                    placeholder="Talk to Ski (e.g. 'Ski I want a super course on AI')..." 
+                    placeholder="Bolo 'Ski' ya type karo yahan..." 
                     autocomplete="off"
                 >
+                <button 
+                    type="button" 
+                    id="btnHubMicInput" 
+                    class="ski-hub-mic-btn" 
+                    onclick="toggleHubVoiceListening()" 
+                    title="Speak via Microphone"
+                >
+                    <i data-lucide="mic" id="hubInputMicIcon" style="width: 17px; height: 17px;"></i>
+                </button>
                 <button 
                     type="button" 
                     id="btnSkiVoice" 
                     class="ski-voice-btn active" 
                     onclick="toggleSkiVoice()" 
-                    title="Toggle Personal Assistant Voice"
+                    title="Toggle Cute Child Voice"
                 >
                     <i data-lucide="volume-2" id="skiVoiceIcon" style="width: 18px; height: 18px;"></i>
                 </button>
@@ -728,26 +788,26 @@
     <!-- 3. Partnership Feature Highlights -->
     <div class="ski-features-grid">
         <div class="ski-feature-box">
-            <div class="ski-feature-icon" style="background: rgba(236, 72, 153, 0.15); color: #EC4899;">⚡</div>
-            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0;">Jarvis Autopilot Navigation</h3>
+            <div class="ski-feature-icon" style="background: rgba(236, 72, 153, 0.15); color: #EC4899;">🎤</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0;">Wake-Word Voice Activation</h3>
             <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
-                Ask for any course, topic, or roadmap (e.g. <em>"Ski I want a super course on AI"</em>) and Ski instantly navigates you to that exact learning portal.
+                Just say <strong>"Ski"</strong> or <strong>"SkillRock"</strong> out loud! Ski instantly chimes, activates her listening mode, and replies to your commands.
             </p>
         </div>
 
         <div class="ski-feature-box">
-            <div class="ski-feature-icon" style="background: rgba(168, 85, 247, 0.15); color: #A855F7;">🧠</div>
-            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0;">Real-Time Thinking Steps</h3>
+            <div class="ski-feature-icon" style="background: rgba(168, 85, 247, 0.15); color: #A855F7;">👧</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0;">Cute 5-Year-Old Hinglish Voice</h3>
             <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
-                Ski displays its multi-step Jarvis reasoning process—scanning catalogue indices, checking course eligibility, and synthesizing answers in real-time.
+                Ski speaks in an adorable high-pitched sweet 5-year-old child tone in natural Hinglish, keeping your coding sessions lively, fun, and warm.
             </p>
         </div>
 
         <div class="ski-feature-box">
             <div class="ski-feature-icon" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">🐾</div>
-            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0;">Living Web Pet on All Pages</h3>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0;">Autonomous Screen Wandering</h3>
             <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
-                Drag Ski anywhere on your screen. Ski roams page corners, observes which courses you study, and gives proactive suggestions as your desk companion.
+                Ski doesn't stay frozen in one place! She playfully strolls from corner to corner across your screen while you code and study.
             </p>
         </div>
     </div>
@@ -760,6 +820,8 @@
 (function() {
     let currentMood = 'grok';
     let voiceEnabled = true;
+    let hubListening = false;
+    let hubSpeechRec = null;
     let autopilotTimer = null;
     const sphere = document.getElementById('skiSphere');
     const eyesContainer = document.getElementById('skiEyes');
@@ -767,10 +829,13 @@
     const chatBox = document.getElementById('skiChatBox');
     const input = document.getElementById('skiUserInput');
     const voiceBtn = document.getElementById('btnSkiVoice');
+    const hubVoiceBar = document.getElementById('skiHubVoiceBar');
+    const hubStatusText = document.getElementById('hubVoiceStatusText');
+    const hubMicBtn = document.getElementById('btnHubMicInput');
 
-    // 1. Web Audio API Sci-Fi Jarvis Chime
+    // 1. Cute 5-Year-Old Child Bell Chime via Web Audio API
     let audioCtx = null;
-    function playJarvisChime() {
+    function playCuteChildChime() {
         try {
             if (!audioCtx) {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -784,44 +849,44 @@
             const now = audioCtx.currentTime;
 
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(587.33, now); // D5
-            osc.frequency.exponentialRampToValueAtTime(880.00, now + 0.12); // A5
+            osc.frequency.setValueAtTime(783.99, now); // G5
+            osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.10); // C6
 
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+            gain.gain.setValueAtTime(0.09, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
 
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
             osc.start(now);
-            osc.stop(now + 0.36);
+            osc.stop(now + 0.33);
         } catch(e) {}
     }
 
-    // 2. Personal Assistant Speech Synthesis
-    function speakJarvis(text) {
+    // 2. Cute 5-Year-Old Girl Speech Synthesis (Hinglish)
+    function speakCuteChild(text) {
         if (!voiceEnabled || !('speechSynthesis' in window)) return;
         try {
             window.speechSynthesis.cancel();
-            playJarvisChime();
+            playCuteChildChime();
 
             const cleanText = text.replace(/[*_#`"']/g, '');
             const utter = new SpeechSynthesisUtterance(cleanText);
-            utter.pitch = 0.95; // Sleek modern assistant pitch
-            utter.rate = 1.02;
+            utter.pitch = 1.72; // Sweet 5-year-old girl high pitch
+            utter.rate = 1.08;  // Cheerful lively pace
 
             const voices = window.speechSynthesis.getVoices();
             const preferred = voices.find(v => 
-                v.lang.startsWith('en') && (
-                    v.name.includes('Google') || 
-                    v.name.includes('Natural') || 
-                    v.name.includes('David') || 
-                    v.name.includes('Mark') || 
-                    v.name.includes('Samantha') ||
-                    v.name.includes('Guy')
-                )
+                (v.lang.includes('hi') || v.lang.includes('IN') || v.lang.includes('en-IN')) && 
+                (v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Heera') || v.name.includes('Google') || v.name.includes('Neerja'))
+            ) || voices.find(v => 
+                v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Victoria') || v.name.includes('Female') || v.name.includes('Google US English')
             );
-            if (preferred) utter.voice = preferred;
+            if (preferred) {
+                utter.voice = preferred;
+            } else {
+                utter.lang = 'hi-IN';
+            }
 
             utter.onstart = function() {
                 if (sphere) sphere.classList.add('talking');
@@ -843,7 +908,7 @@
                 bubble.style.opacity = '1';
             }, 150);
         }
-        speakJarvis(text);
+        speakCuteChild(text);
     }
 
     // 3. Natural Blinking
@@ -902,7 +967,7 @@
                 saySki(data.quote);
             }
         } catch(e) {
-            saySki("Ouch! Don't poke my glossy finish, write some code instead!");
+            saySki("Ouchie! Mujhe gudgudi ho rahi hai, chalo code likho na!");
         }
     }
 
@@ -937,6 +1002,96 @@
         }
     };
 
+    // 6. Voice Wake-Word Listener on Hub ("Ski" / "SkillRock")
+    function initHubSpeechRecognition() {
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRec) {
+            if (hubStatusText) hubStatusText.innerText = "Voice Recognition not supported in this browser.";
+            return;
+        }
+
+        hubSpeechRec = new SpeechRec();
+        hubSpeechRec.continuous = true;
+        hubSpeechRec.interimResults = false;
+        hubSpeechRec.lang = 'en-IN';
+
+        hubSpeechRec.onstart = function() {
+            hubListening = true;
+            if (hubVoiceBar) hubVoiceBar.classList.add('listening');
+            if (hubMicBtn) hubMicBtn.classList.add('listening');
+            if (hubStatusText) hubStatusText.innerText = "Listening... Bolo 'Ski' ya 'SkillRock'!";
+            if (sphere) sphere.classList.add('listening');
+        };
+
+        hubSpeechRec.onend = function() {
+            if (hubListening) {
+                try { hubSpeechRec.start(); } catch(e) {}
+            } else {
+                if (hubVoiceBar) hubVoiceBar.classList.remove('listening');
+                if (hubMicBtn) hubMicBtn.classList.remove('listening');
+                if (hubStatusText) hubStatusText.innerText = "Wake Word: Bolo 'Ski' ya 'SkillRock'";
+                if (sphere) sphere.classList.remove('listening');
+            }
+        };
+
+        hubSpeechRec.onresult = function(event) {
+            const results = event.results;
+            const latest = results[results.length - 1][0].transcript.trim();
+            handleHubVoiceHeard(latest);
+        };
+
+        hubSpeechRec.onerror = function(err) {
+            console.warn('[Hub Speech Rec Error]', err);
+            if (err.error === 'not-allowed') {
+                hubListening = false;
+                if (hubVoiceBar) hubVoiceBar.classList.remove('listening');
+                if (hubStatusText) hubStatusText.innerText = "Mic access blocked. Tap to enable.";
+            }
+        };
+    }
+
+    function handleHubVoiceHeard(phrase) {
+        const lower = phrase.toLowerCase();
+        const hasWakeWord = lower.includes('ski') || lower.includes('skillrock') || lower.includes('sky');
+
+        if (hasWakeWord) {
+            playCuteChildChime();
+
+            let query = lower
+                .replace(/skillrock/g, '')
+                .replace(/ski/g, '')
+                .replace(/sky/g, '')
+                .trim();
+
+            if (query.length > 2) {
+                if (input) input.value = phrase;
+                handleSkiSubmit(new Event('submit'));
+            } else {
+                speakCuteChild("Haanji! Sun rahi hoon, bolo na bhaiya/didi!");
+                appendSkiResponse("Haanji! Main sun rahi hoon, bolo na! Kya padhna hai aaj?", ["Heard wake word: 'Ski'"], null);
+            }
+        } else if (phrase.length > 3) {
+            if (input) input.value = phrase;
+            handleSkiSubmit(new Event('submit'));
+        }
+    }
+
+    window.toggleHubVoiceListening = function() {
+        if (!hubSpeechRec) initHubSpeechRecognition();
+        if (!hubSpeechRec) return;
+
+        if (hubListening) {
+            hubListening = false;
+            hubSpeechRec.stop();
+        } else {
+            try {
+                hubSpeechRec.start();
+            } catch(e) {
+                console.warn(e);
+            }
+        }
+    };
+
     window.toggleThoughtSteps = function(headerElem) {
         const stepsElem = headerElem.nextElementSibling;
         if (stepsElem) {
@@ -952,7 +1107,7 @@
         }
         const card = btn.closest('.jarvis-hub-nav-card');
         if (card) {
-            card.innerHTML = `<span style="color: #94A3B8; font-size: 0.85rem;">🚀 Autopilot cancelled. Staying on current page.</span>`;
+            card.innerHTML = `<span style="color: #94A3B8; font-size: 0.85rem;">🚀 Theek hai, hum yahin rukte hain!</span>`;
         }
     };
 
@@ -963,10 +1118,8 @@
 
         input.value = '';
 
-        // Add user message
         appendChatMsg('user', text);
 
-        // Show thinking state
         const thinkingRow = showHubThinking();
         if (sphere) sphere.classList.add('talking');
 
@@ -983,15 +1136,14 @@
             const data = await res.json();
             if (thinkingRow) thinkingRow.remove();
 
-            const reply = (data && data.reply) ? data.reply : "Code on, chief!";
+            const reply = (data && data.reply) ? data.reply : "Yay! Padhai karte raho rockstar!";
             
-            // Render SkillBot-style thinking accordion + reply
             appendSkiResponse(reply, data.thinking_steps, data);
             saySki(reply);
 
         } catch(err) {
             if (thinkingRow) thinkingRow.remove();
-            const fallback = "Network hiccup! But nothing can stop us from writing great code!";
+            const fallback = "Arey! Thoda sa connection glitch aaya, ek baar firse pucho na please!";
             appendChatMsg('ski', fallback);
             saySki(fallback);
         } finally {
@@ -1009,7 +1161,7 @@
             <div class="ski-hub-dot"></div>
             <div class="ski-hub-dot"></div>
             <div class="ski-hub-dot"></div>
-            <span>Jarvis analyzing request & scanning catalogue...</span>
+            <span>Ski soch rahi hai aur catalogue check kar rahi hai...</span>
         `;
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -1033,7 +1185,7 @@
             thinkingHtml = `
                 <div class="jarvis-thought-accordion">
                     <div class="jarvis-thought-header" onclick="toggleThoughtSteps(this)">
-                        <span class="jarvis-thought-pill">🧠 Jarvis Reasoning Process</span>
+                        <span class="jarvis-thought-pill">🧠 Ski Reasoning Process</span>
                         <span style="font-size: 0.72rem; color: #A78BFA;">${thinkingSteps.length} steps &bull; Click to toggle</span>
                     </div>
                     <div class="jarvis-thought-steps" style="display: flex;">
@@ -1047,15 +1199,15 @@
         if (data && data.action === 'navigate' && data.redirect_url) {
             autopilotHtml = `
                 <div class="jarvis-hub-nav-card">
-                    <div class="jarvis-hub-nav-badge">🚀 AUTOPILOT NAVIGATION ENGAGED</div>
-                    <div class="jarvis-hub-nav-title">${escapeHtml(data.target_title || 'Course Portal')}</div>
+                    <div class="jarvis-hub-nav-badge">🚀 AUTOPILOT TELEPORT ENGAGED</div>
+                    <div class="jarvis-hub-nav-title">${escapeHtml(data.target_title || 'Course Destination')}</div>
                     <div class="jarvis-hub-nav-timer">
                         <i data-lucide="compass" style="width: 15px; height: 15px;"></i>
-                        <span>Redirecting you to course in <strong id="hubCountdownTimer">2</strong> seconds...</span>
+                        <span>Chalo chalo, <strong id="hubCountdownTimer">2</strong> seconds me teleport ho rahe hain, yayy!</span>
                     </div>
                     <div class="jarvis-hub-nav-actions">
-                        <button type="button" class="jarvis-hub-btn cancel" onclick="cancelHubAutopilot(this)">Cancel</button>
-                        <a href="${data.redirect_url}" class="jarvis-hub-btn go">Open Course Now &rarr;</a>
+                        <button type="button" class="jarvis-hub-btn cancel" onclick="cancelHubAutopilot(this)">Yahin Ruko</button>
+                        <a href="${data.redirect_url}" class="jarvis-hub-btn go">Abhi Chalo &rarr;</a>
                     </div>
                 </div>
             `;
@@ -1063,7 +1215,7 @@
 
         msgDiv.innerHTML = `
             <div style="width: 32px; height: 32px; border-radius: 50%; background: #0F172A; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <span style="font-size: 13px;">🤖</span>
+                <span style="font-size: 14px;">👧</span>
             </div>
             <div class="ski-msg-bubble">
                 ${thinkingHtml}
@@ -1098,7 +1250,7 @@
         if (sender === 'ski') {
             msgDiv.innerHTML = `
                 <div style="width: 32px; height: 32px; border-radius: 50%; background: #0F172A; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <span style="font-size: 13px;">🤖</span>
+                    <span style="font-size: 14px;">👧</span>
                 </div>
                 <div class="ski-msg-bubble">${escapeHtml(text)}</div>
             `;

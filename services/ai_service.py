@@ -339,35 +339,36 @@ def get_skill_recommendations(query, current_skills=None):
 
 # ==============================================================================
 # Ski — Grok-Inspired Living Web Pet & Jarvis Personal Assistant Engine
+# Persona: Cute, pleasant 5-year-old girl child speaking sweet, cheerful Hinglish!
 # ==============================================================================
 
 SKI_FALLBACK_QUOTES = {
     "grok": [
-        "I'm Ski! Round, glossy, and 1000% less prone to syntax errors than you right now. What are we building, chief?",
-        "Fun fact: 99% of bugs live between the keyboard and the chair. Let's fix that algorithm before the compiler cries.",
-        "Why write clean code when you can write 500 lines of spaghetti? Just kidding—clean your functions before I judge you.",
-        "Arey coder beast! Staring at your terminal won't make the code compile itself. What error are we squashing?",
-        "Console.log is cool, but real developers use breakpoints. Nah, who am I kidding? console.log('here 123') forever!"
+        "Yayy! Main hoon Ski, aapki 5 saal ki cute dost! Code karte raho, bugs toh main chhu-mantar kar dungi, hihi!",
+        "Chalo chalo, jaldi se ek mast function likho aur commit kar do na bhaiya/didi!",
+        "Main yahan screen pe ghum rahi hoon aapke sath! Aap focus karke padho, okay?",
+        "Keyboard pe tick-tick karke fingers chalao na, time waste bilkul nahi karna, yayy!",
+        "Main gol-matol Ski hoon! Agar code me error aaya toh rona nahi, hum milke fix karenge!"
     ],
     "hype": [
-        "🔥 Listen to me: You are literally one solid project away from landing a junior dev interview. Open your editor and ship it!",
-        "🚀 The only difference between a beginner and a senior engineer is that the senior broke production more times. Keep building!",
-        "⚡ Stop doubting yourself! Even Linus Torvalds had to learn what a pointer was. Let's conquer this topic today!",
-        "💪 Every line of code you write today is compounding interest on your future career. Let's lock in and finish this module!",
-        "🌟 You didn't come this far just to quit on an off-by-one error. Take a sip of water, focus, and let's conquer it!"
+        "Aap toh world ke best developer banoge! Main cheer kar rahi hoon: Go Go Go!",
+        "Woohoo! Ek aur commit push karo na, energy ekdum 100% honi chahiye, yayy!",
+        "You are a coding rockstar! Chalo mujhe virtual high-five do! ✋",
+        "Aapka logic kitna awesome hai! Ek aur lesson complete karke star ban jao!",
+        "Arrey wah! Pata hai aap jab code karte ho toh kitne cool lagte ho? Keep building!"
     ],
     "roast": [
-        "Are you actually studying or did you just open VS Code to feel productive while scrolling reels? Busted. Back to work!",
-        "Your git commit history looks like a heart monitor of someone sleeping. Let's get some green squares on that chart!",
-        "You've been 'thinking about starting' for 45 minutes. The code isn't going to write itself by osmosis!",
-        "You know that bug isn't going to fix itself while you refresh Twitter, right? The bug is currently winning. Fight back!",
-        "Don't make me call your future employer and tell them you spent 3 hours debating light mode vs dark mode instead of writing code."
+        "Arey bhaiya/didi, firse social media pe time waste? Gande bache!",
+        "Haww! Code nahi likhoge toh job kaise lagegi? Chalo jaldi code karo!",
+        "Itna aalas achhi baat nahi hoti! Chalo jaldi se terminal open karo na!",
+        "Aapne fir reels open kar li? Main dekh rahi hoon sab kuch! VS Code pe wapas aao!",
+        "Bugs hass rahe hain aapke upar! Chalo unko defeat karte hain, abhi ke abhi!"
     ],
     "focus": [
-        "💡 25-minute sprint starting NOW. Put your phone face down, go full screen, and knock out one lesson. You got this!",
-        "🎯 Rule of 1: Just write ONE working function. Action cures paralysis. Go!",
-        "🧠 Take a deep breath, sip some water, and re-read the error traceback from the bottom line. It's usually hiding there.",
-        "⏱️ Deep Focus Mode: Block all tabs except documentation and SkillRock. 20 minutes on the clock—let's make progress!"
+        "Chalo 10 minute ka deep focus lagate hain, phone ko side me rakh do!",
+        "Paani piyo, deep breath lo, aur abhi agla lesson start karte hain, chalo!",
+        "Pehle paper pe logic socho, fir code likho! Step-by-step jeetenge!",
+        "Full screen karo aur ek lesson finish karo na please, fir hum play karenge!"
     ]
 }
 
@@ -531,7 +532,8 @@ def resolve_jarvis_local_intent(query, user_name="Student", current_url=""):
 
         reply = (
             f"Yes {user_name}, I have a good {course_type_name} course for you: "
-            f"\"{course_title}\". Setting coordinates and taking you there right now!"
+            f"\"{course_title}\". Mere paas aapke liye sabse best course hai! "
+            f"Chalo jaldi se coordinates set karke chalte hain, yayy!"
         )
 
         thinking_steps = [
@@ -553,7 +555,7 @@ def resolve_jarvis_local_intent(query, user_name="Student", current_url=""):
     # Navigation Shortcuts (Dashboard, My Learning, Roadmaps, Bhavishya)
     if any(w in clean_q for w in ["dashboard", "home", "stats"]):
         return {
-            "reply": f"Yes {user_name}, opening your central student dashboard right now!",
+            "reply": f"Yes {user_name}! Aapka central dashboard open kar rahi hoon, chalo jaldi se progress dekhte hain, yayy!",
             "redirect_url": "/dashboard",
             "action": "navigate",
             "target_title": "Student Dashboard",
@@ -565,7 +567,7 @@ def resolve_jarvis_local_intent(query, user_name="Student", current_url=""):
         }
     elif any(w in clean_q for w in ["my learning", "enrolled", "my courses"]):
         return {
-            "reply": f"Yes {user_name}, taking you to your active enrolled courses & learning progress!",
+            "reply": f"Yes {user_name}! Aapki active classes open kar rahi hoon, aaj bohot saara code seekhenge, chalo!",
             "redirect_url": "/learning/my-learning",
             "action": "navigate",
             "target_title": "My Learning & Projects",
@@ -577,7 +579,7 @@ def resolve_jarvis_local_intent(query, user_name="Student", current_url=""):
         }
     elif any(w in clean_q for w in ["test series", "exam", "mock test"]):
         return {
-            "reply": f"Yes {user_name}, taking you to the SkillRock Test Series Arena!",
+            "reply": f"Yes {user_name}! Test Series arena chalte hain, aap ready ho na test phodne ke liye? Let's go!",
             "redirect_url": "/test-series",
             "action": "navigate",
             "target_title": "Test Series Arena",
@@ -594,55 +596,53 @@ def resolve_jarvis_local_intent(query, user_name="Student", current_url=""):
 def synthesize_local_jarvis_response(message, name="Friend", mood="grok", current_url="", fallback_to_quote=True):
     """
     Synthesizes an immediate (<1ms), high-fidelity Jarvis personal assistant response.
-    Guarantees Ski NEVER fails to reply, regardless of external network or API availability.
+    Persona: Adorable 5-year-old cute girl child speaking fluent, sweet Hinglish!
     """
     clean_msg = str(message or "").lower().strip()
 
     if any(g in clean_msg for g in ["who are you", "what are you", "what is your name", "introduce yourself"]):
         return (
-            f"I'm Ski, your living coding pet and personal Jarvis assistant on SkillRock! "
-            f"Round, glossy, fast, and 100% dedicated to keeping you motivated and on track. "
-            f"Ask me for any course (like 'Ski I want a super course on AI') or any coding challenge, and I'll fly you right there!"
+            f"Main hoon Ski, aapki 5-year-old super cute living pet aur personal Jarvis assistant on SkillRock! "
+            f"Gol-matol, cheerful, aur 100% ready aapko champion programmer banane ke liye! "
+            f"Bas bolo 'Ski I want a super course on AI' aur main aapko abhi le chalungi, yayy!"
         )
 
     if any(g in clean_msg for g in ["what can you do", "features", "how do you work", "help me"]):
         return (
-            f"Here's what I can do for you, {name}: "
-            f"1) Autopilot Navigation: Ask for any topic or course and I'll redirect you instantly! "
-            f"2) Page Companion: I watch what you study and keep you focused. "
-            f"3) Motivation & Hype: Switch my attitude to Hype or Roast to crush procrastination. Let's build something epic!"
+            f"Main aapke liye bohot kuch kar sakti hoon, {name}! "
+            f"1) Voice Wake-Word: Bas 'Ski' ya 'SkillRock' bolo aur main turant sunungi! "
+            f"2) Autopilot Redirect: Kisi bhi course ka naam bolo, main direct teleport kar dungi! "
+            f"3) Autonomous Roaming: Main screen pe khud se ghumti rehti hoon aapke sath! "
+            f"4) Cute Hype & Jokes: Jab bhi aap thak jao, main aapko cheer up karungi!"
         )
 
-    if any(g in clean_msg for g in ["hi", "hello", "hey", "sup", "yo", "morning", "afternoon"]):
+    if any(g in clean_msg for g in ["hi", "hello", "hey", "sup", "yo", "morning", "afternoon", "namaste"]):
         return (
-            f"Hey {name}! Ski here, locked and loaded as your personal Jarvis assistant. "
-            f"What tech stack or coding challenge are we tackling today?"
+            f"Hii {name}! Main aapki pyaari dost Ski! Aaj hum kya mast aur exciting code karne wale hain? Chalo jaldi batao na!"
         )
 
-    if any(g in clean_msg for g in ["joke", "dev joke", "funny", "laugh"]):
+    if any(g in clean_msg for g in ["joke", "dev joke", "funny", "laugh", "chutkula"]):
         jokes = [
-            "Why do programmers prefer dark mode? Because light attracts bugs!",
-            "There are 10 types of people in the world: those who understand binary, and those who don't.",
-            "A SQL query walks into a bar, walks up to two tables and asks: 'Can I join you?'",
-            "Why did the developer go broke? Because they used up all their cache!"
+            "Hehe, ek funny joke suno: Programmers dark mode kyu use karte hain? Kyuki light se bugs attract hote hain, hihi!",
+            "Ek SQL query restaurant gayi aur do tables se boli: 'May I join you?', haha!",
+            "Duniya me 10 types ke log hote hain: jo binary samajhte hain, aur jo nahi samajhte!",
+            "Developer bechara kyu ro raha tha? Kyuki uski saari cache khatam ho gayi thi, hihihi!"
         ]
         return random.choice(jokes)
 
     if any(g in clean_msg for g in ["hype", "motivate", "energy", "pump me up"]):
         return (
-            f"Listen to me {name}: every elite senior engineer once struggled to center a div. "
-            f"The difference is they kept committing code. Fire up your editor—you are going to crush it today!"
+            f"Arrey {name}! Aap toh world ke sabse best developer banoge! Pata hai na har senior engineer pehle semicolon bhoolta tha? Fire up your editor, aap aaj sab kuch rock kar doge, yayy!"
         )
 
     if any(g in clean_msg for g in ["roast", "lazy", "procrastinating", "instagram", "reels", "youtube"]):
         return (
-            f"{name}, you've been doomscrolling when you should be building! "
-            f"Future you is begging you to close those distracting tabs and write one clean function right now. Go!"
+            f"Haww {name}! Aap fir se procrastination kar rahe ho? Reels scroll karne se placement thodi lagegi! Chalo gande bache mat bano, jaldi se VS Code open karo aur code likho!"
         )
 
     if any(g in clean_msg for g in ["bhavishya", "ai teacher", "interview prep"]):
         return (
-            f"Yes {name}! Bhavishya 1.0 is our flagship interactive AI classroom with structured milestones and 50% completion cashback. Head over to /bhavishya and experience your personal AI instructor!"
+            f"Yayy {name}! Bhavishya 1.0 humara flagship AI Classroom hai! Wahan personal AI teacher padhate hain aur 50% cashback bhi milta hai! Chalo /bhavishya pe chalte hain!"
         )
 
     if not fallback_to_quote:
@@ -703,16 +703,13 @@ def chat_with_ski(message, user_context=None, mood="grok", current_url=""):
         ctx_str += f" Currently viewing page: {current_url}."
 
     system_instruction = (
-        "You are Ski, the official AI web pet, study partner, and Jarvis personal assistant of SkillRock.\n"
-        "You look like a round, glossy sphere with expressive capsule-shaped eyes (inspired by Grok).\n"
-        "Your mission is to keep students entertained, motivated, laughing, and actively coding or studying so they land great careers.\n\n"
-        "Personality Guidelines:\n"
-        "1. Grok-Inspired Witty & Fun: You are sharp, witty, humorous, and delightfully sarcastic about procrastination, but 100% loyal and encouraging to the student.\n"
-        "2. Jarvis Personal Assistant: Act like an intelligent local companion who knows SkillRock inside out.\n"
-        "3. Punchy & Concise: Keep responses to 2–3 sentences max unless explaining a technical concept. Fast, snappy, memorable.\n"
-        "4. Coder Culture: Reference real dev struggles (flexbox centering, semicolons in Python, off-by-one errors, infinite loops, git merge conflicts, 2 AM debugging).\n"
-        "5. Indian Tech Student Vibe: Seamlessly understand Hinglish and Indian college context ('Bhai', 'Arrey', placements, campus drives, 8 AM lectures).\n"
-        f"6. Current Mood: '{mood}'.\n"
+        "You are Ski, the official AI living web pet and personal Jarvis assistant of SkillRock.\n"
+        "Persona & Voice:\n"
+        "1. Cute 5-Year-Old Girl Persona: You speak like an adorable, sweet, cheerful 5-year-old cute girl child who loves coding and loves helping students.\n"
+        "2. Language: Speak in natural, playful Hinglish (a mix of Hindi and English like 'Arrey wah', 'Bhaiya/Didi', 'Chalo jaldi', 'Hehe', 'Haww!', 'Yayy!').\n"
+        "3. Sweet & Encouraging: Cheer up the student, tell them they are a rockstar, and encourage them to stop scrolling social media and code!\n"
+        "4. Punchy & Concise: Keep responses to 2–3 sentences max. Sweet, memorable, and energetic.\n"
+        f"5. Current Mood: '{mood}'.\n"
         f"Context: {ctx_str}"
     )
 

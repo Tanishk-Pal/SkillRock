@@ -96,6 +96,24 @@ class TestSkiJarvisPet(unittest.TestCase):
         self.assertIn("<span>Ski Assistant</span>", content)
         self.assertIn("JARVIS", content)
 
+    def test_ski_cute_hinglish_voice_and_autonomous_features(self):
+        """Verifies cute child Hinglish persona, autonomous roaming and wake word in templates."""
+        with open("templates/includes/ski_floating_widget.html", "r", encoding="utf-8") as f:
+            widget_content = f.read()
+
+        # Check wake-word recognition hook
+        self.assertIn("wake-word", widget_content.lower())
+        self.assertIn("speechrecognition", widget_content.lower())
+        self.assertIn("ski", widget_content.lower())
+        self.assertIn("skillrock", widget_content.lower())
+
+        # Check autonomous roaming engine
+        self.assertIn("roamautonomously", widget_content.lower())
+        self.assertIn("walking", widget_content.lower())
+
+        # Check cute 5-year-old high pitch
+        self.assertIn("1.72", widget_content)
+
 
 if __name__ == "__main__":
     unittest.main()

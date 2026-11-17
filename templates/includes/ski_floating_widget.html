@@ -1,8 +1,9 @@
 <!-- ==========================================================================
      SkillRock — Ski: The Living Web Pet & Jarvis Personal Assistant (Floating Widget)
+     Autonomous Roaming • Cute 5-Year-Old Girl Voice • Wake Word ("Ski"/"SkillRock")
      ========================================================================== -->
 <style>
-    /* Floating Mascot Pet Container */
+    /* Floating Mascot Pet Container with Autonomous Movement Transitions */
     #ski-floating-container {
         position: fixed;
         bottom: 24px;
@@ -14,6 +15,11 @@
         font-family: inherit;
         touch-action: none;
         user-select: none;
+        transition: left 2.4s cubic-bezier(0.25, 1, 0.5, 1), top 2.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    #ski-floating-container.dragging {
+        transition: none !important;
     }
 
     @media (max-width: 768px) {
@@ -25,15 +31,15 @@
 
     /* Living Mascot Sphere */
     .ski-pet-sphere {
-        width: 64px;
-        height: 64px;
+        width: 66px;
+        height: 66px;
         border-radius: 50%;
         background: radial-gradient(circle at 35% 30%, #475569 0%, #1E293B 40%, #0F172A 75%, #020617 100%);
         box-shadow: 
             inset -5px -5px 12px rgba(0, 0, 0, 0.85),
-            inset 4px 4px 10px rgba(255, 255, 255, 0.45),
+            inset 4px 4px 10px rgba(255, 255, 255, 0.5),
             0 10px 28px rgba(0, 0, 0, 0.55),
-            0 0 20px rgba(236, 72, 153, 0.4);
+            0 0 22px rgba(236, 72, 153, 0.45);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -52,9 +58,24 @@
         transform: scale(1.1) translateY(-4px);
         box-shadow: 
             inset -5px -5px 12px rgba(0, 0, 0, 0.85),
-            inset 4px 4px 12px rgba(255, 255, 255, 0.6),
+            inset 4px 4px 12px rgba(255, 255, 255, 0.65),
             0 16px 36px rgba(0, 0, 0, 0.6),
-            0 0 30px rgba(236, 72, 153, 0.7);
+            0 0 32px rgba(236, 72, 153, 0.75);
+    }
+
+    /* Autonomous Wandering / Walking Animation */
+    .ski-pet-sphere.walking {
+        animation: skiPetWalk 0.45s ease-in-out infinite alternate !important;
+        box-shadow: 
+            inset -5px -5px 12px rgba(0, 0, 0, 0.85),
+            inset 4px 4px 12px rgba(255, 255, 255, 0.7),
+            0 18px 40px rgba(0, 0, 0, 0.65),
+            0 0 36px rgba(236, 72, 153, 0.85) !important;
+    }
+
+    @keyframes skiPetWalk {
+        0% { transform: scale(1.08) rotate(-7deg) translateY(-2px); }
+        100% { transform: scale(1.08) rotate(7deg) translateY(-8px); }
     }
 
     @keyframes skiPetHover {
@@ -64,12 +85,12 @@
 
     /* Talking Bounce */
     .ski-pet-sphere.talking {
-        animation: skiPetTalk 0.35s ease-in-out infinite alternate !important;
+        animation: skiPetTalk 0.3s ease-in-out infinite alternate !important;
     }
 
     @keyframes skiPetTalk {
-        0% { transform: scale(1.05, 0.95) translateY(-2px); }
-        100% { transform: scale(0.95, 1.05) translateY(-8px); }
+        0% { transform: scale(1.06, 0.94) translateY(-2px); }
+        100% { transform: scale(0.94, 1.06) translateY(-9px); }
     }
 
     /* Miniature Capsule Eyes */
@@ -95,22 +116,28 @@
         transform: scaleY(0.08) rotate(-10deg) !important;
     }
 
-    /* Live Observer Bubble (Appears above Ski when observing pages) */
+    /* Excited/Listening State */
+    .ski-pet-sphere.listening .ski-pet-eye {
+        box-shadow: 0 0 14px #EC4899, 0 0 24px #A855F7 !important;
+        transform: scale(1.2) rotate(-10deg) !important;
+    }
+
+    /* Live Observer Bubble */
     .ski-observer-bubble {
         position: absolute;
         bottom: 74px;
         right: 0;
         background: rgba(15, 23, 42, 0.94);
-        border: 1.5px solid rgba(236, 72, 153, 0.35);
+        border: 1.5px solid rgba(236, 72, 153, 0.4);
         color: #F8FAFC;
         padding: 8px 14px;
         border-radius: 16px;
         border-bottom-right-radius: 4px;
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         font-weight: 700;
-        max-width: 250px;
+        max-width: 260px;
         backdrop-filter: blur(10px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(236, 72, 153, 0.2);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(236, 72, 153, 0.25);
         opacity: 0;
         visibility: hidden;
         transform: translateY(8px) scale(0.95);
@@ -121,6 +148,7 @@
         align-items: center;
         gap: 8px;
         line-height: 1.35;
+        z-index: 99992;
     }
 
     .ski-observer-bubble.active {
@@ -132,7 +160,7 @@
     .ski-observer-badge {
         font-size: 0.65rem;
         font-weight: 800;
-        padding: 2px 6px;
+        padding: 2px 7px;
         border-radius: 9999px;
         background: linear-gradient(135deg, #EC4899, #8B5CF6);
         color: #FFFFFF;
@@ -178,7 +206,7 @@
         right: 0;
         width: 375px;
         max-width: calc(100vw - 32px);
-        height: 520px;
+        height: 530px;
         max-height: calc(100vh - 120px);
         background: var(--bg-card, #0F172A);
         border: 1.5px solid rgba(255, 255, 255, 0.14);
@@ -193,6 +221,7 @@
         transform-origin: bottom right;
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         backdrop-filter: blur(14px);
+        z-index: 99995;
     }
 
     .ski-popup-window.active {
@@ -278,11 +307,54 @@
         background: rgba(236, 72, 153, 0.15);
     }
 
+    /* Listening Pulse Badge */
+    .ski-voice-listen-pill {
+        padding: 6px 14px;
+        background: rgba(236, 72, 153, 0.12);
+        border: 1px solid rgba(236, 72, 153, 0.35);
+        color: #F472B6;
+        border-radius: 9999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 6px 14px 2px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .ski-voice-listen-pill.active {
+        background: linear-gradient(135deg, #EC4899, #8B5CF6);
+        color: #FFFFFF;
+        border-color: transparent;
+        box-shadow: 0 0 12px rgba(236, 72, 153, 0.5);
+    }
+
+    .ski-mic-pulse {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10B981;
+        box-shadow: 0 0 6px #10B981;
+    }
+
+    .ski-voice-listen-pill.active .ski-mic-pulse {
+        background: #FFFFFF;
+        box-shadow: 0 0 8px #FFFFFF;
+        animation: skiMicBlink 0.9s infinite alternate;
+    }
+
+    @keyframes skiMicBlink {
+        from { opacity: 0.4; transform: scale(0.85); }
+        to { opacity: 1; transform: scale(1.2); }
+    }
+
     /* Popup Messages Body */
     .ski-pop-body {
         flex: 1;
         overflow-y: auto;
-        padding: 14px 16px;
+        padding: 10px 16px 14px;
         display: flex;
         flex-direction: column;
         gap: 12px;
@@ -452,7 +524,7 @@
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 12px;
-        padding: 4px 6px 4px 12px;
+        padding: 4px 6px 4px 10px;
     }
 
     .ski-pop-input-row:focus-within {
@@ -467,6 +539,31 @@
         outline: none;
         color: var(--text-main, #F8FAFC);
         font-size: 0.88rem;
+    }
+
+    .ski-mic-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary, #94A3B8);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+    }
+
+    .ski-mic-btn:hover {
+        color: #EC4899;
+        background: rgba(236, 72, 153, 0.15);
+    }
+
+    .ski-mic-btn.listening {
+        color: #FFFFFF;
+        background: #EC4899;
+        animation: skiMicBlink 0.8s infinite alternate;
     }
 
     .ski-pop-send-btn {
@@ -492,8 +589,8 @@
 
     <!-- Live Ambient Page Observer Bubble -->
     <div class="ski-observer-bubble" id="skiObserverBubble" onclick="toggleSkiPopup()">
-        <span class="ski-observer-badge">JARVIS</span>
-        <span id="skiObserverText">Hey! I'm watching your screen. Need help?</span>
+        <span class="ski-observer-badge">SKI</span>
+        <span id="skiObserverText">Hii! Main Ski hoon! Bolo na 'Ski' aur main sunungi!</span>
     </div>
 
     <!-- The Popup Companion Window -->
@@ -502,16 +599,19 @@
         <div class="ski-pop-header">
             <div class="ski-pop-header-left">
                 <div class="ski-pop-mini-avatar">
-                    <span style="font-size: 13px;">🤖</span>
+                    <span style="font-size: 14px;">👧</span>
                 </div>
                 <div>
                     <div class="ski-pop-title">
                         <span>Ski</span>
-                        <span class="ski-pop-badge">JARVIS PET</span>
+                        <span class="ski-pop-badge">CUTE PET &bull; HINGLISH</span>
                     </div>
                 </div>
             </div>
             <div class="ski-pop-actions">
+                <button type="button" class="ski-pop-btn active" id="btnRoamToggle" onclick="toggleRoaming()" title="Toggle Autonomous Screen Roaming">
+                    <span style="font-size: 13px;">🐾</span>
+                </button>
                 <button type="button" class="ski-pop-btn active" id="btnPopVoice" onclick="togglePopVoice()" title="Toggle Voice Speech">
                     <i data-lucide="volume-2" id="popVoiceIcon" style="width: 14px; height: 14px;"></i>
                 </button>
@@ -524,19 +624,26 @@
             </div>
         </div>
 
+        <!-- Voice Wake Word Trigger Pill -->
+        <div class="ski-voice-listen-pill" id="skiWakeWordPill" onclick="toggleSpeechListening()">
+            <span class="ski-mic-pulse"></span>
+            <span id="skiWakeWordText">Wake Word: Bolo 'Ski' ya 'SkillRock'</span>
+        </div>
+
         <!-- Chat messages log -->
         <div class="ski-pop-body" id="skiPopBody">
             <div class="ski-bubble bot">
-                Hey! I'm <strong>Ski</strong>, your personal local machine Jarvis pet. Ask me for any course (like <em>"Ski I want a super course on AI"</em>), or tell me what you're building! ⚡
+                Hii! Main hoon <strong>Ski</strong>, aapki 5 saal ki super cute coding buddy! 
+                Bas bolo <em>"Ski I want a super course on AI"</em> ya <em>"Mujhe Python sikhna hai"</em>, main abhi le chalungi, yayy! ⚡
             </div>
         </div>
 
         <!-- Quick prompt chips -->
         <div class="ski-pop-chips">
             <button class="ski-mini-chip" onclick="quickPopPrompt('Ski I want a super course on AI')">🚀 Super AI Course</button>
-            <button class="ski-mini-chip" onclick="quickPopPrompt('Take me to Full Stack Roadmap')">🛠️ Full Stack</button>
-            <button class="ski-mini-chip" onclick="quickPopPrompt('Hype me up!')">🔥 Hype Me</button>
-            <button class="ski-mini-chip" onclick="quickPopPrompt('Tell me a dev joke')">😂 Joke</button>
+            <button class="ski-mini-chip" onclick="quickPopPrompt('Mujhe Full Stack Roadmap dikhao')">🛠️ Full Stack</button>
+            <button class="ski-mini-chip" onclick="quickPopPrompt('Hype me up!')">🔥 Cheer Me Up</button>
+            <button class="ski-mini-chip" onclick="quickPopPrompt('Ek mast dev joke sunao na')">😂 Dev Joke</button>
         </div>
 
         <!-- Input footer -->
@@ -546,9 +653,12 @@
                     type="text" 
                     id="skiPopInput" 
                     class="ski-pop-input" 
-                    placeholder="Ask Ski (e.g. 'Ski I want a super course on AI')..." 
+                    placeholder="Bolo ya pucho Ski se..." 
                     autocomplete="off"
                 >
+                <button type="button" class="ski-mic-btn" id="btnMicInput" onclick="toggleSpeechListening()" title="Speak to Ski">
+                    <i data-lucide="mic" id="micIcon" style="width: 14px; height: 14px;"></i>
+                </button>
                 <button type="submit" class="ski-pop-send-btn" title="Send">
                     <i data-lucide="send" style="width: 13px; height: 13px;"></i>
                 </button>
@@ -556,14 +666,14 @@
         </div>
     </div>
 
-    <!-- Living Mascot Sphere (Draggable & Interactive) -->
-    <div class="ski-pet-sphere" id="skiPetTrigger" title="Ski — Drag to move • Click to chat">
+    <!-- Living Mascot Sphere (Draggable & Autonomously Roaming) -->
+    <div class="ski-pet-sphere" id="skiPetTrigger" title="Ski — I roam by myself! Drag or tap to chat">
         <div class="ski-pet-eyes" id="skiPetEyes">
             <div class="ski-pet-eye left"></div>
             <div class="ski-pet-eye right"></div>
         </div>
         <div class="ski-pet-tooltip">
-            <span>⚡ Meet Ski • Jarvis Pet</span>
+            <span>⚡ Meet Ski • Living Pet (Voice Active)</span>
         </div>
     </div>
 
@@ -579,9 +689,17 @@
     const popInput = document.getElementById('skiPopInput');
     const obsBubble = document.getElementById('skiObserverBubble');
     const obsText = document.getElementById('skiObserverText');
+    const wakePill = document.getElementById('skiWakeWordPill');
+    const wakeText = document.getElementById('skiWakeWordText');
+    const micBtn = document.getElementById('btnMicInput');
+    const roamBtn = document.getElementById('btnRoamToggle');
 
     let isOpen = false;
     let voiceActive = true;
+    let roamingActive = true;
+    let isListening = false;
+    let speechRecognition = null;
+    let roamInterval = null;
     let autopilotTimer = null;
     let isDragging = false;
     let dragStartX = 0;
@@ -590,9 +708,9 @@
     let initialTop = 0;
     let hasMoved = false;
 
-    // 1. Web Audio API Sci-Fi Jarvis Chime
+    // 1. Cute 5-Year-Old Child Bell Chime via Web Audio API
     let audioCtx = null;
-    function playJarvisChime() {
+    function playCuteChildChime() {
         try {
             if (!audioCtx) {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -606,48 +724,48 @@
             const now = audioCtx.currentTime;
 
             osc.type = 'sine';
-            // Sci-fi two-tone ascending chirp
-            osc.frequency.setValueAtTime(587.33, now); // D5
-            osc.frequency.exponentialRampToValueAtTime(880.00, now + 0.12); // A5
+            // Playful high-pitched sweet C6 chime (784Hz -> 1046Hz)
+            osc.frequency.setValueAtTime(783.99, now); // G5
+            osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.10); // C6
 
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+            gain.gain.setValueAtTime(0.09, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
 
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
             osc.start(now);
-            osc.stop(now + 0.36);
-        } catch(e) {
-            // Audio context silently ignored if blocked by autoplay policy
-        }
+            osc.stop(now + 0.33);
+        } catch(e) {}
     }
 
-    // 2. Personal Assistant Speech Synthesis
-    function speakJarvis(text) {
+    // 2. Cute 5-Year-Old Girl Speech Synthesis (Hinglish)
+    function speakCuteChild(text) {
         if (!voiceActive || !('speechSynthesis' in window)) return;
         try {
             window.speechSynthesis.cancel();
-            playJarvisChime();
+            playCuteChildChime();
 
             const cleanText = text.replace(/[*_#`"']/g, '');
             const utter = new SpeechSynthesisUtterance(cleanText);
-            utter.pitch = 0.95; // Sleek modern personal assistant tone
-            utter.rate = 1.02;
+            
+            // Cute 5-year-old pleasant girl voice acoustics
+            utter.pitch = 1.72; // High-pitched sweet childlike voice
+            utter.rate = 1.08;  // Cheerful, energetic pace
 
-            // Pick a good assistant voice if available
             const voices = window.speechSynthesis.getVoices();
+            // Prioritize Hindi / Indian English female voices for sweet Hinglish delivery
             const preferred = voices.find(v => 
-                v.lang.startsWith('en') && (
-                    v.name.includes('Google') || 
-                    v.name.includes('Natural') || 
-                    v.name.includes('David') || 
-                    v.name.includes('Mark') || 
-                    v.name.includes('Samantha') ||
-                    v.name.includes('Guy')
-                )
+                (v.lang.includes('hi') || v.lang.includes('IN') || v.lang.includes('en-IN')) && 
+                (v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Heera') || v.name.includes('Google') || v.name.includes('Neerja'))
+            ) || voices.find(v => 
+                v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Victoria') || v.name.includes('Female') || v.name.includes('Google US English')
             );
-            if (preferred) utter.voice = preferred;
+            if (preferred) {
+                utter.voice = preferred;
+            } else {
+                utter.lang = 'hi-IN';
+            }
 
             utter.onstart = function() {
                 if (trigger) trigger.classList.add('talking');
@@ -676,39 +794,196 @@
         }
     };
 
-    // 3. Popup Toggle
+    // 3. Autonomous Screen Roaming Engine (Ski walks by herself!)
+    let roamStepIndex = 0;
+    function getNextRoamPosition() {
+        const padding = 20;
+        const sphereSize = 66;
+        const maxW = window.innerWidth - sphereSize - padding;
+        const maxH = window.innerHeight - sphereSize - padding;
+
+        const roamPoints = [
+            { x: maxW, y: maxH },                                  // Bottom-Right
+            { x: padding + 10, y: maxH },                          // Bottom-Left
+            { x: padding + 10, y: Math.round(maxH * 0.45) },       // Mid-Left
+            { x: maxW, y: 75 },                                    // Top-Right
+            { x: maxW, y: Math.round(maxH * 0.5) }                 // Mid-Right
+        ];
+
+        roamStepIndex = (roamStepIndex + 1) % roamPoints.length;
+        return roamPoints[roamStepIndex];
+    }
+
+    function roamAutonomously() {
+        // Do not roam if user is interacting, popup is open, or dragging
+        if (!roamingActive || isOpen || isDragging) return;
+
+        const nextPos = getNextRoamPosition();
+        if (trigger) trigger.classList.add('walking');
+
+        // Look toward target direction
+        if (petEyes) {
+            const lookX = nextPos.x > window.innerWidth / 2 ? 4 : -4;
+            petEyes.style.transform = `translate(${lookX}px, 0px)`;
+        }
+
+        container.style.right = 'auto';
+        container.style.bottom = 'auto';
+        container.style.left = nextPos.x + 'px';
+        container.style.top = nextPos.y + 'px';
+
+        setTimeout(() => {
+            if (trigger) trigger.classList.remove('walking');
+            if (petEyes) petEyes.style.transform = 'translate(0px, 0px)';
+        }, 2400);
+    }
+
+    window.toggleRoaming = function() {
+        roamingActive = !roamingActive;
+        if (roamBtn) roamBtn.classList.toggle('active', roamingActive);
+        if (roamingActive) {
+            startRoamingLoop();
+            if (obsText) obsText.innerText = "Yayy! Main firse ghumne lagi!";
+            if (obsBubble) obsBubble.classList.add('active');
+            setTimeout(() => obsBubble && obsBubble.classList.remove('active'), 3000);
+        } else {
+            clearInterval(roamInterval);
+            roamInterval = null;
+            if (obsText) obsText.innerText = "Aapne mujhe rok diya! Main yahin baithi hoon.";
+            if (obsBubble) obsBubble.classList.add('active');
+            setTimeout(() => obsBubble && obsBubble.classList.remove('active'), 3000);
+        }
+    };
+
+    function startRoamingLoop() {
+        if (roamInterval) clearInterval(roamInterval);
+        roamInterval = setInterval(roamAutonomously, 8500);
+    }
+    // Start autonomous wandering after initial load
+    setTimeout(startRoamingLoop, 3500);
+
+    // 4. Voice Wake-Word Recognition ("Ski" or "SkillRock")
+    function initSpeechRecognition() {
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRec) {
+            if (wakeText) wakeText.innerText = "Voice Recognition not supported in this browser.";
+            return;
+        }
+
+        speechRecognition = new SpeechRec();
+        speechRecognition.continuous = true;
+        speechRecognition.interimResults = false;
+        speechRecognition.lang = 'en-IN'; // Recognizes Indian English & Hinglish names
+
+        speechRecognition.onstart = function() {
+            isListening = true;
+            if (wakePill) wakePill.classList.add('active');
+            if (micBtn) micBtn.classList.add('listening');
+            if (wakeText) wakeText.innerText = "Listening... Bolo 'Ski' ya 'SkillRock'!";
+            if (trigger) trigger.classList.add('listening');
+        };
+
+        speechRecognition.onend = function() {
+            if (isListening) {
+                // Auto-restart if listening mode was intentionally enabled
+                try { speechRecognition.start(); } catch(e) {}
+            } else {
+                if (wakePill) wakePill.classList.remove('active');
+                if (micBtn) micBtn.classList.remove('listening');
+                if (wakeText) wakeText.innerText = "Wake Word: Bolo 'Ski' ya 'SkillRock'";
+                if (trigger) trigger.classList.remove('listening');
+            }
+        };
+
+        speechRecognition.onresult = function(event) {
+            const results = event.results;
+            const latest = results[results.length - 1][0].transcript.trim();
+            handleHeardVoice(latest);
+        };
+
+        speechRecognition.onerror = function(err) {
+            console.warn('[Ski Speech Rec Error]', err);
+            if (err.error === 'not-allowed') {
+                isListening = false;
+                if (wakePill) wakePill.classList.remove('active');
+                if (wakeText) wakeText.innerText = "Mic access blocked. Tap to enable.";
+            }
+        };
+    }
+
+    function handleHeardVoice(spokenPhrase) {
+        const lower = spokenPhrase.toLowerCase();
+
+        // Check for Wake Word: "ski" or "skillrock"
+        const hasWakeWord = lower.includes('ski') || lower.includes('skillrock') || lower.includes('sky');
+
+        if (hasWakeWord) {
+            playCuteChildChime();
+            if (!isOpen) toggleSkiPopup();
+
+            // Extract the query after the wake word
+            let query = lower
+                .replace(/skillrock/g, '')
+                .replace(/ski/g, '')
+                .replace(/sky/g, '')
+                .trim();
+
+            if (query.length > 2) {
+                // User said "Ski I want a super course on AI"
+                if (popInput) popInput.value = spokenPhrase;
+                handlePopSubmit(new Event('submit'));
+            } else {
+                // User just called "Ski!"
+                speakCuteChild("Haanji! Sun rahi hoon, bolo na bhaiya/didi!");
+                appendPopMsg('bot', "Haanji! Main sun rahi hoon, bolo na! Kya padhna hai aaj?");
+            }
+        } else if (isOpen && spokenPhrase.length > 3) {
+            // If popup is already open, process spoken command directly
+            if (popInput) popInput.value = spokenPhrase;
+            handlePopSubmit(new Event('submit'));
+        }
+    }
+
+    window.toggleSpeechListening = function() {
+        if (!speechRecognition) initSpeechRecognition();
+        if (!speechRecognition) return;
+
+        if (isListening) {
+            isListening = false;
+            speechRecognition.stop();
+        } else {
+            try {
+                speechRecognition.start();
+            } catch(e) {
+                console.warn(e);
+            }
+        }
+    };
+
+    // 5. Popup Toggle
     window.toggleSkiPopup = function() {
         isOpen = !isOpen;
         if (popup) {
             popup.classList.toggle('active', isOpen);
             if (isOpen) {
                 if (obsBubble) obsBubble.classList.remove('active');
-                playJarvisChime();
+                playCuteChildChime();
                 if (popInput) setTimeout(() => popInput.focus(), 150);
             }
         }
     };
 
-    // 4. Draggable Pet Mechanics with Edge Clamping & Position Persistence
-    const savedX = localStorage.getItem('ski_pet_pos_x');
-    const savedY = localStorage.getItem('ski_pet_pos_y');
-    if (savedX && savedY && container) {
-        container.style.right = 'auto';
-        container.style.bottom = 'auto';
-        container.style.left = savedX + 'px';
-        container.style.top = savedY + 'px';
-    }
-
+    // 6. Draggable Mechanics
     if (trigger && container) {
         trigger.addEventListener('mousedown', startDrag);
         trigger.addEventListener('touchstart', startDrag, { passive: false });
     }
 
     function startDrag(e) {
-        // Only left button or touch
         if (e.type === 'mousedown' && e.button !== 0) return;
         isDragging = true;
         hasMoved = false;
+        container.classList.add('dragging');
 
         const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
         const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
@@ -741,7 +1016,6 @@
         let newLeft = initialLeft + deltaX;
         let newTop = initialTop + deltaY;
 
-        // Clamp to screen
         newLeft = Math.max(12, Math.min(window.innerWidth - 76, newLeft));
         newTop = Math.max(12, Math.min(window.innerHeight - 76, newTop));
 
@@ -754,21 +1028,18 @@
     function endDrag(e) {
         if (!isDragging) return;
         isDragging = false;
+        container.classList.remove('dragging');
         document.removeEventListener('mousemove', onDrag);
         document.removeEventListener('mouseup', endDrag);
         document.removeEventListener('touchmove', onDrag);
         document.removeEventListener('touchend', endDrag);
-
-        const rect = container.getBoundingClientRect();
-        localStorage.setItem('ski_pet_pos_x', Math.round(rect.left));
-        localStorage.setItem('ski_pet_pos_y', Math.round(rect.top));
 
         if (!hasMoved) {
             toggleSkiPopup();
         }
     }
 
-    // 5. Eye Tracking Mouse Movement
+    // 7. Eye Tracking Mouse Movement
     document.addEventListener('mousemove', function(e) {
         if (!petEyes || !trigger) return;
         const rect = trigger.getBoundingClientRect();
@@ -787,7 +1058,7 @@
         petEyes.style.transform = `translate(${offX}px, ${offY}px)`;
     });
 
-    // 6. Natural Blinking
+    // 8. Natural Blinking
     function blinkPetEyes() {
         const eyes = document.querySelectorAll('.ski-pet-eye');
         eyes.forEach(e => e.classList.add('blinking'));
@@ -798,21 +1069,21 @@
     }
     setTimeout(blinkPetEyes, 2500);
 
-    // 7. Page & Course Observer
+    // 9. Page & Course Observer in Cute Hinglish
     function initPageObserver() {
         const path = window.location.pathname.toLowerCase();
-        let message = "I'm Ski, your personal Jarvis pet! Drag me or tap to chat.";
+        let message = "Hii! Main Ski hoon, aapki cute coding dost! Bolo 'Ski' aur main sunungi!";
 
         if (path.includes('/course/')) {
             const h1 = document.querySelector('h1');
             const courseTitle = h1 ? h1.innerText.trim() : "this course";
-            message = `Watching you study "${courseTitle.slice(0, 32)}..."! Let's crush this!`;
+            message = `Yay! Main aapko "${courseTitle.slice(0, 28)}..." padhte dekh rahi hoon! Let's conquer it!`;
         } else if (path.includes('/roadmap')) {
-            message = `Career Roadmap active! Track your milestones and stay focused.`;
+            message = `Career Roadmap active! Aalas bilkul nahi karna, full focus se padho!`;
         } else if (path.includes('/bhavishya')) {
-            message = `Bhavishya 1.0 AI Classroom! Your personal instructor is live.`;
+            message = `Bhavishya 1.0 AI Classroom! AI teacher ready hain, chalo padhein!`;
         } else if (path.includes('/test-series')) {
-            message = `Test Arena! Stay sharp and test your limits.`;
+            message = `Test Arena! Saare questions sahi karna, star banna hai!`;
         }
 
         if (obsText) obsText.innerText = message;
@@ -827,7 +1098,7 @@
     }
     setTimeout(initPageObserver, 600);
 
-    // 8. Quick Chips
+    // 10. Quick Chips
     window.quickPopPrompt = function(text) {
         if (popInput) {
             popInput.value = text;
@@ -835,7 +1106,7 @@
         }
     };
 
-    // 9. Autopilot Navigation Execution
+    // 11. Autopilot Navigation
     window.executeAutopilot = function(url) {
         if (autopilotTimer) clearTimeout(autopilotTimer);
         window.location.href = url;
@@ -848,11 +1119,11 @@
         }
         const card = document.getElementById('activeAutopilotCard');
         if (card) {
-            card.innerHTML = `<span style="color: #94A3B8; font-size: 0.78rem;">🚀 Autopilot cancelled. Staying on current page.</span>`;
+            card.innerHTML = `<span style="color: #94A3B8; font-size: 0.78rem;">🚀 Theek hai, hum yahin rukte hain!</span>`;
         }
     };
 
-    // 10. Chat Message Submission & Autopilot Handling
+    // 12. Chat Submission & Autopilot Handling
     window.handlePopSubmit = async function(e) {
         if (e && e.preventDefault) e.preventDefault();
         const text = (popInput ? popInput.value : '').trim();
@@ -860,10 +1131,8 @@
 
         popInput.value = '';
 
-        // Add user bubble
         appendPopMsg('user', text);
 
-        // Show thinking indicator
         const thinkingElem = showPopThinking();
 
         try {
@@ -879,17 +1148,16 @@
             const data = await res.json();
             if (thinkingElem) thinkingElem.remove();
 
-            const reply = (data && data.reply) ? data.reply : "Code on, chief!";
+            const reply = (data && data.reply) ? data.reply : "Yay! Padhai karte raho rockstar!";
             appendPopMsg('bot', reply);
-            speakJarvis(reply);
+            speakCuteChild(reply);
 
-            // Handle Autopilot Redirect Action
             if (data && data.action === 'navigate' && data.redirect_url) {
                 renderAutopilotCard(data);
             }
         } catch(err) {
             if (thinkingElem) thinkingElem.remove();
-            appendPopMsg('bot', "Connection hiccup! But I'm right here with you. Try asking again!");
+            appendPopMsg('bot', "Arey! Thoda sa connection glitch aaya, ek baar firse pucho na please!");
         }
     };
 
@@ -901,7 +1169,7 @@
             <div class="ski-thinking-dot"></div>
             <div class="ski-thinking-dot"></div>
             <div class="ski-thinking-dot"></div>
-            <span>Jarvis scanning catalogue...</span>
+            <span>Ski soch rahi hai...</span>
         `;
         popBody.appendChild(div);
         popBody.scrollTop = popBody.scrollHeight;
@@ -914,15 +1182,15 @@
         card.className = 'jarvis-autopilot-card';
         card.id = 'activeAutopilotCard';
         card.innerHTML = `
-            <div class="autopilot-badge">🚀 JARVIS AUTOPILOT NAVIGATION</div>
-            <div class="autopilot-title">${data.target_title || 'Target Destination'}</div>
+            <div class="autopilot-badge">🚀 SKI AUTOPILOT TELEPORT</div>
+            <div class="autopilot-title">${data.target_title || 'Course Destination'}</div>
             <div class="autopilot-timer">
                 <i data-lucide="compass" style="width: 14px; height: 14px;"></i>
-                <span>Redirecting in <strong id="autopilotCountdown">2</strong>s...</span>
+                <span>Chalo chalo, <strong id="autopilotCountdown">2</strong> seconds me teleport ho rahe hain, yayy!</span>
             </div>
             <div class="autopilot-actions">
-                <button type="button" class="autopilot-btn cancel" onclick="cancelAutopilot()">Stay Here</button>
-                <button type="button" class="autopilot-btn go" onclick="executeAutopilot('${data.redirect_url}')">Go Now &rarr;</button>
+                <button type="button" class="autopilot-btn cancel" onclick="cancelAutopilot()">Yahin Ruko</button>
+                <button type="button" class="autopilot-btn go" onclick="executeAutopilot('${data.redirect_url}')">Abhi Chalo &rarr;</button>
             </div>
         `;
         popBody.appendChild(card);
