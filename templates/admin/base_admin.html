@@ -670,7 +670,7 @@
                 <i data-lucide="gift"></i>
                 <span>Cashback Claims</span>
             </a>
-            <a href="{{ url_for('admin.payments_list') }}" class="admin-nav-item {% if 'payment' in request.endpoint %}active{% endif %}">
+            <a href="{{ url_for('admin.payments_list') }}" class="admin-nav-item {% if 'payments_list' in request.endpoint %}active{% endif %}">
                 <i data-lucide="credit-card"></i>
                 <span>UPI Payments & Access</span>
                 {% if pending_payments_count and pending_payments_count > 0 %}
@@ -678,6 +678,10 @@
                     {{ pending_payments_count }}
                 </span>
                 {% endif %}
+            </a>
+            <a href="{{ url_for('admin.ambassadors_admin') }}" class="admin-nav-item {% if 'ambassador' in request.endpoint %}active{% endif %}">
+                <i data-lucide="award"></i>
+                <span>Ambassador Program</span>
             </a>
 
             <div class="admin-nav-heading">Network & Safety</div>

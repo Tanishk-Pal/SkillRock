@@ -50,7 +50,7 @@ class TestSEOSearchAIDiscoverability(unittest.TestCase):
         self.assertIn("Disallow: /register", content)
 
         # Verify canonical sitemap reference
-        self.assertIn("Sitemap: https://skillrock.onrender.com/sitemap.xml", content)
+        self.assertIn("Sitemap: https://skillrock.in/sitemap.xml", content)
 
     def test_sitemap_xml(self):
         """Verify sitemap.xml uses HTTPS canonical domain, excludes private/imaginary routes, and includes courses."""
@@ -61,8 +61,8 @@ class TestSEOSearchAIDiscoverability(unittest.TestCase):
 
         # Verify XML structure
         self.assertIn('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', content)
-        self.assertIn("<loc>https://skillrock.onrender.com/</loc>", content)
-        self.assertIn("<loc>https://skillrock.onrender.com/learning/courses</loc>", content)
+        self.assertIn("<loc>https://skillrock.in/</loc>", content)
+        self.assertIn("<loc>https://skillrock.in/learning/courses</loc>", content)
 
         # Verify private/auth/imaginary routes are EXCLUDED
         self.assertNotIn("/login", content)
@@ -77,8 +77,8 @@ class TestSEOSearchAIDiscoverability(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         content = res.data.decode("utf-8")
         self.assertIn("# SkillRock", content)
-        self.assertIn("https://skillrock.onrender.com", content)
-        self.assertIn("https://skillrock.onrender.com/learning/courses", content)
+        self.assertIn("https://skillrock.in", content)
+        self.assertIn("https://skillrock.in/learning/courses", content)
         self.assertIn("Project-Based", content)
         self.assertIn("Quiz-Based", content)
 
@@ -88,7 +88,7 @@ class TestSEOSearchAIDiscoverability(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         content = res.data.decode("utf-8")
         self.assertIn("# SkillRock — Full Curriculum", content)
-        self.assertIn("https://skillrock.onrender.com/learning/courses/", content)
+        self.assertIn("https://skillrock.in/learning/courses/", content)
 
     def test_trailing_slash_301_redirect(self):
         """Verify non-root trailing slashes return 301 permanent redirect to non-trailing slash version."""
@@ -103,7 +103,7 @@ class TestSEOSearchAIDiscoverability(unittest.TestCase):
         content = res.data.decode("utf-8")
 
         # Canonical tag
-        self.assertIn('<link rel="canonical" href="https://skillrock.onrender.com/">', content)
+        self.assertIn('<link rel="canonical" href="https://skillrock.in/">', content)
         
         # Robots tag
         self.assertIn('content="index, follow', content)
@@ -112,7 +112,7 @@ class TestSEOSearchAIDiscoverability(unittest.TestCase):
         self.assertEqual(content.count("<h1"), 1)
 
         # Open Graph Banner 1200x630
-        self.assertIn('property="og:image" content="https://skillrock.onrender.com/static/img/skillrock-og-banner.png"', content)
+        self.assertIn('property="og:image" content="https://skillrock.in/static/img/skillrock-og-banner.png"', content)
         self.assertIn('property="og:image:width" content="1200"', content)
         self.assertIn('property="og:image:height" content="630"', content)
 
@@ -133,7 +133,7 @@ class TestSEOSearchAIDiscoverability(unittest.TestCase):
         content = res.data.decode("utf-8")
 
         # Canonical tag
-        self.assertIn(f'<link rel="canonical" href="https://skillrock.onrender.com/learning/courses/{slug}">', content)
+        self.assertIn(f'<link rel="canonical" href="https://skillrock.in/learning/courses/{slug}">', content)
 
         # Single H1 tag
         self.assertEqual(content.count("<h1"), 1)

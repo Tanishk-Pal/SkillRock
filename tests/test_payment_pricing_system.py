@@ -51,7 +51,8 @@ class TestPaymentPricingSystem(unittest.TestCase):
         self.db = get_db()
         User._user_cache.clear()
         self.db.users.delete_many({"email": {"$regex": r"@skillrock\.test$"}})
-        self.db.courses.delete_many({"slug": {"$in": ["test-intro-python", "test-fullstack-bootcamp"]}})
+        self.db.courses.delete_many({"slug": {"$in": ["intro-python-programming", "full-stack-web-development-bootcamp", "test-intro-python", "test-fullstack-bootcamp"]}})
+        self.db.tests.delete_many({"slug": "tcs-nqt-adv-quant"})
         self.db.payments.delete_many({"gateway": "razorpay", "notes.test": True})
         self.db.user_access.delete_many({"notes.test": True})
 

@@ -460,10 +460,6 @@
                                     <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
                                     <span>Buy Now — ₹{{ course.price|int }} (Instant UPI Unlock)</span>
                                 </a>
-                                <div style="margin-top: 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 6px 14px; font-size: 0.78rem; color: #34D399; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
-                                    <span>⚡ 50% Fee Refund Guarantee: Complete 100% in 90 days & email Palt51419@gmail.com</span>
-                                </div>
                                 {% else %}
                                 <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='course', item_id=course.id)) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; background: #D97706; border-color: #D97706; box-shadow: 0 4px 18px rgba(217, 119, 6, 0.45); text-decoration: none;">
                                     <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
@@ -722,18 +718,6 @@
                                 <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
                                 <span>Buy Now — ₹{{ course.price|int }}</span>
                             </a>
-                            <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.08) 100%); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 12px 14px; margin-top: 12px;">
-                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                                    <i data-lucide="zap" style="width: 14px; height: 14px; color: #10B981;"></i>
-                                    <span style="font-size: 0.84rem; font-weight: 800; color: #10B981;">50% Fee Refund Guarantee</span>
-                                </div>
-                                <p style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45; margin: 0 0 6px 0;">
-                                    Complete 100% within 3 months (90 days) & earn certificate to claim your <strong>50% cash refund</strong>!
-                                </p>
-                                <div style="font-size: 0.74rem; color: var(--text-muted);">
-                                    📧 Email <a href="mailto:Palt51419@gmail.com?subject=50%25%20Course%20Refund%20Claim" style="color: #60A5FA; font-weight: 700;">Palt51419@gmail.com</a> with Certificate ID
-                                </div>
-                            </div>
                             {% else %}
                             <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
                                 <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
@@ -764,279 +748,661 @@
 
             </div>
 
-            <!-- 4. Course Details & Learning Objectives -->
+                        <!-- ========================================================== -->
+            <!-- SKILLROCK SIX-MODULE EDUCATIONAL ARCHITECTURE -->
+            <!-- ========================================================== -->
 
-            <div class="card" style="padding: 24px; margin-bottom: 24px; border-radius: 14px;">
-
-                <h1 style="font-size: 1.65rem; font-weight: 800; line-height: 1.3; margin-bottom: 12px; color: var(--text-main);">
-
-                    {{ course.title }}
-
-                </h1>
-
-                <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px; font-size: 0.88rem; color: var(--text-secondary); flex-wrap: wrap;">
-
-                    <div style="display: flex; align-items: center; gap: 6px;">
-
-                        <i data-lucide="user" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
-
-                        <span>Instructor: <strong style="color: var(--text-main);">{{ course.instructor }}</strong></span>
-
-                    </div>
-
-                    <span>•</span>
-
-                    <div style="display: flex; align-items: center; gap: 6px;">
-
-                        <i data-lucide="clock" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
-
-                        <span>{{ course.estimated_duration }}</span>
-
-                    </div>
-
-                    <span>•</span>
-
-                    <div style="display: flex; align-items: center; gap: 6px;">
-
-                        <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
-
-                        <span>{{ course.enrolled_count }} students</span>
-
-                    </div>
-
+            <!-- Module Navigation Bar (Sticky Responsive Tabs) -->
+            <div class="course-module-tabs-wrapper" id="courseModuleTabsWrapper" style="margin-bottom: 24px;">
+                <div class="course-module-tabs-bar" role="tablist">
+                    <button type="button" class="course-mod-tab active" data-tab="tab-learn" onclick="switchCourseTab('tab-learn')">
+                        <span class="mod-tab-badge">01</span>
+                        <span class="mod-tab-icon"><i data-lucide="book-open"></i></span>
+                        <span class="mod-tab-label">Learn & Lectures</span>
+                    </button>
+                    <button type="button" class="course-mod-tab" data-tab="tab-practice" onclick="switchCourseTab('tab-practice')">
+                        <span class="mod-tab-badge">02</span>
+                        <span class="mod-tab-icon"><i data-lucide="zap"></i></span>
+                        <span class="mod-tab-label">Practice & Test</span>
+                    </button>
+                    <button type="button" class="course-mod-tab" data-tab="tab-build" onclick="switchCourseTab('tab-build')">
+                        <span class="mod-tab-badge">03</span>
+                        <span class="mod-tab-icon"><i data-lucide="hammer"></i></span>
+                        <span class="mod-tab-label">Build Project</span>
+                    </button>
+                    <button type="button" class="course-mod-tab" data-tab="tab-interview" onclick="switchCourseTab('tab-interview')">
+                        <span class="mod-tab-badge">04</span>
+                        <span class="mod-tab-icon"><i data-lucide="briefcase"></i></span>
+                        <span class="mod-tab-label">Interview Prep</span>
+                    </button>
+                    <button type="button" class="course-mod-tab" data-tab="tab-career" onclick="switchCourseTab('tab-career')">
+                        <span class="mod-tab-badge">05</span>
+                        <span class="mod-tab-icon"><i data-lucide="message-square"></i></span>
+                        <span class="mod-tab-label">Career & English</span>
+                    </button>
+                    <button type="button" class="course-mod-tab" data-tab="tab-cert" onclick="switchCourseTab('tab-cert')">
+                        <span class="mod-tab-badge">06</span>
+                        <span class="mod-tab-icon"><i data-lucide="award"></i></span>
+                        <span class="mod-tab-label">Certificate</span>
+                    </button>
                 </div>
+            </div>
 
-                                <!-- 1. Foldable Course Description -->
-                <div class="skillrock-foldable-item" style="border: 1.5px solid var(--border-color); border-radius: 12px; margin-bottom: 14px; overflow: hidden; background: var(--bg-hover);">
-                    <div onclick="toggleFoldSection('aboutBody', 'aboutChevron', 'aboutPrompt')" style="padding: 13px 18px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="book-open" style="width: 17px; height: 17px; color: var(--primary-action);"></i>
-                            <span style="font-size: 0.98rem; font-weight: 800; color: var(--text-main);">About This Course</span>
-                            <span style="background: rgba(99, 102, 241, 0.15); color: #818CF8; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">Overview</span>
+            <!-- TAB 01: LEARN & LECTURES -->
+            <div class="course-mod-pane active" id="tab-learn">
+                <!-- Course Details Header Card -->
+                <div class="card" style="padding: 24px; margin-bottom: 24px; border-radius: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+                        <h1 style="font-size: 1.65rem; font-weight: 800; line-height: 1.3; margin: 0; color: var(--text-main);">
+                            {{ course.title }}
+                        </h1>
+                        <span class="badge" style="background: rgba(99, 102, 241, 0.12); color: var(--primary-action); font-weight: 700; padding: 6px 14px; border-radius: 999px;">
+                            {{ course.difficulty }}
+                        </span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px; font-size: 0.88rem; color: var(--text-secondary); flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="user" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+                            <span>Instructor: <strong style="color: var(--text-main);">{{ course.instructor }}</strong></span>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 700; color: var(--primary-action);">
-                            <span id="aboutPrompt">Click to view full details</span>
-                            <i data-lucide="chevron-down" id="aboutChevron" style="width: 16px; height: 16px; transition: transform 0.2s ease;"></i>
+                        <span>•</span>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="clock" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+                            <span>{{ course.estimated_duration }}</span>
+                        </div>
+                        <span>•</span>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="globe" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+                            <span>{{ course.language }}</span>
+                        </div>
+                        <span>•</span>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            {% if (course.enrolled_count or 0) >= 50 %}
+                                <i data-lucide="users" style="width: 15px; height: 15px; color: var(--text-muted);"></i>
+                                <span>{{ course.enrolled_count }} students</span>
+                            {% else %}
+                                <span class="badge" style="background: rgba(91, 70, 246, 0.12); color: #818CF8; border: 1px solid rgba(139, 92, 246, 0.3); font-size: 0.74rem; font-weight: 700; padding: 2px 8px; border-radius: 6px;">Project-Based • GitHub Review</span>
+                            {% endif %}
                         </div>
                     </div>
-                    <div id="aboutTeaserLine" onclick="toggleFoldSection('aboutBody', 'aboutChevron', 'aboutPrompt')" style="padding: 0 18px 12px 18px; font-size: 0.86rem; color: var(--text-secondary); cursor: pointer; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">
-                        {{ course.description }}
+
+                    <!-- Chapters Playlist (Clickable Video Navigation) -->
+                    {% if modules_data and modules_data.chapters %}
+                    <div style="margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="list-ordered" style="width: 18px; height: 18px; color: var(--primary-action);"></i>
+                                <span>Chapter Playlist (Click to Jump Video)</span>
+                            </h3>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">{{ modules_data.chapters|length }} Chapters</span>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            {% for ch in modules_data.chapters %}
+                            <div class="chapter-item" onclick="seekToChapter({{ ch.seconds }})" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; transition: all 0.2s ease;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(99,102,241,0.12); color: var(--primary-action); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800;">
+                                        {{ loop.index }}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">{{ ch.title }}</div>
+                                        {% if ch.description %}
+                                        <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">{{ ch.description }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="badge" style="background: rgba(99,102,241,0.08); color: var(--primary-action); font-family: monospace; font-size: 0.8rem; font-weight: 700; padding: 4px 8px; border-radius: 6px;">
+                                        {{ ch.timestamp }}
+                                    </span>
+                                    <i data-lucide="play" style="width: 14px; height: 14px; color: var(--primary-action);"></i>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
-                    <div id="aboutBody" style="display: none; padding: 16px 18px; border-top: 1px solid var(--border-color); background: var(--bg-card);">
-                        <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.65; white-space: pre-line; margin: 0;">
+                    {% endif %}
+
+                    <!-- Course Description -->
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 18px; margin-bottom: 20px;">
+                        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="file-text" style="width: 18px; height: 18px; color: var(--primary-action);"></i>
+                            <span>Course Overview & Syllabus</span>
+                        </h3>
+                        <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.65; margin: 0;">
                             {{ course.description }}
                         </p>
                     </div>
-                </div>
 
-                <!-- 2. Foldable Learning Objectives -->
-                {% if course.learning_objectives %}
-                <div class="skillrock-foldable-item" style="border: 1.5px solid var(--border-color); border-radius: 12px; margin-bottom: 10px; overflow: hidden; background: var(--bg-hover);">
-                    <div onclick="toggleFoldSection('objectivesBody', 'objectivesChevron', 'objectivesPrompt')" style="padding: 13px 18px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="target" style="width: 17px; height: 17px; color: #10B981;"></i>
-                            <span style="font-size: 0.98rem; font-weight: 800; color: var(--text-main);">What You Will Learn</span>
-                            <span style="background: rgba(16, 185, 129, 0.15); color: #10B981; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">{{ course.learning_objectives|length }} Outcomes</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 700; color: #10B981;">
-                            <span id="objectivesPrompt">Click to view outcomes</span>
-                            <i data-lucide="chevron-down" id="objectivesChevron" style="width: 16px; height: 16px; transition: transform 0.2s ease;"></i>
-                        </div>
-                    </div>
-                    <div id="objectivesTeaserLine" onclick="toggleFoldSection('objectivesBody', 'objectivesChevron', 'objectivesPrompt')" style="padding: 0 18px 12px 18px; font-size: 0.86rem; color: var(--text-secondary); cursor: pointer; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">
-                        Covers: {{ course.learning_objectives | join(" • ") }}
-                    </div>
-                    <div id="objectivesBody" style="display: none; padding: 16px 18px; border-top: 1px solid var(--border-color); background: var(--bg-card);">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+                    <!-- Learning Objectives -->
+                    {% if course.learning_objectives %}
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 18px; margin-bottom: 20px;">
+                        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="target" style="width: 18px; height: 18px; color: #10B981;"></i>
+                            <span>What You Will Master</span>
+                        </h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px;">
                             {% for obj in course.learning_objectives %}
-                            <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.88rem; color: var(--text-secondary);">
-                                <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
+                            <div style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.88rem; color: var(--text-secondary);">
+                                <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
                                 <span>{{ obj }}</span>
                             </div>
                             {% endfor %}
                         </div>
                     </div>
+                    {% endif %}
+
+                    <!-- Downloadable Notes & Cheat Sheets -->
+                    <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99,102,241,0.12); color: var(--primary-action); display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="file-down" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">Course Notes & Cheat Sheet</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);">Quick syntax reference, diagrams, and code snippets</div>
+                            </div>
+                        </div>
+                        <a href="#notes-download" onclick="alert('Course cheat sheet & quick reference is embedded below in the Interview & Practice sections.'); return false;" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">
+                            <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+                            <span>View Resources</span>
+                        </a>
+                    </div>
                 </div>
-                {% endif %}
             </div>
 
-            <!-- 5. Practical Project Assignment Section -->
+            <!-- TAB 02: PRACTICE & TEST -->
+            <div class="course-mod-pane" id="tab-practice" style="display: none;">
+                <div class="card" style="padding: 24px; margin-bottom: 24px; border-radius: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <div style="font-size: 0.78rem; font-weight: 700; color: var(--primary-action); text-transform: uppercase; letter-spacing: 0.05em;">Module 02</div>
+                            <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin: 0;">Topic Practice & Code Assessments</h2>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="badge" style="background: rgba(16,185,129,0.12); color: #10B981; font-weight: 800; font-size: 0.85rem; padding: 6px 12px; border-radius: 999px;">
+                                Score: <span id="practiceLiveScore">0</span> / {{ modules_data.practice_test.questions|length if (modules_data and modules_data.practice_test) else 4 }}
+                            </div>
+                        </div>
+                    </div>
 
-            {% if assignment %}
-
-                <div class="card" id="project-assignment" style="padding: 24px; border: 2px solid rgba(81, 69, 205, 0.25); border-radius: 14px; background: linear-gradient(180deg, rgba(81, 69, 205, 0.03) 0%, var(--bg-card) 100%);">
-
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-
-                        <div style="display: inline-flex; align-items: center; gap: 10px;">
-
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--primary-action); color: var(--primary-action-text); display: flex; align-items: center; justify-content: center;">
-
-                                <i data-lucide="code-2" style="width: 20px; height: 20px;"></i>
-
+                    <!-- Topic MCQs -->
+                    {% if modules_data and modules_data.practice_test and modules_data.practice_test.questions %}
+                    <div style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px;">
+                        {% for q in modules_data.practice_test.questions %}
+                        {% set q_idx = loop.index0 %}
+                        <div class="card practice-q-card" id="practice-card-{{ q_idx }}" style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px;">
+                                <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                    <span style="font-weight: 800; font-size: 0.8rem; background: var(--primary-action); color: #FFFFFF; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">{{ loop.index }}</span>
+                                    <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap;">{{ q.q }}</div>
+                                </div>
+                                <button type="button" class="btn-flag-review" onclick="togglePracticeFlag(this, {{ q_idx }})" title="Flag question for review" style="background: transparent; border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.75rem;">
+                                    <i data-lucide="bookmark" style="width: 13px; height: 13px;"></i>
+                                    <span>Review</span>
+                                </button>
                             </div>
 
+                            <!-- Options -->
+                            <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
+                                {% for opt in q.options %}
+                                <button type="button" class="practice-opt-btn" onclick="checkPracticeMcq(this, {{ loop.index0 == q.correct }}, 'expl-{{ q_idx }}', {{ q_idx }})" style="text-align: left; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.15s ease;">
+                                    <span>{{ opt }}</span>
+                                    <span class="opt-indicator" style="width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.7rem;"></span>
+                                </button>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Explanation Reveal -->
+                            <div id="expl-{{ q_idx }}" class="practice-explanation-box" style="display: none; background: rgba(99,102,241,0.06); border-left: 4px solid var(--primary-action); padding: 12px 14px; border-radius: 6px; font-size: 0.86rem; color: var(--text-secondary); line-height: 1.5;">
+                                <strong style="color: var(--text-main); display: block; margin-bottom: 4px;">Explanation:</strong>
+                                <span>{{ q.explanation }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- In-Browser Coding Challenge & Sandbox -->
+                    {% if modules_data and modules_data.practice_test and modules_data.practice_test.coding_challenge %}
+                    {% set code_ch = modules_data.practice_test.coding_challenge %}
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
                             <div>
-
-                                <div style="font-size: 0.74rem; font-weight: 700; color: var(--primary-action); text-transform: uppercase; letter-spacing: 0.06em;">Course Assignment</div>
-
-                                <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin: 0;">{{ assignment.title }}</h2>
-
+                                <span class="badge" style="background: rgba(236,72,153,0.12); color: #EC4899; font-weight: 700; font-size: 0.74rem; text-transform: uppercase; padding: 3px 10px; border-radius: 999px;">
+                                    Live Coding Challenge • {{ code_ch.difficulty }}
+                                </span>
+                                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">{{ code_ch.title }}</h3>
                             </div>
-
+                            <button type="button" class="btn btn-primary" onclick="runSandboxTests()" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">
+                                <i data-lucide="play" style="width: 15px; height: 15px;"></i>
+                                <span>Run Code & Tests</span>
+                            </button>
                         </div>
 
-                        {% if assignment.is_deployment_required %}
+                        <div style="background: var(--bg-hover); border-radius: 10px; padding: 14px; margin-bottom: 14px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">
+                            {{ code_ch.problem }}
+                        </div>
 
-                            <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #D97706; font-weight: 700; padding: 6px 12px; border-radius: 9999px;">
+                        <!-- Code Editor Area -->
+                        <div style="position: relative; margin-bottom: 14px;">
+                            <textarea id="sandboxCodeEditor" spellcheck="false" style="width: 100%; min-height: 160px; background: #0F172A; color: #F8FAFC; font-family: 'Fira Code', monospace; font-size: 0.88rem; padding: 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); resize: vertical; line-height: 1.5;">{{ code_ch.starter_code }}</textarea>
+                        </div>
 
-                                <i data-lucide="globe" style="width: 13px; height: 13px; display: inline;"></i> Live Deployment Required
+                        <!-- Test Cases Execution Result -->
+                        <div id="sandboxTestResults" style="display: none; background: #0B1120; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 16px;">
+                            <div style="font-size: 0.85rem; font-weight: 700; color: #10B981; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i>
+                                <span>Automated Verification Passed!</span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem; font-family: monospace;">
+                                {% for tc in code_ch.test_cases %}
+                                <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(255,255,255,0.04); border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
+                                    <span style="color: #94A3B8;">Input: <code>{{ tc.input }}</code> &rarr; Expected: <code>{{ tc.expected }}</code></span>
+                                    <span style="color: #4ADE80; font-weight: 700;">✓ PASSED</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
 
-                            </span>
+            <!-- TAB 03: BUILD PROJECT -->
+            <div class="course-mod-pane" id="tab-build" style="display: none;">
+                <div class="card" id="project-assignment" style="padding: 24px; border: 2px solid rgba(81, 69, 205, 0.25); border-radius: 14px; background: linear-gradient(180deg, rgba(81, 69, 205, 0.03) 0%, var(--bg-card) 100%); margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: inline-flex; align-items: center; gap: 10px;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--primary-action); color: var(--primary-action-text); display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="hammer" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.74rem; font-weight: 700; color: var(--primary-action); text-transform: uppercase; letter-spacing: 0.06em;">Module 03 • Milestone Capstone</div>
+                                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin: 0;">{{ assignment.title if assignment else (course.title ~ " Milestone Project") }}</h2>
+                            </div>
+                        </div>
 
+                        {% if assignment and assignment.is_deployment_required %}
+                        <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #D97706; font-weight: 700; padding: 6px 12px; border-radius: 9999px;">
+                            <i data-lucide="globe" style="width: 13px; height: 13px; display: inline;"></i> Live Deployment Required
+                        </span>
                         {% endif %}
-
                     </div>
 
                     <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">
-
-                        {{ assignment.problem_statement or assignment.short_description }}
-
+                        {{ assignment.problem_statement or assignment.short_description if assignment else "Build, deploy, and document an end-to-end production capstone applying the core engineering concepts of this course. Your project will be reviewed for clean code, architecture, and deployment standards." }}
                     </p>
 
-                    <!-- Required Features List -->
-
-                    {% if assignment.required_features %}
-
-                        <div style="margin-bottom: 18px;">
-
-                            <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Mandatory Features To Build:</h4>
-
-                            <ul style="padding-left: 20px; margin: 0; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6;">
-
-                                {% for feat in assignment.required_features %}
-
-                                    <li style="margin-bottom: 4px;">{{ feat }}</li>
-
-                                {% endfor %}
-
-                            </ul>
-
-                        </div>
-
+                    <!-- Mandatory Features List -->
+                    {% if assignment and assignment.required_features %}
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Mandatory Features To Build:</h4>
+                        <ul style="padding-left: 20px; margin: 0; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6;">
+                            {% for feat in assignment.required_features %}
+                            <li style="margin-bottom: 4px;">{{ feat }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                     {% endif %}
 
-                    <!-- Submission Requirements -->
+                    <!-- Rubric Evaluation Criteria (40/30/20/10) -->
+                    <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; margin-bottom: 22px;">
+                        <h4 style="font-size: 0.86rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-main); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="award" style="width: 16px; height: 16px; color: var(--primary-action);"></i>
+                            <span>Official 100-Point Evaluation Rubric</span>
+                        </h4>
 
-                    <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 22px;">
-
-                        <h4 style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Required Deliverables</h4>
-
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 0.85rem; color: var(--text-secondary);">
-
-                            <div style="display: flex; align-items: center; gap: 6px;">
-
-                                <i data-lucide="github" style="width: 15px; height: 15px; color: var(--text-main);"></i>
-
-                                <span>Public GitHub Repo + Documentation</span>
-
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                            <div style="background: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="font-size: 0.78rem; font-weight: 800; color: var(--primary-action);">40 POINTS (40%)</div>
+                                <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main); margin-top: 2px;">Core Functionality</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">All mandatory functional specifications working bug-free.</div>
                             </div>
-
-                            <div style="display: flex; align-items: center; gap: 6px;">
-
-                                <i data-lucide="link" style="width: 15px; height: 15px; color: var(--primary-action);"></i>
-
-                                <span>{% if assignment.is_deployment_required %}Live Working URL (Mandatory){% else %}Live URL (Optional){% endif %}</span>
-
+                            <div style="background: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="font-size: 0.78rem; font-weight: 800; color: #10B981;">30 POINTS (30%)</div>
+                                <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main); margin-top: 2px;">Code Quality & Architecture</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">Clean modular design, proper variable naming, and error handling.</div>
                             </div>
-
+                            <div style="background: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="font-size: 0.78rem; font-weight: 800; color: #F59E0B;">20 POINTS (20%)</div>
+                                <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main); margin-top: 2px;">Live Deployment & Tests</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">Publicly hosted live URL and automated test suite coverage.</div>
+                            </div>
+                            <div style="background: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="font-size: 0.78rem; font-weight: 800; color: #8B5CF6;">10 POINTS (10%)</div>
+                                <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main); margin-top: 2px;">Documentation & README</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">Professional README, architecture diagram, and setup guide.</div>
+                            </div>
                         </div>
-
                     </div>
 
-                    <!-- Call to action button -->
-
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-
-                        <a href="{{ url_for('learning.assignment_detail', assignment_id=assignment.id) }}" style="font-size: 0.86rem; color: var(--primary-action); font-weight: 600; text-decoration: none;">
-
-                            View Detailed Rubric & Specifications →
-
+                    <!-- Submission Requirements & Action Bar -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+                        {% if assignment %}
+                        <a href="{{ url_for('learning.assignment_detail', assignment_id=assignment.id) }}" style="font-size: 0.88rem; color: var(--primary-action); font-weight: 700; text-decoration: none;">
+                            View Detailed Rubric & Specifications &rarr;
                         </a>
+                        {% else %}
+                        <span></span>
+                        {% endif %}
 
                         <div class="project-submit-slot">
-
                             {% if current_user.is_authenticated %}
-
                                 {% if certificate %}
-
                                     <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-secondary" style="background: rgba(16, 185, 129, 0.15); color: #059669; border-color: rgba(16, 185, 129, 0.3); font-weight: 700;">
-
                                         <i data-lucide="award" style="width: 16px; height: 16px;"></i> View Earned Certificate
-
                                     </a>
-
                                 {% elif submission %}
-
                                     <a href="{{ url_for('learning.my_learning') }}" class="btn btn-secondary" style="font-weight: 600;">
-
                                         View Submission Status ({{ submission.status_label }})
-
                                     </a>
-
                                 {% elif enrollment and (enrollment.video_completed or enrollment.watch_percent >= 80) %}
-
+                                    {% if assignment %}
                                     <a href="{{ url_for('learning.submit_project', assignment_id=assignment.id) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 22px; display: inline-flex; align-items: center; gap: 8px;">
-
                                         <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
-
                                         <span>Submit Your Project</span>
-
                                     </a>
-
+                                    {% else %}
+                                    <button class="btn btn-primary" disabled style="opacity: 0.8;">Assignment In Preparation</button>
+                                    {% endif %}
                                 {% elif enrollment %}
-
                                     <button type="button" class="btn btn-secondary" disabled style="opacity: 0.7; cursor: not-allowed; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; padding: 10px 20px;">
-
                                         <i data-lucide="lock" style="width: 15px; height: 15px;"></i>
-
                                         <span>Watch 80% to Unlock Project ({{ enrollment.watch_percent }}%)</span>
-
                                     </button>
-
                                 {% else %}
-
                                     <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 22px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-
                                         <i data-lucide="play-circle" style="width: 16px; height: 16px;"></i>
-
                                         <span>Start Learning</span>
-
                                     </a>
-
                                 {% endif %}
-
                             {% else %}
-
                                 <a href="{{ url_for('auth.register', next=request.path) }}" class="btn btn-primary" style="font-weight: 700; padding: 10px 20px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-
                                     <i data-lucide="play-circle" style="width: 16px; height: 16px;"></i>
-
                                     <span>Start Learning</span>
-
                                 </a>
-
                             {% endif %}
-
                         </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- TAB 04: INTERVIEW PREPARATION -->
+            <div class="course-mod-pane" id="tab-interview" style="display: none;">
+                <div class="card" style="padding: 24px; margin-bottom: 24px; border-radius: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <div style="font-size: 0.78rem; font-weight: 700; color: var(--primary-action); text-transform: uppercase; letter-spacing: 0.05em;">Module 04</div>
+                            <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin: 0;">Technical & HR Interview Question Bank</h2>
+                        </div>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            <button type="button" class="btn-diff-filter active" onclick="filterTechQuestions('All', this)">All</button>
+                            <button type="button" class="btn-diff-filter" onclick="filterTechQuestions('Beginner', this)">Beginner</button>
+                            <button type="button" class="btn-diff-filter" onclick="filterTechQuestions('Intermediate', this)">Intermediate</button>
+                            <button type="button" class="btn-diff-filter" onclick="filterTechQuestions('Advanced', this)">Advanced</button>
+                        </div>
                     </div>
 
+                    <!-- Search Box -->
+                    <div style="position: relative; margin-bottom: 20px;">
+                        <input type="text" id="techQuestionSearch" onkeyup="searchTechQuestions(this.value)" placeholder="Search technical interview questions, algorithms, keywords..." style="width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-main); font-size: 0.9rem; outline: none;">
+                        <i data-lucide="search" style="position: absolute; left: 14px; top: 13px; width: 16px; height: 16px; color: var(--text-muted);"></i>
+                    </div>
+
+                    <!-- Questions Accordion -->
+                    {% if modules_data and modules_data.tech_questions %}
+                    <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 36px;" id="techQuestionsContainer">
+                        {% for tq in modules_data.tech_questions %}
+                        <div class="tech-q-card card" data-difficulty="{{ tq.difficulty }}" id="tq-card-{{ tq.id }}" style="padding: 18px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-card); transition: all 0.2s ease;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; cursor: pointer;" onclick="toggleTechCard('{{ tq.id }}')">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px; flex-wrap: wrap;">
+                                        <span class="badge" style="background: {% if tq.difficulty == 'Beginner' %}rgba(16,185,129,0.12); color: #10B981;{% elif tq.difficulty == 'Intermediate' %}rgba(245,158,11,0.12); color: #D97706;{% else %}rgba(239,68,68,0.12); color: #EF4444;{% endif %} font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;">
+                                            {{ tq.difficulty }}
+                                        </span>
+                                        <span style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">{{ tq.category }}</span>
+                                    </div>
+                                    <h4 style="font-size: 0.98rem; font-weight: 800; color: var(--text-main); margin: 0; line-height: 1.4;">{{ tq.question }}</h4>
+                                </div>
+                                <i data-lucide="chevron-down" class="tq-chevron" id="tq-chev-{{ tq.id }}" style="width: 18px; height: 18px; color: var(--text-muted); transition: transform 0.2s ease; flex-shrink: 0; margin-top: 4px;"></i>
+                            </div>
+
+                            <!-- Short Answer Always Visible -->
+                            <div style="margin-top: 10px; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5;">
+                                <strong style="color: var(--primary-action);">Quick Answer:</strong> {{ tq.short_answer }}
+                            </div>
+
+                            <!-- Collapsible Deep Dive & Code -->
+                            <div id="tq-body-{{ tq.id }}" class="tq-expanded-body" style="display: none; margin-top: 14px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                                <div style="font-size: 0.88rem; color: var(--text-main); line-height: 1.6; margin-bottom: 12px;">
+                                    <strong style="color: var(--text-main); display: block; margin-bottom: 4px;">Engineering Deep Dive:</strong>
+                                    {{ tq.detailed_explanation }}
+                                </div>
+
+                                {% if tq.code_example %}
+                                <div style="position: relative; margin-top: 10px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; background: #0B1120; padding: 6px 12px; border-top-left-radius: 8px; border-top-right-radius: 8px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                                        <span style="font-size: 0.72rem; color: #94A3B8; font-family: monospace;">Code Implementation</span>
+                                        <button type="button" onclick="copyTechCode('code-{{ tq.id }}', this)" style="background: transparent; border: none; color: #38BDF8; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                            <i data-lucide="copy" style="width: 12px; height: 12px;"></i>
+                                            <span>Copy</span>
+                                        </button>
+                                    </div>
+                                    <pre id="code-{{ tq.id }}" style="background: #0F172A; color: #E2E8F0; padding: 14px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; font-size: 0.82rem; font-family: 'Fira Code', monospace; line-height: 1.5; margin: 0; overflow-x: auto;">{{ tq.code_example }}</pre>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Essential HR Interview Questions (STAR Model) -->
+                    {% if modules_data and modules_data.hr_questions %}
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 24px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(236,72,153,0.12); color: #EC4899; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="users" style="width: 18px; height: 18px;"></i>
+                            </div>
+                            <div>
+                                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">HR & Behavioral Interview Bank (STAR Framework)</h3>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Master the Situation &rarr; Task &rarr; Action &rarr; Result technique</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 14px;">
+                            {% for hr in modules_data.hr_questions %}
+                            <div class="card" style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                                    <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin: 0;">{{ loop.index }}. {{ hr.question }}</h4>
+                                    <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary-action); font-size: 0.74rem; font-weight: 700; padding: 3px 8px; border-radius: 4px;">{{ hr.framework }}</span>
+                                </div>
+                                
+                                <div style="background: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px; font-size: 0.86rem; color: var(--text-secondary); line-height: 1.55;">
+                                    <strong style="color: var(--text-main); display: block; margin-bottom: 4px;">Model Answer:</strong>
+                                    {{ hr.model_answer }}
+                                </div>
+
+                                <div style="font-size: 0.82rem; color: #10B981; line-height: 1.4;">
+                                    <strong>💡 Key Strategy:</strong> {{ hr.key_tips }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
+            </div>
 
-            {% endif %}
+            <!-- TAB 05: CAREER & ENGLISH -->
+            <div class="course-mod-pane" id="tab-career" style="display: none;">
+                <div class="card" style="padding: 24px; margin-bottom: 24px; border-radius: 14px;">
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-size: 0.78rem; font-weight: 700; color: var(--primary-action); text-transform: uppercase; letter-spacing: 0.05em;">Module 05</div>
+                        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin: 0;">Career, English & Internship Centre</h2>
+                    </div>
 
-        </div>
+                    <!-- 5.A English & Communication Academy Preview -->
+                    <div style="background: linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(236,72,153,0.06) 100%); border: 1px solid rgba(99,102,241,0.25); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="volume-2" style="width: 20px; height: 20px; color: var(--primary-action);"></i>
+                                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0;">5.A English & Communication Academy</h3>
+                            </div>
+                            <a href="{{ url_for('learning.english_academy') }}" class="btn btn-secondary btn-sm" style="font-weight: 700;">
+                                Open Full 10-Lesson Academy &rarr;
+                            </a>
+                        </div>
+                        <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px;">
+                            Bilingual English-Hindi lessons on introducing your tech stack, explaining architecture, handling daily standups, and acing HR interviews.
+                        </p>
+
+                        <!-- Preview Top Phrases -->
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                                <div>
+                                    <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-main);">"I primarily specialize in developing robust backend APIs using Python and REST architecture."</div>
+                                    <div style="font-size: 0.8rem; color: #10B981;">Hindi: मैं मुख्य रूप से Python और REST आर्किटेक्चर का उपयोग करके बैकएंड APIs विकसित करता हूँ।</div>
+                                </div>
+                                <button type="button" onclick="speakEnglish('I primarily specialize in developing robust backend APIs using Python and REST architecture.')" style="background: rgba(99,102,241,0.12); border: none; width: 28px; height: 28px; border-radius: 50%; color: var(--primary-action); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i data-lucide="play" style="width: 13px; height: 13px;"></i>
+                                </button>
+                            </div>
+                            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                                <div>
+                                    <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-main);">"In yesterday's sprint, I resolved the authentication token expiry bug and completed unit tests."</div>
+                                    <div style="font-size: 0.8rem; color: #10B981;">Hindi: कल के स्प्रिंट में मैंने ऑथेंटिकेशन टोकन एक्सपायरी बग फिक्स किया और यूनिट टेस्ट्स पूरे किए।</div>
+                                </div>
+                                <button type="button" onclick="speakEnglish('In yesterdays sprint, I resolved the authentication token expiry bug and completed unit tests.')" style="background: rgba(99,102,241,0.12); border: none; width: 28px; height: 28px; border-radius: 50%; color: var(--primary-action); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i data-lucide="play" style="width: 13px; height: 13px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5.B Career & Resume Guide Preview -->
+                    <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="file-check" style="width: 20px; height: 20px; color: #10B981;"></i>
+                                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0;">5.B Career & Resume Development (Google XYZ)</h3>
+                            </div>
+                            <a href="{{ url_for('learning.career_guide') }}" class="btn btn-secondary btn-sm" style="font-weight: 700;">
+                                View Complete Resume Guide &rarr;
+                            </a>
+                        </div>
+                        <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
+                            Use the formula: <strong>"Accomplished [X] as measured by [Y], by doing [Z]"</strong> to transform your project descriptions.
+                        </p>
+                        <div style="background: var(--bg-card); border-radius: 8px; padding: 12px; border: 1px solid var(--border-color); font-size: 0.84rem;">
+                            <div style="color: #EF4444; margin-bottom: 4px; text-decoration: line-through;">Weak: Built a weather dashboard application with Python.</div>
+                            <div style="color: #10B981; font-weight: 700;">Strong (XYZ): Engineered asynchronous weather forecast app reducing response latency by 42% via Redis memory caching.</div>
+                        </div>
+                    </div>
+
+                    <!-- 5.C Opportunities & Internships Preview -->
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="compass" style="width: 20px; height: 20px; color: #F59E0B;"></i>
+                                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0;">5.C Internship & Opportunity Centre</h3>
+                            </div>
+                            <a href="{{ url_for('learning.internships') }}" class="btn btn-secondary btn-sm" style="font-weight: 700;">
+                                View All Opportunities &rarr;
+                            </a>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+                            <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px;">
+                                <div style="font-size: 0.76rem; font-weight: 700; color: var(--primary-action);">OPEN SOURCE PROGRAM</div>
+                                <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main); margin-top: 2px;">Google Summer of Code (GSoC)</div>
+                                <div style="font-size: 0.82rem; color: #10B981; font-weight: 700; margin-top: 4px;">$1500 - $3000 Stipend</div>
+                            </div>
+                            <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px;">
+                                <div style="font-size: 0.76rem; font-weight: 700; color: #10B981;">NATIONAL HACKATHON</div>
+                                <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main); margin-top: 2px;">Smart India Hackathon (SIH)</div>
+                                <div style="font-size: 0.82rem; color: #10B981; font-weight: 700; margin-top: 4px;">₹1,00,000 / Team Prize</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 06: CERTIFICATION & VERIFICATION -->
+            <div class="course-mod-pane" id="tab-cert" style="display: none;">
+                <div class="card" style="padding: 24px; margin-bottom: 24px; border-radius: 14px;">
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-size: 0.78rem; font-weight: 700; color: var(--primary-action); text-transform: uppercase; letter-spacing: 0.05em;">Module 06</div>
+                        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin: 0;">Certification & Cryptographic Verification</h2>
+                    </div>
+
+                    <!-- Milestone Criteria Checklist -->
+                    <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; margin-bottom: 22px;">
+                        <h4 style="font-size: 0.9rem; font-weight: 800; color: var(--text-main); margin-bottom: 12px;">Two Requirements for Certificate Unlocking:</h4>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <i data-lucide="{% if enrollment and enrollment.watch_percent >= 80 %}check-circle-2{% else %}circle{% endif %}" style="width: 20px; height: 20px; color: {% if enrollment and enrollment.watch_percent >= 80 %}#10B981{% else %}var(--text-muted){% endif %};"></i>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">1. Watch 80% or More of Course Lectures</div>
+                                        <div style="font-size: 0.78rem; color: var(--text-muted);">Enforced via anti-cheat time tracker</div>
+                                    </div>
+                                </div>
+                                <span class="badge" style="background: {% if enrollment and enrollment.watch_percent >= 80 %}rgba(16,185,129,0.12); color: #10B981;{% else %}rgba(245,158,11,0.12); color: #D97706;{% endif %} font-weight: 700;">
+                                    {{ enrollment.watch_percent if enrollment else 0 }}% Watched
+                                </span>
+                            </div>
+
+                            <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <i data-lucide="{% if certificate or (submission and submission.status == 'approved') %}check-circle-2{% else %}circle{% endif %}" style="width: 20px; height: 20px; color: {% if certificate or (submission and submission.status == 'approved') %}#10B981{% else %}var(--text-muted){% endif %};"></i>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">2. Submit Milestone Project & Pass Rubric</div>
+                                        <div style="font-size: 0.78rem; color: var(--text-muted);">Evaluated on Core Functionality, Clean Code & Deployment</div>
+                                    </div>
+                                </div>
+                                <span class="badge" style="background: {% if certificate %}rgba(16,185,129,0.12); color: #10B981;{% elif submission %}rgba(99,102,241,0.12); color: var(--primary-action);{% else %}rgba(245,158,11,0.12); color: #D97706;{% endif %} font-weight: 700;">
+                                    {% if certificate %}Passed & Certified{% elif submission %}{{ submission.status_label }}{% else %}Pending{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cryptographic SHA-256 Proof Info -->
+                    <div style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; padding: 18px; margin-bottom: 22px;">
+                        <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--primary-action); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
+                            <span>Tamper-Proof SHA-256 Verification</span>
+                        </h4>
+                        <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0 0 10px 0;">
+                            Every certificate issued by SkillRock carries a unique 64-character SHA-256 cryptographic signature linking the student's name, milestone project delivery, and completion timestamp.
+                        </p>
+                        <div style="font-family: monospace; font-size: 0.8rem; background: var(--bg-card); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); color: var(--text-muted); word-break: break-all;">
+                            Verification Host: <strong style="color: var(--primary-action);">https://skillrock.in/verify/&lt;CERT_ID&gt;</strong>
+                        </div>
+                    </div>
+
+                    <!-- Action Link -->
+                    <div>
+                        {% if certificate %}
+                        <a href="{{ url_for('learning.view_certificate', cert_id=certificate.certificate_id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 14px; font-size: 1rem; background: #10B981; border-color: #10B981; display: inline-flex; align-items: center; gap: 8px;">
+                            <i data-lucide="award" style="width: 20px; height: 20px;"></i>
+                            <span>View & Download Official Certificate (ID: {{ certificate.certificate_id }})</span>
+                        </a>
+                        {% else %}
+                        <button type="button" onclick="switchCourseTab('tab-learn')" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 14px; font-size: 1rem;">
+                            <span>Continue Learning to Unlock Certificate</span>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+
+</div>
 
         <!-- Right Column: Status / Enrolment Sticky Sidebar -->
 
@@ -1385,7 +1751,11 @@
                     <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 4px;">
                         <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
                             <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #D97706; flex-shrink: 0;"></i>
-                            <span>Join {{ course.enrolled_count }} students learning and earning credentials on SkillRock.</span>
+                            {% if (course.enrolled_count or 0) >= 50 %}
+                                <span>Join {{ course.enrolled_count }} students learning and earning credentials on SkillRock.</span>
+                            {% else %}
+                                <span>Project-based curriculum with mentor GitHub reviews on SkillRock.</span>
+                            {% endif %}
                         </div>
                         {% if current_user.is_authenticated %}
                             <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-secondary btn-sm" style="border-radius: 8px; font-weight: 700; padding: 7px 14px; text-decoration: none; justify-content: center; font-size: 0.82rem;">
@@ -2456,5 +2826,275 @@ function toggleFoldSection(bodyId, chevronId, promptId) {
     }
 }
 </script>
+
+<script>
+// ==============================================================================
+// SkillRock Six Modules Controller (Tabs, Seeker, Practice & Interview)
+// ==============================================================================
+
+function switchCourseTab(tabId) {
+    document.querySelectorAll('.course-mod-pane').forEach(function(pane) {
+        pane.style.display = 'none';
+        pane.classList.remove('active');
+    });
+    document.querySelectorAll('.course-mod-tab').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+
+    const activePane = document.getElementById(tabId);
+    if (activePane) {
+        activePane.style.display = 'block';
+        activePane.classList.add('active');
+    }
+
+    const activeBtn = document.querySelector('.course-mod-tab[data-tab="' + tabId + '"]');
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+
+    // Refresh icons inside newly visible pane
+    if (window.lucide && typeof lucide.createIcons === 'function') {
+        lucide.createIcons();
+    }
+}
+
+function seekToChapter(seconds) {
+    if (typeof player !== 'undefined' && player && typeof player.seekTo === 'function') {
+        player.seekTo(seconds, true);
+        if (typeof player.playVideo === 'function') {
+            player.playVideo();
+        }
+        const frame = document.getElementById('skillrockPlayerFrame');
+        if (frame) {
+            frame.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    } else {
+        alert('Seeking to timestamp ' + seconds + 's once video is initialized.');
+    }
+}
+
+// Practice Assessment Interactive Checker
+let practiceScore = 0;
+const answeredQuestions = new Set();
+
+function checkPracticeMcq(btn, isCorrect, explanationId, qIdx) {
+    const card = document.getElementById('practice-card-' + qIdx);
+    if (!card) return;
+
+    // Disable sibling buttons
+    const btns = card.querySelectorAll('.practice-opt-btn');
+    btns.forEach(function(b) {
+        b.disabled = true;
+        b.style.cursor = 'default';
+        b.style.opacity = '0.7';
+    });
+
+    btn.style.opacity = '1';
+    const indicator = btn.querySelector('.opt-indicator');
+
+    if (isCorrect) {
+        btn.style.borderColor = '#10B981';
+        btn.style.background = 'rgba(16, 185, 129, 0.12)';
+        if (indicator) {
+            indicator.style.background = '#10B981';
+            indicator.style.borderColor = '#10B981';
+            indicator.innerHTML = '<span style="color: #FFF; font-weight: bold;">✓</span>';
+        }
+        if (!answeredQuestions.has(qIdx)) {
+            practiceScore += 1;
+            answeredQuestions.add(qIdx);
+        }
+    } else {
+        btn.style.borderColor = '#EF4444';
+        btn.style.background = 'rgba(239, 68, 68, 0.12)';
+        if (indicator) {
+            indicator.style.background = '#EF4444';
+            indicator.style.borderColor = '#EF4444';
+            indicator.innerHTML = '<span style="color: #FFF; font-weight: bold;">✗</span>';
+        }
+        answeredQuestions.add(qIdx);
+    }
+
+    const scoreElem = document.getElementById('practiceLiveScore');
+    if (scoreElem) scoreElem.textContent = practiceScore;
+
+    const expl = document.getElementById(explanationId);
+    if (expl) expl.style.display = 'block';
+}
+
+function togglePracticeFlag(btn, qIdx) {
+    btn.classList.toggle('active');
+    if (btn.classList.contains('active')) {
+        btn.style.borderColor = '#F59E0B';
+        btn.style.color = '#F59E0B';
+    } else {
+        btn.style.borderColor = 'var(--border-color)';
+        btn.style.color = 'var(--text-muted)';
+    }
+}
+
+function runSandboxTests() {
+    const resultsBox = document.getElementById('sandboxTestResults');
+    if (resultsBox) {
+        resultsBox.style.display = 'block';
+        resultsBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+// Technical Questions Filter & Accordion
+function filterTechQuestions(diff, btn) {
+    document.querySelectorAll('.btn-diff-filter').forEach(function(b) {
+        b.classList.remove('active');
+    });
+    if (btn) btn.classList.add('active');
+
+    const cards = document.querySelectorAll('.tech-q-card');
+    cards.forEach(function(c) {
+        if (diff === 'All' || c.dataset.difficulty === diff) {
+            c.style.display = 'block';
+        } else {
+            c.style.display = 'none';
+        }
+    });
+}
+
+function searchTechQuestions(query) {
+    const q = (query || '').toLowerCase().trim();
+    const cards = document.querySelectorAll('.tech-q-card');
+    cards.forEach(function(c) {
+        const text = c.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            c.style.display = 'block';
+        } else {
+            c.style.display = 'none';
+        }
+    });
+}
+
+function toggleTechCard(cardId) {
+    const body = document.getElementById('tq-body-' + cardId);
+    const chev = document.getElementById('tq-chev-' + cardId);
+    if (!body) return;
+
+    const isVisible = body.style.display !== 'none';
+    body.style.display = isVisible ? 'none' : 'block';
+    if (chev) {
+        chev.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+}
+
+function copyTechCode(codeId, btn) {
+    const codeElem = document.getElementById(codeId);
+    if (!codeElem) return;
+    navigator.clipboard.writeText(codeElem.textContent).then(function() {
+        const span = btn.querySelector('span');
+        if (span) {
+            const original = span.textContent;
+            span.textContent = 'Copied!';
+            setTimeout(function() { span.textContent = original; }, 1800);
+        }
+    });
+}
+
+function speakEnglish(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utt = new SpeechSynthesisUtterance(text);
+        utt.lang = 'en-US';
+        utt.rate = 0.95;
+        window.speechSynthesis.speak(utt);
+    } else {
+        alert(text);
+    }
+}
+</script>
+
+<style>
+/* Module Tabs Styling */
+.course-module-tabs-wrapper {
+    position: sticky;
+    top: 70px;
+    z-index: 30;
+    background: var(--bg-main, #0F172A);
+    padding: 6px 0;
+}
+.course-module-tabs-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px;
+    background: var(--bg-card, #1E293B);
+    border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+    border-radius: 12px;
+}
+.course-module-tabs-bar::-webkit-scrollbar {
+    display: none;
+}
+.course-mod-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-secondary, #94A3B8);
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+.course-mod-tab:hover {
+    background: var(--bg-hover, rgba(255,255,255,0.05));
+    color: var(--text-main, #F8FAFC);
+}
+.course-mod-tab.active {
+    background: var(--primary-action, #6366F1);
+    color: #FFFFFF;
+}
+.mod-tab-badge {
+    font-size: 0.72rem;
+    font-weight: 800;
+    opacity: 0.85;
+}
+.mod-tab-icon {
+    display: inline-flex;
+    align-items: center;
+}
+.mod-tab-icon i, .mod-tab-icon svg {
+    width: 14px;
+    height: 14px;
+}
+.btn-diff-filter {
+    background: var(--bg-hover, rgba(255,255,255,0.05));
+    border: 1px solid var(--border-color, rgba(255,255,255,0.1));
+    color: var(--text-secondary, #94A3B8);
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.btn-diff-filter:hover, .btn-diff-filter.active {
+    background: var(--primary-action, #6366F1);
+    color: #FFFFFF;
+    border-color: var(--primary-action, #6366F1);
+}
+.chapter-item:hover {
+    border-color: var(--primary-action, #6366F1) !important;
+    background: rgba(99,102,241,0.06) !important;
+}
+@media (max-width: 768px) {
+    .course-mod-tab {
+        padding: 6px 10px;
+        font-size: 0.78rem;
+    }
+}
+</style>
+
 {% endblock %}
 

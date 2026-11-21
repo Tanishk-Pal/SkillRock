@@ -265,16 +265,21 @@ def classroom(subject_slug, lesson_id):
         flash("Subject not found.", "warning")
         return redirect(url_for("bhavishya.dashboard"))
 
-    # Access check: verify payment or admin status
-    is_unlocked = verify_student_unlock(current_user, "bhavishya", "bhavishya-1-0")
-    if not is_unlocked:
-        flash("Please enroll in Bhavishya 1.0 (₹299) to enter the interactive AI Classroom.", "info")
+    # Access check: verify payment, admin status, or free trial for Subject 01 Lesson 1
+    is_unlocked = verify_student_unlock(current_user, "bhavishya", "bhavishya-1-0") or getattr(current_user, "is_admin", False)
+    is_free_trial = (subject_slug == "python-programming" and str(lesson_id) in ("py-l1", "1"))
+    if not is_unlocked and not is_free_trial:
+        flash("Subject 01 (Python) Lesson 1 is 100% free to try! To access Lesson 2+ and the complete 19-subject curriculum, please enroll for ₹299.", "info")
         return redirect(url_for("payment.checkout", item_type="bhavishya", item_id="bhavishya-1-0"))
 
     lesson, chapter = subject.get_lesson_by_id(lesson_id)
     if not lesson:
         flash("Lesson not found.", "warning")
         return redirect(url_for("bhavishya.subject_detail", slug=subject_slug))
+
+    # Load interactive classroom data (curated lectures, notes, code, quiz)
+    from models.default_bhavishya_curriculum import get_interactive_lesson_data
+    interactive_data = get_interactive_lesson_data(subject_slug, lesson_id, lesson)
 
     progress = BhavishyaProgress.get_or_create_for_user(str(current_user.id))
     # Update last learned pointer
@@ -310,6 +315,9 @@ def classroom(subject_slug, lesson_id):
         subject=subject,
         chapter=chapter,
         lesson=lesson,
+        interactive_data=interactive_data,
+        is_free_trial=is_free_trial,
+        is_unlocked=is_unlocked,
         progress=progress,
         memory=memory,
         usage=usage,
@@ -360,35 +368,33 @@ def ai_teacher_interact():
     usage.record_interaction(voice_delta_minutes=0.5, text_delta=1)
 
     system_instruction = f"""
-You are the personal AI Teacher for SkillRock Bhavishya 1.0.
-Your name is 'Professor Bhavishya'.
-You are teaching:
+You are Ski, the personal AI Jarvis Assistant and 24/7 Doubt Solver for SkillRock Bhavishya 1.0.
+Your role: Warm, brilliant, encouraging, and witty tech companion & senior developer mentor.
+Teaching & Learning Context:
 - Subject: {subject.title}
 - Chapter: {chapter.get('title', '') if chapter else ''}
 - Lesson: {lesson_title}
 - Lesson Objective: {socratic_prompt}
 - Student's Known Weak Areas: {weak_str}
+- Current Interaction Mode: {mode} (doubt_solver / code_review / mock_interview)
 - Language Style: {"Clear simple English with natural conversational warmth" if language_pref == "english" else "Warm, natural Hinglish (mix of English and simple conversational Hindi)"}
 
-PEDAGOGICAL RULES (Stanford / Carnegie Mellon Socratic Guidelines):
-1. NEVER deliver a long lecture or continuous monologue. Limit each response to 2 to 4 concise conversational sentences (max 45 words).
-2. ALWAYS end your turn with ONE clear, engaging question or quick challenge for the student to answer.
-3. If the student answers correctly: Praise specifically, explain the deeper principle in one sentence, and advance.
-4. If the student answers incorrectly or is confused: Do NOT say 'wrong'. Say 'Good attempt! Let us look at it this way...' and give a simple real-world analogy.
-5. If the student asks for the complete solution or code: NEVER give the final code directly. Provide a progressive hint or pseudocode skeleton so they think actively.
-6. Support student voice listening: Keep phrasing crisp and easy to hear via speech synthesis.
+GUIDELINES:
+1. When answering doubts: Provide clear, concise explanations with a practical analogy or 2-line code example. Keep responses under 60 words so students stay engaged.
+2. When reviewing code: Pinpoint errors, explain the underlying logic simply, and share a clean Big-O improvement tip.
+3. When conducting Category C mock interview: Ask ONE sharp, real-world technical or behavioral interview question, evaluate the student's answer, and give actionable feedback.
+4. Keep tone friendly and positive, like a knowledgeable senior teammate!
 """
 
-    prompt = f"Student says: {student_message or 'Hello Professor, let us start this lesson.'}"
+    prompt = f"Student asks: {student_message or 'Hi Ski, can you explain this lesson simply?'}"
 
     try:
         teacher_reply = call_bhavishya_gemini(prompt, system_instruction)
     except Exception as e:
-        logger.error(f"[Bhavishya AI Teacher Error] {e}")
+        logger.error(f"[Bhavishya AI Doubt Solver Error] {e}")
         teacher_reply = (
-            f"Hello {current_user.name or 'friend'}! Welcome to {lesson_title}. "
-            "Let's dive into this step by step. Have you worked with this concept before, "
-            "or would you like me to start with a practical real-world example?"
+            f"Hey {current_user.name or 'friend'}! I'm Ski, your 24/7 AI study partner for {lesson_title}. "
+            "Ask me any doubt about this topic, or paste your code and click 'Review My Code'!"
         )
 
     # Check if student indicated confusion on a concept and update memory
@@ -401,7 +407,7 @@ PEDAGOGICAL RULES (Stanford / Carnegie Mellon Socratic Guidelines):
         "reply": teacher_reply,
         "mode": mode,
         "lesson_id": lesson_id,
-        "teacher_name": "Prof. Bhavishya",
+        "teacher_name": "Ski Assistant",
     })
 
 

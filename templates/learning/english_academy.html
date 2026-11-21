@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}English & Communication Academy — SkillRock{% endblock %}
+{% block meta_description %}Master technical English, interview speech, daily standup communication, and professional writing with 10 structured lessons designed for Indian tech students.{% endblock %}
+
+{% block content %}
+<div class="english-academy-container" style="max-width: 1200px; margin: 0 auto; padding: 24px 16px 80px;">
+    <!-- Hero Header -->
+    <div class="card" style="padding: 36px 32px; border-radius: 20px; background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%); color: #FFFFFF; border: 1px solid rgba(255,255,255,0.12); margin-bottom: 28px; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(30, 27, 75, 0.3);">
+        <div style="position: absolute; top: -40px; right: -40px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, rgba(236,72,153,0.3) 0%, transparent 70%); filter: blur(30px); pointer-events: none;"></div>
+        
+        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); padding: 5px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 16px;">
+            <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #F472B6;"></i>
+            <span>Module 05.A • Career & Communication Academy</span>
+        </div>
+        <h1 style="font-size: 2.2rem; font-weight: 900; line-height: 1.25; margin-bottom: 12px; letter-spacing: -0.5px;">
+            English & Communication Academy
+        </h1>
+        <p style="font-size: 1.05rem; color: #C7D2FE; max-width: 780px; line-height: 1.6; margin-bottom: 24px;">
+            Communication is as important as code. Learn to explain projects clearly, speak confidently in interviews, give crisp daily standups, and write professional emails — with bilingual English-Hindi explanations.
+        </p>
+
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.88rem; color: #E0E7FF;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="book-open" style="width: 16px; height: 16px; color: #38BDF8;"></i>
+                <span><strong>10</strong> Practical Lessons</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="message-square" style="width: 16px; height: 16px; color: #F472B6;"></i>
+                <span>English + Hindi Explanations</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="volume-2" style="width: 16px; height: 16px; color: #4ADE80;"></i>
+                <span>Interactive Audio Pronunciation</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid: Sidebar Navigator + Active Lesson View -->
+    <div style="display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start;">
+        <!-- Left Sidebar: Lessons Index -->
+        <div class="card" style="padding: 18px; border-radius: 16px; position: sticky; top: 90px;">
+            <h3 style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="list" style="width: 16px; height: 16px; color: var(--primary-action);"></i>
+                <span>Course Modules</span>
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                {% for lesson in lessons %}
+                <button type="button" class="lesson-nav-btn {% if loop.first %}active{% endif %}" onclick="showLesson('{{ lesson.lesson_num }}')" id="nav-btn-{{ lesson.lesson_num }}" style="text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s ease;">
+                    <span style="font-weight: 800; font-size: 0.8rem; width: 22px; height: 22px; border-radius: 6px; background: rgba(99,102,241,0.12); color: var(--primary-action); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">{{ lesson.lesson_num }}</span>
+                    <span style="font-size: 0.85rem; font-weight: 600; line-height: 1.3;">{{ lesson.title }}</span>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right Content Area: Active Lesson Content -->
+        <div id="lessonContentArea">
+            {% for lesson in lessons %}
+            <div class="lesson-panel card" id="panel-{{ lesson.lesson_num }}" style="padding: 28px; border-radius: 16px; {% if not loop.first %}display: none;{% endif %} margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+                    <div>
+                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary-action); text-transform: uppercase; letter-spacing: 0.05em;">Lesson {{ lesson.lesson_num }} of {{ lessons|length }}</div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">{{ lesson.title }}</h2>
+                        <div style="font-size: 0.88rem; color: var(--text-muted); margin-top: 2px;">{{ lesson.subtitle }}</div>
+                    </div>
+                    <span class="badge" style="background: rgba(16,185,129,0.12); color: #10B981; font-weight: 700; padding: 6px 12px; border-radius: 999px;">
+                        Interactive Lesson
+                    </span>
+                </div>
+
+                <!-- Hindi Explanation & Context -->
+                <div style="background: rgba(99,102,241,0.06); border-left: 4px solid var(--primary-action); padding: 14px 18px; border-radius: 8px; margin-bottom: 24px;">
+                    <strong style="color: var(--text-main); font-size: 0.95rem; display: block; margin-bottom: 4px;">Hindi: अवधारणा और सीख (Concept & Context):</strong>
+                    <p style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6; margin: 0;">{{ lesson.hindi_explanation }}</p>
+                </div>
+
+                <!-- Key Phrases / Formulations with Audio -->
+                <div style="margin-bottom: 28px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="volume-2" style="width: 18px; height: 18px; color: var(--primary-action);"></i>
+                        <span>High-Impact Phrases & Sentence Structures</span>
+                    </h3>
+
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        {% for kp in lesson.key_phrases %}
+                        <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+                                <div style="flex: 1;">
+                                    <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                                        <span>"{{ kp.phrase }}"</span>
+                                        <button type="button" onclick="speakText('{{ kp.phrase|replace("'", "\\'") }}')" title="Listen pronunciation" style="background: rgba(99,102,241,0.15); border: none; width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary-action);">
+                                            <i data-lucide="play" style="width: 12px; height: 12px;"></i>
+                                        </button>
+                                    </div>
+                                    <div style="font-size: 0.82rem; color: var(--text-muted); font-style: italic;">
+                                        Usage: {{ kp.usage }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Roleplay Dialogue -->
+                {% if lesson.practical_dialogue %}
+                <div style="margin-bottom: 28px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="users" style="width: 18px; height: 18px; color: #EC4899;"></i>
+                        <span>Practical Interview & Team Dialogue</span>
+                    </h3>
+
+                    <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; white-space: pre-wrap; font-size: 0.9rem; color: var(--text-main); line-height: 1.6;">{{ lesson.practical_dialogue }}</div>
+                </div>
+                {% endif %}
+
+                <!-- Practical Action Exercise -->
+                <div style="background: linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(59,130,246,0.06) 100%); border: 1px solid rgba(16,185,129,0.25); border-radius: 12px; padding: 18px;">
+                    <h4 style="font-size: 0.95rem; font-weight: 800; color: #10B981; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="target" style="width: 16px; height: 16px;"></i>
+                        <span>Practical Speaking & Writing Exercise</span>
+                    </h4>
+                    <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin: 0;">
+                        {{ lesson.exercise }}
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+.lesson-nav-btn:hover {
+    background: var(--bg-hover) !important;
+    color: var(--text-main) !important;
+}
+.lesson-nav-btn.active {
+    background: rgba(99,102,241,0.12) !important;
+    color: var(--primary-action) !important;
+    border-color: rgba(99,102,241,0.3) !important;
+}
+@media (max-width: 900px) {
+    .english-academy-container div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+
+<script>
+function showLesson(num) {
+    document.querySelectorAll('.lesson-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.lesson-nav-btn').forEach(b => b.classList.remove('active'));
+    
+    const panel = document.getElementById('panel-' + num);
+    if (panel) panel.style.display = 'block';
+    
+    const btn = document.getElementById('nav-btn-' + num);
+    if (btn) btn.classList.add('active');
+    
+    window.scrollTo({ top: 120, behavior: 'smooth' });
+}
+
+function speakText(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.95;
+        window.speechSynthesis.speak(utterance);
+    } else {
+        alert(text);
+    }
+}
+</script>
+{% endblock %}

@@ -2069,4 +2069,99 @@ def bhavishya_toggle_subject(slug):
     return redirect(url_for("admin.bhavishya_admin"))
 
 
+# ==============================================================================
+# Student Ambassador Commission & Sales Tracking Administration
+# ==============================================================================
+
+@admin_bp.route("/ambassadors")
+def ambassadors_admin():
+    """
+    Campus Ambassador Dashboard:
+    Tracks paid Bhavishya 1.0 conversions, 20% student discounts,
+    and 25% net ambassador commission payouts.
+    """
+    db = get_db()
+    sales = list(db.ambassador_sales.find().sort("created_at", -1))
+
+    total_conversions = 0
+    total_revenue = 0.0
+    pending_commission = 0.0
+    paid_commission = 0.0
+
+    ambassador_map = {}
+
+    for s in sales:
+        status = s.get("status", "completed")
+        comm_status = s.get("commission_status", "pending")
+        amt = float(s.get("amount") or 0.0)
+        comm = float(s.get("commission_amount") or 0.0)
+        srid = (s.get("srid") or s.get("ambassador_code") or "UNKNOWN").upper()
+
+        if status in ("completed", "verified", "active"):
+            total_conversions += 1
+            total_revenue += amt
+
+            if comm_status == "paid":
+                paid_commission += comm
+            else:
+                pending_commission += comm
+
+        if srid not in ambassador_map:
+            ambassador_map[srid] = {
+                "srid": srid,
+                "name": s.get("ambassador_name") or f"Ambassador {srid}",
+                "conversions": 0,
+                "total_sales": 0.0,
+                "pending_commission": 0.0,
+                "paid_commission": 0.0,
+                "upi_id": s.get("ambassador_upi") or "Not provided"
+            }
+
+        if status in ("completed", "verified", "active"):
+            ambassador_map[srid]["conversions"] += 1
+            ambassador_map[srid]["total_sales"] += amt
+            if comm_status == "paid":
+                ambassador_map[srid]["paid_commission"] += comm
+            else:
+                ambassador_map[srid]["pending_commission"] += comm
+
+    ambassador_list = sorted(ambassador_map.values(), key=lambda x: x["conversions"], reverse=True)
+
+    return render_template(
+        "admin/ambassadors.html",
+        total_conversions=total_conversions,
+        total_revenue=total_revenue,
+        pending_commission=pending_commission,
+        paid_commission=paid_commission,
+        ambassadors=ambassador_list,
+        sales=sales[:50]
+    )
+
+
+@admin_bp.route("/ambassadors/payout/<srid>", methods=["POST"])
+def ambassador_payout(srid):
+    """Marks all pending commissions for a specific ambassador as Paid."""
+    db = get_db()
+    clean_srid = srid.strip().upper()
+    now = datetime.now(timezone.utc)
+
+    result = db.ambassador_sales.update_many(
+        {
+            "$or": [{"srid": clean_srid}, {"ambassador_code": clean_srid}],
+            "commission_status": {"$ne": "paid"}
+        },
+        {
+            "$set": {
+                "commission_status": "paid",
+                "payout_completed_at": now,
+                "payout_reference": request.form.get("payout_reference", "").strip() or f"MANUAL-PAYOUT-{int(now.timestamp())}"
+            }
+        }
+    )
+
+    flash(f"Successfully processed payout for {clean_srid}! Updated {result.modified_count} sales to Paid status.", "success")
+    return redirect(url_for("admin.ambassadors_admin"))
+
+
+
 

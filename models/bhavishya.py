@@ -14,15 +14,15 @@ class BhavishyaPackage:
     id = "bhavishya-1-0"
     slug = "bhavishya-1-0"
     title = "Bhavishya 1.0 — AI-Powered Career Preparation Platform"
-    short_description = "24-Week Interactive AI Classroom, 19 Subjects, Coding Lab & 50% Completion Cashback."
+    short_description = "24-Week Interactive Classroom, 19 Subjects, Interactive Labs, Top Hindi/English Lectures & 24/7 AI Doubt Solver."
     duration = "24 Weeks"
     level = "Beginner to Advanced"
     price = 299.0
     original_price = 2499.0
     currency = "INR"
     is_paid = True
-    cashback_enabled = True
-    cashback_percentage = 50.0
+    cashback_enabled = False
+    cashback_percentage = 0.0
     completion_deadline_days = 180
 
     def to_dict(self):

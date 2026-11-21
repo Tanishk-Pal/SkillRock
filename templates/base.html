@@ -84,9 +84,9 @@
 
     <!-- High-Resolution 1200x630 Open Graph & Social Sharing Banner -->
 
-    <meta property="og:image" content="{% block og_image %}https://skillrock.onrender.com/static/img/skillrock-og-banner.png{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ default_og_image }}{% endblock %}">
 
-    <meta property="og:image:secure_url" content="{% block og_image_secure %}https://skillrock.onrender.com/static/img/skillrock-og-banner.png{% endblock %}">
+    <meta property="og:image:secure_url" content="{% block og_image_secure %}{{ default_og_image }}{% endblock %}">
 
     <meta property="og:image:width" content="1200">
 
@@ -94,7 +94,7 @@
 
     <meta property="og:image:alt" content="{% block og_image_alt %}SkillRock — Learn, Build & Certify with Industry Courses{% endblock %}">
 
-    <meta name="twitter:image" content="{% block twitter_image %}https://skillrock.onrender.com/static/img/skillrock-og-banner.png{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ default_og_image }}{% endblock %}">
 
 
 
@@ -120,19 +120,19 @@
 
           "@type": "EducationalOrganization",
 
-          "@id": "https://skillrock.onrender.com/#organization",
+          "@id": "{{ canonical_domain }}/#organization",
 
           "name": "SkillRock",
 
           "alternateName": "Skill Rock",
 
-          "url": "https://skillrock.onrender.com",
+          "url": "{{ canonical_domain }}",
 
           "logo": {
 
             "@type": "ImageObject",
 
-            "url": "https://skillrock.onrender.com/static/img/icon-512.png",
+            "url": "{{ canonical_domain }}/static/img/icon-512.png",
 
             "width": 512,
 
@@ -148,15 +148,15 @@
 
           "@type": "WebSite",
 
-          "@id": "https://skillrock.onrender.com/#website",
+          "@id": "{{ canonical_domain }}/#website",
 
           "name": "SkillRock",
 
-          "url": "https://skillrock.onrender.com",
+          "url": "{{ canonical_domain }}",
 
           "publisher": {
 
-            "@id": "https://skillrock.onrender.com/#organization"
+            "@id": "{{ canonical_domain }}/#organization"
 
           },
 
@@ -168,7 +168,7 @@
 
               "@type": "EntryPoint",
 
-              "urlTemplate": "https://skillrock.onrender.com/learning/courses?q={search_term_string}"
+              "urlTemplate": "{{ canonical_domain }}/learning/courses?q={search_term_string}"
 
             },
 
@@ -1738,63 +1738,43 @@
 
     <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
 
-        <a href="{{ url_for('learning.courses_list') }}" class="mobile-bottom-item {% if request.endpoint and 'learning.' in request.endpoint %}active{% endif %}" aria-label="Learn">
+        <a href="{{ url_for('learning.courses_list') }}" class="mobile-bottom-item {% if request.endpoint and 'learning.' in request.endpoint and request.endpoint != 'learning.my_learning' %}active{% endif %}" aria-label="Courses">
 
             <i data-lucide="book-open"></i>
 
-            <span>Learn</span>
+            <span>Courses</span>
 
         </a>
 
-        <a href="{{ url_for('discover.discover') }}" class="mobile-bottom-item {% if request.endpoint in ['discover.discover', 'swap.requests_list'] %}active{% endif %}" aria-label="Exchange">
+        <a href="{{ url_for('test_series.landing') }}" class="mobile-bottom-item {% if request.endpoint and 'test_series.' in request.endpoint %}active{% endif %}" aria-label="Test Series">
 
-            <div class="nav-icon-wrapper">
+            <i data-lucide="file-check-2"></i>
 
-                <i data-lucide="users"></i>
-
-                {% if pending_requests_count > 0 %}
-
-                <span class="nav-icon-badge">{{ pending_requests_count }}</span>
-
-                {% endif %}
-
-            </div>
-
-            <span>Exchange</span>
+            <span>Tests</span>
 
         </a>
 
-        <a href="{{ url_for('chat.chat_inbox') }}" class="mobile-bottom-item {% if request.endpoint and 'chat.' in request.endpoint %}active{% endif %}" aria-label="Messages">
+        <a href="{{ url_for('bhavishya.dashboard') }}" class="mobile-bottom-item {% if request.endpoint and 'bhavishya.' in request.endpoint %}active{% endif %}" aria-label="Bhavishya 1.0">
 
-            <div class="nav-icon-wrapper">
+            <i data-lucide="cpu" style="color: #A855F7;"></i>
 
-                <i data-lucide="message-square"></i>
-
-                {% if unread_messages_count and unread_messages_count > 0 %}
-
-                <span class="nav-icon-badge">{{ unread_messages_count }}</span>
-
-                {% endif %}
-
-            </div>
-
-            <span>Chat</span>
+            <span>Bhavishya</span>
 
         </a>
 
-        <a href="{{ url_for('sessions.sessions_list') }}" class="mobile-bottom-item {% if request.endpoint == 'sessions.sessions_list' %}active{% endif %}" aria-label="Sessions">
+        <a href="{{ url_for('ai.ski_hub') }}" class="mobile-bottom-item {% if request.endpoint == 'ai.ski_hub' %}active{% endif %}" aria-label="Ski Assistant">
 
-            <i data-lucide="calendar"></i>
+            <i data-lucide="bot" style="color: #EC4899;"></i>
 
-            <span>Sessions</span>
+            <span>Ski</span>
 
         </a>
 
-        <a href="{{ url_for('profile.profile') }}" class="mobile-bottom-item {% if request.endpoint == 'profile.profile' %}active{% endif %}" aria-label="Profile">
+        <a href="{{ url_for('learning.my_learning') }}" class="mobile-bottom-item {% if request.endpoint in ['learning.my_learning', 'profile.profile'] %}active{% endif %}" aria-label="My Learning">
 
-            <i data-lucide="user"></i>
+            <i data-lucide="layers"></i>
 
-            <span>Profile</span>
+            <span>Learning</span>
 
         </a>
 

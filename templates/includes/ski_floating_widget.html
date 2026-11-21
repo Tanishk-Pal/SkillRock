@@ -29,17 +29,15 @@
         }
     }
 
-    /* Living Mascot Sphere */
+    /* Living Mascot Sphere (Inspired by Grok bot / Ski reference) */
     .ski-pet-sphere {
-        width: 66px;
-        height: 66px;
+        width: 64px;
+        height: 64px;
         border-radius: 50%;
-        background: radial-gradient(circle at 35% 30%, #475569 0%, #1E293B 40%, #0F172A 75%, #020617 100%);
+        background: #000000;
         box-shadow: 
-            inset -5px -5px 12px rgba(0, 0, 0, 0.85),
-            inset 4px 4px 10px rgba(255, 255, 255, 0.5),
-            0 10px 28px rgba(0, 0, 0, 0.55),
-            0 0 22px rgba(236, 72, 153, 0.45);
+            0 10px 25px rgba(0, 0, 0, 0.5),
+            0 2px 6px rgba(0, 0, 0, 0.35);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -47,6 +45,14 @@
         position: relative;
         transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
         animation: skiPetHover 3.8s ease-in-out infinite;
+        overflow: hidden;
+    }
+
+    [data-theme="light"] .ski-pet-sphere {
+        background: #000000;
+        box-shadow: 
+            0 12px 28px rgba(0, 0, 0, 0.35),
+            0 3px 8px rgba(0, 0, 0, 0.2);
     }
 
     .ski-pet-sphere:active {
@@ -57,30 +63,26 @@
     .ski-pet-sphere:hover {
         transform: scale(1.1) translateY(-4px);
         box-shadow: 
-            inset -5px -5px 12px rgba(0, 0, 0, 0.85),
-            inset 4px 4px 12px rgba(255, 255, 255, 0.65),
             0 16px 36px rgba(0, 0, 0, 0.6),
-            0 0 32px rgba(236, 72, 153, 0.75);
+            0 0 24px rgba(236, 72, 153, 0.45);
     }
 
     /* Autonomous Wandering / Walking Animation */
     .ski-pet-sphere.walking {
         animation: skiPetWalk 0.45s ease-in-out infinite alternate !important;
         box-shadow: 
-            inset -5px -5px 12px rgba(0, 0, 0, 0.85),
-            inset 4px 4px 12px rgba(255, 255, 255, 0.7),
             0 18px 40px rgba(0, 0, 0, 0.65),
-            0 0 36px rgba(236, 72, 153, 0.85) !important;
+            0 0 28px rgba(236, 72, 153, 0.6) !important;
     }
 
     @keyframes skiPetWalk {
-        0% { transform: scale(1.08) rotate(-7deg) translateY(-2px); }
-        100% { transform: scale(1.08) rotate(7deg) translateY(-8px); }
+        0% { transform: scale(1.08) rotate(-6deg) translateY(-2px); }
+        100% { transform: scale(1.08) rotate(6deg) translateY(-7px); }
     }
 
     @keyframes skiPetHover {
         0%, 100% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-7px) rotate(1.5deg); }
+        50% { transform: translateY(-6px) rotate(1deg); }
     }
 
     /* Talking Bounce */
@@ -93,33 +95,52 @@
         100% { transform: scale(0.94, 1.06) translateY(-9px); }
     }
 
-    /* Miniature Capsule Eyes */
+    /* Miniature Capsule Eyes — Located in Upper-Right Quadrant, Tilted +26deg */
     .ski-pet-eyes {
+        position: absolute;
+        top: 14px;
+        right: 16px;
         display: flex;
-        gap: 7px;
+        gap: 6px;
+        align-items: flex-start;
         transition: transform 0.08s ease-out;
         will-change: transform;
     }
 
     .ski-pet-eye {
-        width: 6px;
-        height: 16px;
+        width: 7px;
+        height: 18px;
         background: #FFFFFF;
         border-radius: 9999px;
-        box-shadow: 0 0 8px rgba(255, 255, 255, 0.95);
         transform-origin: center center;
-        transform: rotate(-10deg);
+        transform: rotate(26deg);
         transition: transform 0.12s ease;
     }
 
+    .ski-pet-eye.right {
+        transform: rotate(26deg) translateY(-3px);
+    }
+
+    [data-theme="light"] .ski-pet-eye {
+        background: #FFFFFF;
+    }
+
     .ski-pet-eye.blinking {
-        transform: scaleY(0.08) rotate(-10deg) !important;
+        transform: scaleY(0.08) rotate(26deg) !important;
+    }
+
+    .ski-pet-eye.right.blinking {
+        transform: scaleY(0.08) rotate(26deg) translateY(-3px) !important;
     }
 
     /* Excited/Listening State */
     .ski-pet-sphere.listening .ski-pet-eye {
-        box-shadow: 0 0 14px #EC4899, 0 0 24px #A855F7 !important;
-        transform: scale(1.2) rotate(-10deg) !important;
+        box-shadow: 0 0 10px #EC4899, 0 0 18px #A855F7 !important;
+        transform: scale(1.15) rotate(26deg) !important;
+    }
+
+    .ski-pet-sphere.listening .ski-pet-eye.right {
+        transform: scale(1.15) rotate(26deg) translateY(-3px) !important;
     }
 
     /* Live Observer Bubble */
@@ -247,14 +268,46 @@
     }
 
     .ski-pop-mini-avatar {
-        width: 34px;
-        height: 34px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
-        background: radial-gradient(circle at 35% 30%, #475569, #0F172A);
+        background: #000000;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    [data-theme="light"] .ski-pop-mini-avatar {
+        background: #FFFFFF;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+    }
+
+    .ski-mini-avatar-eyes {
+        position: absolute;
+        top: 7px;
+        right: 8px;
+        display: flex;
+        gap: 3px;
+        align-items: flex-start;
+    }
+
+    .ski-mini-avatar-eye {
+        width: 3.5px;
+        height: 9px;
+        background: #FFFFFF;
+        border-radius: 9999px;
+        transform: rotate(26deg);
+    }
+
+    .ski-mini-avatar-eye.right {
+        transform: rotate(26deg) translateY(-1.5px);
+    }
+
+    [data-theme="light"] .ski-mini-avatar-eye {
+        background: #000000;
     }
 
     .ski-pop-title {
@@ -598,8 +651,11 @@
         <!-- Top bar -->
         <div class="ski-pop-header">
             <div class="ski-pop-header-left">
-                <div class="ski-pop-mini-avatar">
-                    <span style="font-size: 14px;">👧</span>
+                <div class="ski-pop-mini-avatar" title="Ski • Grok Mascot">
+                    <div class="ski-mini-avatar-eyes">
+                        <div class="ski-mini-avatar-eye left"></div>
+                        <div class="ski-mini-avatar-eye right"></div>
+                    </div>
                 </div>
                 <div>
                     <div class="ski-pop-title">
@@ -740,6 +796,17 @@
     }
 
     // 2. Cute 5-Year-Old Girl Speech Synthesis (Hinglish)
+    let cachedVoices = [];
+    function loadVoices() {
+        if ('speechSynthesis' in window) {
+            cachedVoices = window.speechSynthesis.getVoices() || [];
+        }
+    }
+    loadVoices();
+    if ('speechSynthesis' in window && window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
     function speakCuteChild(text) {
         if (!voiceActive || !('speechSynthesis' in window)) return;
         try {
@@ -750,10 +817,10 @@
             const utter = new SpeechSynthesisUtterance(cleanText);
             
             // Cute 5-year-old pleasant girl voice acoustics
-            utter.pitch = 1.72; // High-pitched sweet childlike voice
-            utter.rate = 1.08;  // Cheerful, energetic pace
+            utter.pitch = 1.72; // Sweet childlike high pitch (1.72)
+            utter.rate = 1.05;  // Cheerful, natural pace
 
-            const voices = window.speechSynthesis.getVoices();
+            const voices = cachedVoices.length > 0 ? cachedVoices : (window.speechSynthesis.getVoices() || []);
             // Prioritize Hindi / Indian English female voices for sweet Hinglish delivery
             const preferred = voices.find(v => 
                 (v.lang.includes('hi') || v.lang.includes('IN') || v.lang.includes('en-IN')) && 
@@ -794,20 +861,35 @@
         }
     };
 
-    // 3. Autonomous Screen Roaming Engine (Ski walks by herself!)
+    // 3. Autonomous Screen Roaming Engine (Ski walks by herself, SAFE from sidebar & menus!)
     let roamStepIndex = 0;
-    function getNextRoamPosition() {
-        const padding = 20;
-        const sphereSize = 66;
-        const maxW = window.innerWidth - sphereSize - padding;
-        const maxH = window.innerHeight - sphereSize - padding;
 
+    function getSafeMinX() {
+        // Detect desktop sidebar to avoid EVER covering navigation menus
+        const sidebar = document.querySelector('.pw-sidebar, aside.sidebar, .app-sidebar, nav.sidebar, [class*="sidebar"]');
+        if (sidebar && window.innerWidth >= 992) {
+            const rect = sidebar.getBoundingClientRect();
+            if (rect.width > 0 && rect.right > 0) {
+                return Math.round(rect.right + 28);
+            }
+        }
+        return 20;
+    }
+
+    function getNextRoamPosition() {
+        const sphereSize = 64;
+        const padding = 22;
+        const maxW = Math.max(100, window.innerWidth - sphereSize - padding);
+        const maxH = Math.max(100, window.innerHeight - sphereSize - padding);
+        const safeMinX = getSafeMinX();
+
+        // Roam exclusively in safe, non-obtrusive perimeter locations
         const roamPoints = [
-            { x: maxW, y: maxH },                                  // Bottom-Right
-            { x: padding + 10, y: maxH },                          // Bottom-Left
-            { x: padding + 10, y: Math.round(maxH * 0.45) },       // Mid-Left
-            { x: maxW, y: 75 },                                    // Top-Right
-            { x: maxW, y: Math.round(maxH * 0.5) }                 // Mid-Right
+            { x: maxW, y: maxH - 12 },                                                // Bottom-Right Dock
+            { x: maxW, y: Math.round(maxH * 0.52) },                                  // Mid-Right Margin
+            { x: Math.max(safeMinX, maxW - 14), y: 86 },                             // Top-Right below Navbar
+            { x: Math.max(safeMinX + 40, maxW - 180), y: maxH - 16 },                 // Lower Center-Right
+            { x: maxW, y: Math.round(maxH * 0.28) }                                   // Upper-Mid-Right Margin
         ];
 
         roamStepIndex = (roamStepIndex + 1) % roamPoints.length;
@@ -823,8 +905,8 @@
 
         // Look toward target direction
         if (petEyes) {
-            const lookX = nextPos.x > window.innerWidth / 2 ? 4 : -4;
-            petEyes.style.transform = `translate(${lookX}px, 0px)`;
+            const lookY = nextPos.y < parseInt(container.style.top || '500', 10) ? -2 : 2;
+            petEyes.style.transform = `translate(0px, ${lookY}px)`;
         }
 
         container.style.right = 'auto';
@@ -835,8 +917,27 @@
         setTimeout(() => {
             if (trigger) trigger.classList.remove('walking');
             if (petEyes) petEyes.style.transform = 'translate(0px, 0px)';
-        }, 2400);
+        }, 2300);
     }
+
+    function initPetPosition() {
+        const sphereSize = 64;
+        const padding = 22;
+        const maxW = Math.max(100, window.innerWidth - sphereSize - padding);
+        const maxH = Math.max(100, window.innerHeight - sphereSize - padding);
+        container.style.right = 'auto';
+        container.style.bottom = 'auto';
+        container.style.left = maxW + 'px';
+        container.style.top = (maxH - 12) + 'px';
+    }
+
+    // Initialize explicit position on load
+    initPetPosition();
+    window.addEventListener('resize', () => {
+        if (!isDragging && !isOpen) {
+            initPetPosition();
+        }
+    });
 
     window.toggleRoaming = function() {
         roamingActive = !roamingActive;
@@ -857,10 +958,10 @@
 
     function startRoamingLoop() {
         if (roamInterval) clearInterval(roamInterval);
-        roamInterval = setInterval(roamAutonomously, 8500);
+        roamInterval = setInterval(roamAutonomously, 11500);
     }
     // Start autonomous wandering after initial load
-    setTimeout(startRoamingLoop, 3500);
+    setTimeout(startRoamingLoop, 4500);
 
     // 4. Voice Wake-Word Recognition ("Ski" or "SkillRock")
     function initSpeechRecognition() {
@@ -1016,8 +1117,9 @@
         let newLeft = initialLeft + deltaX;
         let newTop = initialTop + deltaY;
 
-        newLeft = Math.max(12, Math.min(window.innerWidth - 76, newLeft));
-        newTop = Math.max(12, Math.min(window.innerHeight - 76, newTop));
+        const safeMinX = getSafeMinX();
+        newLeft = Math.max(safeMinX, Math.min(window.innerWidth - 76, newLeft));
+        newTop = Math.max(68, Math.min(window.innerHeight - 76, newTop));
 
         container.style.right = 'auto';
         container.style.bottom = 'auto';
@@ -1036,6 +1138,12 @@
 
         if (!hasMoved) {
             toggleSkiPopup();
+        } else {
+            const safeMinX = getSafeMinX();
+            let curLeft = parseInt(container.style.left || '0', 10);
+            if (curLeft < safeMinX) {
+                container.style.left = safeMinX + 'px';
+            }
         }
     }
 

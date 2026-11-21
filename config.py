@@ -20,10 +20,13 @@ class Config:
     MONGODB_URI = os.getenv("MONGODB_URI", "").strip()
     MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "skillswap_campus").strip()
 
+    # Domain & Canonical URL Configuration (Defaulting to https://skillrock.in)
+    SITE_URL = (os.getenv("SITE_URL") or os.getenv("NEXT_PUBLIC_SITE_URL") or "https://skillrock.in").rstrip("/")
+
     # Google OAuth 2.0 Credentials
     GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "").strip()
     GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "").strip()
-    GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+    GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "").strip() or f"{SITE_URL}/auth/google/callback"
 
     # Google Gemini AI API Key Pool (10 Slots for Auto-Failover)
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()

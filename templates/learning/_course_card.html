@@ -17,9 +17,6 @@
                 <span style="background: rgba(245, 158, 11, 0.95); backdrop-filter: blur(6px); color: #0F172A; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4);">
                     ₹{{ course.price|int }}
                 </span>
-                <span style="background: rgba(245, 158, 11, 0.2); backdrop-filter: blur(6px); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 0.7rem; font-weight: 800; padding: 4px 8px; border-radius: 9999px;">
-                    50% REFUND
-                </span>
                 {% else %}
                 <span style="background: rgba(16, 185, 129, 0.95); backdrop-filter: blur(6px); color: #FFFFFF; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);">
                     FREE
@@ -83,7 +80,20 @@
     </div>
 
     <!-- Footer / Call to Action -->
-    <div style="padding: 14px 20px; border-top: 1px solid var(--border-color); background: var(--bg-elevated); display: flex; align-items: center; justify-content: space-between;">
+    <div style="padding: 14px 20px; border-top: 1px solid var(--border-color); background: var(--bg-elevated); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+        <div>
+            {% if (course.enrolled_count or 0) >= 50 %}
+                <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 600;">
+                    <i data-lucide="users" style="width: 13px; height: 13px; display: inline-block; vertical-align: middle;"></i>
+                    {{ course.enrolled_count }} students
+                </span>
+            {% else %}
+                <span class="badge" style="background: rgba(91, 70, 246, 0.12); color: #818CF8; border: 1px solid rgba(139, 92, 246, 0.3); font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;">
+                    Project-Based • GitHub Review
+                </span>
+            {% endif %}
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
         {% if course.id in completed_course_ids %}
             <span style="display: inline-flex; align-items: center; gap: 5px; color: #10B981; font-size: 0.82rem; font-weight: 700;">
                 <i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i>
@@ -104,9 +114,6 @@
             {% if course.is_paid and course.price > 0 %}
                 <span style="display: inline-flex; align-items: center; gap: 4px; color: #D97706; font-size: 0.88rem; font-weight: 800;">
                     ₹{{ course.price|int }}
-                </span>
-                <span style="background: rgba(245, 158, 11, 0.2); backdrop-filter: blur(6px); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 0.7rem; font-weight: 800; padding: 4px 8px; border-radius: 9999px;">
-                    50% REFUND
                 </span>
                 {% if current_user.is_authenticated %}
                     {% if verify_student_unlock(current_user, 'course', course.id) %}
@@ -142,5 +149,6 @@
                 {% endif %}
             {% endif %}
         {% endif %}
+        </div>
     </div>
 </div>

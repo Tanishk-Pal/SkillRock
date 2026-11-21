@@ -55,7 +55,11 @@ def get_actual_redirect_uri():
     is_local = host.startswith("localhost") or host.startswith("127.0.0.1")
 
     if not is_local:
-        # In production (e.g. skillrock.onrender.com), enforce HTTPS and live host
+        if configured and ("skillrock" in configured):
+            return configured
+        site_url = current_app.config.get("SITE_URL", "https://skillrock.in").rstrip("/")
+        if "skillrock.in" in site_url:
+            return f"{site_url}/auth/google/callback"
         return f"https://{request.host}/auth/google/callback"
     else:
         # Local development

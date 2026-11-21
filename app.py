@@ -5,7 +5,7 @@ and registered feature blueprints.
 """
 
 import os
-from flask import Flask, render_template, redirect, url_for, session, request, Response
+from flask import Flask, render_template, redirect, url_for, session, request, Response, current_app
 from flask_login import LoginManager, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 from config import Config
@@ -145,6 +145,22 @@ def create_app(config_class=Config):
         response.headers["Permissions-Policy"] = "camera=(), microphone=(self), geolocation=()"
         response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
 
+        # CORS Allowed Origins: skillrock.in, www.skillrock.in, skillrock.onrender.com, and local dev
+        origin = request.headers.get("Origin")
+        allowed_origins = [
+            "https://skillrock.in",
+            "https://www.skillrock.in",
+            "https://skillrock.onrender.com",
+            "http://localhost:5000",
+            "http://127.0.0.1:5000",
+            "http://localhost:3000"
+        ]
+        if origin and (origin in allowed_origins or "localhost:" in origin or "127.0.0.1:" in origin):
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With, X-CSRFToken"
+
         # HTTP Strict Transport Security (HSTS) on HTTPS / Reverse-Proxy
         if request.is_secure or request.headers.get("X-Forwarded-Proto", "").lower() == "https":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
@@ -230,8 +246,9 @@ def create_app(config_class=Config):
     # SEO & Discoverability Context Processor: Canonical URL, OG defaults & robots directives
     @app.context_processor
     def inject_seo_data():
+        site_url = current_app.config.get("SITE_URL", "https://skillrock.in").rstrip("/")
         clean_path = request.path.rstrip('/') or '/'
-        canonical_url = f"https://skillrock.onrender.com{clean_path}" if clean_path != '/' else "https://skillrock.onrender.com/"
+        canonical_url = f"{site_url}{clean_path}" if clean_path != '/' else f"{site_url}/"
         
         # Identify non-public or user-private endpoints that must not be indexed
         is_private_page = any([
@@ -254,9 +271,9 @@ def create_app(config_class=Config):
         
         return {
             "canonical_url": canonical_url,
-            "canonical_domain": "https://skillrock.onrender.com",
+            "canonical_domain": site_url,
             "is_private_page": is_private_page,
-            "default_og_image": "https://skillrock.onrender.com/static/img/skillrock-og-banner.png"
+            "default_og_image": f"{site_url}/static/img/skillrock-og-banner.png"
         }
 
     # Context processor for global navbar badges, admin status, and platform settings
@@ -304,6 +321,10 @@ def create_app(config_class=Config):
         completed_sessions = Session.count({"status": "completed"})
         total_swaps = Connection.count()
         popular_skills = Skill.find_all(limit=8)
+        try:
+            featured_courses = Course.get_published_courses()[:6]
+        except Exception:
+            featured_courses = Course.find_all({"is_published": True}, limit=6)
 
         return render_template(
             "index.html",
@@ -311,7 +332,8 @@ def create_app(config_class=Config):
             total_skills=total_skills,
             completed_sessions=completed_sessions,
             total_swaps=total_swaps,
-            popular_skills=popular_skills
+            popular_skills=popular_skills,
+            featured_courses=featured_courses
         )
 
     # Dynamic Certificate Verification Root Alias
@@ -359,7 +381,7 @@ def create_app(config_class=Config):
     # SEO: Robots.txt for Search Engines and AI Crawlers
     @app.route("/robots.txt")
     def robots_txt():
-        canonical_base = "https://skillrock.onrender.com"
+        canonical_base = current_app.config.get("SITE_URL", "https://skillrock.in").rstrip("/")
         content = (
             "User-agent: *\n"
             "Allow: /\n"
@@ -398,7 +420,7 @@ def create_app(config_class=Config):
     # SEO: Dynamic XML Sitemap for Google, Bing & Search Engine Indexing
     @app.route("/sitemap.xml")
     def sitemap_xml():
-        canonical_base = "https://skillrock.onrender.com"
+        canonical_base = current_app.config.get("SITE_URL", "https://skillrock.in").rstrip("/")
         urls = [
             f"<url><loc>{canonical_base}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>",
             f"<url><loc>{canonical_base}/learning/courses</loc><changefreq>daily</changefreq><priority>0.9</priority></url>",

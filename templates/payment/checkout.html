@@ -681,7 +681,7 @@
                 <!-- Price Summary Card -->
                 <div class="td-price-card">
                     <div class="td-price-label">Price Summary</div>
-                    <div class="td-price-amount">
+                    <div class="td-price-amount" id="leftPriceAmount">
                         <span class="td-price-currency">₹</span>{{ price|int }}
                     </div>
                     <div class="td-item-info">
@@ -846,7 +846,7 @@
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                             <div>
                                 <span style="font-size: 0.74rem; font-weight: 800; color: #7A008A; text-transform: uppercase; letter-spacing: 0.5px;">Total Payable</span>
-                                <div style="font-size: 1.85rem; font-weight: 900; color: #0F172A; line-height: 1.1;">₹{{ price|int }}</div>
+                                <div id="topPayableAmount" style="font-size: 1.85rem; font-weight: 900; color: #0F172A; line-height: 1.1;">₹{{ price|int }}</div>
                             </div>
                             <span style="font-size: 0.74rem; font-weight: 800; background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; padding: 4px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
                                 <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i> Razorpay Instant Auto-Unlock
@@ -918,7 +918,11 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                             <span style="font-weight: 700; color: #0F172A; font-size: 0.92rem;">{{ item.title }}</span>
-                            <span style="font-weight: 800; color: #0F172A; font-size: 0.95rem;">₹{{ price|int }}</span>
+                            <span style="font-weight: 800; color: #0F172A; font-size: 0.95rem;" id="summaryBasePrice">₹{{ price|int }}</span>
+                        </div>
+                        <div id="summaryDiscountRow" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.82rem; color: #16A34A; font-weight: 700;">
+                            <span>Ambassador Referral Discount (20%)</span>
+                            <span id="summaryDiscountAmount">-₹60</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.78rem; color: #10B981; font-weight: 700;">
                             <span>SkillRock Student Privilege</span>
@@ -926,7 +930,7 @@
                         </div>
                         <div style="border-top: 1px dashed #CBD5E1; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-weight: 800; font-size: 1rem; color: #0F172A;">Total Payable Amount</span>
-                            <span style="font-weight: 900; font-size: 1.35rem; color: #7A008A;">₹{{ price|int }}</span>
+                            <span style="font-weight: 900; font-size: 1.35rem; color: #7A008A;" id="summaryPayableAmount">₹{{ price|int }}</span>
                         </div>
 
                         <!-- Included Benefits List -->
@@ -947,11 +951,7 @@
                                 <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
                                 <span>Instant Auto-Unlock</span>
                             </div>
-                            <div style="grid-column: 1 / -1; background: #FEF3C7; border: 1px dashed #F59E0B; border-radius: 8px; padding: 6px 10px; color: #92400E; display: flex; align-items: center; gap: 6px; font-size: 0.76rem; font-weight: 700;">
-                                <i data-lucide="award" style="width: 14px; height: 14px; color: #D97706; flex-shrink: 0;"></i>
-                                <span>50% Fees Refund: Finish 100% within 3 months, email Palt51419@gmail.com</span>
                             </div>
-                        </div>
                     </div>
 
                     <!-- Secondary Quick Proceed Button at bottom of benefits -->
@@ -1010,6 +1010,55 @@
     const sridStatusIcon = document.getElementById('sridStatusIcon');
     let sridDebounceTimer = null;
     let sridAbortController = null;
+    const basePrice = parseInt("{{ price|int }}", 10) || 299;
+
+    function applyAmbassadorDiscount(data) {
+        const finalPrice = data.final_price || (basePrice === 299 ? 239 : Math.round(basePrice * 0.8));
+        const discountAmount = data.discount_amount || (basePrice - finalPrice);
+
+        // Update Left Price Card
+        const leftPrice = document.getElementById('leftPriceAmount');
+        if (leftPrice) {
+            leftPrice.innerHTML = `<span class="td-price-currency">₹</span>${finalPrice} <span style="font-size: 0.72rem; color: #16A34A; background: #DCFCE7; padding: 2px 6px; border-radius: 9999px; vertical-align: middle;">-₹${discountAmount} off</span>`;
+        }
+
+        // Update Top Payable Display
+        const topPayable = document.getElementById('topPayableAmount');
+        if (topPayable) {
+            topPayable.innerText = `₹${finalPrice}`;
+        }
+
+        // Update Razorpay Master CTA Button
+        if (rzpBtnText) {
+            rzpBtnText.innerText = `Proceed to Pay ₹${finalPrice} via Razorpay`;
+        }
+
+        // Update Order Summary Table
+        const discountRow = document.getElementById('summaryDiscountRow');
+        const discountAmt = document.getElementById('summaryDiscountAmount');
+        const summaryPayable = document.getElementById('summaryPayableAmount');
+        if (discountRow) discountRow.style.display = 'flex';
+        if (discountAmt) discountAmt.innerText = `-₹${discountAmount}`;
+        if (summaryPayable) summaryPayable.innerText = `₹${finalPrice}`;
+    }
+
+    function resetAmbassadorDiscount() {
+        const leftPrice = document.getElementById('leftPriceAmount');
+        if (leftPrice) {
+            leftPrice.innerHTML = `<span class="td-price-currency">₹</span>${basePrice}`;
+        }
+        const topPayable = document.getElementById('topPayableAmount');
+        if (topPayable) {
+            topPayable.innerText = `₹${basePrice}`;
+        }
+        if (rzpBtnText) {
+            rzpBtnText.innerText = `Proceed to Pay ₹${basePrice} via Razorpay`;
+        }
+        const discountRow = document.getElementById('summaryDiscountRow');
+        const summaryPayable = document.getElementById('summaryPayableAmount');
+        if (discountRow) discountRow.style.display = 'none';
+        if (summaryPayable) summaryPayable.innerText = `₹${basePrice}`;
+    }
 
     function validateAmbassadorId(digits) {
         if (!sridFeedback || !sridStatusIcon) return;
@@ -1029,20 +1078,24 @@
         .then(data => {
             if (data.valid && data.name) {
                 sridStatusIcon.innerHTML = '<i data-lucide="check-circle" style="color:#16a34a; width:16px; height:16px;"></i>';
-                sridFeedback.innerHTML = `<span style="color:#15803D; font-weight:700;">✅ Verified Ambassador: <strong>${data.name}</strong></span>`;
+                sridFeedback.innerHTML = `<span style="color:#15803D; font-weight:700;">✅ 20% Discount Applied! Verified Ambassador: <strong>${data.name}</strong></span>`;
+                applyAmbassadorDiscount(data);
             } else if (!data.available) {
-                sridStatusIcon.innerHTML = '<i data-lucide="info" style="color:#64748b; width:16px; height:16px;"></i>';
-                sridFeedback.innerHTML = `<span style="color:#64748B; font-weight:600;">ℹ️ Ambassador referral recorded. Checkout proceeds normally.</span>`;
+                sridStatusIcon.innerHTML = '<i data-lucide="check-circle" style="color:#16a34a; width:16px; height:16px;"></i>';
+                sridFeedback.innerHTML = `<span style="color:#15803D; font-weight:700;">✅ 20% Discount Applied! Ambassador referral recorded.</span>`;
+                applyAmbassadorDiscount(data);
             } else {
                 sridStatusIcon.innerHTML = '<i data-lucide="alert-circle" style="color:#dc2626; width:16px; height:16px;"></i>';
                 sridFeedback.innerHTML = `<span style="color:#DC2626; font-weight:700;">${data.message || 'Invalid Ambassador ID.'}</span>`;
+                resetAmbassadorDiscount();
             }
             if (window.lucide) window.lucide.createIcons();
         })
         .catch(err => {
             if (err.name === 'AbortError') return;
-            sridStatusIcon.innerHTML = '<i data-lucide="info" style="color:#64748b; width:16px; height:16px;"></i>';
-            sridFeedback.innerHTML = `<span style="color:#64748B; font-weight:600;">ℹ️ Ambassador referral recorded.</span>`;
+            sridStatusIcon.innerHTML = '<i data-lucide="check-circle" style="color:#16a34a; width:16px; height:16px;"></i>';
+            sridFeedback.innerHTML = `<span style="color:#15803D; font-weight:700;">✅ 20% Discount Applied! Referral SR${digits} recorded.</span>`;
+            applyAmbassadorDiscount({ final_price: (basePrice === 299 ? 239 : Math.round(basePrice * 0.8)), discount_amount: (basePrice === 299 ? 60 : Math.round(basePrice * 0.2)) });
             if (window.lucide) window.lucide.createIcons();
         });
     }
@@ -1059,12 +1112,14 @@
             if (cleanDigits.length === 0) {
                 if (sridStatusIcon) sridStatusIcon.innerHTML = '';
                 if (sridFeedback) sridFeedback.innerHTML = '<span style="color:#64748B;">Enter 4 digits (e.g. 1004)</span>';
+                resetAmbassadorDiscount();
                 return;
             }
 
             if (cleanDigits.length < 4) {
                 if (sridStatusIcon) sridStatusIcon.innerHTML = '';
                 if (sridFeedback) sridFeedback.innerHTML = `<span style="color:#64748B;">${cleanDigits.length}/4 digits entered</span>`;
+                resetAmbassadorDiscount();
                 return;
             }
 

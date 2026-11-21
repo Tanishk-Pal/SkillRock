@@ -47,7 +47,7 @@ class TestAmbassadorReferralCheckout(unittest.TestCase):
         self.db = get_db()
         User._user_cache.clear()
         self.db.users.delete_many({"email": {"$regex": r"@skillrock\.test$"}})
-        self.db.courses.delete_many({"slug": "applied-python-pro-development"})
+        self.db.courses.delete_many({"slug": {"$in": ["applied-python-pro-development", "systems-programming-cpp"]}})
         self.db.payments.delete_many({"gateway": "razorpay", "user_id": {"$regex": r"^test"}})
         self.db.checkout_sessions.delete_many({"item_title": "Applied Python Programming Masterclass"})
         self.db.user_access.delete_many({"item_id": "test_referral_course"})

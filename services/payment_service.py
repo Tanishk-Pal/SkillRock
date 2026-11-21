@@ -94,10 +94,14 @@ def generate_upi_qr_base64(amount, item_type, item_id, item_title="", session_to
     # Build standard NPCI UPI URI with dynamic session token
     if item_type == "course":
         short_type = "CRS"
+    elif item_type == "project_review":
+        short_type = "REV"
     elif item_type == "roadmap":
         short_type = "RDM"
     elif item_type == "bhavishya":
         short_type = "BHV"
+    elif item_type == "test_pack":
+        short_type = "PCK"
     else:
         short_type = "TST"
     short_id = str(item_id).replace("-", "")[:8].upper()
@@ -167,6 +171,24 @@ def get_item_by_type_and_id(item_type, item_id):
             course = Course.get_by_slug(str_id)
         return course
 
+    elif item_type == "project_review":
+        course = Course.get_by_id(str_id)
+        if not course:
+            course = Course.get_by_slug(str_id)
+        if not course:
+            return None
+        class ProjectReviewItem:
+            def __init__(self, c):
+                self.id = str(c.id)
+                self.slug = getattr(c, "slug", str(c.id))
+                self.title = f"{c.title} — Mentor Code Review & Verified Certificate"
+                self.price = float(getattr(c, "review_price", None) or getattr(c, "price", 99.0) or 99.0)
+                self.is_paid = True
+                self.is_free = False
+                self.category = "Project Review"
+                self.course = c
+        return ProjectReviewItem(course)
+
     elif item_type in ("test_series", "test", "test_pack"):
         test = TestDefinition.get_by_id(str_id)
         if not test:
@@ -234,6 +256,33 @@ def verify_student_unlock(user, item_type, item_id):
             "is_active": True,
         })
         return bool(access_doc)
+
+    if item_type == "project_review":
+        access_doc = db.user_access.find_one({
+            "user_id": str(user.id),
+            "item_type": {"$in": ["project_review", "course"]},
+            "$or": [
+                {"item_id": str(item.id)},
+                {"item_id": getattr(item, "slug", str(item.id))}
+            ],
+            "is_active": True,
+        })
+        return bool(access_doc)
+
+    if item_type in ("test_series", "test_pack"):
+        access_doc = db.user_access.find_one({
+            "user_id": str(user.id),
+            "item_type": {"$in": ["test_series", "test_pack", "test"]},
+            "$or": [
+                {"item_id": str(item.id)},
+                {"item_id": getattr(item, "slug", str(item.id))}
+            ],
+            "is_active": True,
+        })
+        if access_doc:
+            return True
+        from models.test_series import UserEntitlement
+        return UserEntitlement.has_access_to_pack(user.id, getattr(item, "id", str(item_id)))
 
     access_doc = db.user_access.find_one({
         "user_id": str(user.id),

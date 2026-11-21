@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Career & Portfolio Development Guide — SkillRock{% endblock %}
+{% block meta_description %}ATS resume guide, Google XYZ formula for projects, LinkedIn optimization, and GitHub portfolio standards to land tech jobs and internships.{% endblock %}
+
+{% block content %}
+<div class="career-guide-container" style="max-width: 1100px; margin: 0 auto; padding: 24px 16px 80px;">
+    <!-- Hero Header -->
+    <div class="card" style="padding: 36px 32px; border-radius: 20px; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); color: #FFFFFF; border: 1px solid rgba(255,255,255,0.12); margin-bottom: 28px; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);">
+        <div style="position: absolute; top: -30px; right: -30px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 70%); filter: blur(30px); pointer-events: none;"></div>
+        
+        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); padding: 5px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 16px;">
+            <i data-lucide="award" style="width: 14px; height: 14px; color: #818CF8;"></i>
+            <span>Module 05.B • Placement & Career Readiness</span>
+        </div>
+        <h1 style="font-size: 2.2rem; font-weight: 900; line-height: 1.25; margin-bottom: 12px; letter-spacing: -0.5px;">
+            Career, Resume & Portfolio Toolkit
+        </h1>
+        <p style="font-size: 1.05rem; color: #94A3B8; max-width: 780px; line-height: 1.6; margin-bottom: 0;">
+            A complete guide to passing Applicant Tracking Systems (ATS), crafting high-converting project bullet points with the Google XYZ formula, and presenting an elite GitHub & LinkedIn presence.
+        </p>
+    </div>
+
+    <!-- 1. Google XYZ Formula for High-Impact Resume Bullets -->
+    <div class="card" style="padding: 28px; border-radius: 16px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(99,102,241,0.12); color: var(--primary-action); display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="zap" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div>
+                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin: 0;">1. The Google XYZ Formula for Project Bullets</h2>
+                <div style="font-size: 0.84rem; color: var(--text-muted);">How top tech companies evaluate your technical experience</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; padding: 18px; margin-bottom: 20px;">
+            <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary-action); margin-bottom: 6px;">
+                "Accomplished [X] as measured by [Y], by doing [Z]"
+            </div>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+                Never write generic statements like <em>"Built an e-commerce website using React and Node.js"</em>. Instead, quantify what you achieved, the measurable metric, and the exact engineering method you used.
+            </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for item in resources.xyz_examples %}
+            <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px;">
+                <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 6px;">
+                    <span class="badge" style="background: rgba(239,68,68,0.12); color: #EF4444; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;">WEAK</span>
+                    <span style="font-size: 0.88rem; color: var(--text-muted); text-decoration: line-through;">{{ item.weak }}</span>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: flex-start;">
+                    <span class="badge" style="background: rgba(16,185,129,0.14); color: #10B981; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;">STRONG (XYZ)</span>
+                    <span style="font-size: 0.92rem; color: var(--text-main); font-weight: 600;">{{ item.strong }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 2. ATS Resume Optimization Checklist -->
+    <div class="card" style="padding: 28px; border-radius: 16px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16,185,129,0.12); color: #10B981; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div>
+                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin: 0;">2. ATS Resume Checklist (Score 85%+)</h2>
+                <div style="font-size: 0.84rem; color: var(--text-muted);">Ensure your resume parses cleanly through automated recruiters</div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px;">
+            {% for check in resources.ats_checklist %}
+            <div style="display: flex; align-items: flex-start; gap: 10px; background: var(--bg-hover); padding: 14px; border-radius: 10px; border: 1px solid var(--border-color);">
+                <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
+                <div>
+                    <strong style="font-size: 0.9rem; color: var(--text-main); display: block; margin-bottom: 2px;">{{ check.rule }}</strong>
+                    <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4;">{{ check.reason }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 3. GitHub & LinkedIn Standards -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <!-- GitHub Checklist -->
+        <div class="card" style="padding: 24px; border-radius: 16px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+                <i data-lucide="github" style="width: 24px; height: 24px; color: var(--text-main);"></i>
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">GitHub Portfolio Standards</h3>
+            </div>
+            <ul style="padding-left: 18px; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; margin: 0;">
+                <li style="margin-bottom: 8px;"><strong>Clean README.md:</strong> Architecture diagram, features list, environment variables guide, and local setup commands.</li>
+                <li style="margin-bottom: 8px;"><strong>Live Demo URL:</strong> Pinned right at the top of the repo description (Vercel, Render, Netlify, or Railway).</li>
+                <li style="margin-bottom: 8px;"><strong>Meaningful Commits:</strong> Avoid <em>"commit 1"</em> or <em>"updates"</em>. Use conventional commits like <code>feat: implement JWT auth</code> or <code>fix: resolve CORS header issue</code>.</li>
+                <li><strong>No Secrets in Git:</strong> Always add <code>.env</code> and <code>node_modules/</code> to <code>.gitignore</code>.</li>
+            </ul>
+        </div>
+
+        <!-- LinkedIn Optimization -->
+        <div class="card" style="padding: 24px; border-radius: 16px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+                <i data-lucide="linkedin" style="width: 24px; height: 24px; color: #0077B5;"></i>
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">LinkedIn Profile Checklist</h3>
+            </div>
+            <ul style="padding-left: 18px; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; margin: 0;">
+                <li style="margin-bottom: 8px;"><strong>Impact Headline:</strong> <em>"Full-Stack Developer | Python & React | Building Scalable Cloud Apps"</em> rather than just <em>"Student at ABC College"</em>.</li>
+                <li style="margin-bottom: 8px;"><strong>Featured Section:</strong> Pin your SkillRock verified certificates with live QR verification link (`https://skillrock.in/verify/<id>`).</li>
+                <li style="margin-bottom: 8px;"><strong>Project Posts:</strong> Share 30-second video demo walkthroughs of your milestone capstones with GitHub links.</li>
+                <li><strong>Skill Assessments:</strong> Add verified skills matching your actual project stack.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+@media (max-width: 800px) {
+    .career-guide-container div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+{% endblock %}

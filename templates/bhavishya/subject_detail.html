@@ -56,11 +56,20 @@
                         </a>
                     {% endif %}
                 {% else %}
-                    <a href="{{ url_for('payment.checkout', item_type='bhavishya', item_id='bhavishya-1-0') }}" 
-                       class="btn" 
-                       style="display: block; width: 100%; background: linear-gradient(135deg, #7C3AED, #5B46F6); color: #FFFFFF; font-weight: 700; padding: 12px 20px; border-radius: 10px; font-size: 13px; text-decoration: none;">
-                        Enroll to Unlock (₹299) →
-                    </a>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        {% if subject.slug == 'python-programming' %}
+                            <a href="{{ url_for('bhavishya.classroom', subject_slug='python-programming', lesson_id='py-l1') }}" 
+                               class="btn" 
+                               style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10B981; color: #34D399; font-weight: 800; padding: 10px 16px; border-radius: 10px; font-size: 13px; text-decoration: none;">
+                                <i data-lucide="play-circle" style="width: 15px; height: 15px;"></i> Try Lesson 1 Free
+                            </a>
+                        {% endif %}
+                        <a href="{{ url_for('payment.checkout', item_type='bhavishya', item_id='bhavishya-1-0') }}" 
+                           class="btn" 
+                           style="display: block; width: 100%; background: linear-gradient(135deg, #7C3AED, #5B46F6); color: #FFFFFF; font-weight: 700; padding: 12px 20px; border-radius: 10px; font-size: 13px; text-decoration: none;">
+                            Enroll to Unlock All 19 (₹299) →
+                        </a>
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -117,6 +126,12 @@
                                        class="btn btn-sm" 
                                        style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #C084FC; font-weight: 700; padding: 6px 14px; border-radius: 8px; font-size: 12px; text-decoration: none;">
                                         {% if is_done %}Review Lesson{% else %}Enter Classroom →{% endif %}
+                                    </a>
+                                {% elif subject.slug == 'python-programming' and (l.id == 'py-l1' or loop.first) %}
+                                    <a href="{{ url_for('bhavishya.classroom', subject_slug=subject.slug, lesson_id=l.id) }}" 
+                                       class="btn btn-sm" 
+                                       style="background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10B981; color: #34D399; font-weight: 800; padding: 6px 14px; border-radius: 8px; font-size: 12px; text-decoration: none;">
+                                        Try Free →
                                     </a>
                                 {% else %}
                                     <a href="{{ url_for('payment.checkout', item_type='bhavishya', item_id='bhavishya-1-0') }}" 

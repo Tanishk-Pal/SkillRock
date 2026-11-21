@@ -143,15 +143,31 @@ def record_ambassador_sale(srid, item, user, amount, payment_id, utr_number, sta
 
     now = datetime.now(timezone.utc)
     db = get_db()
+    orig_item_price = float(getattr(item, "original_price", getattr(item, "price", amount)) or amount or 299.0)
+    net_paid = float(amount or 0.0)
+    discount_val = round(orig_item_price * 0.20, 2) if net_paid < orig_item_price else 0.0
+    comm_val = round(net_paid * 0.25, 2)
+
     sale_doc = {
         "srid": clean_srid,
         "srid_display": f"SRID:{clean_srid}",
+        "ambassador_code": clean_srid,
+        "ambassadorCode": clean_srid,
+        "item_type": getattr(item, "item_type", "bhavishya" if str(getattr(item, "id", "")) == "bhavishya-1-0" else "course"),
         "course_id": str(getattr(item, "id", "")),
+        "item_id": str(getattr(item, "id", "")),
         "course_title": getattr(item, "title", "Course"),
+        "item_title": getattr(item, "title", "Course"),
         "student_id": str(getattr(user, "id", "")),
         "student_name": getattr(user, "name", "Student"),
         "student_email": getattr(user, "email", ""),
-        "amount": float(amount or 0.0),
+        "original_price": orig_item_price,
+        "discount_amount": discount_val,
+        "discountAmount": discount_val,
+        "amount": net_paid,
+        "commission_amount": comm_val,
+        "commissionAmount": comm_val,
+        "commission_status": "pending",
         "payment_id": payment_id,
         "utr_number": utr_number,
         "status": status,
@@ -223,7 +239,8 @@ def api_validate_srid(srid):
             "valid": False,
             "available": False,
             "srid": clean_srid,
-            "message": "Ambassador validation service is temporarily unavailable. Checkout will proceed normally."
+            "discount_pct": 20,
+            "message": "Ambassador verification service is temporarily unavailable. Checkout proceeds normally with referral recorded."
         })
 
     if is_valid and name:
@@ -233,7 +250,8 @@ def api_validate_srid(srid):
             "available": True,
             "srid": clean_srid,
             "name": name,
-            "message": f"Verified Ambassador: {name}"
+            "discount_pct": 20,
+            "message": f"Verified Ambassador: {name} (20% Discount Applied!)"
         })
     else:
         return jsonify({
@@ -250,7 +268,7 @@ def api_validate_srid(srid):
 def update_referral():
     """
     Updates the student's active checkout session with the latest valid SRID in real-time.
-    Called asynchronously from client when student enters a referral ID during checkout.
+    Calculates 20% student discount and updates the in-memory dynamic UPI QR code.
     """
     data = request.get_json(silent=True) or {}
     session_token = str(data.get("session_token") or "").strip()
@@ -265,12 +283,36 @@ def update_referral():
         return jsonify({"success": False, "error": "Session not found or unauthorized"}), 403
 
     now = datetime.now(timezone.utc)
+    from services.payment_service import generate_upi_qr_base64
+
+    # Determine original base price
+    orig_amount = float(session_doc.get("original_amount") or session_doc.get("amount") or 299.0)
+
     if not srid_raw:
+        # Revert to base price
+        new_qr = generate_upi_qr_base64(
+            amount=orig_amount,
+            item_type=session_doc.get("item_type", "bhavishya"),
+            item_id=session_doc.get("item_id", "bhavishya-1-0"),
+            item_title="SkillRock Learning Package",
+            session_token=session_token,
+        )
         db.checkout_sessions.update_one(
             {"session_token": session_token},
-            {"$unset": {"srid": ""}, "$set": {"updated_at": now}}
+            {
+                "$unset": {"srid": "", "discount_amount": "", "commission_amount": ""},
+                "$set": {"amount": orig_amount, "original_amount": orig_amount, "updated_at": now}
+            }
         )
-        return jsonify({"success": True, "srid": None})
+        return jsonify({
+            "success": True,
+            "srid": None,
+            "original_price": orig_amount,
+            "discount_amount": 0.0,
+            "final_price": orig_amount,
+            "qr_base64": new_qr.get("qr_base64"),
+            "upi_string": new_qr.get("upi_string"),
+        })
 
     clean_srid = srid_raw.upper()
     if re.match(r"^\d{4}$", clean_srid):
@@ -279,11 +321,47 @@ def update_referral():
     if not re.match(r"^SR\d{4}$", clean_srid):
         return jsonify({"success": False, "error": "Invalid SRID format"}), 400
 
+    # 20% Ambassador Discount & 25% Commission Calculation (Applies specifically to Bhavishya 1.0)
+    item_type = session_doc.get("item_type", "bhavishya")
+    if item_type == "bhavishya":
+        discount_amount = round(orig_amount * 0.20, 2)
+        discounted_amount = round(orig_amount - discount_amount, 2)
+        commission_amount = round(discounted_amount * 0.25, 2)
+    else:
+        discount_amount = 0.0
+        discounted_amount = orig_amount
+        commission_amount = 0.0
+
+    new_qr = generate_upi_qr_base64(
+        amount=discounted_amount,
+        item_type=session_doc.get("item_type", "bhavishya"),
+        item_id=session_doc.get("item_id", "bhavishya-1-0"),
+        item_title="SkillRock Learning Package",
+        session_token=session_token,
+    )
+
     db.checkout_sessions.update_one(
         {"session_token": session_token},
-        {"$set": {"srid": clean_srid, "updated_at": now}}
+        {
+            "$set": {
+                "srid": clean_srid,
+                "original_amount": orig_amount,
+                "discount_amount": discount_amount,
+                "amount": discounted_amount,
+                "commission_amount": commission_amount,
+                "updated_at": now
+            }
+        }
     )
-    return jsonify({"success": True, "srid": clean_srid})
+    return jsonify({
+        "success": True,
+        "srid": clean_srid,
+        "original_price": orig_amount,
+        "discount_amount": discount_amount,
+        "final_price": discounted_amount,
+        "qr_base64": new_qr.get("qr_base64"),
+        "upi_string": new_qr.get("upi_string"),
+    })
 
 
 # ==============================================================================
@@ -430,8 +508,20 @@ def create_razorpay_order():
         price = float(getattr(item, "price", 0.0))
         if price <= 0:
             return jsonify({"error": "Item is free, please enroll directly without checkout"}), 400
+
+        orig_price = price
+        discount_amount = 0.0
+        commission_amount = 0.0
+        if clean_srid and item_type == "bhavishya":
+            discount_amount = round(orig_price * 0.20, 2)
+            price = round(orig_price - discount_amount, 2)
+            commission_amount = round(price * 0.25, 2)
+
         amount_paise = int(round(price * 100))
         notes["item_title"] = getattr(item, "title", "Course")[:45]
+        notes["original_price"] = str(orig_price)
+        notes["discount_amount"] = str(discount_amount)
+        notes["commission_amount"] = str(commission_amount)
     elif "amount" in data and data["amount"] is not None:
         try:
             amount_paise = int(round(float(data["amount"])))
@@ -606,7 +696,18 @@ def verify_razorpay_payment():
         "updated_at": now,
     }
     if clean_srid:
+        orig_price = float(order_doc.get("notes", {}).get("original_price") or (getattr(item, "price", amount_rupees) if item else amount_rupees))
+        discount_amount = float(order_doc.get("notes", {}).get("discount_amount") or round(orig_price * 0.20, 2))
+        commission_amount = float(order_doc.get("notes", {}).get("commission_amount") or round(amount_rupees * 0.25, 2))
+
         new_payment["srid"] = clean_srid
+        new_payment["ambassador_code"] = clean_srid
+        new_payment["ambassadorCode"] = clean_srid
+        new_payment["original_price"] = orig_price
+        new_payment["discount_amount"] = discount_amount
+        new_payment["discountAmount"] = discount_amount
+        new_payment["commission_amount"] = commission_amount
+        new_payment["commissionAmount"] = commission_amount
 
     db.payments.insert_one(new_payment)
     db.razorpay_orders.update_one(
@@ -801,11 +902,22 @@ def submit_payment():
             if re.match(r"^SR\d{4}$", candidate_srid):
                 clean_srid = candidate_srid
 
+    # Calculate 20% ambassador discount if srid is present
+    base_item_price = exact_price
+    discount_amount = 0.0
+    commission_amount = 0.0
+    payable_amount = base_item_price
+
+    if clean_srid and item_type == "bhavishya":
+        discount_amount = round(base_item_price * 0.20, 2)
+        payable_amount = round(base_item_price - discount_amount, 2)
+        commission_amount = round(payable_amount * 0.25, 2)
+
     # Check if this UTR was already detected & credited via Bank SMS
     bank_credit = db.bank_credits.find_one({
         "utr_number": utr_clean,
         "claimed": False,
-        "amount": {"$gte": exact_price - 0.01}
+        "amount": {"$gte": payable_amount - 0.01}
     })
     if bank_credit:
         # Instant Auto-Unlock: Bank SMS already confirmed the funds
@@ -817,7 +929,12 @@ def submit_payment():
             "item_type": item_type,
             "item_id": str(item.id),
             "item_title": getattr(item, "title", "SkillRock Learning Item"),
-            "amount": exact_price,
+            "amount": payable_amount,
+            "original_price": base_item_price,
+            "discount_amount": discount_amount,
+            "discountAmount": discount_amount,
+            "commission_amount": commission_amount,
+            "commissionAmount": commission_amount,
             "utr_number": utr_clean,
             "status": "approved",
             "submitted_at": now,
@@ -830,11 +947,13 @@ def submit_payment():
         }
         if clean_srid:
             payment_record["srid"] = clean_srid
+            payment_record["ambassador_code"] = clean_srid
+            payment_record["ambassadorCode"] = clean_srid
             record_ambassador_sale(
                 srid=clean_srid,
                 item=item,
                 user=current_user,
-                amount=exact_price,
+                amount=payable_amount,
                 payment_id=payment_id,
                 utr_number=utr_clean,
                 status="approved",
@@ -855,9 +974,9 @@ def submit_payment():
             item_id=str(item.id),
             granted_by="bank_sms_instant_match",
             payment_id=payment_id,
-            amount=exact_price,
+            amount=payable_amount,
         )
-        flash(f"⚡ Instant Bank Match: Payment of ₹{int(exact_price)} verified via Bank SMS. Access unlocked!", "success")
+        flash(f"⚡ Instant Bank Match: Payment of ₹{int(payable_amount)} verified via Bank SMS. Access unlocked!", "success")
         if item_type == "course":
             return redirect(url_for("learning.course_detail", slug=item.slug, player=1, _anchor="skillrockPlayerFrame"))
         elif item_type == "roadmap":
@@ -875,7 +994,12 @@ def submit_payment():
         "item_type": item_type,
         "item_id": str(item.id),
         "item_title": getattr(item, "title", "SkillRock Learning Item"),
-        "amount": exact_price,  # Authoritative server price ONLY
+        "amount": payable_amount,
+        "original_price": base_item_price,
+        "discount_amount": discount_amount,
+        "discountAmount": discount_amount,
+        "commission_amount": commission_amount,
+        "commissionAmount": commission_amount,
         "utr_number": utr_clean,
         "status": "pending",
         "submitted_at": now,
@@ -887,11 +1011,13 @@ def submit_payment():
     }
     if clean_srid:
         payment_record["srid"] = clean_srid
+        payment_record["ambassador_code"] = clean_srid
+        payment_record["ambassadorCode"] = clean_srid
         record_ambassador_sale(
             srid=clean_srid,
             item=item,
             user=current_user,
-            amount=exact_price,
+            amount=payable_amount,
             payment_id=payment_id,
             utr_number=utr_clean,
             status="pending",

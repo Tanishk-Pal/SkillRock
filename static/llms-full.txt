@@ -2,15 +2,15 @@
 
 > Complete course syllabi, module breakdowns, evaluation benchmarks, and learning objectives across all technical domains on SkillRock.
 
-- Canonical Website: https://skillrock.onrender.com
-- Course Catalog: https://skillrock.onrender.com/learning/courses
-- Concise LLM Summary: https://skillrock.onrender.com/llms.txt
-- Certificate Verification Endpoint: https://skillrock.onrender.com/verify/<cert_id>
+- Canonical Website: https://skillrock.in
+- Course Catalog: https://skillrock.in/learning/courses
+- Concise LLM Summary: https://skillrock.in/llms.txt
+- Certificate Verification Endpoint: https://skillrock.in/verify/<cert_id>
 
 ---
 
 ## 1. Java Programming & Object-Oriented Design Masterclass
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/java-core-oops-masterclass
+- **Canonical URL**: https://skillrock.in/learning/courses/java-core-oops-masterclass
 - **Category**: Programming
 - **Difficulty**: Beginner
 - **Duration**: Self-Paced
@@ -21,7 +21,7 @@
 ---
 
 ## 2. Java & Data Structures Masterclass with Enterprise Patterns
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/java-dsa-enterprise-architecture
+- **Canonical URL**: https://skillrock.in/learning/courses/java-dsa-enterprise-architecture
 - **Category**: Programming
 - **Difficulty**: Intermediate
 - **Duration**: Self-Paced
@@ -32,7 +32,7 @@
 ---
 
 ## 3. Striver's A2Z DSA Complete Roadmap for Tech Interviews
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/strivers-a2z-dsa-roadmap
+- **Canonical URL**: https://skillrock.in/learning/courses/strivers-a2z-dsa-roadmap
 - **Category**: Data Structures & Algorithms
 - **Difficulty**: Intermediate
 - **Duration**: Self-Paced
@@ -43,7 +43,7 @@
 ---
 
 ## 4. Data Structures & Algorithms in Python: Problem Solving Masterclass
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/python-dsa-masterclass
+- **Canonical URL**: https://skillrock.in/learning/courses/python-dsa-masterclass
 - **Category**: Data Structures & Algorithms
 - **Difficulty**: Intermediate
 - **Duration**: Self-Paced
@@ -54,7 +54,7 @@
 ---
 
 ## 5. Python Programming: Beginner to Real-World Automation
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/python-programming-automation
+- **Canonical URL**: https://skillrock.in/learning/courses/python-programming-automation
 - **Category**: Programming
 - **Difficulty**: Beginner
 - **Duration**: Self-Paced
@@ -65,7 +65,7 @@
 ---
 
 ## 6. Python Data Analysis & Libraries Masterclass: NumPy, Pandas & Matplotlib
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/python-data-analysis-libraries
+- **Canonical URL**: https://skillrock.in/learning/courses/python-data-analysis-libraries
 - **Category**: Data Science
 - **Difficulty**: Intermediate
 - **Duration**: Self-Paced
@@ -76,7 +76,7 @@
 ---
 
 ## 7. Full-Stack Web Development: Modern Frontend & Backend with Cloud Deployment
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/fullstack-mern-cloud-development
+- **Canonical URL**: https://skillrock.in/learning/courses/fullstack-mern-cloud-development
 - **Category**: Web Development
 - **Difficulty**: Intermediate
 - **Duration**: Self-Paced
@@ -87,7 +87,7 @@
 ---
 
 ## 8. Sigma Web Development Bootcamp (Hindi) — HTML to Full MERN Stack
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/sigma-web-development-hindi
+- **Canonical URL**: https://skillrock.in/learning/courses/sigma-web-development-hindi
 - **Category**: Web Development
 - **Difficulty**: Beginner
 - **Duration**: Self-Paced
@@ -98,7 +98,7 @@
 ---
 
 ## 9. Kali Linux Fundamentals & Command-Line Mastery for Hackers
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/kali-linux-command-line-mastery
+- **Canonical URL**: https://skillrock.in/learning/courses/kali-linux-command-line-mastery
 - **Category**: Cybersecurity
 - **Difficulty**: Beginner
 - **Duration**: Self-Paced
@@ -109,7 +109,7 @@
 ---
 
 ## 10. Practical Ethical Hacking & Penetration Testing Masterclass
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/ethical-hacking-penetration-testing
+- **Canonical URL**: https://skillrock.in/learning/courses/ethical-hacking-penetration-testing
 - **Category**: Cybersecurity
 - **Difficulty**: Intermediate
 - **Duration**: Self-Paced
@@ -120,7 +120,7 @@
 ---
 
 ## 11. Figma UI/UX Design Masterclass: Wireframing to Interactive Prototyping
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/figma-ui-ux-design-masterclass
+- **Canonical URL**: https://skillrock.in/learning/courses/figma-ui-ux-design-masterclass
 - **Category**: Design
 - **Difficulty**: Beginner
 - **Duration**: Self-Paced
@@ -131,7 +131,7 @@
 ---
 
 ## 12. Complete Product Design, User Research & Design Systems
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/product-design-ux-research
+- **Canonical URL**: https://skillrock.in/learning/courses/product-design-ux-research
 - **Category**: Design
 - **Difficulty**: Intermediate
 - **Duration**: Self-Paced
@@ -142,7 +142,7 @@
 ---
 
 ## 13. JavaScript Mastery: DOM Manipulation, Async APIs & Modern Web Apps
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/javascript-mastery-modern-web
+- **Canonical URL**: https://skillrock.in/learning/courses/javascript-mastery-modern-web
 - **Category**: Web Development
 - **Difficulty**: Beginner
 - **Duration**: Self-Paced
@@ -153,7 +153,7 @@
 ---
 
 ## 14. Machine Learning & AI with Python: Practical Neural Networks & Model Deployment
-- **Canonical URL**: https://skillrock.onrender.com/learning/courses/machine-learning-ai-python
+- **Canonical URL**: https://skillrock.in/learning/courses/machine-learning-ai-python
 - **Category**: AI & Machine Learning
 - **Difficulty**: Intermediate
 - **Duration**: Self-Paced

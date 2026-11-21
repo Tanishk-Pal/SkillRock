@@ -26,7 +26,7 @@
           "@type": "Organization",
           "name": "SkillRock Student Academy"
         },
-        "url": "https://skillrock.onrender.com{{ url_for('learning.course_detail', slug=c.slug or c.id) }}"
+        "url": "{{ canonical_domain }}{{ url_for('learning.course_detail', slug=c.slug or c.id) }}"
       }
     }{% if not loop.last %},{% endif %}
     {% endfor %}
@@ -151,10 +151,6 @@
                     <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
                     <span>Skill Rock Academy — Learn & Build</span>
                 </div>
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 9999px; font-size: 0.78rem; font-weight: 800; color: #34D399;">
-                    <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
-                    <span>⚡ 50% Fee Refund on 90-Day Completion</span>
-                </div>
             </div>
             <h1 style="font-size: 2.1rem; font-weight: 800; line-height: 1.25; margin-bottom: 12px; letter-spacing: -0.02em;">
                 Learn. Build. Deploy. <span style="background: linear-gradient(135deg, #A78BFA, #818CF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Earn Your Verified Certificate.</span>
@@ -165,7 +161,7 @@
             <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #E2E8F0;">
                     <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #10B981;"></i>
-                    <span>100% Free For All Students</span>
+                    <span style="font-weight: 700;">Learn & Build Free. Level Up with Bhavishya 1.0 & Placement Prep.</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #E2E8F0;">
                     <i data-lucide="git-pull-request" style="width: 18px; height: 18px; color: #818CF8;"></i>
@@ -175,40 +171,6 @@
                     <i data-lucide="award" style="width: 18px; height: 18px; color: #F59E0B;"></i>
                     <span>Tamper-Proof Certificates</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #E2E8F0;">
-                    <i data-lucide="zap" style="width: 18px; height: 18px; color: #10B981;"></i>
-                    <span>50% Course Fee Refund Guaranteed</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SkillRock Universal 50% Fee Refund Guarantee Banner -->
-    <div class="card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 16px; padding: 18px 22px; margin-bottom: 24px; position: relative; overflow: hidden;">
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-            <div style="display: flex; align-items: flex-start; gap: 14px; max-width: 820px;">
-                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #10B981;">
-                    <i data-lucide="badge-percent" style="width: 24px; height: 24px;"></i>
-                </div>
-                <div>
-                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
-                        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin: 0;">
-                            SkillRock Universal 50% Fee Refund Guarantee
-                        </h3>
-                        <span style="background: rgba(16, 185, 129, 0.2); color: #10B981; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 9999px; text-transform: uppercase;">
-                            All Paid Courses & Roadmaps
-                        </span>
-                    </div>
-                    <p style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
-                        Complete 100% of any enrolled course or career roadmap and earn your certificate within <strong>3 months (90 days)</strong> of purchase. Email your Certificate ID & registered email to <a href="mailto:Palt51419@gmail.com?subject=50%25%20Course%20Refund%20Claim" style="color: #60A5FA; font-weight: 700; text-decoration: underline;">Palt51419@gmail.com</a> to receive your <strong>50% fee refund</strong> directly to your UPI/bank account!
-                    </p>
-                </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <a href="mailto:Palt51419@gmail.com?subject=50%25%20Course%20Refund%20Claim&body=Hi%20SkillRock%20Team,%0A%0AI%20have%20completed%20100%25%20of%20my%20purchased%20course%20within%203%20months.%0A%0ACertificate%20ID:%20%0AStudent%20Email:%20%0ACourse%20Name:%20%0A%0APlease%20process%20my%2050%25%20fee%20refund.%0A%0AThank%20you!" class="btn btn-primary btn-sm" style="background: #10B981; border-color: #10B981; font-weight: 700; padding: 8px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
-                    <i data-lucide="mail" style="width: 14px; height: 14px;"></i>
-                    <span>Claim 50% Refund</span>
-                </a>
             </div>
         </div>
     </div>
@@ -263,7 +225,7 @@
            class="bubble-chip" 
            style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(217, 119, 6, 0.16)); border-color: rgba(245, 158, 11, 0.45); color: #F59E0B; font-weight: 700;">
             <i data-lucide="compass" style="width: 13px; height: 13px;"></i>
-            <span>Career Roadmaps (50% Cashback)</span>
+            <span>Career Roadmaps</span>
         </a>
 
         {% if user_interests %}
@@ -353,11 +315,11 @@
                             Career Roadmaps
                         </h2>
                         <span style="background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.4); color: #F59E0B; font-size: 0.74rem; font-weight: 800; padding: 2px 10px; border-radius: 9999px;">
-                            50% CASHBACK
+                            CAREER ROADMAP
                         </span>
                     </div>
                     <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 2px 0 0 0;">
-                        Structured 20-week programs taking you from beginner to job-ready with weekly milestones, capstone code reviews, and guaranteed 50% cashback.
+                        Structured 20-week programs taking you from beginner to job-ready with weekly milestones, capstone code reviews, and industry capstone code review.
                     </p>
                 </div>
             </div>
@@ -384,7 +346,7 @@
                             </div>
                             <span style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.25)); border: 1px solid rgba(245, 158, 11, 0.5); color: #FBBF24; font-size: 0.74rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
                                 <i data-lucide="zap" style="width: 13px; height: 13px;"></i>
-                                50% CASHBACK
+                                CAREER ROADMAP
                             </span>
                         </div>
 

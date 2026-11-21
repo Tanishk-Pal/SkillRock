@@ -468,13 +468,18 @@ def course_detail(slug):
             submission = Submission.get_latest(current_user.id, assignment.id)
         certificate = Certificate.get_by_user_course(current_user.id, course.id)
 
+    # 6-Module Educational Architecture (Syllabus, Practice, Build, Interview, Career, Cert)
+    from models.course_modules import get_course_modules_data
+    modules_data = get_course_modules_data(course.slug or slug, course.title)
+
     return render_template(
         "learning/course_detail.html",
         course=course,
         assignment=assignment,
         enrollment=enrollment,
         submission=submission,
-        certificate=certificate
+        certificate=certificate,
+        modules_data=modules_data
     )
 
 
@@ -1059,7 +1064,11 @@ def view_certificate(cert_id):
     student = certificate.user
     course = certificate.course
     submission = certificate.submission
-    verification_url = url_for("learning.verify_certificate", cert_id=certificate.certificate_id, _external=True)
+    site_url = current_app.config.get("SITE_URL", "https://skillrock.in").rstrip("/")
+    if request.host.startswith("localhost") or request.host.startswith("127.0.0.1"):
+        verification_url = url_for("learning.verify_certificate", cert_id=certificate.certificate_id, _external=True)
+    else:
+        verification_url = f"{site_url}/verify/{certificate.certificate_id}"
 
     return render_template(
         "learning/certificate.html",
@@ -1364,3 +1373,48 @@ def quiz_result(assignment_id):
         attempts_remaining=attempts_remaining,
         max_attempts=max_attempts
     )
+
+
+# ==============================================================================
+# Standalone Career & Communication Centre Routes
+# ==============================================================================
+
+@learning_bp.route("/english-academy")
+def english_academy():
+    """
+    SkillRock English & Communication Academy.
+    10 structured lessons covering introductions, tech explanations, standup updates,
+    HR interviews, group discussions, and email writing in dual English-Hindi format.
+    """
+    from models.course_modules import ENGLISH_ACADEMY_LESSONS
+    return render_template(
+        "learning/english_academy.html",
+        lessons=ENGLISH_ACADEMY_LESSONS
+    )
+
+
+@learning_bp.route("/internships")
+def internships():
+    """
+    SkillRock Opportunity & Internship Centre.
+    Verified student internships, open-source mentorships (GSoC, LFX), and hackathons.
+    """
+    from models.course_modules import INTERNSHIP_OPPORTUNITIES
+    return render_template(
+        "learning/internships.html",
+        opportunities=INTERNSHIP_OPPORTUNITIES
+    )
+
+
+@learning_bp.route("/career-guide")
+def career_guide():
+    """
+    SkillRock Career & Portfolio Development Toolkit.
+    ATS resume optimization, Google XYZ bullet points, and LinkedIn/GitHub checklists.
+    """
+    from models.course_modules import CAREER_DEVELOPMENT_RESOURCES
+    return render_template(
+        "learning/career_guide.html",
+        resources=CAREER_DEVELOPMENT_RESOURCES
+    )
+

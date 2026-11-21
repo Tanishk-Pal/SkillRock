@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Opportunity & Internship Centre — SkillRock{% endblock %}
+{% block meta_description %}Curated tech internships, open-source programs (GSoC, LFX), and national hackathons verified for computer science and engineering students.{% endblock %}
+
+{% block content %}
+<div class="internships-container" style="max-width: 1200px; margin: 0 auto; padding: 24px 16px 80px;">
+    <!-- Hero Banner -->
+    <div class="card" style="padding: 36px 32px; border-radius: 20px; background: linear-gradient(135deg, #064E3B 0%, #065F46 50%, #047857 100%); color: #FFFFFF; border: 1px solid rgba(255,255,255,0.12); margin-bottom: 28px; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(6, 78, 59, 0.25);">
+        <div style="position: absolute; top: -30px; right: -30px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(52,211,153,0.3) 0%, transparent 70%); filter: blur(30px); pointer-events: none;"></div>
+        
+        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); padding: 5px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 16px;">
+            <i data-lucide="compass" style="width: 14px; height: 14px; color: #6EE7B7;"></i>
+            <span>Module 05.C • Verified Career Opportunities</span>
+        </div>
+        <h1 style="font-size: 2.2rem; font-weight: 900; line-height: 1.25; margin-bottom: 12px; letter-spacing: -0.5px;">
+            Opportunity & Internship Centre
+        </h1>
+        <p style="font-size: 1.05rem; color: #A7F3D0; max-width: 780px; line-height: 1.6; margin-bottom: 20px;">
+            Directly bridge from learning to real-world experience. Explore curated student internships, prestigious global open-source mentorships, and premier hackathons.
+        </p>
+
+        <!-- Category Pills -->
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="opp-filter-pill active" onclick="filterOpps('all')" id="pill-all">All Opportunities</button>
+            <button type="button" class="opp-filter-pill" onclick="filterOpps('internship')" id="pill-internship">Tech Internships</button>
+            <button type="button" class="opp-filter-pill" onclick="filterOpps('opensource')" id="pill-opensource">Open Source (GSoC / LFX)</button>
+            <button type="button" class="opp-filter-pill" onclick="filterOpps('hackathon')" id="pill-hackathon">Hackathons (SIH)</button>
+        </div>
+    </div>
+
+    <!-- Opportunities Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px;" id="oppsGrid">
+        {% for opp in opportunities %}
+        <div class="card opp-card" data-category="{% if 'Open Source' in opp.title or 'Google Summer' in opp.company or 'Linux' in opp.company %}opensource{% elif 'Hackathon' in opp.company or 'Hackathon' in opp.title %}hackathon{% else %}internship{% endif %}" style="padding: 24px; border-radius: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s ease, box-shadow 0.2s ease;">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px;">
+                    <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary-action); font-size: 0.76rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+                        {{ opp.type }}
+                    </span>
+                    {% if opp.verified %}
+                    <span class="badge" style="background: rgba(16,185,129,0.14); color: #10B981; font-size: 0.76rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px;">
+                        <i data-lucide="check-circle" style="width: 12px; height: 12px;"></i> Verified
+                    </span>
+                    {% endif %}
+                </div>
+
+                <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">{{ opp.title }}</h3>
+                <div style="font-size: 0.9rem; font-weight: 700; color: var(--primary-action); margin-bottom: 12px;">{{ opp.company }}</div>
+
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 14px;">
+                    <span>{{ opp.work_mode }}</span> • <span>{{ opp.duration }}</span> • <span>{{ opp.source }}</span>
+                </div>
+
+                <!-- Key Details Strip -->
+                <div style="background: var(--bg-hover); border-radius: 10px; padding: 12px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted);">Compensation / Prize:</span>
+                        <strong style="color: #10B981;">{{ opp.stipend }}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted);">Eligibility:</span>
+                        <span style="color: var(--text-main); font-weight: 600;">{{ opp.eligibility }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted);">Deadline:</span>
+                        <span style="color: var(--text-secondary);">{{ opp.deadline }}</span>
+                    </div>
+                </div>
+
+                <!-- Skills Required -->
+                {% if opp.skills_required %}
+                <div style="margin-bottom: 18px;">
+                    <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">Relevant Skills:</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                        {% for skill in opp.skills_required %}
+                        <span style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.74rem; font-weight: 600; padding: 3px 8px; border-radius: 6px;">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Action Link -->
+            <a href="{{ opp.apply_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                <span>View Guidelines & Apply</span>
+                <i data-lucide="external-link" style="width: 15px; height: 15px;"></i>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.opp-filter-pill {
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #FFFFFF;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 8px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.opp-filter-pill:hover, .opp-filter-pill.active {
+    background: #FFFFFF;
+    color: #064E3B;
+    border-color: #FFFFFF;
+}
+.opp-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+</style>
+
+<script>
+function filterOpps(cat) {
+    document.querySelectorAll('.opp-filter-pill').forEach(p => p.classList.remove('active'));
+    const activePill = document.getElementById('pill-' + cat);
+    if (activePill) activePill.classList.add('active');
+
+    const cards = document.querySelectorAll('.opp-card');
+    cards.forEach(card => {
+        if (cat === 'all' || card.dataset.category === cat) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

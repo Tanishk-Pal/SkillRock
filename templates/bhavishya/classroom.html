@@ -1,15 +1,32 @@
 {% extends "base.html" %}
 
-{% block title %}AI Classroom: {{ lesson.title }} | Bhavishya 1.0{% endblock %}
-{% block meta_description %}Learn {{ lesson.title }} interactively with your personal AI Teacher on SkillRock Bhavishya 1.0.{% endblock %}
+{% block title %}Hybrid Classroom: {{ lesson.title }} | Bhavishya 1.0{% endblock %}
+{% block meta_description %}Learn {{ lesson.title }} in Bhavishya 1.0 Hybrid Classroom with curated Hindi/English lectures, W3Schools-style interactive notes, in-browser code editor, and 24/7 Ski AI doubt solver.{% endblock %}
 
 {% block content %}
-<div class="bh-classroom-wrapper" style="max-width: 1400px; margin: 0 auto; padding: 18px 16px 80px;">
+<div class="bh-classroom-wrapper" style="max-width: 1440px; margin: 0 auto; padding: 16px 16px 80px;">
 
-    <!-- Top Navigation & Controls Bar -->
-    <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 14px 20px; margin-bottom: 18px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <a href="{{ url_for('bhavishya.subject_detail', slug=subject.slug) }}" style="color: #94A3B8; display: flex; align-items: center; gap: 6px; text-decoration: none; font-size: 13px; font-weight: 600;">
+    <!-- 1. Free Trial Banner (Shown for Lesson 1 when student hasn't purchased ₹299 full package) -->
+    {% if is_free_trial and not is_unlocked %}
+    <div style="background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(56, 189, 248, 0.2)); border: 1.5px solid rgba(16, 185, 129, 0.5); border-radius: 14px; padding: 14px 20px; margin-bottom: 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="background: #10B981; color: #FFFFFF; font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 3px 10px; border-radius: 9999px;">Free Trial Active</span>
+            <span style="color: #F8FAFC; font-size: 13.5px; font-weight: 600;">
+                You are experiencing <strong>Subject 01 — Lesson 1</strong> completely free! Try the interactive lab, curated lecture, and Ski Doubt Solver.
+            </span>
+        </div>
+        <a href="{{ url_for('payment.checkout', item_type='bhavishya', item_id='bhavishya-1-0') }}" 
+           class="btn btn-sm" 
+           style="background: linear-gradient(135deg, #7C3AED, #5B46F6); color: #FFFFFF; font-weight: 800; padding: 8px 18px; border-radius: 10px; font-size: 13px; text-decoration: none; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">
+            Enroll in Bhavishya 1.0 (₹299) to Unlock All 19 Subjects →
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- 2. Top Navigation & Header Controls Bar -->
+    <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 14px 20px; margin-bottom: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <a href="{{ url_for('bhavishya.subject_detail', slug=subject.slug) }}" style="color: #94A3B8; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 13px; font-weight: 600;">
                 <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Back to Syllabus
             </a>
             <span style="color: rgba(255, 255, 255, 0.2);">|</span>
@@ -18,15 +35,22 @@
             <span style="color: #F8FAFC; font-size: 14px; font-weight: 700;">{{ lesson.title }}</span>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <!-- Language Preference Toggle -->
-            <div style="display: flex; background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 2px;">
-                <button id="langEnglishBtn" onclick="setLanguagePref('english')" style="background: #7C3AED; color: #FFFFFF; border: none; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">English</button>
-                <button id="langHinglishBtn" onclick="setLanguagePref('hinglish')" style="background: transparent; color: #94A3B8; border: none; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Hinglish</button>
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <!-- Language Preference Toggle: Hindi vs English -->
+            <div style="display: inline-flex; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 3px;">
+                <button id="langHindiBtn" onclick="switchCuratedLanguage('hindi')" 
+                        style="background: #7C3AED; color: #FFFFFF; border: none; padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s ease;">
+                    <span>🇮🇳 Hindi / Hinglish</span>
+                </button>
+                <button id="langEnglishBtn" onclick="switchCuratedLanguage('english')" 
+                        style="background: transparent; color: #94A3B8; border: none; padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s ease;">
+                    <span>🇬🇧 English</span>
+                </button>
             </div>
 
-            <!-- Complete Toggle -->
-            <button id="toggleCompleteBtn" onclick="toggleLessonComplete()" style="background: {% if is_completed %}rgba(16, 185, 129, 0.15){% else %}rgba(255, 255, 255, 0.06){% endif %}; border: 1px solid {% if is_completed %}rgba(16, 185, 129, 0.4){% else %}rgba(255, 255, 255, 0.12){% endif %}; color: {% if is_completed %}#34D399{% else %}#E2E8F0{% endif %}; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <!-- Complete Toggle Button -->
+            <button id="toggleCompleteBtn" onclick="toggleLessonComplete()" 
+                    style="background: {% if is_completed %}rgba(16, 185, 129, 0.15){% else %}rgba(255, 255, 255, 0.06){% endif %}; border: 1px solid {% if is_completed %}rgba(16, 185, 129, 0.4){% else %}rgba(255, 255, 255, 0.12){% endif %}; color: {% if is_completed %}#34D399{% else %}#E2E8F0{% endif %}; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                 <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i>
                 <span id="completeBtnText">{% if is_completed %}Completed ✓{% else %}Mark as Complete{% endif %}</span>
             </button>
@@ -38,489 +62,588 @@
                 </a>
             {% endif %}
             {% if next_lesson %}
-                <a href="{{ url_for('bhavishya.classroom', subject_slug=subject.slug, lesson_id=next_lesson.id) }}" class="btn btn-sm" style="background: linear-gradient(135deg, #0284C7, #0369A1); color: #FFFFFF; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
-                    Next Lesson →
-                </a>
+                {% if is_unlocked or (subject.slug == 'python-programming' and prev_lesson and not is_unlocked) %}
+                    <a href="{{ url_for('bhavishya.classroom', subject_slug=subject.slug, lesson_id=next_lesson.id) }}" class="btn btn-sm" style="background: linear-gradient(135deg, #0284C7, #0369A1); color: #FFFFFF; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
+                        Next Lesson →
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('payment.checkout', item_type='bhavishya', item_id='bhavishya-1-0') }}" class="btn btn-sm" style="background: linear-gradient(135deg, #7C3AED, #5B46F6); color: #FFFFFF; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;" title="Enroll to unlock next lessons">
+                        Unlock Lesson 2 (₹299) 🔒
+                    </a>
+                {% endif %}
             {% endif %}
         </div>
     </div>
 
-    <!-- Mode Selector Tabs -->
-    <div style="display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
-        <button id="tabModeClassroom" onclick="switchClassroomMode('classroom')" style="background: rgba(124, 58, 237, 0.2); border: 1px solid #7C3AED; color: #FFFFFF; padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="mic" style="width: 16px; color: #EC4899;"></i> Mode A: Live AI Classroom
-        </button>
-        <button id="tabModeCoding" onclick="switchClassroomMode('coding')" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); color: #94A3B8; padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="terminal" style="width: 16px; color: #38BDF8;"></i> Mode B: Interactive Coding Lab
-        </button>
-        <button id="tabModeDoubt" onclick="switchClassroomMode('doubt')" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); color: #94A3B8; padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="help-circle" style="width: 16px; color: #F59E0B;"></i> Mode C: Personal Doubt Solver
-        </button>
-    </div>
+    <!-- 3. MAIN WORKSPACE: 2-Column Responsive Layout -->
+    <div style="display: grid; grid-template-columns: 1.55fr 1fr; gap: 24px; align-items: start;" class="bh-grid-layout">
 
-    <!-- MAIN TWO-COLUMN WORKSPACE -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;" id="classroomGrid">
+        <!-- ====================================================================
+             LEFT COLUMN: Curated Masterclass + W3Schools-Style Notes & Code Lab
+             ==================================================================== -->
+        <div style="display: flex; flex-direction: column; gap: 22px;">
 
-        <!-- LEFT COLUMN: AI Teacher Avatar & Live Voice Engine -->
-        <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; min-height: 580px; box-shadow: 0 16px 36px -10px rgba(0,0,0,0.5);">
-            
-            <!-- Teacher Header & Avatar -->
-            <div>
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-                    <div style="display: flex; align-items: center; gap: 14px;">
-                        <div style="position: relative;">
-                            <div id="teacherAvatarPulse" style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #7C3AED, #EC4899); display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 20px; font-weight: 800; box-shadow: 0 0 16px rgba(168, 85, 247, 0.5); transition: box-shadow 0.3s ease;">
-                                PB
-                            </div>
-                            <span id="teacherStatusDot" style="position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; background: #10B981; border: 2px solid #0F172A; border-radius: 50%;"></span>
-                        </div>
-                        <div>
-                            <div style="font-size: 16px; font-weight: 800; color: #F8FAFC;">Prof. Bhavishya</div>
-                            <div id="teacherStateLabel" style="font-size: 12px; color: #34D399; font-weight: 600;">Ready to teach • Click mic to speak</div>
-                        </div>
+            <!-- Video Player: Top Curated Teacher Lecture -->
+            <div style="background: #0B0F19; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; overflow: hidden; box-shadow: 0 16px 36px -10px rgba(0,0,0,0.6);">
+                <div style="padding: 12px 18px; background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 8px; height: 8px; background: #EF4444; border-radius: 50%;"></span>
+                        <span id="videoTitleLabel" style="font-size: 13px; font-weight: 700; color: #F1F5F9;">
+                            {{ interactive_data.video_hindi.title if interactive_data.video_hindi else lesson.title }}
+                        </span>
                     </div>
-
-                    <!-- Barge-In / Interrupt Button -->
-                    <button id="bargeInBtn" onclick="handleBargeIn()" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #F87171; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Interrupt teacher to ask a question immediately">
-                        <i data-lucide="hand" style="width: 14px; height: 14px;"></i> Interrupt Teacher
-                    </button>
+                    <span id="videoLangBadge" style="background: rgba(124, 58, 237, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); color: #C084FC; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px;">
+                        🇮🇳 Hindi Masterclass
+                    </span>
                 </div>
 
-                <!-- Live Conversational Transcript Box -->
-                <div id="transcriptBox" style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 14px; padding: 18px; max-height: 340px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; scroll-behavior: smooth;">
-                    <!-- Teacher Greeting Message -->
-                    <div class="teacher-speech-bubble" style="background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 12px 12px 12px 2px; padding: 14px 16px; max-width: 90%;">
-                        <div style="font-size: 11px; color: #C084FC; font-weight: 700; margin-bottom: 4px;">Prof. Bhavishya (AI Instructor)</div>
-                        <div id="teacherCurrentText" style="color: #F8FAFC; font-size: 14px; line-height: 1.5;">
-                            Hello {{ current_user.name or 'friend' }}! Welcome to <strong>{{ lesson.title }}</strong>. 
-                            Today we will master this concept step-by-step. Have you worked with this topic before, or should I explain with a practical real-world analogy?
-                        </div>
-                    </div>
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000000;">
+                    <iframe id="curatedVideoPlayer" 
+                            src="https://www.youtube.com/embed/{{ interactive_data.video_hindi.id }}?rel=0&modestbranding=1&enablejsapi=1" 
+                            title="{{ lesson.title }}" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen 
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                    </iframe>
                 </div>
             </div>
 
-            <!-- Voice & Microphone Interaction Controls -->
-            <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 18px;">
-                <!-- Voice Activity Wave Visualizer -->
-                <div id="voiceWaveContainer" style="display: none; align-items: center; justify-content: center; gap: 4px; height: 28px; margin-bottom: 12px;">
-                    <span class="bh-wave-bar" style="width: 4px; height: 12px; background: #EC4899; border-radius: 4px; animation: wavePulse 0.8s infinite ease-in-out;"></span>
-                    <span class="bh-wave-bar" style="width: 4px; height: 24px; background: #A855F7; border-radius: 4px; animation: wavePulse 0.8s infinite ease-in-out 0.2s;"></span>
-                    <span class="bh-wave-bar" style="width: 4px; height: 18px; background: #38BDF8; border-radius: 4px; animation: wavePulse 0.8s infinite ease-in-out 0.4s;"></span>
-                    <span class="bh-wave-bar" style="width: 4px; height: 26px; background: #10B981; border-radius: 4px; animation: wavePulse 0.8s infinite ease-in-out 0.1s;"></span>
-                    <span class="bh-wave-bar" style="width: 4px; height: 14px; background: #F59E0B; border-radius: 4px; animation: wavePulse 0.8s infinite ease-in-out 0.3s;"></span>
-                    <span style="font-size: 12px; color: #94A3B8; font-weight: 600; margin-left: 8px;">Listening through microphone... Speak now</span>
+            <!-- Structured W3Schools-Style Notes & Conceptual Theory -->
+            <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 24px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.4);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="book-open" style="width: 20px; height: 20px; color: #38BDF8;"></i>
+                        <h2 style="font-size: 18px; font-weight: 800; color: #F8FAFC; margin: 0;">Conceptual Notes & Breakdown</h2>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 800; background: rgba(56, 189, 248, 0.15); color: #38BDF8; padding: 3px 10px; border-radius: 9999px;">
+                        W3Schools Style
+                    </span>
                 </div>
 
-                <!-- Input Row: Voice Button & Text Input Fallback -->
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <button id="micToggleBtn" onclick="toggleMicrophone()" style="background: linear-gradient(135deg, #7C3AED, #EC4899); border: none; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #FFFFFF; cursor: pointer; flex-shrink: 0; box-shadow: 0 6px 18px -2px rgba(236, 72, 153, 0.4); transition: transform 0.15s ease;" title="Click to speak through microphone">
-                        <i id="micIcon" data-lucide="mic" style="width: 22px; height: 22px;"></i>
-                    </button>
+                <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px;">
+                    {% for note in interactive_data.theory_notes %}
+                        <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.06); border-left: 3px solid #38BDF8; border-radius: 0 10px 10px 0; padding: 14px 16px;">
+                            <h4 style="font-size: 14.5px; font-weight: 700; color: #38BDF8; margin: 0 0 6px 0;">{{ note.heading }}</h4>
+                            <p style="font-size: 13.5px; color: #CBD5E1; line-height: 1.6; margin: 0;">{{ note.body|safe }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
 
-                    <div style="flex: 1; position: relative;">
-                        <input type="text" id="studentTextInput" placeholder="Type your answer or question (or speak into mic)..." 
-                               style="width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 12px 48px 12px 16px; color: #FFFFFF; font-size: 14px; outline: none;"
-                               onkeydown="if(event.key === 'Enter') sendStudentResponse()">
-                        <button onclick="sendStudentResponse()" style="position: absolute; right: 8px; top: 8px; background: #5B46F6; border: none; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #FFFFFF; cursor: pointer;">
-                            <i data-lucide="send" style="width: 15px; height: 15px;"></i>
+                <!-- Syntax Example Box -->
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 12px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em;">Syntax & Architecture</span>
+                        <button onclick="copySyntaxCode()" style="background: transparent; border: none; color: #38BDF8; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                            <i data-lucide="copy" style="width: 12px; height: 12px;"></i> Copy Syntax
                         </button>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- RIGHT COLUMN: Interactive Presentation / Code Lab / Doubt Solver -->
-        <div style="display: flex; flex-direction: column; gap: 20px;">
-
-            <!-- Pane 1: Mode A - Visual Presentation / Socratic Lesson Card -->
-            <div id="paneClassroom" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 24px; min-height: 580px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px;">
-                    <div style="font-size: 15px; font-weight: 700; color: #F8FAFC;">Lesson Presentation & Conceptual Notes</div>
-                    <span style="font-size: 11px; font-weight: 700; color: #38BDF8; background: rgba(56, 189, 248, 0.15); padding: 3px 8px; border-radius: 6px;">Visual Slide</span>
-                </div>
-
-                <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 14px; padding: 20px; margin-bottom: 20px;">
-                    <h3 style="font-size: 18px; font-weight: 800; color: #38BDF8; margin: 0 0 10px;">{{ lesson.title }}</h3>
-                    <p style="color: #CBD5E1; font-size: 14px; line-height: 1.6; margin: 0 0 14px;">
-                        {{ lesson.socratic_prompt or 'Study the fundamental principles of this module with Professor Bhavishya.' }}
-                    </p>
-                    
-                    {% if lesson.practice_question %}
-                    <div style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid #F59E0B; padding: 12px 14px; border-radius: 0 8px 8px 0; margin-top: 14px;">
-                        <div style="font-size: 11px; font-weight: 800; color: #FBBF24; text-transform: uppercase;">Active Recall Challenge:</div>
-                        <div style="font-size: 13px; color: #E2E8F0; margin-top: 4px;">{{ lesson.practice_question }}</div>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Quick Switch to Lab Button -->
-                <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 18px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-size: 14px; font-weight: 700; color: #F8FAFC;">Ready to practice coding?</div>
-                        <div style="font-size: 12px; color: #94A3B8; margin-top: 2px;">Switch to the sandbox coding lab to write, run, and review code.</div>
-                    </div>
-                    <button onclick="switchClassroomMode('coding')" style="background: #0284C7; border: none; color: #FFFFFF; font-weight: 700; padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer;">
-                        Open Code Lab →
-                    </button>
+                    <pre id="syntaxSnippet" style="background: #030712; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 14px 16px; color: #A7F3D0; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; line-height: 1.5; margin: 0; overflow-x: auto;">{{ interactive_data.syntax_example }}</pre>
                 </div>
             </div>
 
-            <!-- Pane 2: Mode B - Interactive Coding Lab -->
-            <div id="paneCoding" style="display: none; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; padding: 24px; min-height: 580px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                    <div style="font-size: 15px; font-weight: 700; color: #F8FAFC;">Interactive Python Sandbox Lab</div>
+            <!-- "Try It Yourself" In-Browser Python Code Runner -->
+            <div style="background: rgba(15, 23, 42, 0.95); border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 18px; padding: 22px; box-shadow: 0 12px 32px -8px rgba(56, 189, 248, 0.15);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="terminal" style="width: 20px; height: 20px; color: #38BDF8;"></i>
+                        <h3 style="font-size: 17px; font-weight: 800; color: #F8FAFC; margin: 0;">Try It Yourself — Interactive Lab</h3>
+                    </div>
                     <div style="display: flex; gap: 8px;">
-                        <button onclick="reviewCodeWithAI()" style="background: rgba(168, 85, 247, 0.2); border: 1px solid #A855F7; color: #E9D5FF; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                            <i data-lucide="sparkles" style="width: 14px;"></i> AI Code Review
+                        <button onclick="resetStarterCode()" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); color: #CBD5E1; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                            ↺ Reset
                         </button>
-                        <button onclick="runPythonCode()" style="background: linear-gradient(135deg, #10B981, #059669); border: none; color: #FFFFFF; padding: 6px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                            <i data-lucide="play" style="width: 14px;"></i> Run Code
+                        <button onclick="askSkiToReviewCode()" style="background: rgba(168, 85, 247, 0.2); border: 1px solid #A855F7; color: #E9D5FF; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <i data-lucide="sparkles" style="width: 14px;"></i> Ski Code Review
+                        </button>
+                        <button onclick="runPythonSandbox()" id="runCodeBtn" style="background: linear-gradient(135deg, #10B981, #059669); border: none; color: #FFFFFF; padding: 6px 18px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+                            <i data-lucide="play" style="width: 14px;"></i> Run Code ▶
                         </button>
                     </div>
                 </div>
 
                 <!-- Code Editor Area -->
-                <div style="position: relative; margin-bottom: 14px;">
-                    <textarea id="codeEditorArea" style="width: 100%; height: 260px; background: #0B0F19; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 14px; color: #38BDF8; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5; resize: vertical; outline: none;" spellcheck="false">{{ lesson.starter_code or '# Write your Python solution here\n' }}</textarea>
-                </div>
+                <textarea id="liveCodeEditor" 
+                          style="width: 100%; height: 220px; background: #070B14; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 12px; padding: 14px 16px; color: #38BDF8; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; line-height: 1.5; resize: vertical; outline: none;" 
+                          spellcheck="false">{{ interactive_data.starter_code }}</textarea>
 
-                <!-- Output Terminal -->
-                <div style="background: #030712; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px; min-height: 120px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: #64748B; font-size: 11px; text-transform: uppercase; font-weight: 700;">
+                <!-- Output Terminal Box -->
+                <div style="background: #020617; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 14px 16px; margin-top: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; font-weight: 700; color: #64748B;">
                         <span>Output Terminal</span>
-                        <span id="execTimeBadge" style="color: #10B981;">Ready</span>
+                        <span id="sandboxStatusBadge" style="color: #10B981;">Ready</span>
                     </div>
-                    <pre id="terminalOutput" style="color: #CBD5E1; font-family: monospace; font-size: 12px; margin: 0; white-space: pre-wrap; word-break: break-all;">Click 'Run Code' to execute your solution in the secure Python sandbox.</pre>
-                </div>
-
-                <!-- AI Code Review Feedback Box -->
-                <div id="aiReviewBox" style="display: none; background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 14px; margin-top: 14px;">
-                    <div style="font-size: 12px; font-weight: 800; color: #C084FC; margin-bottom: 4px;">Prof. Bhavishya's Code Feedback:</div>
-                    <div id="aiReviewText" style="color: #E2E8F0; font-size: 13px; line-height: 1.5;"></div>
+                    <pre id="sandboxOutputTerminal" style="color: #E2E8F0; font-family: 'Consolas', monospace; font-size: 12.5px; margin: 0; white-space: pre-wrap; word-break: break-all;">Click 'Run Code ▶' above to test your code in the isolated Python sandbox.</pre>
                 </div>
             </div>
 
-            <!-- Pane 3: Mode C - Personal Doubt Solver -->
-            <div id="paneDoubt" style="display: none; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 20px; padding: 24px; min-height: 580px;">
-                <div style="font-size: 15px; font-weight: 700; color: #F8FAFC; margin-bottom: 12px;">Instant Concept & Doubt Clarification</div>
-                <p style="font-size: 13px; color: #94A3B8; margin-bottom: 16px;">
-                    Ask anything about <strong>{{ lesson.title }}</strong> or previous chapters. Prof. Bhavishya explains with tailored examples.
+            <!-- Checkpoint Quiz: W3Schools-Style Active Recall Exercise -->
+            {% if interactive_data.checkpoint_quiz %}
+            <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 18px; padding: 22px; box-shadow: 0 10px 30px -10px rgba(245, 158, 11, 0.15);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="help-circle" style="width: 20px; height: 20px; color: #F59E0B;"></i>
+                        <h3 style="font-size: 16px; font-weight: 800; color: #F8FAFC; margin: 0;">Quick Checkpoint Quiz</h3>
+                    </div>
+                    <span style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px;">Exercise</span>
+                </div>
+
+                <p style="font-size: 14.5px; color: #F1F5F9; font-weight: 600; line-height: 1.5; margin: 0 0 16px 0;">
+                    {{ interactive_data.checkpoint_quiz.question }}
                 </p>
 
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <button onclick="askPresetDoubt('Can you explain this with a simple real-world analogy?')" style="text-align: left; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 10px 14px; border-radius: 8px; font-size: 13px; cursor: pointer;">
-                        💡 Can you explain this with a simple real-world analogy?
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;" id="quizOptionsContainer">
+                    {% for opt in interactive_data.checkpoint_quiz.options %}
+                        <label style="display: flex; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); padding: 12px 16px; border-radius: 10px; cursor: pointer; transition: background 0.15s ease;">
+                            <input type="radio" name="checkpointOpt" value="{{ loop.index0 }}" style="accent-color: #F59E0B; width: 16px; height: 16px;">
+                            <span style="font-size: 13.5px; color: #CBD5E1;">{{ opt }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <button onclick="checkQuizAnswer()" style="background: #D97706; border: none; color: #FFFFFF; font-weight: 800; padding: 8px 20px; border-radius: 8px; font-size: 13px; cursor: pointer;">
+                        Submit Answer
                     </button>
-                    <button onclick="askPresetDoubt('What is the most common mistake students make here?')" style="text-align: left; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 10px 14px; border-radius: 8px; font-size: 13px; cursor: pointer;">
-                        ⚠️ What is the most common mistake students make here?
+                    <div id="quizResultNotice" style="font-size: 13px; font-weight: 700;"></div>
+                </div>
+
+                <div id="quizExplanationBox" style="display: none; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px; padding: 12px 14px; margin-top: 14px; color: #E2E8F0; font-size: 13px; line-height: 1.5;">
+                    <span style="color: #34D399; font-weight: 700;">Explanation: </span>
+                    {{ interactive_data.checkpoint_quiz.explanation }}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- ====================================================================
+             RIGHT COLUMN: Ski Assistant (24/7 Doubt Solver & Code Reviewer)
+             ==================================================================== -->
+        <div style="position: sticky; top: 80px; background: rgba(15, 23, 42, 0.98); border: 1.5px solid rgba(168, 85, 247, 0.35); border-radius: 20px; padding: 22px; display: flex; flex-direction: column; justify-content: space-between; min-height: 720px; box-shadow: 0 16px 40px -10px rgba(124, 58, 237, 0.2);">
+
+            <!-- Ski Header with Cute Mascot Avatar & Jarvis Pulse -->
+            <div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="position: relative;">
+                            <div id="skiAvatarGlow" style="width: 48px; height: 48px; border-radius: 50%; background: #000000; border: 2px solid #EC4899; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 0 16px rgba(236, 72, 153, 0.4);">
+                                <img src="/static/img/ski_dark.png" alt="Ski" onerror="this.src='/static/img/icon-192.png'" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            <span style="position: absolute; bottom: 0; right: 0; width: 13px; height: 13px; background: #10B981; border: 2px solid #0F172A; border-radius: 50%;"></span>
+                        </div>
+                        <div>
+                            <div style="font-size: 16px; font-weight: 800; color: #F8FAFC; display: flex; align-items: center; gap: 6px;">
+                                <span>Ski Assistant</span>
+                                <span style="background: linear-gradient(135deg, #EC4899, #8B5CF6); color: #FFFFFF; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 9999px;">JARVIS</span>
+                            </div>
+                            <div id="skiStatusSubtitle" style="font-size: 11.5px; color: #94A3B8;">24/7 Doubt Solver & Code Reviewer</div>
+                        </div>
+                    </div>
+
+                    <!-- Voice Mute / Unmute Toggle -->
+                    <button id="skiVoiceToggle" onclick="toggleSkiVoice()" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #F472B6; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Toggle Ski cute voice output">
+                        <i id="skiVoiceIcon" data-lucide="volume-2" style="width: 16px; height: 16px;"></i>
                     </button>
-                    <button onclick="askPresetDoubt('How does an interviewer ask questions on this in technical rounds?')" style="text-align: left; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 10px 14px; border-radius: 8px; font-size: 13px; cursor: pointer;">
-                        🎯 How does an interviewer test this in a technical round?
+                </div>
+
+                <!-- One-Click Preset Doubt Helpers -->
+                <div style="margin-bottom: 14px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 8px;">Quick Doubt Helpers:</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                        <button onclick="askSkiPreset('Can you explain this lesson simply with an everyday analogy?')" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); color: #CBD5E1; padding: 5px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; cursor: pointer;">
+                            💡 Explain Simply
+                        </button>
+                        <button onclick="askSkiPreset('What common mistakes do students make in this topic?')" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); color: #CBD5E1; padding: 5px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; cursor: pointer;">
+                            ⚠️ Common Pitfalls
+                        </button>
+                        <button onclick="askSkiPreset('How do interviewers test this concept in campus technical rounds?')" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); color: #CBD5E1; padding: 5px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; cursor: pointer;">
+                            🎯 Interview Question
+                        </button>
+                        <button onclick="askSkiToReviewCode()" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #C084FC; padding: 5px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                            🔍 Review My Editor Code
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat & Doubt History Stream -->
+                <div id="skiChatStream" style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px; max-height: 380px; min-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth;">
+                    <!-- Greeting from Ski -->
+                    <div style="background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 12px 12px 12px 2px; padding: 12px 14px; max-width: 92%;">
+                        <div style="font-size: 11px; color: #EC4899; font-weight: 800; margin-bottom: 3px;">Ski (AI Study Partner)</div>
+                        <div id="skiGreetingText" style="color: #F8FAFC; font-size: 13px; line-height: 1.5;">
+                            Hi {{ current_user.name or 'friend' }}! I'm Ski. I'm right here with you while you study <strong>{{ lesson.title }}</strong>! 
+                            Ask me any doubt in Hindi/Hinglish or English, or click "Review My Code" to check your sandbox work!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ski Voice Wave Visualizer & Input Form -->
+            <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 16px; margin-top: 12px;">
+                <!-- Voice Wave Visualizer -->
+                <div id="skiWaveBar" style="display: none; align-items: center; justify-content: center; gap: 4px; height: 24px; margin-bottom: 10px;">
+                    <span style="width: 3px; height: 10px; background: #EC4899; border-radius: 3px; animation: skiWave 0.7s infinite alternate;"></span>
+                    <span style="width: 3px; height: 20px; background: #A855F7; border-radius: 3px; animation: skiWave 0.7s infinite alternate 0.2s;"></span>
+                    <span style="width: 3px; height: 14px; background: #38BDF8; border-radius: 3px; animation: skiWave 0.7s infinite alternate 0.4s;"></span>
+                    <span style="width: 3px; height: 22px; background: #10B981; border-radius: 3px; animation: skiWave 0.7s infinite alternate 0.1s;"></span>
+                    <span style="font-size: 11.5px; color: #94A3B8; font-weight: 600; margin-left: 6px;">Listening through mic... Speak now</span>
+                </div>
+
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button id="skiMicBtn" onclick="toggleSkiMic()" style="background: linear-gradient(135deg, #EC4899, #7C3AED); border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #FFFFFF; cursor: pointer; flex-shrink: 0; box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);" title="Click to speak your doubt into microphone">
+                        <i id="skiMicIcon" data-lucide="mic" style="width: 20px; height: 20px;"></i>
                     </button>
+
+                    <div style="flex: 1; position: relative;">
+                        <input type="text" id="skiDoubtInput" placeholder="Ask Ski a doubt about this lesson..." 
+                               style="width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 12px; padding: 11px 44px 11px 14px; color: #FFFFFF; font-size: 13px; outline: none;"
+                               onkeydown="if(event.key === 'Enter') submitStudentDoubt()">
+                        <button onclick="submitStudentDoubt()" style="position: absolute; right: 6px; top: 6px; background: #7C3AED; border: none; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #FFFFFF; cursor: pointer;">
+                            <i data-lucide="send" style="width: 14px; height: 14px;"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
         </div>
+
     </div>
 
 </div>
 
-<!-- Waveform Animation Styles -->
+<!-- Wave Keyframe Styles -->
 <style>
-@keyframes wavePulse {
-    0%, 100% { transform: scaleY(0.4); opacity: 0.6; }
-    50% { transform: scaleY(1.2); opacity: 1; }
+@keyframes skiWave {
+    from { transform: scaleY(0.3); opacity: 0.5; }
+    to { transform: scaleY(1.3); opacity: 1; }
+}
+@media (max-width: 1024px) {
+    .bh-grid-layout {
+        grid-template-columns: 1fr !important;
+    }
 }
 </style>
 
-<!-- Voice & AI Teacher Interaction Scripts -->
+<!-- ==============================================================================
+     Interactive Classroom Script: Language Toggle, Python Runner, Quiz, Ski AI
+     ============================================================================== -->
 <script>
-let currentLanguage = 'english';
-let currentMode = 'classroom';
-let isRecognizing = false;
-let recognition = null;
-let speechSynth = window.speechSynthesis;
-let currentUtterance = null;
-
 const subjectSlug = "{{ subject.slug }}";
 const lessonId = "{{ lesson.id }}";
+const correctQuizIdx = {{ interactive_data.checkpoint_quiz.correct_index if interactive_data.checkpoint_quiz else 0 }};
 
-// 1. Language Toggle
-function setLanguagePref(lang) {
+const videoData = {
+    hindi: {
+        id: "{{ interactive_data.video_hindi.id if interactive_data.video_hindi else 'UrsmFxEIp5k' }}",
+        title: "{{ interactive_data.video_hindi.title if interactive_data.video_hindi else lesson.title ~ ' (Hindi)' }}"
+    },
+    english: {
+        id: "{{ interactive_data.video_english.id if interactive_data.video_english else '_uQrJ0TkZlc' }}",
+        title: "{{ interactive_data.video_english.title if interactive_data.video_english else lesson.title ~ ' (English)' }}"
+    }
+};
+
+let currentLanguage = 'hindi';
+let isVoiceEnabled = true;
+let isSkiListening = false;
+let speechRecognizer = null;
+
+// 1. Language Toggle: Switches Curated Video and Instructs Ski
+function switchCuratedLanguage(lang) {
     currentLanguage = lang;
-    document.getElementById('langEnglishBtn').style.background = lang === 'english' ? '#7C3AED' : 'transparent';
-    document.getElementById('langEnglishBtn').style.color = lang === 'english' ? '#FFFFFF' : '#94A3B8';
-    document.getElementById('langHinglishBtn').style.background = lang === 'hinglish' ? '#7C3AED' : 'transparent';
-    document.getElementById('langHinglishBtn').style.color = lang === 'hinglish' ? '#FFFFFF' : '#94A3B8';
+    const iframe = document.getElementById('curatedVideoPlayer');
+    const titleLabel = document.getElementById('videoTitleLabel');
+    const badge = document.getElementById('videoLangBadge');
+    const hindiBtn = document.getElementById('langHindiBtn');
+    const englishBtn = document.getElementById('langEnglishBtn');
+
+    if (lang === 'hindi') {
+        hindiBtn.style.background = '#7C3AED';
+        hindiBtn.style.color = '#FFFFFF';
+        englishBtn.style.background = 'transparent';
+        englishBtn.style.color = '#94A3B8';
+        iframe.src = `https://www.youtube.com/embed/${videoData.hindi.id}?rel=0&modestbranding=1&enablejsapi=1`;
+        titleLabel.textContent = videoData.hindi.title;
+        badge.textContent = '🇮🇳 Hindi Masterclass';
+    } else {
+        englishBtn.style.background = '#7C3AED';
+        englishBtn.style.color = '#FFFFFF';
+        hindiBtn.style.background = 'transparent';
+        hindiBtn.style.color = '#94A3B8';
+        iframe.src = `https://www.youtube.com/embed/${videoData.english.id}?rel=0&modestbranding=1&enablejsapi=1`;
+        titleLabel.textContent = videoData.english.title;
+        badge.textContent = '🇬🇧 English Masterclass';
+    }
 }
 
-// 2. Mode Switcher
-function switchClassroomMode(mode) {
-    currentMode = mode;
-    ['classroom', 'coding', 'doubt'].forEach(m => {
-        const pane = document.getElementById('pane' + m.charAt(0).toUpperCase() + m.slice(1));
-        const tab = document.getElementById('tabMode' + m.charAt(0).toUpperCase() + m.slice(1));
-        if (m === mode) {
-            pane.style.display = 'block';
-            tab.style.background = 'rgba(124, 58, 237, 0.2)';
-            tab.style.borderColor = '#7C3AED';
-            tab.style.color = '#FFFFFF';
+// 2. Run Python Code in Sandbox
+async function runPythonSandbox() {
+    const editor = document.getElementById('liveCodeEditor');
+    const outputTerm = document.getElementById('sandboxOutputTerminal');
+    const badge = document.getElementById('sandboxStatusBadge');
+    const btn = document.getElementById('runCodeBtn');
+
+    const code = editor.value;
+    if (!code.trim()) {
+        outputTerm.textContent = 'Please enter code before running.';
+        return;
+    }
+
+    badge.textContent = 'Executing...';
+    badge.style.color = '#F59E0B';
+    btn.disabled = true;
+
+    try {
+        const resp = await fetch('{{ url_for("bhavishya.run_code") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({code: code})
+        });
+        const data = await resp.json();
+
+        if (data.status === 'success') {
+            outputTerm.textContent = data.stdout || '(Code executed with no output)';
+            outputTerm.style.color = '#A7F3D0';
+            badge.textContent = `Success (${data.execution_time_ms}ms)`;
+            badge.style.color = '#10B981';
         } else {
-            pane.style.display = 'none';
-            tab.style.background = 'rgba(255, 255, 255, 0.04)';
-            tab.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-            tab.style.color = '#94A3B8';
+            outputTerm.textContent = data.stderr || 'Runtime error during execution';
+            outputTerm.style.color = '#F87171';
+            badge.textContent = 'Runtime Error';
+            badge.style.color = '#EF4444';
         }
+    } catch (err) {
+        outputTerm.textContent = 'Network error while reaching Python Sandbox. Please try again.';
+        badge.textContent = 'Error';
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+// 3. Reset Starter Code
+function resetStarterCode() {
+    const original = `{{ interactive_data.starter_code|e }}`;
+    document.getElementById('liveCodeEditor').value = original;
+    document.getElementById('sandboxOutputTerminal').textContent = "Editor reset to starter code. Click 'Run Code ▶' to execute.";
+    document.getElementById('sandboxStatusBadge').textContent = 'Ready';
+    document.getElementById('sandboxStatusBadge').style.color = '#10B981';
+}
+
+// 4. Copy Syntax Example
+function copySyntaxCode() {
+    const snippet = document.getElementById('syntaxSnippet').textContent;
+    navigator.clipboard.writeText(snippet).then(() => {
+        alert('Syntax snippet copied to clipboard!');
     });
 }
 
-// 3. Web Speech API (Speech to Text)
-function initSpeechRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        alert("Speech recognition is not supported in this browser. You can type in the text box below.");
-        return null;
-    }
-    const r = new SpeechRecognition();
-    r.continuous = false;
-    r.interimResults = false;
-    r.lang = currentLanguage === 'hinglish' ? 'hi-IN' : 'en-IN';
+// 5. Check Active Recall Quiz Answer
+function checkQuizAnswer() {
+    const selected = document.querySelector('input[name="checkpointOpt"]:checked');
+    const notice = document.getElementById('quizResultNotice');
+    const explanation = document.getElementById('quizExplanationBox');
 
-    r.onstart = function() {
-        isRecognizing = true;
-        document.getElementById('voiceWaveContainer').style.display = 'flex';
-        document.getElementById('micToggleBtn').style.transform = 'scale(1.1)';
-        document.getElementById('micToggleBtn').style.background = '#EF4444';
-        document.getElementById('teacherStateLabel').innerText = 'Listening to you...';
-        document.getElementById('teacherStateLabel').style.color = '#F59E0B';
-    };
-
-    r.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
-        document.getElementById('studentTextInput').value = transcript;
-        sendStudentResponse(transcript);
-    };
-
-    r.onerror = function(event) {
-        console.warn("Speech recognition error:", event.error);
-        stopMicrophone();
-    };
-
-    r.onend = function() {
-        stopMicrophone();
-    };
-
-    return r;
-}
-
-function toggleMicrophone() {
-    // If teacher is currently speaking, barge-in / interrupt immediately
-    if (speechSynth && speechSynth.speaking) {
-        speechSynth.cancel();
+    if (!selected) {
+        notice.textContent = 'Please select an option first!';
+        notice.style.color = '#F59E0B';
+        return;
     }
 
-    if (isRecognizing) {
-        stopMicrophone();
+    const val = parseInt(selected.value);
+    if (val === correctQuizIdx) {
+        notice.textContent = '🎉 Correct Answer! Excellent recall.';
+        notice.style.color = '#10B981';
+        if (explanation) explanation.style.display = 'block';
     } else {
-        if (!recognition) {
-            recognition = initSpeechRecognition();
-        }
-        if (recognition) {
-            try {
-                recognition.start();
-            } catch(e) {
-                console.warn(e);
-            }
-        }
+        notice.textContent = '❌ Not quite. Review the explanation below & try again!';
+        notice.style.color = '#EF4444';
+        if (explanation) explanation.style.display = 'block';
     }
 }
 
-function stopMicrophone() {
-    isRecognizing = false;
-    document.getElementById('voiceWaveContainer').style.display = 'none';
-    document.getElementById('micToggleBtn').style.transform = 'scale(1)';
-    document.getElementById('micToggleBtn').style.background = 'linear-gradient(135deg, #7C3AED, #EC4899)';
-    document.getElementById('teacherStateLabel').innerText = 'Ready • Click mic to speak';
-    document.getElementById('teacherStateLabel').style.color = '#34D399';
-    if (recognition) {
-        try { recognition.stop(); } catch(e) {}
-    }
-}
+// 6. Ski Assistant Doubt Solving & Code Review Engine
+async function submitStudentDoubt(customMessage = null, mode = 'doubt_solver') {
+    const input = document.getElementById('skiDoubtInput');
+    const query = customMessage || input.value.trim();
+    if (!query) return;
 
-// 4. Barge-In / Interrupt Handler
-function handleBargeIn() {
-    if (speechSynth && speechSynth.speaking) {
-        speechSynth.cancel();
-    }
-    document.getElementById('teacherStateLabel').innerText = 'Interrupted • Prof. Bhavishya is listening';
-    document.getElementById('teacherStateLabel').style.color = '#F87171';
-    toggleMicrophone();
-}
+    if (!customMessage && input) input.value = '';
 
-// 5. Speech Synthesis (Text to Speech)
-function speakTeacherReply(text) {
-    if (!speechSynth) return;
-    speechSynth.cancel(); // Stop prior speech
-    
-    currentUtterance = new SpeechSynthesisUtterance(text);
-    currentUtterance.rate = 1.0;
-    currentUtterance.pitch = 1.0;
-    
-    // Choose voice
-    const voices = speechSynth.getVoices();
-    const indVoice = voices.find(v => v.lang.includes('IN') || v.name.includes('India'));
-    if (indVoice) currentUtterance.voice = indVoice;
-
-    currentUtterance.onstart = function() {
-        document.getElementById('teacherStateLabel').innerText = 'Prof. Bhavishya is speaking...';
-        document.getElementById('teacherStateLabel').style.color = '#A855F7';
-        document.getElementById('teacherAvatarPulse').style.boxShadow = '0 0 24px rgba(236, 72, 153, 0.8)';
-    };
-
-    currentUtterance.onend = function() {
-        document.getElementById('teacherStateLabel').innerText = 'Waiting for your answer • Click mic to speak';
-        document.getElementById('teacherStateLabel').style.color = '#34D399';
-        document.getElementById('teacherAvatarPulse').style.boxShadow = '0 0 16px rgba(168, 85, 247, 0.5)';
-    };
-
-    speechSynth.speak(currentUtterance);
-}
-
-// 6. Send Student Message to Backend Socratic Engine
-async function sendStudentResponse(manualText) {
-    const text = manualText || document.getElementById('studentTextInput').value.trim();
-    if (!text) return;
-
-    // Append student bubble to transcript box
-    const box = document.getElementById('transcriptBox');
-    const studentBubble = document.createElement('div');
-    studentBubble.style.cssText = "align-self: flex-end; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px 12px 2px 12px; padding: 12px 16px; max-width: 85%;";
-    studentBubble.innerHTML = `<div style="font-size: 11px; color: #38BDF8; font-weight: 700; margin-bottom: 2px;">You</div><div style="color: #F8FAFC; font-size: 14px;">${text}</div>`;
-    box.appendChild(studentBubble);
-    box.scrollTop = box.scrollHeight;
-
-    document.getElementById('studentTextInput').value = '';
-    document.getElementById('teacherStateLabel').innerText = 'Prof. Bhavishya is thinking...';
+    appendSkiMessage('student', query);
+    appendSkiThinking();
 
     try {
-        const res = await fetch("{{ url_for('bhavishya.ai_teacher_interact') }}", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
+        const resp = await fetch('{{ url_for("bhavishya.ai_teacher_interact") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 subject_slug: subjectSlug,
                 lesson_id: lessonId,
-                message: text,
-                mode: currentMode,
+                message: query,
+                mode: mode,
                 language: currentLanguage
             })
         });
-        const data = await res.json();
-        if (data.reply) {
-            // Append teacher bubble
-            const teacherBubble = document.createElement('div');
-            teacherBubble.style.cssText = "align-self: flex-start; background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 12px 12px 12px 2px; padding: 12px 16px; max-width: 90%;";
-            teacherBubble.innerHTML = `<div style="font-size: 11px; color: #C084FC; font-weight: 700; margin-bottom: 2px;">Prof. Bhavishya</div><div style="color: #F8FAFC; font-size: 14px; line-height: 1.5;">${data.reply}</div>`;
-            box.appendChild(teacherBubble);
-            box.scrollTop = box.scrollHeight;
-
-            // Spoken output
-            speakTeacherReply(data.reply);
-        }
-    } catch(err) {
-        console.error("AI teacher communication error:", err);
+        const data = await resp.json();
+        removeSkiThinking();
+        appendSkiMessage('ski', data.reply || "I'm right here with you! Let's conquer this concept together.");
+        if (isVoiceEnabled) speakSkiVoice(data.reply);
+    } catch (err) {
+        removeSkiThinking();
+        appendSkiMessage('ski', "Connection hiccup, but don't worry! I'm here. Ask me again!");
     }
 }
 
-function askPresetDoubt(presetText) {
-    sendStudentResponse(presetText);
+function askSkiPreset(query) {
+    submitStudentDoubt(query, 'doubt_solver');
 }
 
-// 7. Secure Python Code Runner
-async function runPythonCode() {
-    const code = document.getElementById('codeEditorArea').value;
-    const term = document.getElementById('terminalOutput');
-    const badge = document.getElementById('execTimeBadge');
+function askSkiToReviewCode() {
+    const code = document.getElementById('liveCodeEditor').value;
+    if (!code.trim()) {
+        appendSkiMessage('ski', "Your editor is empty! Write some Python code in the sandbox, then ask me to review it.");
+        return;
+    }
+    const reviewPrompt = `Please review my code for this lesson:\n\`\`\`python\n${code}\n\`\`\``;
+    submitStudentDoubt(reviewPrompt, 'code_review');
+}
 
-    term.innerText = "Running in isolated Python sandbox...";
-    badge.innerText = "Executing...";
+function appendSkiMessage(sender, text) {
+    const stream = document.getElementById('skiChatStream');
+    const bubble = document.createElement('div');
+    if (sender === 'student') {
+        bubble.style.cssText = 'background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px 12px 2px 12px; padding: 10px 14px; max-width: 90%; align-self: flex-end;';
+        bubble.innerHTML = `<div style="font-size: 11px; color: #38BDF8; font-weight: 700; margin-bottom: 2px;">You</div><div style="color: #F8FAFC; font-size: 13px; line-height: 1.5;">${escapeHtml(text)}</div>`;
+    } else {
+        bubble.style.cssText = 'background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 12px 12px 12px 2px; padding: 10px 14px; max-width: 90%; align-self: flex-start;';
+        bubble.innerHTML = `<div style="font-size: 11px; color: #EC4899; font-weight: 800; margin-bottom: 2px;">Ski Assistant</div><div style="color: #F8FAFC; font-size: 13px; line-height: 1.5;">${escapeHtml(text)}</div>`;
+    }
+    stream.appendChild(bubble);
+    stream.scrollTop = stream.scrollHeight;
+}
 
-    try {
-        const res = await fetch("{{ url_for('bhavishya.run_code') }}", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({code: code})
-        });
-        const data = await res.json();
-        badge.innerText = `${data.execution_time_ms || 0} ms`;
+function appendSkiThinking() {
+    const stream = document.getElementById('skiChatStream');
+    const thinking = document.createElement('div');
+    thinking.id = 'skiThinkingIndicator';
+    thinking.style.cssText = 'background: rgba(255, 255, 255, 0.04); border-radius: 8px; padding: 8px 12px; max-width: 60%; align-self: flex-start; color: #94A3B8; font-size: 12px;';
+    thinking.textContent = 'Ski is thinking...';
+    stream.appendChild(thinking);
+    stream.scrollTop = stream.scrollHeight;
+}
 
-        if (data.status === 'success') {
-            term.style.color = '#34D399';
-            term.innerText = data.stdout;
-        } else {
-            term.style.color = '#F87171';
-            term.innerText = data.stderr || data.stdout;
-        }
-    } catch(e) {
-        term.style.color = '#F87171';
-        term.innerText = "Execution failed. Server unreachable.";
+function removeSkiThinking() {
+    const el = document.getElementById('skiThinkingIndicator');
+    if (el) el.remove();
+}
+
+function toggleSkiVoice() {
+    isVoiceEnabled = !isVoiceEnabled;
+    const icon = document.getElementById('skiVoiceIcon');
+    if (isVoiceEnabled) {
+        icon.setAttribute('data-lucide', 'volume-2');
+        alert('Ski voice output enabled.');
+    } else {
+        window.speechSynthesis.cancel();
+        icon.setAttribute('data-lucide', 'volume-x');
+        alert('Ski voice output muted.');
+    }
+    if (window.lucide) lucide.createIcons();
+}
+
+function speakSkiVoice(text) {
+    if (!('speechSynthesis' in window) || !isVoiceEnabled) return;
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/[*#`_]/g, '');
+    const utter = new SpeechSynthesisUtterance(cleanText);
+    utter.rate = 1.05;
+    utter.pitch = 1.25; // cute, pleasant tone
+    window.speechSynthesis.speak(utter);
+}
+
+// 7. Toggle Microphone Input for Ski
+function toggleSkiMic() {
+    const wave = document.getElementById('skiWaveBar');
+    const micIcon = document.getElementById('skiMicIcon');
+
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Voice speech recognition is not supported in this browser. Please type your doubt in the box!');
+        return;
+    }
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!isSkiListening) {
+        speechRecognizer = new SpeechRec();
+        speechRecognizer.lang = currentLanguage === 'hindi' ? 'hi-IN' : 'en-US';
+        speechRecognizer.interimResults = false;
+
+        speechRecognizer.onstart = () => {
+            isSkiListening = true;
+            wave.style.display = 'flex';
+            micIcon.style.color = '#EF4444';
+        };
+
+        speechRecognizer.onresult = (evt) => {
+            const transcript = evt.results[0][0].transcript;
+            document.getElementById('skiDoubtInput').value = transcript;
+            submitStudentDoubt();
+        };
+
+        speechRecognizer.onerror = () => {
+            isSkiListening = false;
+            wave.style.display = 'none';
+            micIcon.style.color = '#FFFFFF';
+        };
+
+        speechRecognizer.onend = () => {
+            isSkiListening = false;
+            wave.style.display = 'none';
+            micIcon.style.color = '#FFFFFF';
+        };
+
+        speechRecognizer.start();
+    } else {
+        if (speechRecognizer) speechRecognizer.stop();
+        isSkiListening = false;
+        wave.style.display = 'none';
+        micIcon.style.color = '#FFFFFF';
     }
 }
 
-// 8. AI Code Review
-async function reviewCodeWithAI() {
-    const code = document.getElementById('codeEditorArea').value;
-    const reviewBox = document.getElementById('aiReviewBox');
-    const reviewText = document.getElementById('aiReviewText');
-
-    reviewBox.style.display = 'block';
-    reviewText.innerText = "Prof. Bhavishya is reviewing your algorithm...";
-
-    try {
-        const res = await fetch("{{ url_for('bhavishya.review_code') }}", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                code: code,
-                problem_title: "{{ lesson.title }}"
-            })
-        });
-        const data = await res.json();
-        reviewText.innerText = data.feedback || "Good job! Ensure clean variable names and complexity considerations.";
-    } catch(e) {
-        reviewText.innerText = "Unable to retrieve code review right now.";
-    }
-}
-
-// 9. Lesson Completion Toggle
+// 8. Toggle Lesson Completion
 async function toggleLessonComplete() {
     try {
-        const res = await fetch("{{ url_for('bhavishya.toggle_lesson_completion') }}", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                subject_slug: subjectSlug,
-                lesson_id: lessonId
-            })
+        const resp = await fetch('{{ url_for("bhavishya.toggle_lesson_completion") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({subject_slug: subjectSlug, lesson_id: lessonId})
         });
-        const data = await res.json();
-        if (data.status === 'success') {
-            const btn = document.getElementById('toggleCompleteBtn');
-            const txt = document.getElementById('completeBtnText');
-            if (data.is_completed) {
-                btn.style.background = 'rgba(16, 185, 129, 0.15)';
-                btn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-                btn.style.color = '#34D399';
-                txt.innerText = 'Completed ✓';
-            } else {
-                btn.style.background = 'rgba(255, 255, 255, 0.06)';
-                btn.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-                btn.style.color = '#E2E8F0';
-                txt.innerText = 'Mark as Complete';
-            }
+        const data = await resp.json();
+        const btn = document.getElementById('toggleCompleteBtn');
+        const txt = document.getElementById('completeBtnText');
+
+        if (data.is_completed) {
+            btn.style.background = 'rgba(16, 185, 129, 0.15)';
+            btn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+            btn.style.color = '#34D399';
+            txt.textContent = 'Completed ✓';
+        } else {
+            btn.style.background = 'rgba(255, 255, 255, 0.06)';
+            btn.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+            btn.style.color = '#E2E8F0';
+            txt.textContent = 'Mark as Complete';
         }
-    } catch(e) {
-        console.error(e);
+    } catch (err) {
+        console.warn('Error toggling completion:', err);
     }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.innerText = text;
+    return div.innerHTML;
 }
 </script>
 {% endblock %}
