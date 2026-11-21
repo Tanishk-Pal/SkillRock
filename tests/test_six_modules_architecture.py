@@ -96,11 +96,14 @@ class TestSixModulesArchitecture(unittest.TestCase):
 
     def test_07_course_detail_six_modules_rendering(self):
         """Verify course classroom renders all 6 modules on /learning/courses/<slug>."""
+        with self.client.session_transaction() as sess:
+            sess.clear()
+
         with self.app.app_context():
             courses = Course.get_published_courses()
             slug = courses[0].slug if courses else "artificial-intelligence-machine-learning-master"
 
-        response = self.client.get(f"/learning/courses/{slug}")
+        response = self.client.get(f"/learning/courses/{slug}", follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
         self.assertIn("course-module-tabs-bar", html)

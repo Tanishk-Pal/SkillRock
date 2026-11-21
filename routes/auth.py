@@ -7,7 +7,7 @@ Removes all fake demo accounts.
 import os
 import logging
 from urllib.parse import urlparse, urljoin
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from models import User, PlatformSettings
 from services.google_auth import (
@@ -46,61 +46,67 @@ def is_safe_url(target):
 def get_actual_redirect_uri():
     """
     Computes the correct Google OAuth callback URI dynamically.
-    Guarantees that on Render / live domains, it ALWAYS uses:
+    Guarantees that on Render / live domains, it ALWAYS uses the matching host:
     https://{request.host}/auth/google/callback
-    and NEVER defaults to 127.0.0.1 or localhost.
+    and NEVER defaults to 127.0.0.1 or localhost when live.
+    Maintains session cookie domain affinity to prevent OAuth state mismatch.
     """
-    configured = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
     host = request.host.lower()
     is_local = host.startswith("localhost") or host.startswith("127.0.0.1")
 
-    if not is_local:
-        if configured and ("skillrock" in configured):
-            return configured
-        site_url = current_app.config.get("SITE_URL", "https://skillrock.in").rstrip("/")
-        if "skillrock.in" in site_url:
-            return f"{site_url}/auth/google/callback"
-        return f"https://{request.host}/auth/google/callback"
-    else:
-        # Local development
+    if is_local:
+        configured = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
         if configured and ("localhost" in configured or "127.0.0.1" in configured):
             return configured
         return f"http://{request.host}/auth/google/callback"
+
+    # Live / Production domain (Render or skillrock.in)
+    configured = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+    if configured and host in configured:
+        return configured
+
+    # Check request scheme (handle Render / reverse proxy X-Forwarded-Proto)
+    scheme = "https"
+    forwarded_proto = request.headers.get("X-Forwarded-Proto")
+    if forwarded_proto:
+        scheme = forwarded_proto.split(",")[0].strip()
+    elif request.is_secure:
+        scheme = "https"
+
+    return f"{scheme}://{request.host}/auth/google/callback"
 
 
 @auth_bp.route("/auth/google")
 def google_login():
     """Initiates Google OAuth 2.0 login / sign up / account connection flow."""
-    # Never redirect to login, register, or auth callback after authenticating
-    raw_next = request.args.get("next") or request.referrer or ""
-    safe_next = raw_next if is_safe_url(raw_next) else None
-    if not safe_next or any(x in str(safe_next).lower() for x in ["login", "register", "auth", "signin"]):
-        next_url = url_for("learning.courses_list")
-    else:
-        next_url = safe_next
-    session["oauth_next"] = next_url
-
-    if not is_google_auth_configured():
-        flash(
-            "Google Login is not configured yet. MANUAL CONFIGURATION REQUIRED: "
-            "Please configure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env file. "
-            "See GOOGLE_SETUP.md for complete step-by-step instructions.",
-            "warning"
-        )
-        if current_user.is_authenticated:
-            return redirect(next_url)
-        return redirect(url_for("auth.login"))
-
-    # If user is already authenticated, mark this session as an account linking flow
-    if current_user.is_authenticated:
-        session["linking_user_id"] = str(current_user.id)
-    else:
-        session.pop("linking_user_id", None)
-
-    # Determine dynamic redirect URI (always matches current live domain or localhost)
-    redirect_uri = get_actual_redirect_uri()
-
     try:
+        # Never redirect to login, register, or auth callback after authenticating
+        raw_next = request.args.get("next") or request.referrer or ""
+        safe_next = raw_next if is_safe_url(raw_next) else None
+        if not safe_next or any(x in str(safe_next).lower() for x in ["login", "register", "auth", "signin"]):
+            next_url = url_for("learning.courses_list")
+        else:
+            next_url = safe_next
+        session["oauth_next"] = next_url
+
+        if not is_google_auth_configured():
+            flash(
+                "Google Login is being updated. Please sign in with email/password or create an account below.",
+                "warning"
+            )
+            if current_user.is_authenticated:
+                return redirect(next_url)
+            return redirect(url_for("auth.login"))
+
+        # If user is already authenticated, mark this session as an account linking flow
+        if current_user.is_authenticated:
+            session["linking_user_id"] = str(current_user.id)
+        else:
+            session.pop("linking_user_id", None)
+
+        # Determine dynamic redirect URI (always matches current live domain or localhost)
+        redirect_uri = get_actual_redirect_uri()
+
         flow = get_google_auth_flow(redirect_uri)
         authorization_url, state = flow.authorization_url(
             access_type="offline",
@@ -111,10 +117,10 @@ def google_login():
         session["oauth_redirect_uri"] = redirect_uri
         return redirect(authorization_url)
     except Exception as e:
-        logger.error(f"Error initiating Google OAuth: {e}")
-        flash(f"Could not initiate Google Login: {str(e)}", "danger")
+        logger.error(f"Error initiating Google OAuth: {e}", exc_info=True)
+        flash(f"Could not initiate Google Login ({str(e)}). Please sign in with email or try again.", "warning")
         if current_user.is_authenticated:
-            return redirect(next_url)
+            return redirect(url_for("learning.courses_list"))
         return redirect(url_for("auth.login"))
 
 

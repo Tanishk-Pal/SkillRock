@@ -5,6 +5,55 @@
 {% block og_title %}SkillRock — Learn Skills. Build Projects. Prepare for Your Career.{% endblock %}
 {% block og_description %}Master software engineering, Python, Full-Stack Web Dev, DSA, AI, and career communication with hands-on projects, automated code testing, and authentic credentials.{% endblock %}
 
+{% block head %}
+<style>
+    .hero-btn-google {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        padding: 13px 24px;
+        font-size: 1.02rem;
+        background: #FFFFFF;
+        color: #1F2937 !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .hero-btn-google:hover {
+        background: #F8FAFC;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+        color: #111827 !important;
+    }
+    .hero-btn-signin {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 800;
+        padding: 13px 26px;
+        font-size: 1.02rem;
+        background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+        color: #FFFFFF !important;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .hero-btn-signin:hover {
+        background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 26px rgba(99, 102, 241, 0.55);
+        color: #FFFFFF !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="landing-page-wrapper" style="max-width: 1200px; margin: 0 auto; padding: 20px 16px 80px;">
 
@@ -34,20 +83,60 @@
         </p>
 
         <!-- CTA Buttons -->
-        <div class="hero-cta-wrap" style="display: flex; justify-content: center; align-items: center; gap: 14px; margin-bottom: 36px; flex-wrap: wrap;">
-            <a href="{{ url_for('learning.courses_list') }}" class="btn btn-primary btn-lg" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 800; padding: 14px 28px; font-size: 1.05rem; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);">
+        {% if current_user.is_authenticated %}
+        <div class="hero-cta-wrap" style="display: flex; justify-content: center; align-items: center; gap: 14px; margin-bottom: 24px; flex-wrap: wrap;">
+            <a href="{{ url_for('learning.courses_list') }}" class="btn btn-primary btn-lg" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 800; padding: 13px 26px; font-size: 1.02rem; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35); border-radius: 12px;">
                 <i data-lucide="book-open" style="width: 18px; height: 18px;"></i>
                 <span>Explore Courses</span>
             </a>
-            <a href="{{ url_for('auth.register') }}" class="btn btn-secondary btn-lg" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 14px 24px; font-size: 1.05rem;">
-                <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
-                <span>Start Learning Free</span>
+            <a href="{{ url_for('bhavishya.dashboard') }}" class="btn btn-secondary btn-lg" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 13px 22px; font-size: 1.02rem; border-color: rgba(168, 85, 247, 0.4); color: #C084FC; border-radius: 12px;">
+                <i data-lucide="cpu" style="width: 18px; height: 18px; color: #C084FC;"></i>
+                <span>Bhavishya 1.0 AI</span>
             </a>
-            <a href="{{ url_for('bhavishya.dashboard') }}" class="btn btn-secondary btn-lg" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 14px 22px; font-size: 1.05rem; border-color: rgba(168, 85, 247, 0.4); color: #C084FC;">
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary btn-lg" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 13px 22px; font-size: 1.02rem; border-radius: 12px;">
+                <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+                <span>My Dashboard</span>
+            </a>
+        </div>
+        {% else %}
+        <div class="hero-cta-wrap" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+            <!-- 1-Click Google Sign In (Hero Highlight) -->
+            <a href="{{ url_for('auth.google_login') }}" class="hero-btn-google" id="heroGoogleBtn" title="Continue with Google">
+                <svg width="20" height="20" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                </svg>
+                <span>Continue with Google</span>
+            </a>
+
+            <!-- Sign In with Email / Password -->
+            <a href="{{ url_for('auth.login') }}" class="hero-btn-signin" title="Sign In with Email">
+                <i data-lucide="log-in" style="width: 18px; height: 18px;"></i>
+                <span>Sign In</span>
+            </a>
+
+            <!-- Explore Courses -->
+            <a href="{{ url_for('learning.courses_list') }}" class="btn btn-secondary btn-lg" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 13px 22px; font-size: 1.02rem; border-radius: 12px;">
+                <i data-lucide="book-open" style="width: 18px; height: 18px;"></i>
+                <span>Explore Courses</span>
+            </a>
+
+            <!-- Bhavishya 1.0 AI -->
+            <a href="{{ url_for('bhavishya.dashboard') }}" class="btn btn-secondary btn-lg" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 13px 20px; font-size: 1.02rem; border-color: rgba(168, 85, 247, 0.4); color: #C084FC; border-radius: 12px;">
                 <i data-lucide="cpu" style="width: 18px; height: 18px; color: #C084FC;"></i>
                 <span>Bhavishya 1.0 AI</span>
             </a>
         </div>
+
+        <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 28px; font-size: 0.9rem; color: var(--text-secondary); flex-wrap: wrap;">
+            <span>New to SkillRock?</span>
+            <a href="{{ url_for('auth.register') }}" style="color: #6366F1; font-weight: 700; text-decoration: underline;">Create free account</a>
+            <span style="opacity: 0.5;">•</span>
+            <span>Free video lectures &amp; in-browser code editor</span>
+        </div>
+        {% endif %}
 
         <!-- Real Platform Stats Strip -->
         <div class="stats-strip" style="display: inline-flex; align-items: center; justify-content: center; gap: 20px; font-size: 0.9rem; color: var(--text-secondary); background: var(--bg-card); border: 1px solid var(--border-color); padding: 10px 24px; border-radius: 9999px; flex-wrap: wrap; box-shadow: var(--shadow-sm);">
