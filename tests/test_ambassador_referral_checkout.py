@@ -48,7 +48,8 @@ class TestAmbassadorReferralCheckout(unittest.TestCase):
         User._user_cache.clear()
         self.db.users.delete_many({"email": {"$regex": r"@skillrock\.test$"}})
         self.db.courses.delete_many({"slug": {"$in": ["applied-python-pro-development", "systems-programming-cpp"]}})
-        self.db.payments.delete_many({"gateway": "razorpay", "user_id": {"$regex": r"^test"}})
+        self.db.payments.delete_many({"$or": [{"gateway": "razorpay", "user_id": {"$regex": r"^test"}}, {"user_email": {"$regex": r"@skillrock\.test$"}}]})
+        self.db.ambassador_sales.delete_many({"student_email": {"$regex": r"@skillrock\.test$"}})
         self.db.checkout_sessions.delete_many({"item_title": "Applied Python Programming Masterclass"})
         self.db.user_access.delete_many({"item_id": "test_referral_course"})
 
@@ -93,6 +94,15 @@ class TestAmbassadorReferralCheckout(unittest.TestCase):
             "price": 699.0,
         })
         self.paid_course.save()
+
+    def tearDown(self):
+        # Purge test users, courses, payments, and sales
+        self.db.users.delete_many({"email": {"$regex": r"@skillrock\.test$"}})
+        self.db.courses.delete_many({"slug": {"$in": ["applied-python-pro-development", "systems-programming-cpp"]}})
+        self.db.payments.delete_many({"$or": [{"gateway": "razorpay", "user_id": {"$regex": r"^test"}}, {"user_email": {"$regex": r"@skillrock\.test$"}}]})
+        self.db.ambassador_sales.delete_many({"student_email": {"$regex": r"@skillrock\.test$"}})
+        self.db.checkout_sessions.delete_many({"item_title": "Applied Python Programming Masterclass"})
+        self.db.user_access.delete_many({"item_id": "test_referral_course"})
 
     def _login(self, email, password):
         self.client.get("/logout", follow_redirects=True)

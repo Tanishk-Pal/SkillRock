@@ -6,6 +6,7 @@ password reset, database inspection, and dynamic system settings.
 
 import os
 import sys
+import re
 import platform
 import logging
 import json
@@ -1699,6 +1700,131 @@ def payment_reject(payment_id):
     flash(
         f"Payment {payment['payment_id']} marked as rejected. Access has been revoked.",
         "warning"
+    )
+    return redirect(url_for("admin.payments_list"))
+
+
+@admin_bp.route("/payments/<payment_id>/delete", methods=["POST"])
+def payment_delete(payment_id):
+    """
+    Permanently deletes a payment record and purges all associated
+    sales, commission, and access attribution from SkillRock & Ambassador Portal.
+    """
+    clean_id = str(payment_id).strip()
+    db = get_db()
+    payment = db.payments.find_one({"payment_id": clean_id})
+    if not payment:
+        flash(f"Payment record '{clean_id}' not found.", "danger")
+        return redirect(url_for("admin.payments_list"))
+
+    # Revoke access if granted
+    if payment.get("user_id") and payment.get("item_type") and payment.get("item_id"):
+        try:
+            revoke_student_access(
+                user_id=payment["user_id"],
+                item_type=payment["item_type"],
+                item_id=payment["item_id"],
+            )
+        except Exception as e:
+            logger.warning(f"Error revoking access during payment delete: {e}")
+
+    # Delete from db.payments
+    db.payments.delete_one({"payment_id": clean_id})
+
+    # Delete from db.ambassador_sales
+    db.ambassador_sales.delete_many({"payment_id": clean_id})
+
+    # Clean from ssap_campus_db if present on same cluster
+    try:
+        from models.mongo import _mongo_client
+        if _mongo_client:
+            ssap_db = _mongo_client["ssap_campus_db"]
+            # Delete course sale
+            ssap_db.coursesales.delete_many({
+                "$or": [{"orderId": clean_id}, {"paymentId": clean_id}]
+            })
+            # Delete referral point transaction if any
+            ssap_db.pointstransactions.delete_many({
+                "reason": {"$regex": re.escape(clean_id)}
+            })
+            # If points were deleted for an ambassador, recalculate their points
+            if payment.get("srid"):
+                amb_srid = payment["srid"].upper().replace("SRID:", "")
+                amb = ssap_db.ambassadors.find_one({"srid": amb_srid})
+                if amb:
+                    pts_cursor = ssap_db.pointstransactions.find({"ambassadorId": amb["_id"]})
+                    real_pts = sum(pt.get("amount", 0) for pt in pts_cursor)
+                    ssap_db.ambassadors.update_one(
+                        {"_id": amb["_id"]},
+                        {"$set": {"totalPoints": max(0, real_pts)}}
+                    )
+    except Exception as e:
+        logger.warning(f"Error purging SSAP portal data for {clean_id}: {e}")
+
+    flash(f"🗑️ Payment record '{clean_id}' permanently deleted from system & ambassador portals.", "success")
+    return redirect(url_for("admin.payments_list"))
+
+
+@admin_bp.route("/payments/purge-test-records", methods=["POST"])
+def payments_purge_test_records():
+    """
+    Admin utility to sweep and permanently purge all test payments, fake referral
+    commissions, and mock student records across SkillRock and Ambassador Portal.
+    """
+    db = get_db()
+    
+    # 1. Purge test payments from skillswap_campus.payments
+    del_pay = db.payments.delete_many({
+        "$or": [
+            {"user_email": {"$regex": r"@skillrock\.test$"}},
+            {"user_id": {"$regex": r"^test"}},
+            {"item_title": "Systems Programming with C++"},
+            {"item_title": "Full-Stack Web Development Bootcamp"},
+            {"payment_id": {"$regex": r"TEST|REJ|SRCH"}}
+        ]
+    })
+    
+    # 2. Purge test sales from skillswap_campus.ambassador_sales
+    del_sales = db.ambassador_sales.delete_many({
+        "$or": [
+            {"student_email": {"$regex": r"@skillrock\.test$"}},
+            {"course_title": "Systems Programming with C++"},
+            {"course_title": "SkillRock Course"},
+            {"payment_id": {"$regex": r"TEST|REJ|SRCH"}}
+        ]
+    })
+    
+    # 3. Purge from ssap_campus_db
+    del_cs_count = 0
+    try:
+        from models.mongo import _mongo_client
+        if _mongo_client:
+            ssap_db = _mongo_client["ssap_campus_db"]
+            del_cs = ssap_db.coursesales.delete_many({
+                "$or": [
+                    {"buyerEmail": {"$regex": r"@skillrock\.test$"}},
+                    {"courseName": "Systems Programming with C++"},
+                    {"courseName": "SkillRock Course"},
+                    {"orderId": {"$regex": r"TEST|REJ|SRCH"}}
+                ]
+            })
+            del_cs_count = del_cs.deleted_count
+            
+            # Recalculate points for all ambassadors
+            for amb in ssap_db.ambassadors.find():
+                pts_cursor = ssap_db.pointstransactions.find({"ambassadorId": amb["_id"]})
+                total_pts = sum(pt.get("amount", 0) for pt in pts_cursor)
+                ssap_db.ambassadors.update_one(
+                    {"_id": amb["_id"]},
+                    {"$set": {"totalPoints": max(0, total_pts)}}
+                )
+    except Exception as e:
+        logger.warning(f"Error purging SSAP records: {e}")
+
+    flash(
+        f"🧹 Purge Complete: Removed {del_pay.deleted_count} test payments, "
+        f"{del_sales.deleted_count} local test sales, and {del_cs_count} ambassador portal sales.",
+        "success"
     )
     return redirect(url_for("admin.payments_list"))
 

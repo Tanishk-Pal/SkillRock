@@ -58,6 +58,12 @@
                     <i data-lucide="search" style="width: 14px; height: 14px;"></i>
                 </button>
             </form>
+            <form method="POST" action="{{ url_for('admin.payments_purge_test_records') }}" onsubmit="return confirm('PERMANENT ACTION: Purge all mock test payments (@skillrock.test) and clear fake commissions across SkillRock and Ambassador Portal?');">
+                <button type="submit" class="admin-btn admin-btn-danger" style="padding: 7px 14px; font-size: 0.8rem; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #F87171; display: inline-flex; align-items: center; gap: 5px;">
+                    <i data-lucide="shield-alert" style="width: 14px; height: 14px;"></i>
+                    <span>Purge Test Records</span>
+                </button>
+            </form>
         </div>
     </div>
 
@@ -204,6 +210,14 @@
                                     </button>
                                 </form>
                                 {% endif %}
+
+                                <!-- Permanent Delete Payment Record -->
+                                <form method="POST" action="{{ url_for('admin.payment_delete', payment_id=p.payment_id) }}" onsubmit="return confirm('PERMANENT ACTION: Completely delete payment record {{ p.payment_id }} (UTR: {{ p.utr_number }}) and purge any linked ambassador sales/commissions? This cannot be undone.');">
+                                    <button type="submit" class="admin-btn admin-btn-danger" style="padding: 5px 8px; font-size: 0.72rem; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; display: inline-flex; align-items: center; gap: 3px;" title="Permanently Delete Record">
+                                        <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
+                                        <span>Delete</span>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
