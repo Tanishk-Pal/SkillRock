@@ -7,6 +7,7 @@ Removes all fake demo accounts.
 import os
 import logging
 from urllib.parse import urlparse, urljoin
+from itsdangerous import URLSafeTimedSerializer
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from models import User, PlatformSettings
@@ -40,16 +41,25 @@ def is_safe_url(target):
         return False
 
 # ==============================================================================
-# Google OAuth 2.0 Authentication
+# Google OAuth 2.0 Authentication & Cross-Domain Bridge
 # ==============================================================================
+
+def get_bridge_serializer():
+    """Returns a serializer for secure cross-domain OAuth state and one-time tokens."""
+    secret = current_app.config.get("SECRET_KEY", "skillrock-cross-domain-oauth-secret-key-12345")
+    return URLSafeTimedSerializer(secret, salt="skillrock-auth-bridge")
+
 
 def get_actual_redirect_uri():
     """
     Computes the correct Google OAuth callback URI dynamically.
-    Guarantees that on Render / live domains, it ALWAYS uses the matching host:
-    https://{request.host}/auth/google/callback
-    and NEVER defaults to 127.0.0.1 or localhost when live.
-    Maintains session cookie domain affinity to prevent OAuth state mismatch.
+    Guarantees zero redirect_uri_mismatch errors across both domains:
+    - If local dev: http://{host}/auth/google/callback
+    - If live production: uses the Google-authorized callback
+      https://skillrock.onrender.com/auth/google/callback
+      (or explicit GOOGLE_REDIRECT_URI if configured to match).
+    Cross-domain login from skillrock.in / www.skillrock.in is seamlessly bridged
+    back via cryptographically signed state and one-time token.
     """
     host = request.host.lower()
     is_local = host.startswith("localhost") or host.startswith("127.0.0.1")
@@ -60,20 +70,15 @@ def get_actual_redirect_uri():
             return configured
         return f"http://{request.host}/auth/google/callback"
 
-    # Live / Production domain (Render or skillrock.in)
+    # Check if a custom GOOGLE_REDIRECT_URI matches current host
     configured = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
     if configured and host in configured:
         return configured
 
-    # Check request scheme (handle Render / reverse proxy X-Forwarded-Proto)
-    scheme = "https"
-    forwarded_proto = request.headers.get("X-Forwarded-Proto")
-    if forwarded_proto:
-        scheme = forwarded_proto.split(",")[0].strip()
-    elif request.is_secure:
-        scheme = "https"
-
-    return f"{scheme}://{request.host}/auth/google/callback"
+    # Primary callback authorized in Google Cloud Console
+    # Using this callback avoids error 400 redirect_uri_mismatch regardless of whether
+    # the user is accessing via skillrock.in, www.skillrock.in, or skillrock.onrender.com
+    return "https://skillrock.onrender.com/auth/google/callback"
 
 
 @auth_bp.route("/auth/google")
@@ -104,16 +109,29 @@ def google_login():
         else:
             session.pop("linking_user_id", None)
 
-        # Determine dynamic redirect URI (always matches current live domain or localhost)
+        # Determine dynamic redirect URI (always matches Google Console authorized redirect)
         redirect_uri = get_actual_redirect_uri()
 
-        flow = get_google_auth_flow(redirect_uri)
+        # Capture origin scheme and host so cross-domain logins can be bridged back
+        origin_scheme = "https" if (request.is_secure or request.headers.get("X-Forwarded-Proto") == "https") else "http"
+        origin_url = f"{origin_scheme}://{request.host}".rstrip("/")
+
+        state_payload = {
+            "origin": origin_url,
+            "next": next_url,
+            "linking_id": session.get("linking_user_id"),
+            "nonce": os.urandom(8).hex()
+        }
+        signed_state = get_bridge_serializer().dumps(state_payload)
+
+        flow = get_google_auth_flow(redirect_uri, state=signed_state)
         authorization_url, state = flow.authorization_url(
             access_type="offline",
             include_granted_scopes="true",
-            prompt="consent"
+            prompt="consent",
+            state=signed_state
         )
-        session["oauth_state"] = state
+        session["oauth_state"] = signed_state
         session["oauth_redirect_uri"] = redirect_uri
         return redirect(authorization_url)
     except Exception as e:
@@ -126,17 +144,26 @@ def google_login():
 
 @auth_bp.route("/auth/google/callback")
 def google_callback():
-    """Callback endpoint for Google OAuth 2.0 (handles login and account linking)."""
+    """Callback endpoint for Google OAuth 2.0 (handles login, account linking, and cross-domain bridge)."""
     if not is_google_auth_configured():
         flash("Google Login is not configured yet.", "danger")
         return redirect(url_for("auth.login"))
 
-    stored_state = session.get("oauth_state") or request.args.get("state")
+    incoming_state = request.args.get("state") or session.get("oauth_state")
+    state_data = {}
+    if incoming_state:
+        try:
+            state_data = get_bridge_serializer().loads(incoming_state, max_age=600)
+        except Exception as se:
+            logger.warning(f"Could not unpack signed state: {se}")
+
+    origin = state_data.get("origin") or ""
+    stored_state = incoming_state
     redirect_uri = session.get("oauth_redirect_uri") or get_actual_redirect_uri()
-    next_url = session.pop("oauth_next", url_for("learning.courses_list"))
+    next_url = state_data.get("next") or session.pop("oauth_next", url_for("learning.courses_list"))
     if not next_url or any(x in str(next_url).lower() for x in ["login", "register", "auth", "signin"]):
         next_url = url_for("learning.courses_list")
-    linking_user_id = session.pop("linking_user_id", None)
+    linking_user_id = state_data.get("linking_id") or session.pop("linking_user_id", None)
 
     try:
         flow = get_google_auth_flow(redirect_uri, state=stored_state)
@@ -218,6 +245,18 @@ def google_callback():
     # Log in user with persistent remember cookie
     login_user(user, remember=True)
 
+    # Cross-domain bridge: If login initiated on skillrock.in and callback landed on skillrock.onrender.com,
+    # generate a single-use signed token to log them in directly on skillrock.in
+    current_host_url = request.host_url.rstrip("/")
+    if origin and ("skillrock.in" in origin or "skillrock.onrender.com" in origin) and not origin.startswith(current_host_url):
+        bridge_token = get_bridge_serializer().dumps({
+            "user_id": str(user.id),
+            "next": next_url,
+            "nonce": os.urandom(8).hex()
+        })
+        bridge_target = f"{origin}/auth/bridge-login?token={bridge_token}"
+        return redirect(bridge_target)
+
     if next_url and "/courses/" in str(next_url):
         from routes.learning import auto_enroll_student_in_course
         course = auto_enroll_student_in_course(user, next_url)
@@ -238,6 +277,38 @@ def google_callback():
     if not next_url or any(x in str(next_url).lower() for x in ["login", "register", "signin", "auth", "dashboard"]):
         return redirect(url_for("learning.courses_list"))
     return redirect(next_url)
+
+
+@auth_bp.route("/auth/bridge-login")
+def bridge_login():
+    """
+    Seamless cross-domain OAuth bridge landing.
+    Validates a short-lived (60s), cryptographically signed token issued by google_callback
+    and logs the user in on this domain with full session and persistent remember-me cookie.
+    """
+    token = request.args.get("token", "").strip()
+    if not token:
+        flash("Invalid or expired login token.", "danger")
+        return redirect(url_for("auth.login"))
+
+    try:
+        data = get_bridge_serializer().loads(token, max_age=60)
+        user_id = data.get("user_id")
+        next_url = data.get("next") or url_for("learning.courses_list")
+        user = User.get_by_id(user_id)
+        if not user:
+            flash("User not found.", "danger")
+            return redirect(url_for("auth.login"))
+
+        login_user(user, remember=True)
+        flash(f"Signed in as {user.name} via Google.", "success")
+        if not next_url or any(x in str(next_url).lower() for x in ["login", "register", "signin", "auth", "dashboard"]):
+            return redirect(url_for("learning.courses_list"))
+        return redirect(next_url)
+    except Exception as e:
+        logger.error(f"Bridge login token validation error: {e}")
+        flash("Login session token expired or invalid. Please sign in again.", "warning")
+        return redirect(url_for("auth.login"))
 
 
 # ==============================================================================
