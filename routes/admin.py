@@ -246,16 +246,30 @@ def users_list():
     # Pre-calculate counts for each user (connections, messages, course enrollments & progress)
     enriched_users = []
     for u in users:
-        conn_count = Connection.count({"$or": [{"user1_id": u.id}, {"user2_id": u.id}]})
-        has_local_password = bool(u.password_hash)
-        has_google = bool(u.google_id or u.google_access_token)
+        try:
+            conn_count = Connection.count({"$or": [{"user1_id": u.id}, {"user2_id": u.id}]})
+        except Exception:
+            conn_count = 0
+
+        has_local_password = bool(getattr(u, "password_hash", None))
+        has_google = bool(getattr(u, "google_id", None) or getattr(u, "google_access_token", None))
 
         # Enrolled courses and progress calculation
-        u_enrollments = list(db.enrollments.find({"user_id": str(u.id)}))
-        enrolled_count = len(u_enrollments)
-        if enrolled_count > 0:
-            avg_progress = round(sum(int(e.get("watch_percent", 0) or 0) for e in u_enrollments) / enrolled_count)
-        else:
+        try:
+            u_enrollments = list(db.enrollments.find({"user_id": str(u.id)}))
+            enrolled_count = len(u_enrollments)
+            if enrolled_count > 0:
+                prog_vals = []
+                for e in u_enrollments:
+                    try:
+                        prog_vals.append(float(e.get("watch_percent", 0) or 0))
+                    except Exception:
+                        prog_vals.append(0.0)
+                avg_progress = round(sum(prog_vals) / enrolled_count)
+            else:
+                avg_progress = 0
+        except Exception:
+            enrolled_count = 0
             avg_progress = 0
 
         enriched_users.append({
@@ -336,12 +350,18 @@ def user_detail(user_id):
         c_title = course.title if course else f"Course #{cid}"
         c_slug = course.slug if course else cid
 
-        watch_secs = int(ed.get("watch_seconds", 0) or 0)
+        try:
+            watch_secs = int(float(ed.get("watch_seconds", 0) or 0))
+        except Exception:
+            watch_secs = 0
         mins = watch_secs // 60
         secs = watch_secs % 60
         formatted_watch_time = f"{mins:02d}:{secs:02d}"
 
-        duration_secs = int(ed.get("video_duration", 0) or 0)
+        try:
+            duration_secs = int(float(ed.get("video_duration", 0) or 0))
+        except Exception:
+            duration_secs = 0
         d_mins = duration_secs // 60
         d_secs = duration_secs % 60
         formatted_duration = f"{d_mins:02d}:{d_secs:02d}" if duration_secs > 0 else (course.estimated_duration if course else "N/A")

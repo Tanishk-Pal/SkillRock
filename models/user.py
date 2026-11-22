@@ -121,7 +121,8 @@ class User(UserMixin, db.Model):
 
     @property
     def avatar_url(self):
-        seed = self.avatar_seed or self.name.replace(" ", "_")
+        safe_name = (self.name or self.email or "student").replace(" ", "_")
+        seed = self.avatar_seed or safe_name
         return f"https://api.dicebear.com/7.x/notionists/svg?seed={seed}&backgroundColor=e2e8f0,cbd5e1,f1f5f9"
 
     def __repr__(self):

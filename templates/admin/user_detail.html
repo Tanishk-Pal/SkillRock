@@ -1,10 +1,10 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}Manage {{ target_user.name }}{% endblock %}
+{% block title %}Manage {{ target_user.name or 'Student' }}{% endblock %}
 {% block breadcrumb %}
 <a href="{{ url_for('admin.users_list') }}" style="color: var(--admin-text-muted); text-decoration: none;">Users</a>
 <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
-<span>{{ target_user.name }}</span>
+<span>{{ target_user.name or 'Student' }}</span>
 {% endblock %}
 
 {% block content %}
@@ -14,7 +14,7 @@
         <img src="{{ target_user.avatar_url }}" alt="avatar" style="width: 72px; height: 72px; border-radius: 50%; background: #1F293D; border: 3px solid #2D3A54;">
         <div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <h1 style="font-size: 1.5rem; font-weight: 800; color: #FFFFFF;">{{ target_user.name }}</h1>
+                <h1 style="font-size: 1.5rem; font-weight: 800; color: #FFFFFF;">{{ target_user.name or 'Student' }}</h1>
                 {% if target_user.is_admin %}
                 <span class="admin-badge admin-badge-gold">Super Admin</span>
                 {% elif target_user.is_banned %}
@@ -24,7 +24,7 @@
                 {% endif %}
             </div>
             <div style="font-size: 0.86rem; color: var(--admin-text-muted); margin-top: 4px; display: flex; flex-wrap: wrap; gap: 14px;">
-                <span><strong>Email:</strong> {{ target_user.email }}</span>
+                <span><strong>Email:</strong> {{ target_user.email or 'No email' }}</span>
                 <span><strong>ID:</strong> <code style="font-family: monospace; color: #60A5FA;">{{ target_user.id }}</code></span>
                 <span><strong>Joined:</strong> {{ target_user.created_at.strftime('%b %d, %Y') if target_user.created_at else 'Unknown' }}</span>
             </div>
@@ -336,7 +336,7 @@
         </div>
 
         <!-- Danger Zone: Permanent Deletion -->
-        {% if target_user.email.lower() != 'palt51419@gmail.com' %}
+        {% if (target_user.email or '').lower() != 'palt51419@gmail.com' %}
         <div class="admin-card" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.04);">
             <div class="admin-card-header" style="border-color: rgba(239, 68, 68, 0.3);">
                 <div class="admin-card-title" style="color: #F87171;">
@@ -346,11 +346,11 @@
             </div>
 
             <p style="font-size: 0.82rem; color: #D1D5DB; margin-bottom: 16px; line-height: 1.5;">
-                Permanently deletes <strong>{{ target_user.name }}</strong> and cascades deletion across all MongoDB collections:
+                Permanently deletes <strong>{{ target_user.name or 'Student' }}</strong> and cascades deletion across all MongoDB collections:
                 their skills, chat history, active connections, follow requests, and session bookings will be completely wiped out.
             </p>
 
-            <form method="POST" action="{{ url_for('admin.user_delete', user_id=target_user.id) }}" onsubmit="return confirm('PERMANENT ACTION: Are you 100% sure you want to permanently delete {{ target_user.name }} ({{ target_user.email }}) and cascade-delete all their records?');">
+            <form method="POST" action="{{ url_for('admin.user_delete', user_id=target_user.id) }}" onsubmit="return confirm('PERMANENT ACTION: Are you 100% sure you want to permanently delete this user and cascade-delete all their records?');">
                 <button type="submit" class="admin-btn admin-btn-danger" style="width: 100%; justify-content: center; padding: 10px;">
                     <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
                     <span>Permanently Delete Profile</span>

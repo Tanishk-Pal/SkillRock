@@ -707,7 +707,7 @@
             <div class="admin-user-pill">
                 <img src="{{ current_user.avatar_url }}" alt="avatar" class="admin-avatar-small">
                 <div class="admin-user-meta">
-                    <div class="admin-user-name">{{ current_user.name }}</div>
+                    <div class="admin-user-name">{{ current_user.name or current_user.email or 'Admin' }}</div>
                     <div class="admin-user-role">Super Admin</div>
                 </div>
             </div>

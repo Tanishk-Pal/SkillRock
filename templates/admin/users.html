@@ -78,10 +78,10 @@
                             <img src="{{ u.avatar_url }}" alt="avatar" style="width: 36px; height: 36px; border-radius: 50%; background: #1F293D; flex-shrink: 0;">
                             <div>
                                 <a href="{{ url_for('admin.user_detail', user_id=u.id) }}" style="font-weight: 700; color: #FFFFFF; font-size: 0.9rem;">
-                                    {{ u.name }}
+                                    {{ u.name or 'Student' }}
                                 </a>
                                 <div style="font-size: 0.75rem; color: var(--admin-text-muted);">
-                                    {{ u.email }}
+                                    {{ u.email or 'No email' }}
                                 </div>
                             </div>
                         </div>
@@ -174,8 +174,8 @@
                             </a>
 
                             <!-- Quick Delete (Protect Super Admin) -->
-                            {% if u.email.lower() != 'palt51419@gmail.com' %}
-                            <form method="POST" action="{{ url_for('admin.user_delete', user_id=u.id) }}" onsubmit="return confirm('CRITICAL WARNING: Are you completely sure you want to permanently delete profile {{ u.name }} ({{ u.email }}) and all their associated connections, messages, and requests?');" style="margin: 0;">
+                            {% if (u.email or '').lower() != 'palt51419@gmail.com' %}
+                            <form method="POST" action="{{ url_for('admin.user_delete', user_id=u.id) }}" onsubmit="return confirm('CRITICAL WARNING: Are you completely sure you want to permanently delete this user profile and all their associated data?');" style="margin: 0;">
                                 <button type="submit" class="admin-btn admin-btn-danger" style="padding: 6px 8px;" title="Permanently Delete Profile">
                                     <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                                 </button>
