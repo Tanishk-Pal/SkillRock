@@ -28,9 +28,12 @@ from models.bhavishya import (
     BhavishyaSubmission,
     BhavishyaSimulatorAttempt,
     BhavishyaCashback,
-    BhavishyaUsage
+    BhavishyaUsage,
+    BhavishyaBatchConfig,
+    BhavishyaLiveLecture
 )
 from models.default_bhavishya_curriculum import ensure_default_bhavishya_subjects
+from models.default_bhavishya_live import ensure_default_bhavishya_live_batch
 
 from models.mongo import (
     db,
@@ -105,5 +108,8 @@ __all__ = [
     "BhavishyaSimulatorAttempt",
     "BhavishyaCashback",
     "BhavishyaUsage",
+    "BhavishyaBatchConfig",
+    "BhavishyaLiveLecture",
     "ensure_default_bhavishya_subjects",
+    "ensure_default_bhavishya_live_batch",
 ]

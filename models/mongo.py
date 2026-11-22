@@ -374,9 +374,18 @@ class User(UserMixin):
         self.year = self._data.get("year", "")
         self.bio = self._data.get("bio", "")
         self.avatar_seed = self._data.get("avatar_seed", "")
-        self.xp = int(self._data.get("xp", 0))
-        self.rating = float(self._data.get("rating", 0.0))
-        self.rating_count = int(self._data.get("rating_count", 0))
+        try:
+            self.xp = int(self._data.get("xp", 0) or 0)
+        except Exception:
+            self.xp = 0
+        try:
+            self.rating = float(self._data.get("rating", 0.0) or 0.0)
+        except Exception:
+            self.rating = 0.0
+        try:
+            self.rating_count = int(self._data.get("rating_count", 0) or 0)
+        except Exception:
+            self.rating_count = 0
         self.role = self._data.get("role", "admin" if self.email == "palt51419@gmail.com" else "student")
         self.is_banned = bool(self._data.get("is_banned", False))
         self.ban_reason = self._data.get("ban_reason", "")

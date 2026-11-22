@@ -39,6 +39,8 @@ from models.bhavishya import (
     BhavishyaSimulatorAttempt,
     BhavishyaCashback,
     BhavishyaUsage,
+    BhavishyaBatchConfig,
+    BhavishyaLiveLecture,
 )
 from services.payment_service import verify_student_unlock
 from services.ai_service import get_gemini_api_keys
@@ -159,6 +161,14 @@ def dashboard():
         if continue_subject.chapters and continue_subject.chapters[0].get("lessons"):
             continue_lesson = continue_subject.chapters[0]["lessons"][0]
 
+    # Fetch Bhavishya 1.0 Live Lectures Batch configuration & modules
+    batch_config = BhavishyaBatchConfig.get_config("bhavishya-1-0")
+    active_live_lecture = BhavishyaLiveLecture.get_active_live("bhavishya-1-0")
+    next_scheduled_lecture = BhavishyaLiveLecture.get_next_scheduled("bhavishya-1-0")
+    live_modules = BhavishyaLiveLecture.get_modules_grouped("bhavishya-1-0")
+    all_live_lectures = BhavishyaLiveLecture.get_all("bhavishya-1-0")
+    completed_lectures_count = sum(1 for l in all_live_lectures if l.is_completed)
+
     return render_template(
         "bhavishya/dashboard.html",
         package=pkg,
@@ -173,6 +183,12 @@ def dashboard():
         continue_subject=continue_subject,
         continue_lesson=continue_lesson,
         cashback_status=cashback_status,
+        batch_config=batch_config,
+        active_live_lecture=active_live_lecture,
+        next_scheduled_lecture=next_scheduled_lecture,
+        live_modules=live_modules,
+        all_live_lectures=all_live_lectures,
+        completed_lectures_count=completed_lectures_count
     )
 
 
@@ -707,3 +723,151 @@ def cashback_claim():
         is_eligible=is_eligible,
         refund_amount=149.50,
     )
+
+
+# ==============================================================================
+# 9. Bhavishya 1.0 — Physics Wallah-Style Live Lecture Classroom & APIs
+# ==============================================================================
+
+@bhavishya_bp.route("/lecture/<lecture_id>")
+def live_classroom(lecture_id):
+    """
+    Physics Wallah-style interactive live classroom for Bhavishya 1.0 Python Batch:
+    - 🔴 LIVE NOW banner with 1-click Google Meet join for active sessions
+    - Recorded video replay player for completed sessions
+    - Downloadable class notes & PDF slides
+    - Topic-wise Daily Practice Problems (DPP) with instant solution verification
+    - In-browser interactive Python lab & compiler
+    - 24/7 Ski AI doubt partner
+    """
+    lecture = BhavishyaLiveLecture.get_by_id(lecture_id)
+    if not lecture:
+        flash("Live lecture not found.", "warning")
+        return redirect(url_for("bhavishya.dashboard"))
+
+    batch_config = BhavishyaBatchConfig.get_config("bhavishya-1-0")
+    all_lectures = BhavishyaLiveLecture.get_all("bhavishya-1-0")
+
+    # Access control: Lecture 1 is free preview; subsequent lectures require enrollment
+    is_unlocked = False
+    if current_user.is_authenticated:
+        is_unlocked = verify_student_unlock(current_user, "bhavishya", "bhavishya-1-0")
+
+    is_free_trial = (lecture.order == 1)
+    if not is_unlocked and not is_free_trial:
+        flash(f"'{lecture.title}' is part of the Bhavishya 1.0 Live Batch. Enroll to access all 16 live lectures, Google Meet sessions, DPPs & certificates!", "info")
+        return redirect(url_for("payment.checkout", item_type="bhavishya", item_id="bhavishya-1-0"))
+
+    # Determine prev and next lectures
+    prev_lec = None
+    next_lec = None
+    for idx, l in enumerate(all_lectures):
+        if l.lecture_id == lecture.lecture_id:
+            if idx > 0:
+                prev_lec = all_lectures[idx - 1]
+            if idx < len(all_lectures) - 1:
+                next_lec = all_lectures[idx + 1]
+            break
+
+    # Clean YouTube embed ID if provided
+    clean_recording_id = lecture.recording_url
+    if "youtube.com" in clean_recording_id or "youtu.be" in clean_recording_id:
+        from models.mongo import extract_youtube_id
+        extracted = extract_youtube_id(clean_recording_id)
+        if extracted:
+            clean_recording_id = extracted
+
+    return render_template(
+        "bhavishya/live_classroom.html",
+        lecture=lecture,
+        batch_config=batch_config,
+        all_lectures=all_lectures,
+        prev_lec=prev_lec,
+        next_lec=next_lec,
+        is_unlocked=is_unlocked,
+        is_free_trial=is_free_trial,
+        clean_recording_id=clean_recording_id
+    )
+
+
+@bhavishya_bp.route("/api/live_status")
+def api_live_status():
+    """Returns the current live lecture status for real-time dashboard notifications."""
+    active = BhavishyaLiveLecture.get_active_live("bhavishya-1-0")
+    if active:
+        return jsonify({
+            "is_live": True,
+            "lecture_id": active.lecture_id,
+            "title": active.title,
+            "teacher_name": active.teacher_name,
+            "meet_url": active.active_meet_url,
+            "duration": active.duration_minutes
+        })
+    next_lec = BhavishyaLiveLecture.get_next_scheduled("bhavishya-1-0")
+    return jsonify({
+        "is_live": False,
+        "next_lecture": {
+            "lecture_id": next_lec.lecture_id,
+            "title": next_lec.title,
+            "scheduled_display": next_lec.scheduled_display,
+            "scheduled_at": next_lec.scheduled_at
+        } if next_lec else None
+    })
+
+
+@bhavishya_bp.route("/api/dpp_submit", methods=["POST"])
+def api_dpp_submit():
+    """
+    Evaluates student DPP responses, calculates score, awards XP points,
+    and returns detailed solution explanations.
+    """
+    data = request.get_json() or {}
+    lecture_id = data.get("lecture_id", "")
+    answers = data.get("answers", {})  # { question_id: selected_index }
+
+    lecture = BhavishyaLiveLecture.get_by_id(lecture_id)
+    if not lecture:
+        return jsonify({"error": "Lecture not found"}), 404
+
+    correct_count = 0
+    total_questions = len(lecture.dpp_list)
+    results = []
+
+    for q in lecture.dpp_list:
+        qid = q.get("id")
+        user_choice = answers.get(qid)
+        correct_idx = q.get("answer_index", 0)
+        is_correct = False
+        if user_choice is not None:
+            try:
+                is_correct = (int(user_choice) == int(correct_idx))
+            except Exception:
+                is_correct = False
+        if is_correct:
+            correct_count += 1
+        results.append({
+            "id": qid,
+            "is_correct": is_correct,
+            "user_choice": user_choice,
+            "correct_index": correct_idx,
+            "explanation": q.get("explanation", "")
+        })
+
+    # Award XP to user if authenticated
+    xp_awarded = 0
+    if current_user.is_authenticated and correct_count > 0:
+        try:
+            xp_awarded = correct_count * 15
+            current_user.xp = getattr(current_user, "xp", 0) + xp_awarded
+            current_user.save()
+        except Exception as e_xp:
+            logger.warning(f"DPP XP award notice: {e_xp}")
+
+    return jsonify({
+        "success": True,
+        "total_questions": total_questions,
+        "correct_count": correct_count,
+        "score_percent": round((correct_count / total_questions) * 100) if total_questions else 0,
+        "xp_awarded": xp_awarded,
+        "results": results
+    })

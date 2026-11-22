@@ -194,5 +194,33 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination Controls -->
+    {% if total_pages and total_pages > 1 %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 12px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+        <div style="font-size: 0.82rem; color: var(--admin-text-muted);">
+            Showing page <strong>{{ page }}</strong> of <strong>{{ total_pages }}</strong> (Total: {{ total_count }} registered users)
+        </div>
+        <div style="display: flex; gap: 8px;">
+            {% if page > 1 %}
+            <a href="{{ url_for('admin.users_list', page=page-1, q=q, role=role_filter, status=status_filter) }}" class="admin-btn admin-btn-secondary" style="padding: 6px 12px; font-size: 0.82rem;">
+                <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>
+                <span>Previous</span>
+            </a>
+            {% endif %}
+
+            <span class="admin-btn admin-btn-primary" style="padding: 6px 14px; font-size: 0.82rem; pointer-events: none;">
+                {{ page }}
+            </span>
+
+            {% if page < total_pages %}
+            <a href="{{ url_for('admin.users_list', page=page+1, q=q, role=role_filter, status=status_filter) }}" class="admin-btn admin-btn-secondary" style="padding: 6px 12px; font-size: 0.82rem;">
+                <span>Next</span>
+                <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

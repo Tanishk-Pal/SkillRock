@@ -1,0 +1,584 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lecture.title }} | Bhavishya 1.0 Python Live Batch{% endblock %}
+{% block meta_description %}Attend {{ lecture.title }} live with the teacher on Google Meet or watch recorded replay, download class notes, solve DPPs, and run Python code live on SkillRock.{% endblock %}
+
+{% block content %}
+<div class="bh-live-container" style="max-width: 1480px; margin: 0 auto; padding: 18px 16px 80px;">
+
+    <!-- 1. Free Trial Notice for Demo Lecture -->
+    {% if is_free_trial and not is_unlocked %}
+    <div style="background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(56, 189, 248, 0.2)); border: 1.5px solid rgba(16, 185, 129, 0.5); border-radius: 14px; padding: 14px 20px; margin-bottom: 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="background: #10B981; color: #FFFFFF; font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 4px 12px; border-radius: 9999px;">Free Live Demo</span>
+            <span style="color: #F8FAFC; font-size: 13.5px; font-weight: 600;">
+                You are experiencing <strong>Live Lecture 01</strong> completely free! Join Google Meet, view notes, solve DPPs, and ask Ski doubts.
+            </span>
+        </div>
+        <a href="{{ url_for('payment.checkout', item_type='bhavishya', item_id='bhavishya-1-0') }}" 
+           class="btn btn-sm" 
+           style="background: linear-gradient(135deg, #7C3AED, #5B46F6); color: #FFFFFF; font-weight: 800; padding: 8px 18px; border-radius: 10px; font-size: 13px; text-decoration: none; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">
+            Enroll in Bhavishya 1.0 (₹299) for All 16 Live Classes →
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- 2. Physics Wallah-Style Live Status & Google Meet Header -->
+    <div class="pw-live-header" style="background: linear-gradient(135deg, #0F172A, #1E1B4B); border: 1.5px solid {% if lecture.is_live %}#EF4444{% else %}rgba(168, 85, 247, 0.35){% endif %}; border-radius: 18px; padding: 22px 26px; margin-bottom: 22px; box-shadow: 0 16px 36px -10px {% if lecture.is_live %}rgba(239, 68, 68, 0.3){% else %}rgba(124, 58, 237, 0.2){% endif %}; position: relative; overflow: hidden;">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 18px; position: relative; z-index: 2;">
+            
+            <!-- Left: Module & Title -->
+            <div style="max-width: 820px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;">
+                    <a href="{{ url_for('bhavishya.dashboard') }}" style="color: #94A3B8; text-decoration: none; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                        <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Back to Batch
+                    </a>
+                    <span style="color: rgba(255, 255, 255, 0.3);">•</span>
+                    <span style="color: #A855F7; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">{{ lecture.module_name }}</span>
+                    <span style="color: rgba(255, 255, 255, 0.3);">•</span>
+                    
+                    {% if lecture.is_live %}
+                        <span style="background: rgba(239, 68, 68, 0.2); border: 1.5px solid #EF4444; color: #FCA5A5; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px; animation: pulseLive 1.5s infinite;">
+                            <span style="width: 8px; height: 8px; background: #EF4444; border-radius: 50%;"></span>
+                            🔴 LIVE NOW ON GOOGLE MEET
+                        </span>
+                    {% elif lecture.is_completed %}
+                        <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                            <i data-lucide="check-circle" style="width: 12px; height: 12px;"></i> Class Completed • Replay Ready
+                        </span>
+                    {% else %}
+                        <span style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38BDF8; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                            <i data-lucide="clock" style="width: 12px; height: 12px;"></i> {{ lecture.scheduled_display or 'Upcoming Live Class' }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <h1 style="font-size: 24px; font-weight: 800; color: #FFFFFF; margin: 0 0 8px; line-height: 1.3;">
+                    {{ lecture.title }}
+                </h1>
+                <p style="color: #94A3B8; font-size: 14px; margin: 0; line-height: 1.5;">
+                    {{ lecture.description }}
+                </p>
+                
+                <div style="display: flex; align-items: center; gap: 14px; margin-top: 10px; font-size: 12.5px; color: #CBD5E1; flex-wrap: wrap;">
+                    <span style="display: inline-flex; align-items: center; gap: 5px;">
+                        <i data-lucide="user-check" style="width: 14px; color: #38BDF8;"></i> Educator: <strong>{{ lecture.teacher_name or batch_config.teacher_name }}</strong>
+                    </span>
+                    <span>•</span>
+                    <span style="display: inline-flex; align-items: center; gap: 5px;">
+                        <i data-lucide="clock" style="width: 14px; color: #F59E0B;"></i> Duration: <strong>{{ lecture.duration_minutes }} Mins</strong>
+                    </span>
+                    <span>•</span>
+                    <span style="display: inline-flex; align-items: center; gap: 5px;">
+                        <i data-lucide="file-text" style="width: 14px; color: #10B981;"></i> DPPs: <strong>{{ lecture.dpp_list|length }} Problems</strong>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Right: Direct Google Meet Launch & Next/Prev Nav -->
+            <div style="display: flex; flex-direction: column; gap: 10px; min-width: 260px; text-align: right;">
+                <a href="{{ lecture.active_meet_url }}" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="btn" 
+                   style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: {% if lecture.is_live %}linear-gradient(135deg, #EF4444, #DC2626){% else %}linear-gradient(135deg, #2563EB, #1D4ED8){% endif %}; color: #FFFFFF; font-weight: 800; font-size: 14.5px; padding: 12px 22px; border-radius: 12px; text-decoration: none; box-shadow: 0 8px 24px -4px {% if lecture.is_live %}rgba(239, 68, 68, 0.5){% else %}rgba(37, 99, 235, 0.4){% endif %}; transition: transform 0.15s ease;"
+                   onmouseover="this.style.transform='translateY(-2px)'"
+                   onmouseout="this.style.transform='translateY(0)'">
+                    <i data-lucide="video" style="width: 18px; height: 18px;"></i>
+                    <span>{% if lecture.is_live %}Join Live Class on Google Meet{% else %}Open Google Meet Room{% endif %}</span>
+                </a>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    {% if prev_lec %}
+                    <a href="{{ url_for('bhavishya.live_classroom', lecture_id=prev_lec.lecture_id) }}" class="btn btn-sm" style="background: rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 6px 12px; border-radius: 8px; font-size: 12px; text-decoration: none;">
+                        ← Prev Lecture
+                    </a>
+                    {% endif %}
+                    {% if next_lec %}
+                    <a href="{{ url_for('bhavishya.live_classroom', lecture_id=next_lec.lecture_id) }}" class="btn btn-sm" style="background: rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 6px 12px; border-radius: 8px; font-size: 12px; text-decoration: none;">
+                        Next Lecture →
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 3. MAIN PHYSICS WALLAH CLASSROOM LAYOUT: Content (Left) + Curriculum Drawer (Right) -->
+    <div style="display: grid; grid-template-columns: 2.4fr 1fr; gap: 24px; align-items: start;" class="pw-classroom-grid">
+
+        <!-- ====================================================================
+             LEFT PANE: 4-Pillar Physics Wallah Workspace (Tabs)
+             ==================================================================== -->
+        <div>
+            <!-- Navigation Tabs Bar -->
+            <div style="display: flex; gap: 8px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 6px; margin-bottom: 20px; overflow-x: auto;">
+                <button onclick="switchTab('lecture')" id="tabBtn-lecture" class="pw-tab-btn active" style="flex: 1; min-width: 130px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 10px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+                    <i data-lucide="tv" style="width: 15px; height: 15px;"></i>
+                    <span>{% if lecture.is_live %}Live Class{% else %}Lecture Replay{% endif %}</span>
+                </button>
+
+                <button onclick="switchTab('notes')" id="tabBtn-notes" class="pw-tab-btn" style="flex: 1; min-width: 120px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 10px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+                    <i data-lucide="book-open" style="width: 15px; height: 15px;"></i>
+                    <span>Class Notes</span>
+                </button>
+
+                <button onclick="switchTab('dpp')" id="tabBtn-dpp" class="pw-tab-btn" style="flex: 1; min-width: 120px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 10px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+                    <i data-lucide="check-square" style="width: 15px; height: 15px;"></i>
+                    <span>DPP ({{ lecture.dpp_list|length }})</span>
+                </button>
+
+                <button onclick="switchTab('lab')" id="tabBtn-lab" class="pw-tab-btn" style="flex: 1; min-width: 130px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 10px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+                    <i data-lucide="terminal" style="width: 15px; height: 15px;"></i>
+                    <span>Python Code Lab</span>
+                </button>
+
+                <button onclick="switchTab('doubts')" id="tabBtn-doubts" class="pw-tab-btn" style="flex: 1; min-width: 120px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 10px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+                    <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>
+                    <span>Ask Doubt</span>
+                </button>
+            </div>
+
+            <!-- TAB 1: Live Stream / Recorded Replay Video -->
+            <div id="tabContent-lecture" class="pw-tab-panel">
+                <div style="background: #000000; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; overflow: hidden; box-shadow: 0 16px 36px -10px rgba(0,0,0,0.7);">
+                    
+                    {% if lecture.is_live %}
+                    <!-- Live Stream Banner Card -->
+                    <div style="padding: 40px 30px; text-align: center; background: radial-gradient(circle at center, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.95) 75%);">
+                        <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(239, 68, 68, 0.2); border: 2px solid #EF4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #EF4444; animation: pulseLive 1.5s infinite;">
+                            <i data-lucide="video" style="width: 32px; height: 32px;"></i>
+                        </div>
+                        <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin: 0 0 8px;">
+                            Teacher is Teaching Live on Google Meet!
+                        </h2>
+                        <p style="color: #94A3B8; font-size: 14.5px; max-width: 580px; margin: 0 auto 24px; line-height: 1.5;">
+                            Click below to enter the live Google Meet classroom. Keep your microphone muted upon entry and raise your hand or ask doubts anytime.
+                        </p>
+                        <a href="{{ lecture.active_meet_url }}" target="_blank" rel="noopener noreferrer" 
+                           class="btn" style="display: inline-flex; align-items: center; gap: 10px; background: #EF4444; color: #FFFFFF; font-weight: 800; font-size: 16px; padding: 14px 32px; border-radius: 12px; text-decoration: none; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.45);">
+                            <i data-lucide="external-link" style="width: 20px; height: 20px;"></i>
+                            <span>Join Google Meet Live Stream Now →</span>
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <!-- Video Replay Frame -->
+                    {% if clean_recording_id %}
+                    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000000;">
+                        <iframe src="https://www.youtube.com/embed/{{ clean_recording_id }}?rel=0&modestbranding=1" 
+                                title="{{ lecture.title }}" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen 
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                        </iframe>
+                    </div>
+                    {% elif not lecture.is_live %}
+                    <div style="padding: 60px 24px; text-align: center; color: #94A3B8;">
+                        <i data-lucide="calendar" style="width: 48px; height: 48px; color: #38BDF8; margin-bottom: 12px;"></i>
+                        <h3 style="color: #FFFFFF; font-size: 18px; margin: 0 0 6px;">Class Scheduled</h3>
+                        <p style="font-size: 14px; max-width: 460px; margin: 0 auto 18px;">
+                            This lecture is scheduled for <strong>{{ lecture.scheduled_display }}</strong>. The live Google Meet button will be activated automatically at class time!
+                        </p>
+                        <a href="{{ lecture.active_meet_url }}" target="_blank" class="btn" style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38BDF8; color: #38BDF8; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 13px;">
+                            Open Class Meet Link Ahead of Time
+                        </a>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- TAB 2: Class Notes & Handouts -->
+            <div id="tabContent-notes" class="pw-tab-panel" style="display: none;">
+                <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 26px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <span style="font-size: 11px; font-weight: 800; color: #38BDF8; text-transform: uppercase;">Teacher Handout</span>
+                            <h2 style="font-size: 19px; font-weight: 800; color: #FFFFFF; margin: 2px 0 0;">Class Notes & Theory Breakdown</h2>
+                        </div>
+                        {% if lecture.notes_url %}
+                        <a href="{{ lecture.notes_url }}" target="_blank" class="btn btn-sm" style="background: rgba(56, 189, 248, 0.15); border: 1px solid #38BDF8; color: #38BDF8; font-weight: 700; padding: 8px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            <i data-lucide="download" style="width: 14px;"></i> Download Notes PDF
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <div style="color: #CBD5E1; font-size: 14.5px; line-height: 1.7; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 20px; white-space: pre-wrap; font-family: 'Inter', system-ui, sans-serif;">
+{{ lecture.notes_content or 'Notes are being compiled by the teacher. They will be uploaded right after the live class completes.' }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Daily Practice Problems (DPP) -->
+            <div id="tabContent-dpp" class="pw-tab-panel" style="display: none;">
+                <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 26px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 22px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <span style="font-size: 11px; font-weight: 800; color: #F59E0B; text-transform: uppercase;">Practice Like Physics Wallah</span>
+                            <h2 style="font-size: 19px; font-weight: 800; color: #FFFFFF; margin: 2px 0 0;">Daily Practice Problems (DPP)</h2>
+                        </div>
+                        <div id="dppScoreBadge" style="display: none; background: rgba(16, 185, 129, 0.2); border: 1px solid #10B981; color: #34D399; font-weight: 800; font-size: 13px; padding: 6px 14px; border-radius: 8px;">
+                            Score: <span id="dppScoreText">0/0</span>
+                        </div>
+                    </div>
+
+                    {% if lecture.dpp_list %}
+                    <form id="dppForm" onsubmit="event.preventDefault(); submitDPP();">
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            {% for q in lecture.dpp_list %}
+                            <div class="dpp-card" id="card-{{ q.id }}" style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 18px 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                    <span style="font-size: 12px; font-weight: 800; color: #F59E0B; background: rgba(245, 158, 11, 0.15); padding: 2px 8px; border-radius: 6px;">
+                                        Question {{ loop.index }}
+                                    </span>
+                                    <span class="dpp-result-tag" id="tag-{{ q.id }}" style="display: none; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px;"></span>
+                                </div>
+                                <p style="font-size: 15px; font-weight: 600; color: #F8FAFC; margin: 0 0 14px; line-height: 1.5;">
+                                    {{ q.question }}
+                                </p>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    {% for opt in q.options %}
+                                    <label style="display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: background 0.15s ease;">
+                                        <input type="radio" name="dpp_{{ q.id }}" value="{{ loop.index0 }}" style="accent-color: #7C3AED; width: 16px; height: 16px;">
+                                        <span style="font-size: 13.5px; color: #CBD5E1;">{{ opt }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                                <div class="dpp-explanation" id="exp-{{ q.id }}" style="display: none; margin-top: 12px; padding: 10px 14px; background: rgba(56, 189, 248, 0.1); border-left: 3px solid #38BDF8; border-radius: 0 8px 8px 0; font-size: 12.5px; color: #E0F2FE;">
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div style="margin-top: 24px; text-align: center;">
+                            <button type="submit" id="dppSubmitBtn" class="btn" style="background: linear-gradient(135deg, #10B981, #059669); color: #FFFFFF; font-weight: 800; padding: 12px 36px; border-radius: 12px; font-size: 14.5px; border: none; cursor: pointer; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);">
+                                Submit DPP & Check Answers →
+                            </button>
+                        </div>
+                    </form>
+                    {% else %}
+                    <p style="color: #94A3B8; text-align: center; padding: 30px;">
+                        Daily Practice Problems for this lecture are being curated and will be uploaded shortly.
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- TAB 4: In-Browser Python Lab -->
+            <div id="tabContent-lab" class="pw-tab-panel" style="display: none;">
+                <div style="background: rgba(15, 23, 42, 0.95); border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 18px; padding: 22px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="terminal" style="width: 20px; height: 20px; color: #38BDF8;"></i>
+                            <h3 style="font-size: 17px; font-weight: 800; color: #F8FAFC; margin: 0;">Interactive Python Playground</h3>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="resetEditorCode()" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); color: #CBD5E1; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                                ↺ Reset Code
+                            </button>
+                            <button onclick="runPythonSandbox()" id="runCodeBtn" style="background: linear-gradient(135deg, #10B981, #059669); border: none; color: #FFFFFF; padding: 6px 18px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+                                <i data-lucide="play" style="width: 14px;"></i> Run Code ▶
+                            </button>
+                        </div>
+                    </div>
+
+                    <textarea id="liveCodeEditor" 
+                              style="width: 100%; height: 260px; background: #070B14; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 12px; padding: 14px 16px; color: #38BDF8; font-family: 'Consolas', 'Courier New', monospace; font-size: 13.5px; line-height: 1.5; resize: vertical; outline: none;" 
+                              spellcheck="false">{{ lecture.starter_code }}</textarea>
+
+                    <div style="background: #020617; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 14px 16px; margin-top: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; font-weight: 700; color: #64748B;">
+                            <span>Output Terminal</span>
+                            <span id="sandboxStatusBadge" style="color: #10B981;">Ready</span>
+                        </div>
+                        <pre id="sandboxOutputTerminal" style="color: #E2E8F0; font-family: 'Consolas', monospace; font-size: 12.5px; margin: 0; white-space: pre-wrap; word-break: break-all;">Click 'Run Code ▶' above to test your code in the isolated Python sandbox.</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: Live Doubts Solver (Ski AI) -->
+            <div id="tabContent-doubts" class="pw-tab-panel" style="display: none;">
+                <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 18px; padding: 22px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="sparkles" style="width: 20px; height: 20px; color: #C084FC;"></i>
+                            <h3 style="font-size: 17px; font-weight: 800; color: #FFFFFF; margin: 0;">24/7 AI Doubt Partner (Ski)</h3>
+                        </div>
+                        <span style="font-size: 11px; font-weight: 700; color: #34D399; background: rgba(16, 185, 129, 0.15); padding: 3px 8px; border-radius: 6px;">
+                            ● Online • Hindi & English
+                        </span>
+                    </div>
+
+                    <div id="doubtChatStream" style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 16px; max-height: 380px; min-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px;">
+                        <div style="background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 12px; padding: 12px 14px; max-width: 90%;">
+                            <div style="font-size: 11px; color: #EC4899; font-weight: 800; margin-bottom: 3px;">Ski (AI Study Partner)</div>
+                            <div style="color: #F8FAFC; font-size: 13.5px; line-height: 1.5;">
+                                Hi {{ current_user.name or 'friend' }}! Ask me any doubt about <strong>{{ lecture.title }}</strong> in Hindi, Hinglish, or English. You can also paste your code!
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="doubtInput" placeholder="Type your doubt here..." 
+                               style="flex: 1; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 12px; padding: 12px 16px; color: #FFFFFF; font-size: 13.5px; outline: none;"
+                               onkeydown="if(event.key === 'Enter') submitDoubt()">
+                        <button onclick="submitDoubt()" style="background: linear-gradient(135deg, #7C3AED, #5B46F6); border: none; padding: 0 22px; border-radius: 12px; color: #FFFFFF; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+                            <span>Ask</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ====================================================================
+             RIGHT PANE: Full Batch Curriculum Drawer & Faculty Info
+             ==================================================================== -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+
+            <!-- Educator Card -->
+            <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 20px;">
+                <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px;">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #7C3AED, #EC4899); display: flex; align-items: center; justify-content: center; font-weight: 800; color: #FFFFFF; font-size: 18px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);">
+                        TP
+                    </div>
+                    <div>
+                        <div style="font-size: 15px; font-weight: 800; color: #FFFFFF;">{{ batch_config.teacher_name }}</div>
+                        <div style="font-size: 12px; color: #38BDF8; font-weight: 600;">{{ batch_config.teacher_title }}</div>
+                    </div>
+                </div>
+                <p style="font-size: 12.5px; color: #94A3B8; margin: 0 0 14px; line-height: 1.45;">
+                    {{ batch_config.teacher_bio }}
+                </p>
+                <a href="{{ lecture.active_meet_url }}" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; background: rgba(37, 99, 235, 0.15); border: 1px solid #3B82F6; color: #60A5FA; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
+                    <i data-lucide="video" style="width: 14px;"></i> Teacher Google Meet Link
+                </a>
+            </div>
+
+            <!-- Complete Lecture Navigation Playlist -->
+            <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 20px; max-height: 600px; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 10px;">
+                    <span style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Live Batch Curriculum</span>
+                    <span style="font-size: 11px; color: #94A3B8; font-weight: 700;">16 Lectures</span>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    {% for l in all_lectures %}
+                    <a href="{{ url_for('bhavishya.live_classroom', lecture_id=l.lecture_id) }}" 
+                       style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 10px; text-decoration: none; transition: background 0.15s ease; background: {% if l.lecture_id == lecture.lecture_id %}rgba(124, 58, 237, 0.25){% else %}rgba(255, 255, 255, 0.03){% endif %}; border: 1px solid {% if l.lecture_id == lecture.lecture_id %}#7C3AED{% else %}rgba(255, 255, 255, 0.06){% endif %};">
+                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                            <span style="width: 22px; height: 22px; border-radius: 6px; background: rgba(255, 255, 255, 0.06); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #94A3B8; flex-shrink: 0;">
+                                {{ l.order }}
+                            </span>
+                            <div style="min-width: 0;">
+                                <div style="font-size: 12.5px; font-weight: 700; color: {% if l.lecture_id == lecture.lecture_id %}#C084FC{% else %}#F1F5F9{% endif %}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ l.title }}
+                                </div>
+                                <div style="font-size: 10.5px; color: #64748B;">
+                                    {{ l.duration_minutes }}m • {{ l.dpp_list|length }} DPPs
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            {% if l.is_live %}
+                                <span style="font-size: 10px; font-weight: 800; color: #EF4444; background: rgba(239, 68, 68, 0.2); border: 1px solid #EF4444; padding: 2px 6px; border-radius: 4px;">LIVE</span>
+                            {% elif l.is_completed %}
+                                <span style="font-size: 10px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.15); padding: 2px 6px; border-radius: 4px;">Replay</span>
+                            {% else %}
+                                <span style="font-size: 10px; font-weight: 600; color: #94A3B8; background: rgba(255, 255, 255, 0.06); padding: 2px 6px; border-radius: 4px;">Upcoming</span>
+                            {% endif %}
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Styles & Keyframes -->
+<style>
+@keyframes pulseLive {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.pw-tab-btn {
+    background: transparent;
+    color: #94A3B8;
+}
+.pw-tab-btn:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.05);
+}
+.pw-tab-btn.active {
+    background: #7C3AED !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+}
+
+@media (max-width: 1024px) {
+    .pw-classroom-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+
+<!-- Physics Wallah Classroom Client Script -->
+<script>
+const currentLectureId = "{{ lecture.lecture_id }}";
+const initialStarterCode = {{ lecture.starter_code|tojson }};
+
+function switchTab(tabName) {
+    const tabs = ['lecture', 'notes', 'dpp', 'lab', 'doubts'];
+    tabs.forEach(t => {
+        const btn = document.getElementById('tabBtn-' + t);
+        const panel = document.getElementById('tabContent-' + t);
+        if (btn) btn.classList.remove('active');
+        if (panel) panel.style.display = 'none';
+    });
+    const activeBtn = document.getElementById('tabBtn-' + tabName);
+    const activePanel = document.getElementById('tabContent-' + tabName);
+    if (activeBtn) activeBtn.classList.add('active');
+    if (activePanel) activePanel.style.display = 'block';
+}
+
+function resetEditorCode() {
+    const editor = document.getElementById('liveCodeEditor');
+    if (editor) editor.value = initialStarterCode;
+}
+
+async function runPythonSandbox() {
+    const editor = document.getElementById('liveCodeEditor');
+    const term = document.getElementById('sandboxOutputTerminal');
+    const badge = document.getElementById('sandboxStatusBadge');
+    const code = editor ? editor.value : '';
+
+    if (!code.trim()) {
+        term.innerText = 'Please enter Python code to execute.';
+        return;
+    }
+
+    badge.innerText = 'Executing...';
+    badge.style.color = '#F59E0B';
+    term.innerText = 'Executing in Python Sandbox...';
+
+    try {
+        const resp = await fetch('{{ url_for("bhavishya.run_code") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ code: code, subject_slug: 'python-programming', lesson_id: currentLectureId })
+        });
+        const data = await resp.json();
+        badge.innerText = 'Completed';
+        badge.style.color = '#10B981';
+        term.innerText = (data.stdout || '') + (data.stderr ? '\\nError:\\n' + data.stderr : '') || 'Code executed successfully with no output.';
+    } catch (err) {
+        badge.innerText = 'Failed';
+        badge.style.color = '#EF4444';
+        term.innerText = 'Sandbox Error: ' + err.message;
+    }
+}
+
+async function submitDPP() {
+    const form = document.getElementById('dppForm');
+    const formData = new FormData(form);
+    const answers = {};
+
+    for (let [k, v] of formData.entries()) {
+        if (k.startsWith('dpp_')) {
+            const qid = k.replace('dpp_', '');
+            answers[qid] = parseInt(v);
+        }
+    }
+
+    try {
+        const resp = await fetch('{{ url_for("bhavishya.api_dpp_submit") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ lecture_id: currentLectureId, answers: answers })
+        });
+        const data = await resp.json();
+
+        if (data.success) {
+            const scoreBadge = document.getElementById('dppScoreBadge');
+            const scoreText = document.getElementById('dppScoreText');
+            scoreText.innerText = data.correct_count + '/' + data.total_questions + ' (' + data.score_percent + '%)' + (data.xp_awarded > 0 ? ' • +' + data.xp_awarded + ' XP!' : '');
+            scoreBadge.style.display = 'block';
+
+            data.results.forEach(res => {
+                const card = document.getElementById('card-' + res.id);
+                const tag = document.getElementById('tag-' + res.id);
+                const exp = document.getElementById('exp-' + res.id);
+
+                if (tag) {
+                    tag.style.display = 'inline-block';
+                    if (res.is_correct) {
+                        tag.innerText = '✓ Correct';
+                        tag.style.background = 'rgba(16, 185, 129, 0.2)';
+                        tag.style.color = '#34D399';
+                        if (card) card.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+                    } else {
+                        tag.innerText = '✗ Incorrect';
+                        tag.style.background = 'rgba(239, 68, 68, 0.2)';
+                        tag.style.color = '#F87171';
+                        if (card) card.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                    }
+                }
+                if (exp && res.explanation) {
+                    exp.style.display = 'block';
+                    exp.innerHTML = '<strong>Explanation:</strong> ' + res.explanation;
+                }
+            });
+        }
+    } catch (e) {
+        alert('Could not submit DPP. Please try again.');
+    }
+}
+
+async function submitDoubt() {
+    const input = document.getElementById('doubtInput');
+    const query = input ? input.value.trim() : '';
+    const stream = document.getElementById('doubtChatStream');
+    if (!query) return;
+
+    input.value = '';
+
+    // Append student bubble
+    const userBubble = document.createElement('div');
+    userBubble.style.cssText = 'background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 10px 14px; max-width: 85%; align-self: flex-end; color: #FFFFFF; font-size: 13.5px;';
+    userBubble.innerText = query;
+    stream.appendChild(userBubble);
+    stream.scrollTop = stream.scrollHeight;
+
+    // Append loading bubble
+    const skiBubble = document.createElement('div');
+    skiBubble.style.cssText = 'background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 12px; padding: 12px 14px; max-width: 88%; color: #F8FAFC; font-size: 13.5px; line-height: 1.5;';
+    skiBubble.innerHTML = '<div style="font-size: 11px; color: #EC4899; font-weight: 800; margin-bottom: 3px;">Ski (Thinking...)</div>Thinking...';
+    stream.appendChild(skiBubble);
+    stream.scrollTop = stream.scrollHeight;
+
+    try {
+        const resp = await fetch('{{ url_for("bhavishya.ai_teacher_interact") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ message: query, subject_slug: 'python-programming', lesson_id: currentLectureId, mode: 'doubt_solver' })
+        });
+        const data = await resp.json();
+        skiBubble.innerHTML = '<div style="font-size: 11px; color: #EC4899; font-weight: 800; margin-bottom: 3px;">Ski (AI Study Partner)</div>' + (data.reply || data.response || 'I am right here with you! Let us solve this together.');
+    } catch (err) {
+        skiBubble.innerHTML = '<div style="font-size: 11px; color: #EC4899; font-weight: 800; margin-bottom: 3px;">Ski</div>' + 'Could not reach Ski AI. Please try again in a moment!';
+    }
+    stream.scrollTop = stream.scrollHeight;
+}
+</script>
+{% endblock %}

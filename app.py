@@ -27,6 +27,7 @@ from models import (
     ensure_default_test_series,
     ensure_default_roadmaps,
     ensure_default_bhavishya_subjects,
+    ensure_default_bhavishya_live_batch,
     RoadmapPackage,
     BhavishyaSubject,
     BhavishyaPackage,
@@ -68,6 +69,7 @@ def create_app(config_class=Config):
             ensure_default_test_series()
             ensure_default_roadmaps()
             ensure_default_bhavishya_subjects()
+            ensure_default_bhavishya_live_batch()
         except Exception as e_init:
             import logging
             logging.getLogger(__name__).warning(f"Database initialization/seed notice: {e_init}")

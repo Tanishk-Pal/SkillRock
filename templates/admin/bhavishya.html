@@ -1,56 +1,243 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}Bhavishya 1.0 AI Platform Management{% endblock %}
-{% block breadcrumb %}Bhavishya 1.0{% endblock %}
+{% block title %}Bhavishya 1.0 Python Live Batch Console{% endblock %}
+{% block breadcrumb %}Bhavishya 1.0 Live Batch{% endblock %}
 
 {% block content %}
+<!-- 1. Live Batch Management Card -->
+<div class="admin-card" style="margin-bottom: 24px; border-color: rgba(168, 85, 247, 0.4);">
+    <div class="admin-card-header">
+        <div>
+            <div class="admin-card-title">
+                <i data-lucide="video" style="color: #EF4444;"></i>
+                <span>Bhavishya 1.0 — Python Master Live Batch Settings</span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
+                Manage teacher profile, global Google Meet link, batch announcements, and live stream settings.
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('bhavishya.dashboard') }}" target="_blank" class="admin-btn admin-btn-secondary" style="gap: 6px;">
+                <i data-lucide="external-link" style="width: 14px;"></i>
+                <span>Open Student Live Batch</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Batch Config Form -->
+    <form method="POST" action="{{ url_for('admin.bhavishya_update_config') }}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+        <div>
+            <label style="font-size: 0.8rem; font-weight: 700; color: #CBD5E1; display: block; margin-bottom: 6px;">
+                Teacher / Instructor Name:
+            </label>
+            <input type="text" name="teacher_name" value="{{ batch_config.teacher_name }}" class="admin-input" required>
+        </div>
+
+        <div>
+            <label style="font-size: 0.8rem; font-weight: 700; color: #CBD5E1; display: block; margin-bottom: 6px;">
+                Teacher Title / Designation:
+            </label>
+            <input type="text" name="teacher_title" value="{{ batch_config.teacher_title }}" class="admin-input">
+        </div>
+
+        <div>
+            <label style="font-size: 0.8rem; font-weight: 700; color: #38BDF8; display: block; margin-bottom: 6px;">
+                Default Google Meet Link (Used for all live lectures):
+            </label>
+            <input type="url" name="global_meet_url" value="{{ batch_config.global_meet_url }}" class="admin-input" placeholder="https://meet.google.com/xyz-abcd-efg" required>
+        </div>
+
+        <div style="grid-column: 1 / -1;">
+            <label style="font-size: 0.8rem; font-weight: 700; color: #F59E0B; display: block; margin-bottom: 6px;">
+                Batch Announcement (Broadcasted to all students on the live dashboard):
+            </label>
+            <textarea name="announcement" class="admin-input" rows="2" style="resize: vertical;">{{ batch_config.announcement }}</textarea>
+        </div>
+
+        <div>
+            <button type="submit" class="admin-btn admin-btn-primary" style="padding: 10px 20px;">
+                <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+                <span>Save Live Batch Settings</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- 2. Live Lectures Manager (Physics Wallah 16 Live Lectures) -->
+<div class="admin-card" style="margin-bottom: 24px;">
+    <div class="admin-card-header">
+        <div>
+            <div class="admin-card-title">
+                <i data-lucide="tv"></i>
+                <span>16 Live Lectures Schedule & Controls (Google Meet)</span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
+                Set live status, edit Google Meet links, upload recorded YouTube replays, and attach lecture notes.
+            </p>
+        </div>
+    </div>
+
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Module & Title</th>
+                    <th>Status</th>
+                    <th>Scheduled Display</th>
+                    <th>Google Meet Link</th>
+                    <th>Recording Replay</th>
+                    <th>Notes & DPP</th>
+                    <th style="text-align: right;">Live Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lec in live_lectures %}
+                <tr>
+                    <td style="font-weight: 800; color: var(--admin-text-muted);">{{ lec.order }}</td>
+                    
+                    <td>
+                        <div style="font-size: 0.72rem; color: #A855F7; font-weight: 700; text-transform: uppercase;">{{ lec.module_name }}</div>
+                        <a href="{{ url_for('bhavishya.live_classroom', lecture_id=lec.lecture_id) }}" target="_blank" style="font-weight: 700; color: #FFFFFF; font-size: 0.88rem; text-decoration: none;">
+                            {{ lec.title }}
+                        </a>
+                        <div style="font-size: 0.74rem; color: var(--admin-text-muted);">{{ lec.duration_minutes }} Mins • {{ lec.teacher_name }}</div>
+                    </td>
+
+                    <td>
+                        {% if lec.is_live %}
+                            <span class="admin-badge admin-badge-red" style="animation: pulseLive 1.5s infinite;">
+                                🔴 LIVE NOW
+                            </span>
+                        {% elif lec.is_completed %}
+                            <span class="admin-badge admin-badge-green">
+                                ✓ Completed
+                            </span>
+                        {% else %}
+                            <span class="admin-badge admin-badge-blue">
+                                ⏳ Scheduled
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <span style="font-size: 0.78rem; color: #CBD5E1;">{{ lec.scheduled_display }}</span>
+                    </td>
+
+                    <td>
+                        <a href="{{ lec.active_meet_url }}" target="_blank" style="font-size: 0.76rem; color: #60A5FA; display: inline-flex; align-items: center; gap: 4px;">
+                            <i data-lucide="video" style="width: 12px;"></i> Open Meet
+                        </a>
+                    </td>
+
+                    <td>
+                        {% if lec.recording_url %}
+                            <span style="font-size: 0.74rem; color: #34D399; font-family: monospace;">✓ {{ lec.recording_url[:12] }}...</span>
+                        {% else %}
+                            <span style="font-size: 0.74rem; color: var(--admin-text-muted);">No replay</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <span style="font-size: 0.76rem; color: #F59E0B; font-weight: 600;">{{ lec.dpp_list|length }} DPPs</span>
+                    </td>
+
+                    <td style="text-align: right;">
+                        <div style="display: inline-flex; gap: 6px; align-items: center;">
+                            <!-- Go Live / End Class Quick Toggles -->
+                            {% if lec.is_live %}
+                            <form method="POST" action="{{ url_for('admin.bhavishya_lecture_status', lecture_id=lec.lecture_id) }}" style="margin: 0;">
+                                <input type="hidden" name="status" value="completed">
+                                <button type="submit" class="admin-btn admin-btn-success" style="padding: 4px 8px; font-size: 0.72rem;" title="Mark class as Completed">
+                                    End Class
+                                </button>
+                            </form>
+                            {% else %}
+                            <form method="POST" action="{{ url_for('admin.bhavishya_lecture_status', lecture_id=lec.lecture_id) }}" style="margin: 0;">
+                                <input type="hidden" name="status" value="live">
+                                <button type="submit" class="admin-btn admin-btn-danger" style="padding: 4px 8px; font-size: 0.72rem;" title="Go LIVE now with Google Meet link">
+                                    🔴 Go Live
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            <!-- Quick Edit Details Button (triggers popover/prompt) -->
+                            <button onclick="openEditModal('{{ lec.lecture_id }}', '{{ lec.title|escape }}', '{{ lec.google_meet_url|escape }}', '{{ lec.recording_url|escape }}', '{{ lec.notes_url|escape }}', '{{ lec.scheduled_display|escape }}')" class="admin-btn admin-btn-secondary" style="padding: 4px 8px; font-size: 0.72rem;">
+                                ✏️ Edit
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal for Editing Lecture Details -->
+<div id="lectureEditModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: #0F172A; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 18px; padding: 26px; max-width: 540px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
+            <h3 style="color: #FFFFFF; font-size: 16px; margin: 0; font-weight: 800;">Edit Live Lecture Details</h3>
+            <button onclick="closeEditModal()" style="background: transparent; border: none; color: #94A3B8; font-size: 18px; cursor: pointer;">✕</button>
+        </div>
+
+        <form id="editLectureForm" method="POST" action="">
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #CBD5E1; display: block; margin-bottom: 4px;">Lecture Title:</label>
+                    <input type="text" id="modalTitle" name="title" class="admin-input" required>
+                </div>
+
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #38BDF8; display: block; margin-bottom: 4px;">Lecture Google Meet URL:</label>
+                    <input type="url" id="modalMeet" name="google_meet_url" class="admin-input" placeholder="https://meet.google.com/xyz-abcd-efg">
+                </div>
+
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #F59E0B; display: block; margin-bottom: 4px;">YouTube Recording URL / ID (Replay):</label>
+                    <input type="text" id="modalRecording" name="recording_url" class="admin-input" placeholder="e.g. UrsmFxEIp5k">
+                </div>
+
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #10B981; display: block; margin-bottom: 4px;">Notes / PDF URL:</label>
+                    <input type="url" id="modalNotes" name="notes_url" class="admin-input" placeholder="https://drive.google.com/... or docs URL">
+                </div>
+
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #CBD5E1; display: block; margin-bottom: 4px;">Scheduled Display Time:</label>
+                    <input type="text" id="modalSchedule" name="scheduled_display" class="admin-input" placeholder="e.g. Upcoming • Mon, 24 Nov • 07:00 PM IST">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button type="button" onclick="closeEditModal()" class="admin-btn admin-btn-secondary">Cancel</button>
+                    <button type="submit" class="admin-btn admin-btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 3. Supplementary Subjects Table -->
 <div class="admin-card">
     <div class="admin-card-header">
         <div>
             <div class="admin-card-title">
-                <i data-lucide="cpu"></i>
-                <span>Bhavishya 1.0 Platform Console</span>
+                <i data-lucide="layers"></i>
+                <span>Supplementary Curriculum Subjects ({{ subjects|length }})</span>
             </div>
             <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
-                Inspect the 19 Bhavishya subjects, monitor AI Teacher sessions, review enrollments, and track 50% cashback claims.
+                Manage the supplementary 19 self-paced reference subjects across technical foundations and placement prep.
             </p>
         </div>
         <div>
-            <a href="{{ url_for('admin.cashback_list') }}" class="admin-btn admin-btn-primary">
+            <a href="{{ url_for('admin.cashback_list') }}" class="admin-btn admin-btn-secondary">
                 <i data-lucide="gift"></i>
                 <span>Cashback Claims Console ({{ cashback_claims_count }})</span>
             </a>
         </div>
     </div>
 
-    <!-- Metric Overview Cards -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px;">
-        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--admin-border); border-radius: 12px; padding: 16px;">
-            <div style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 700;">Package Price</div>
-            <div style="font-size: 1.5rem; font-weight: 800; color: #34D399; margin-top: 4px;">₹{{ package.price }}</div>
-            <div style="font-size: 0.75rem; color: var(--admin-text-muted);">50% Refund: ₹149.50</div>
-        </div>
-
-        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--admin-border); border-radius: 12px; padding: 16px;">
-            <div style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 700;">Active Enrolled Students</div>
-            <div style="font-size: 1.5rem; font-weight: 800; color: #38BDF8; margin-top: 4px;">{{ enrolled_count }}</div>
-            <div style="font-size: 0.75rem; color: var(--admin-text-muted);">In user_access collection</div>
-        </div>
-
-        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--admin-border); border-radius: 12px; padding: 16px;">
-            <div style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 700;">Active Learning Profiles</div>
-            <div style="font-size: 1.5rem; font-weight: 800; color: #A855F7; margin-top: 4px;">{{ progress_count }}</div>
-            <div style="font-size: 0.75rem; color: var(--admin-text-muted);">Persistent student memory</div>
-        </div>
-
-        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--admin-border); border-radius: 12px; padding: 16px;">
-            <div style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 700;">Total Curriculum Subjects</div>
-            <div style="font-size: 1.5rem; font-weight: 800; color: #EC4899; margin-top: 4px;">{{ subjects|length }}</div>
-            <div style="font-size: 0.75rem; color: var(--admin-text-muted);">Across 3 categories</div>
-        </div>
-    </div>
-
-    <!-- Subjects Table -->
     <div class="admin-table-wrapper">
         <table class="admin-table">
             <thead>
@@ -79,7 +266,7 @@
                     </td>
                     <td>
                         <div style="font-size: 0.82rem; color: var(--admin-text-main);">{{ subj.estimated_hours }} Hours</div>
-                        <div style="font-size: 0.75rem; color: var(--admin-text-muted);">{{ subj.chapters|length }} Chapters &bull; {{ subj.total_lessons_count }} Lessons</div>
+                        <div style="font-size: 0.75rem; color: var(--admin-text-muted);">{{ subj.chapters|length }} Chapters • {{ subj.total_lessons_count }} Lessons</div>
                     </td>
                     <td>
                         <span style="font-size: 0.75rem; color: var(--admin-text-muted);">{{ subj.difficulty }}</span>
@@ -107,4 +294,30 @@
         </table>
     </div>
 </div>
+
+<script>
+function openEditModal(lectureId, title, meetUrl, recUrl, notesUrl, schedDisplay) {
+    const modal = document.getElementById('lectureEditModal');
+    const form = document.getElementById('editLectureForm');
+    form.action = '/admin/bhavishya/lecture/' + lectureId + '/edit';
+    document.getElementById('modalTitle').value = title || '';
+    document.getElementById('modalMeet').value = meetUrl || '';
+    document.getElementById('modalRecording').value = recUrl || '';
+    document.getElementById('modalNotes').value = notesUrl || '';
+    document.getElementById('modalSchedule').value = schedDisplay || '';
+    modal.style.display = 'flex';
+}
+
+function closeEditModal() {
+    document.getElementById('lectureEditModal').style.display = 'none';
+}
+</script>
+
+<style>
+@keyframes pulseLive {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+</style>
 {% endblock %}

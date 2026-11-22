@@ -13,10 +13,10 @@ from models.mongo import db, get_db, _to_obj_id, slugify
 class BhavishyaPackage:
     id = "bhavishya-1-0"
     slug = "bhavishya-1-0"
-    title = "Bhavishya 1.0 — AI-Powered Career Preparation Platform"
-    short_description = "24-Week Interactive Classroom, 19 Subjects, Interactive Labs, Top Hindi/English Lectures & 24/7 AI Doubt Solver."
-    duration = "24 Weeks"
-    level = "Beginner to Advanced"
+    title = "Bhavishya 1.0 — Python Master Live Batch"
+    short_description = "Live Interactive Lectures on Google Meet with Teacher, Structured Python Curriculum (Zero to Placement), Daily Practice Problems (DPP), Handwritten Notes & 24/7 AI Doubt Solver."
+    duration = "8 Weeks (16 Live Lectures)"
+    level = "Zero to Placement (Beginner to Advanced)"
     price = 299.0
     original_price = 2499.0
     currency = "INR"
@@ -545,3 +545,201 @@ class BhavishyaUsage:
         usage = cls({"user_id": str(user_id), "month_key": m_key})
         usage.save()
         return usage
+
+
+# ==============================================================================
+# 8. Bhavishya 1.0 — Physics Wallah-Style Live Batch & Live Lectures
+# ==============================================================================
+
+class BhavishyaBatchConfig:
+    collection_name = "bhavishya_batch_config"
+    batch_id = "bhavishya-1-0"
+
+    def __init__(self, data=None):
+        self._data = data or {}
+        self._id = self._data.get("_id")
+        self.id = str(self._id) if self._id else "bhavishya-1-0"
+        self.batch_id = self._data.get("batch_id", "bhavishya-1-0")
+        self.title = self._data.get("title", "Bhavishya 1.0 — Python Master Live Batch")
+        self.tagline = self._data.get("tagline", "Interactive Live Lectures on Google Meet with Teacher, Daily Practice Problems (DPP), Handwritten Notes, and 24/7 AI Doubt Solving")
+        self.teacher_name = self._data.get("teacher_name", "Tanishk Pal")
+        self.teacher_title = self._data.get("teacher_title", "Lead Python Educator & Software Architect")
+        self.teacher_bio = self._data.get("teacher_bio", "Passionate about making programming intuitive, crystal clear, and placement-focused just like Physics Wallah live classes.")
+        self.global_meet_url = self._data.get("global_meet_url", "https://meet.google.com/new")
+        self.announcement = self._data.get("announcement", "🚀 Welcome to Bhavishya 1.0 Live Batch! Live classes are conducted on Google Meet. Join 5 minutes before scheduled time with VS Code ready!")
+        self.announcement_updated_at = self._data.get("announcement_updated_at") or datetime.now(timezone.utc)
+        self.whatsapp_url = self._data.get("whatsapp_url", "https://chat.whatsapp.com/SkillRockPython")
+        self.telegram_url = self._data.get("telegram_url", "https://t.me/SkillRockCampus")
+        self.total_lectures = int(self._data.get("total_lectures", 16))
+        self.price = float(self._data.get("price", 299.0))
+        self.original_price = float(self._data.get("original_price", 2499.0))
+
+    def save(self):
+        db = get_db()
+        doc = {
+            "batch_id": self.batch_id,
+            "title": self.title,
+            "tagline": self.tagline,
+            "teacher_name": self.teacher_name,
+            "teacher_title": self.teacher_title,
+            "teacher_bio": self.teacher_bio,
+            "global_meet_url": self.global_meet_url,
+            "announcement": self.announcement,
+            "announcement_updated_at": datetime.now(timezone.utc),
+            "whatsapp_url": self.whatsapp_url,
+            "telegram_url": self.telegram_url,
+            "total_lectures": self.total_lectures,
+            "price": self.price,
+            "original_price": self.original_price,
+            "updated_at": datetime.now(timezone.utc),
+        }
+        res = db[self.collection_name].update_one({"batch_id": self.batch_id}, {"$set": doc}, upsert=True)
+        if not self._id and res.upserted_id:
+            self._id = res.upserted_id
+            self.id = str(self._id)
+        return self
+
+    @classmethod
+    def get_config(cls, batch_id="bhavishya-1-0"):
+        db = get_db()
+        doc = db[cls.collection_name].find_one({"batch_id": batch_id})
+        if doc:
+            return cls(doc)
+        config = cls({"batch_id": batch_id})
+        config.save()
+        return config
+
+
+class BhavishyaLiveLecture:
+    collection_name = "bhavishya_live_lectures"
+
+    STATUS_SCHEDULED = "scheduled"
+    STATUS_LIVE = "live"
+    STATUS_COMPLETED = "completed"
+
+    def __init__(self, data=None):
+        self._data = data or {}
+        self._id = self._data.get("_id")
+        self.id = str(self._id) if self._id else str(self._data.get("lecture_id", ""))
+        self.lecture_id = str(self._data.get("lecture_id", self.id))
+        self.batch_id = self._data.get("batch_id", "bhavishya-1-0")
+        self.module_number = int(self._data.get("module_number", 1))
+        self.module_name = self._data.get("module_name", "Module 1: Python Essentials")
+        self.lecture_number = int(self._data.get("lecture_number", 1))
+        self.title = self._data.get("title", "")
+        self.description = self._data.get("description", "")
+        self.teacher_name = self._data.get("teacher_name", "Tanishk Pal")
+        self.scheduled_at = self._data.get("scheduled_at", "")
+        self.scheduled_display = self._data.get("scheduled_display", "")
+        self.duration_minutes = int(self._data.get("duration_minutes", 90))
+        self.status = self._data.get("status", self.STATUS_SCHEDULED)
+        self.google_meet_url = self._data.get("google_meet_url", "")
+        self.recording_url = self._data.get("recording_url", "")
+        self.notes_url = self._data.get("notes_url", "")
+        self.notes_content = self._data.get("notes_content", "")
+        self.starter_code = self._data.get("starter_code", "# Python Live Code Playground\nprint('Hello SkillRock Bhavishya Live!')\n")
+        self.dpp_list = self._data.get("dpp_list", [])
+        self.order = int(self._data.get("order", self.lecture_number))
+        self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
+        self.updated_at = self._data.get("updated_at") or datetime.now(timezone.utc)
+
+    @property
+    def is_live(self):
+        return self.status == self.STATUS_LIVE
+
+    @property
+    def is_completed(self):
+        return self.status == self.STATUS_COMPLETED
+
+    @property
+    def is_scheduled(self):
+        return self.status == self.STATUS_SCHEDULED
+
+    @property
+    def active_meet_url(self):
+        if self.google_meet_url and self.google_meet_url.strip():
+            return self.google_meet_url.strip()
+        config = BhavishyaBatchConfig.get_config(self.batch_id)
+        return config.global_meet_url
+
+    def save(self):
+        db = get_db()
+        self.updated_at = datetime.now(timezone.utc)
+        doc = {
+            "lecture_id": self.lecture_id,
+            "batch_id": self.batch_id,
+            "module_number": self.module_number,
+            "module_name": self.module_name,
+            "lecture_number": self.lecture_number,
+            "order": self.order,
+            "title": self.title,
+            "description": self.description,
+            "teacher_name": self.teacher_name,
+            "scheduled_at": self.scheduled_at,
+            "scheduled_display": self.scheduled_display,
+            "duration_minutes": self.duration_minutes,
+            "status": self.status,
+            "google_meet_url": self.google_meet_url,
+            "recording_url": self.recording_url,
+            "notes_url": self.notes_url,
+            "notes_content": self.notes_content,
+            "starter_code": self.starter_code,
+            "dpp_list": self.dpp_list,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
+        res = db[self.collection_name].update_one(
+            {"lecture_id": self.lecture_id},
+            {"$set": doc},
+            upsert=True
+        )
+        if not self._id and res.upserted_id:
+            self._id = res.upserted_id
+            self.id = str(self._id)
+        return self
+
+    @classmethod
+    def get_by_id(cls, lecture_id):
+        if not lecture_id:
+            return None
+        db = get_db()
+        doc = db[cls.collection_name].find_one({
+            "$or": [{"lecture_id": str(lecture_id)}, {"_id": _to_obj_id(lecture_id)}]
+        })
+        return cls(doc) if doc else None
+
+    @classmethod
+    def get_all(cls, batch_id="bhavishya-1-0"):
+        db = get_db()
+        cursor = db[cls.collection_name].find({"batch_id": batch_id}).sort("order", 1)
+        return [cls(doc) for doc in cursor]
+
+    @classmethod
+    def get_active_live(cls, batch_id="bhavishya-1-0"):
+        db = get_db()
+        doc = db[cls.collection_name].find_one({"batch_id": batch_id, "status": cls.STATUS_LIVE})
+        return cls(doc) if doc else None
+
+    @classmethod
+    def get_next_scheduled(cls, batch_id="bhavishya-1-0"):
+        db = get_db()
+        doc = db[cls.collection_name].find_one(
+            {"batch_id": batch_id, "status": cls.STATUS_SCHEDULED},
+            sort=[("order", 1)]
+        )
+        return cls(doc) if doc else None
+
+    @classmethod
+    def get_modules_grouped(cls, batch_id="bhavishya-1-0"):
+        lectures = cls.get_all(batch_id)
+        modules = {}
+        for l in lectures:
+            m_key = l.module_number
+            if m_key not in modules:
+                modules[m_key] = {
+                    "module_number": l.module_number,
+                    "module_name": l.module_name,
+                    "lectures": []
+                }
+            modules[m_key]["lectures"].append(l)
+        return [modules[k] for k in sorted(modules.keys())]

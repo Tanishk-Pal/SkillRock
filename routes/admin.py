@@ -218,11 +218,12 @@ def users_list():
     mongo_query = {}
 
     if q:
+        safe_q = re.escape(q)
         mongo_query["$or"] = [
-            {"name": {"$regex": q, "$options": "i"}},
-            {"email": {"$regex": q, "$options": "i"}},
-            {"college": {"$regex": q, "$options": "i"}},
-            {"branch": {"$regex": q, "$options": "i"}},
+            {"name": {"$regex": safe_q, "$options": "i"}},
+            {"email": {"$regex": safe_q, "$options": "i"}},
+            {"college": {"$regex": safe_q, "$options": "i"}},
+            {"branch": {"$regex": safe_q, "$options": "i"}},
         ]
 
     if role_filter in ["student", "admin"]:
@@ -240,36 +241,74 @@ def users_list():
     elif status_filter == "active":
         mongo_query["is_banned"] = {"$ne": True}
 
-    users_cursor = db.users.find(mongo_query).sort("created_at", -1).limit(200)
+    try:
+        page = max(1, int(request.args.get("page", 1) or 1))
+    except Exception:
+        page = 1
+    per_page = 50
+    skip = (page - 1) * per_page
+
+    total_users_count = db.users.count_documents(mongo_query)
+    total_pages = max(1, (total_users_count + per_page - 1) // per_page)
+
+    users_cursor = db.users.find(mongo_query).sort("created_at", -1).skip(skip).limit(per_page)
     users = [User(doc) for doc in users_cursor]
 
-    # Pre-calculate counts for each user (connections, messages, course enrollments & progress)
+    # Batch fetch enrollments and connections in 2 fast queries instead of 200+ network round-trips
+    user_ids = [str(u.id) for u in users if getattr(u, "id", None)]
+    user_obj_ids = [getattr(u, "_id", None) for u in users if getattr(u, "_id", None)]
+    match_ids = list(set(user_ids + [str(oid) for oid in user_obj_ids if oid]))
+
+    enrollments_by_user = {}
+    conn_counts_by_user = {}
+
+    if match_ids:
+        try:
+            enrollment_docs = list(db.enrollments.find({"user_id": {"$in": match_ids}}))
+            for ed in enrollment_docs:
+                uid_str = str(ed.get("user_id", ""))
+                if uid_str not in enrollments_by_user:
+                    enrollments_by_user[uid_str] = []
+                enrollments_by_user[uid_str].append(ed)
+        except Exception as e_enr:
+            logger.warning(f"Batch enrollments fetch error: {e_enr}")
+
+        try:
+            conn_docs = list(db.connections.find({
+                "$or": [
+                    {"user1_id": {"$in": match_ids}},
+                    {"user2_id": {"$in": match_ids}}
+                ]
+            }))
+            for cd in conn_docs:
+                u1 = str(cd.get("user1_id", ""))
+                u2 = str(cd.get("user2_id", ""))
+                conn_counts_by_user[u1] = conn_counts_by_user.get(u1, 0) + 1
+                conn_counts_by_user[u2] = conn_counts_by_user.get(u2, 0) + 1
+        except Exception as e_conn:
+            logger.warning(f"Batch connections fetch error: {e_conn}")
+
+    # Enriched users assembled in memory in < 1 millisecond
     enriched_users = []
     for u in users:
-        try:
-            conn_count = Connection.count({"$or": [{"user1_id": u.id}, {"user2_id": u.id}]})
-        except Exception:
-            conn_count = 0
+        uid_str = str(u.id)
+        oid_str = str(getattr(u, "_id", ""))
+        conn_count = conn_counts_by_user.get(uid_str, 0) or conn_counts_by_user.get(oid_str, 0)
 
         has_local_password = bool(getattr(u, "password_hash", None))
         has_google = bool(getattr(u, "google_id", None) or getattr(u, "google_access_token", None))
 
-        # Enrolled courses and progress calculation
-        try:
-            u_enrollments = list(db.enrollments.find({"user_id": str(u.id)}))
-            enrolled_count = len(u_enrollments)
-            if enrolled_count > 0:
-                prog_vals = []
-                for e in u_enrollments:
-                    try:
-                        prog_vals.append(float(e.get("watch_percent", 0) or 0))
-                    except Exception:
-                        prog_vals.append(0.0)
-                avg_progress = round(sum(prog_vals) / enrolled_count)
-            else:
-                avg_progress = 0
-        except Exception:
-            enrolled_count = 0
+        u_enrollments = enrollments_by_user.get(uid_str, []) or enrollments_by_user.get(oid_str, [])
+        enrolled_count = len(u_enrollments)
+        if enrolled_count > 0:
+            prog_vals = []
+            for e in u_enrollments:
+                try:
+                    prog_vals.append(float(e.get("watch_percent", 0) or 0))
+                except Exception:
+                    prog_vals.append(0.0)
+            avg_progress = round(sum(prog_vals) / enrolled_count) if prog_vals else 0
+        else:
             avg_progress = 0
 
         enriched_users.append({
@@ -287,7 +326,9 @@ def users_list():
         q=q,
         role_filter=role_filter,
         status_filter=status_filter,
-        total_count=len(enriched_users)
+        page=page,
+        total_pages=total_pages,
+        total_count=total_users_count
     )
 
 
@@ -2185,10 +2226,12 @@ def cashback_reject(request_id):
 
 @admin_bp.route("/bhavishya")
 def bhavishya_admin():
-    """Bhavishya 1.0 management console for subjects, chapters, and enrollments."""
-    from models.bhavishya import BhavishyaSubject, BhavishyaPackage
+    """Bhavishya 1.0 management console for Physics Wallah-style Live Batch, Google Meet sessions, and subjects."""
+    from models.bhavishya import BhavishyaSubject, BhavishyaPackage, BhavishyaBatchConfig, BhavishyaLiveLecture
     db = get_db()
     subjects = BhavishyaSubject.get_all(published_only=False)
+    batch_config = BhavishyaBatchConfig.get_config("bhavishya-1-0")
+    live_lectures = BhavishyaLiveLecture.get_all("bhavishya-1-0")
     enrolled_count = db.user_access.count_documents({"item_type": "bhavishya", "is_active": True})
     progress_count = db.bhavishya_progress.count_documents({})
     cashback_claims_count = db.bhavishya_cashback.count_documents({})
@@ -2196,11 +2239,68 @@ def bhavishya_admin():
     return render_template(
         "admin/bhavishya.html",
         subjects=subjects,
+        batch_config=batch_config,
+        live_lectures=live_lectures,
         package=BhavishyaPackage(),
         enrolled_count=enrolled_count,
         progress_count=progress_count,
         cashback_claims_count=cashback_claims_count,
     )
+
+
+@admin_bp.route("/bhavishya/config", methods=["POST"])
+def bhavishya_update_config():
+    """Updates batch-wide live settings: Google Meet link, teacher info, and announcement."""
+    from models.bhavishya import BhavishyaBatchConfig
+    config = BhavishyaBatchConfig.get_config("bhavishya-1-0")
+    config.teacher_name = request.form.get("teacher_name", config.teacher_name).strip()
+    config.teacher_title = request.form.get("teacher_title", config.teacher_title).strip()
+    config.global_meet_url = request.form.get("global_meet_url", config.global_meet_url).strip()
+    config.announcement = request.form.get("announcement", config.announcement).strip()
+    config.whatsapp_url = request.form.get("whatsapp_url", config.whatsapp_url).strip()
+    config.telegram_url = request.form.get("telegram_url", config.telegram_url).strip()
+    config.save()
+    flash("Bhavishya Live Batch configuration updated successfully!", "success")
+    return redirect(url_for("admin.bhavishya_admin"))
+
+
+@admin_bp.route("/bhavishya/lecture/<lecture_id>/status", methods=["POST"])
+def bhavishya_lecture_status(lecture_id):
+    """Changes lecture live status: scheduled, live, or completed."""
+    from models.bhavishya import BhavishyaLiveLecture
+    lecture = BhavishyaLiveLecture.get_by_id(lecture_id)
+    if not lecture:
+        flash("Live lecture not found.", "warning")
+        return redirect(url_for("admin.bhavishya_admin"))
+
+    new_status = request.form.get("status", "").strip().lower()
+    if new_status in [BhavishyaLiveLecture.STATUS_SCHEDULED, BhavishyaLiveLecture.STATUS_LIVE, BhavishyaLiveLecture.STATUS_COMPLETED]:
+        lecture.status = new_status
+        lecture.save()
+        status_name = "🔴 LIVE NOW" if new_status == "live" else ("✅ COMPLETED" if new_status == "completed" else "⏳ SCHEDULED")
+        flash(f"Lecture '{lecture.title}' status changed to {status_name}!", "success")
+    else:
+        flash("Invalid status selected.", "danger")
+    return redirect(url_for("admin.bhavishya_admin"))
+
+
+@admin_bp.route("/bhavishya/lecture/<lecture_id>/edit", methods=["POST"])
+def bhavishya_lecture_edit(lecture_id):
+    """Edits Google Meet link, YouTube recording replay, notes URL, and title for a lecture."""
+    from models.bhavishya import BhavishyaLiveLecture
+    lecture = BhavishyaLiveLecture.get_by_id(lecture_id)
+    if not lecture:
+        flash("Live lecture not found.", "warning")
+        return redirect(url_for("admin.bhavishya_admin"))
+
+    lecture.title = request.form.get("title", lecture.title).strip()
+    lecture.google_meet_url = request.form.get("google_meet_url", lecture.google_meet_url).strip()
+    lecture.recording_url = request.form.get("recording_url", lecture.recording_url).strip()
+    lecture.notes_url = request.form.get("notes_url", lecture.notes_url).strip()
+    lecture.scheduled_display = request.form.get("scheduled_display", lecture.scheduled_display).strip()
+    lecture.save()
+    flash(f"Live Lecture '{lecture.title}' updated successfully!", "success")
+    return redirect(url_for("admin.bhavishya_admin"))
 
 
 @admin_bp.route("/bhavishya/subject/<slug>/toggle", methods=["POST"])
