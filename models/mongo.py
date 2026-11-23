@@ -1706,8 +1706,9 @@ class Course:
 
     @classmethod
     def get_published_courses(cls):
-        """Retrieves and caches all published courses with preloaded assignments (60s TTL)."""
+        """Retrieves and caches all published courses with preloaded assignments and enrollment counts (60s TTL)."""
         import time
+        from collections import Counter
         now = time.time()
         if cls._published_courses_cache is not None and (now - cls._published_courses_cache_time < 60):
             return cls._published_courses_cache
@@ -1716,8 +1717,18 @@ class Course:
         if courses:
             course_ids = [str(c.id) for c in courses]
             asg_map = Assignment.get_by_courses(course_ids)
+            try:
+                db = get_db()
+                enrollment_counts = Counter(
+                    str(e.get("course_id"))
+                    for e in db.enrollments.find({"course_id": {"$in": course_ids}}, {"course_id": 1, "_id": 0})
+                )
+            except Exception:
+                enrollment_counts = {}
+
             for c in courses:
                 c._cached_assignment = asg_map.get(str(c.id))
+                c._cached_enrolled_count = enrollment_counts.get(str(c.id), 0)
 
         cls._published_courses_cache = courses
         cls._published_courses_cache_time = now
@@ -1758,6 +1769,8 @@ class Course:
 
     @property
     def enrolled_count(self):
+        if hasattr(self, "_cached_enrolled_count") and self._cached_enrolled_count is not None:
+            return self._cached_enrolled_count
         db = get_db()
         return db.enrollments.count_documents({"course_id": str(self.id)})
 

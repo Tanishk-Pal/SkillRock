@@ -34,10 +34,29 @@ def discover():
     received_requests = []
     sent_requests = []
     connections = []
+    connected_user_ids = set()
+    pending_outgoing_ids = set()
+    pending_incoming_ids = set()
+
     if current_user.is_authenticated and current_user.id:
         received_requests = SwapRequest.find_by_receiver(current_user.id)
         sent_requests = SwapRequest.find_by_sender(current_user.id)
         connections = Connection.find_by_user(current_user.id)
+        my_id_str = str(current_user.id)
+        for c in connections:
+            u1 = str(getattr(c, "user1_id", ""))
+            u2 = str(getattr(c, "user2_id", ""))
+            connected_user_ids.add(u2 if u1 == my_id_str else u1)
+        pending_outgoing_ids = {
+            str(getattr(r, "receiver_id", ""))
+            for r in sent_requests
+            if getattr(r, "status", "") == "pending"
+        }
+        pending_incoming_ids = {
+            str(getattr(r, "sender_id", ""))
+            for r in received_requests
+            if getattr(r, "status", "") == "pending"
+        }
 
     # Calculate match scores and filter
     student_cards = []
@@ -71,17 +90,18 @@ def discover():
         if selected_branch and user.branch.lower() != selected_branch.lower():
             continue
 
-        # Check follow/connection status with current user
+        # Check follow/connection status with current user (Instant in-memory lookup)
         is_conn = False
         is_pending_outgoing = False
         is_pending_incoming = False
         if current_user.is_authenticated and current_user.id:
-            if Connection.find_between(current_user.id, user.id):
+            uid_str = str(user.id)
+            if uid_str in connected_user_ids:
                 is_conn = True
             else:
-                if SwapRequest.find_pending_between(current_user.id, user.id):
+                if uid_str in pending_outgoing_ids:
                     is_pending_outgoing = True
-                if SwapRequest.find_pending_between(user.id, current_user.id):
+                if uid_str in pending_incoming_ids:
                     is_pending_incoming = True
 
         student_cards.append({

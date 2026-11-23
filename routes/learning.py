@@ -236,8 +236,18 @@ def courses_list():
             if courses:
                 course_ids = [str(c.id) for c in courses]
                 asg_map = Assignment.get_by_courses(course_ids)
+                from collections import Counter
+                try:
+                    db = get_db()
+                    enrollment_counts = Counter(
+                        str(e.get("course_id"))
+                        for e in db.enrollments.find({"course_id": {"$in": course_ids}}, {"course_id": 1, "_id": 0})
+                    )
+                except Exception:
+                    enrollment_counts = {}
                 for c in courses:
                     c._cached_assignment = asg_map.get(str(c.id))
+                    c._cached_enrolled_count = enrollment_counts.get(str(c.id), 0)
 
         # Collect enrolled course IDs and certified course IDs for the logged-in user
         enrolled_course_ids = set()
@@ -306,6 +316,32 @@ def courses_list():
         # 4 Random Suggested Campus Peers (Instagram-Style Study Buddies)
         suggested_peers = []
         try:
+            connected_user_ids = set()
+            pending_outgoing_ids = set()
+            pending_incoming_ids = set()
+
+            if current_user.is_authenticated and current_user.id:
+                my_id_str = str(current_user.id)
+                user_conns = Connection.find_by_user(current_user.id) or []
+                for c in user_conns:
+                    u1 = str(getattr(c, "user1_id", ""))
+                    u2 = str(getattr(c, "user2_id", ""))
+                    connected_user_ids.add(u2 if u1 == my_id_str else u1)
+
+                user_sent = SwapRequest.find_by_sender(current_user.id) or []
+                pending_outgoing_ids = {
+                    str(getattr(r, "receiver_id", ""))
+                    for r in user_sent
+                    if getattr(r, "status", "") == "pending"
+                }
+
+                user_rec = SwapRequest.find_by_receiver(current_user.id) or []
+                pending_incoming_ids = {
+                    str(getattr(r, "sender_id", ""))
+                    for r in user_rec
+                    if getattr(r, "status", "") == "pending"
+                }
+
             peer_query = {}
             if current_user.is_authenticated and current_user.id:
                 peer_query["_id"] = {"$ne": _to_obj_id(current_user.id)}
@@ -313,14 +349,8 @@ def courses_list():
             all_candidates = User.find_all(peer_query) or []
             if all_candidates:
                 import random
-                # Filter candidates who are not already connected
-                unconnected = []
-                for u in all_candidates:
-                    if current_user.is_authenticated and current_user.id:
-                        if Connection.find_between(current_user.id, u.id):
-                            continue
-                    unconnected.append(u)
-
+                # Instant in-memory filter (0ms)
+                unconnected = [u for u in all_candidates if str(u.id) not in connected_user_ids]
                 pool = unconnected if len(unconnected) >= 4 else all_candidates
                 sample_users = random.sample(pool, min(4, len(pool)))
 
@@ -336,17 +366,10 @@ def courses_list():
                     else:
                         score = random.randint(86, 98)
 
-                    is_conn = False
-                    is_pending_out = False
-                    is_pending_in = False
-                    if current_user.is_authenticated and current_user.id:
-                        if Connection.find_between(current_user.id, u.id):
-                            is_conn = True
-                        else:
-                            if SwapRequest.find_pending_between(current_user.id, u.id):
-                                is_pending_out = True
-                            if SwapRequest.find_pending_between(u.id, current_user.id):
-                                is_pending_in = True
+                    uid_str = str(u.id)
+                    is_conn = uid_str in connected_user_ids
+                    is_pending_out = uid_str in pending_outgoing_ids if not is_conn else False
+                    is_pending_in = uid_str in pending_incoming_ids if not is_conn else False
 
                     top_skill = "Python & DSA"
                     if u.teaching_skills and len(u.teaching_skills) > 0:

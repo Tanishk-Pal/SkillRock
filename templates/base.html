@@ -2069,7 +2069,14 @@
                     } catch(e) {}
                 }
 
-                // 2. Instant Tactile Tab Feedback on Mobile Bottom Nav
+                // 2. Instant Tactile Tab Feedback on Mobile Bottom Nav & Sidebar Nav
+                if (link.classList.contains("pw-nav-item")) {
+                    document.querySelectorAll(".pw-nav-item").forEach(function(item) {
+                        item.classList.remove("active");
+                    });
+                    link.classList.add("active");
+                }
+
                 if (link.classList.contains("mobile-bottom-item")) {
                     document.querySelectorAll(".mobile-bottom-item").forEach(function(item) {
                         item.classList.remove("active");
@@ -2082,6 +2089,24 @@
                 // 3. Start non-blocking top progress bar (never captures/blocks pointer events)
                 startProgress();
             }
+
+            // Speculative prefetch on desktop mouse hover (instant pre-warm)
+            document.addEventListener("mouseover", function(e) {
+                var link = e.target.closest("a");
+                if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
+                var href = link.getAttribute("href");
+                if (!href || href.startsWith("#") || href.startsWith("javascript:") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+                if (link.origin && link.origin !== window.location.origin) return;
+                if (!link.dataset.prefetched && href) {
+                    link.dataset.prefetched = "1";
+                    try {
+                        var pre = document.createElement("link");
+                        pre.rel = "prefetch";
+                        pre.href = href;
+                        document.head.appendChild(pre);
+                    } catch(err) {}
+                }
+            }, { passive: true });
 
             // High-priority pointerdown / touchstart for 0ms mobile responsiveness
             document.addEventListener("pointerdown", function(e) {

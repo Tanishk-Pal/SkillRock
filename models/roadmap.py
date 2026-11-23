@@ -114,6 +114,7 @@ class RoadmapPackage:
             res = db[self.collection_name].insert_one(doc)
             self._id = res.inserted_id
             self.id = str(self._id)
+        RoadmapPackage._cached_packages = None
         return self
 
     @classmethod
@@ -133,12 +134,24 @@ class RoadmapPackage:
         doc = db[cls.collection_name].find_one({"$or": [{"_id": obj_id}, {"_id": str(item_id)}, {"slug": str(item_id)}]})
         return cls(doc) if doc else None
 
+    _cached_packages = None
+    _cached_packages_time = 0
+
     @classmethod
     def get_all(cls, published_only=False):
+        import time
+        now = time.time()
+        if published_only and cls._cached_packages is not None and (now - cls._cached_packages_time < 60):
+            return cls._cached_packages
+
         db = get_db()
         query = {"is_published": True} if published_only else {}
         cursor = db[cls.collection_name].find(query).sort("created_at", 1)
-        return [cls(doc) for doc in cursor]
+        results = [cls(doc) for doc in cursor]
+        if published_only:
+            cls._cached_packages = results
+            cls._cached_packages_time = now
+        return results
 
 
 class RoadmapProgress:
