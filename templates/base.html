@@ -438,6 +438,60 @@
 
                     <span class="pw-user-greeting">Hi, {{ current_user.name.split()[0] }}</span>
 
+                    <!-- Instagram-Style Notification Bell & Activity Feed -->
+                    <div class="pw-notif-dropdown-wrap" id="notifDropdownWrap" style="position: relative;">
+                        <button type="button" class="pw-icon-trigger" id="notifBellBtn" aria-expanded="false" aria-haspopup="true" aria-label="Notifications" title="Notifications" style="background: none; border: 1px solid var(--border-color); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); position: relative; transition: all 0.15s ease;">
+                            <i data-lucide="bell" style="width: 18px; height: 18px;"></i>
+                            <span class="pw-notif-badge" id="notifBadge" style="{% if not unread_notifications_count or unread_notifications_count == 0 %}display: none;{% endif %} position: absolute; top: -3px; right: -3px; background: #EF4444; color: #FFFFFF; font-size: 10px; font-weight: 800; min-width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 9999px; padding: 0 4px; border: 2px solid var(--bg-card); box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4);">
+                                {{ unread_notifications_count or 0 }}
+                            </span>
+                        </button>
+
+                        <!-- Notification Dropdown Menu -->
+                        <div class="pw-notif-menu" id="notifDropdownMenu" style="display: none; position: absolute; right: 0; top: calc(100% + 10px); width: 340px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 16px 36px -8px rgba(0,0,0,0.25); z-index: 1100; overflow: hidden;">
+                            <div style="padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.02);">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 0.95rem; font-weight: 800; color: var(--text-main);">Notifications</span>
+                                    <span class="badge" id="notifHeaderCount" style="font-size: 0.7rem; font-weight: 700; background: var(--primary-purple-light); color: var(--primary-action);">{{ unread_notifications_count or 0 }} new</span>
+                                </div>
+                                <button type="button" id="markAllNotifsBtn" style="background: none; border: none; color: #5B46F6; font-size: 0.76rem; font-weight: 700; cursor: pointer; padding: 0;">Mark all read</button>
+                            </div>
+
+                            <div id="notifListContainer" style="max-height: 360px; overflow-y: auto;">
+                                {% if recent_notifications %}
+                                    {% for n in recent_notifications %}
+                                        <a href="{{ n.link }}" class="notif-item-link" style="display: flex; gap: 12px; padding: 12px 16px; text-decoration: none; border-bottom: 1px solid var(--border-color); background: {% if not n.is_read %}rgba(91, 70, 246, 0.05){% else %}transparent{% endif %}; transition: background 0.15s ease;">
+                                            <img src="{{ n.sender_avatar }}" alt="{{ n.sender_name }}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1.5px solid var(--border-color);">
+                                            <div style="flex: 1; min-width: 0;">
+                                                <div style="font-size: 0.84rem; color: var(--text-main); line-height: 1.35; margin-bottom: 3px;">
+                                                    {{ n.message|safe }}
+                                                </div>
+                                                <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                                    {{ n.time_ago }}
+                                                </div>
+                                            </div>
+                                            {% if not n.is_read %}
+                                                <span style="width: 7px; height: 7px; border-radius: 50%; background: #5B46F6; flex-shrink: 0; margin-top: 6px;"></span>
+                                            {% endif %}
+                                        </a>
+                                    {% endfor %}
+                                {% else %}
+                                    <div style="padding: 32px 18px; text-align: center; color: var(--text-secondary);">
+                                        <i data-lucide="bell-off" style="width: 28px; height: 28px; color: var(--text-muted); margin: 0 auto 8px;"></i>
+                                        <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-main);">No notifications yet</div>
+                                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">When peers follow you, you'll see updates here.</div>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div style="padding: 10px 16px; background: rgba(0,0,0,0.02); text-align: center; border-top: 1px solid var(--border-color);">
+                                <a href="{{ url_for('discover.discover', tab='requests') }}" style="font-size: 0.8rem; font-weight: 700; color: #5B46F6; text-decoration: none;">
+                                    View Swap & Follow Requests &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
 
 
                     <!-- Profile Dropdown Menu Trigger (PW Style) -->
@@ -2313,6 +2367,57 @@
 
             }
 
+            // Notification Bell Dropdown Handler
+            const notifBellBtn = document.getElementById("notifBellBtn");
+            const notifDropdownMenu = document.getElementById("notifDropdownMenu");
+            const notifBadge = document.getElementById("notifBadge");
+            const notifHeaderCount = document.getElementById("notifHeaderCount");
+            const markAllNotifsBtn = document.getElementById("markAllNotifsBtn");
+
+            if (notifBellBtn && notifDropdownMenu) {
+                notifBellBtn.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    const isShown = notifDropdownMenu.style.display === "block";
+                    notifDropdownMenu.style.display = isShown ? "none" : "block";
+                    notifBellBtn.setAttribute("aria-expanded", !isShown ? "true" : "false");
+                    if (window.lucide) window.lucide.createIcons();
+                });
+
+                document.addEventListener("click", function(e) {
+                    if (!notifDropdownMenu.contains(e.target) && !notifBellBtn.contains(e.target)) {
+                        notifDropdownMenu.style.display = "none";
+                        notifBellBtn.setAttribute("aria-expanded", "false");
+                    }
+                });
+
+                document.addEventListener("keydown", function(e) {
+                    if (e.key === "Escape") {
+                        notifDropdownMenu.style.display = "none";
+                        notifBellBtn.setAttribute("aria-expanded", "false");
+                    }
+                });
+
+                if (markAllNotifsBtn) {
+                    markAllNotifsBtn.addEventListener("click", async function(e) {
+                        e.stopPropagation();
+                        try {
+                            const res = await fetch("/api/notifications/read-all", { method: "POST" });
+                            const data = await res.json();
+                            if (data.success) {
+                                if (notifBadge) notifBadge.style.display = "none";
+                                if (notifHeaderCount) notifHeaderCount.textContent = "0 new";
+                                document.querySelectorAll("#notifListContainer a span[style*='background: #5B46F6']").forEach(dot => dot.remove());
+                                document.querySelectorAll("#notifListContainer a").forEach(link => {
+                                    link.style.background = "transparent";
+                                });
+                            }
+                        } catch(err) {
+                            console.error("Could not mark notifications as read", err);
+                        }
+                    });
+                }
+            }
+
 
 
             // Mobile Left Sidebar Drawer Toggle
@@ -2349,6 +2454,96 @@
 
         })();
 
+        // Universal Instagram-Style 1-Click Fast Follow & Connection Handler
+        window.handleInstagramFollow = async function(btn, targetUserId) {
+            if (!btn || !targetUserId) return;
+            const originalHtml = btn.innerHTML;
+            const isCurrentlyRequested = btn.classList.contains("requested");
+            const isCurrentlyFollow = btn.classList.contains("follow");
+            const isCurrentlyFollowBack = btn.classList.contains("follow-back");
+
+            btn.disabled = true;
+            btn.innerHTML = `<span style="display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;"></span>`;
+
+            try {
+                const action = isCurrentlyRequested ? "cancel" : "follow";
+                const res = await fetch(`/api/follow/${targetUserId}?action=${action}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                });
+
+                if (res.status === 401) {
+                    window.location.href = "{{ url_for('auth.login') }}";
+                    return;
+                }
+
+                const data = await res.json();
+                btn.disabled = false;
+
+                if (data.success) {
+                    if (data.status === "connected") {
+                        // Mutual Follow / Connected
+                        btn.className = "btn-insta-follow connected";
+                        btn.style.background = "rgba(16, 185, 129, 0.12)";
+                        btn.style.color = "#10B981";
+                        btn.style.border = "1px solid rgba(16, 185, 129, 0.35)";
+                        btn.innerHTML = `<i data-lucide="check" style="width:13px;height:13px;"></i><span>Connected</span>`;
+                        showCampusToast(data.message || "🎉 You are now connected!", "success");
+                    } else if (data.status === "requested") {
+                        // Request pending
+                        btn.className = "btn-insta-follow requested";
+                        btn.style.background = "rgba(255, 255, 255, 0.05)";
+                        btn.style.color = "var(--text-secondary)";
+                        btn.style.border = "1px solid var(--border-color)";
+                        btn.innerHTML = `<i data-lucide="clock" style="width:13px;height:13px;"></i><span>Requested</span>`;
+                        showCampusToast(data.message || "Follow request sent!", "info");
+                    } else if (data.status === "unfollowed") {
+                        // Unfollowed / Cancelled
+                        btn.className = "btn-insta-follow follow";
+                        btn.style.background = "#5B46F6";
+                        btn.style.color = "#FFFFFF";
+                        btn.style.border = "none";
+                        btn.innerHTML = `<i data-lucide="user-plus" style="width:13px;height:13px;"></i><span>Follow</span>`;
+                        showCampusToast(data.message || "Follow request cancelled.", "info");
+                    }
+
+                    if (window.lucide) window.lucide.createIcons();
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showCampusToast(data.error || "Could not complete action.", "warning");
+                }
+            } catch(err) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                showCampusToast("Connection glitch, please try again.", "warning");
+            }
+        };
+
+        // Floating Campus Toast Notification
+        window.showCampusToast = function(msg, type = 'info') {
+            let container = document.getElementById('campusToastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'campusToastContainer';
+                container.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:10px;pointer-events:none;';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            const bg = type === 'success' ? '#10B981' : type === 'warning' ? '#F59E0B' : '#5B46F6';
+            toast.style.cssText = `background:${bg};color:#FFFFFF;padding:12px 18px;border-radius:12px;font-size:0.86rem;font-weight:600;box-shadow:0 10px 25px rgba(0,0,0,0.25);display:flex;align-items:center;gap:8px;pointer-events:auto;animation:modalScaleIn 0.22s ease forwards;`;
+            toast.innerHTML = `<span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 350);
+            }, 3500);
+        };
     </script>
 
     <script>

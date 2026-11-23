@@ -95,8 +95,8 @@
 
         {% if current_user.is_authenticated %}
         <a href="#requestsPane" class="exchange-tab-btn {% if active_tab == 'requests' %}active{% endif %}" data-tab="requestsPane" role="tab">
-            <i data-lucide="repeat" style="width: 17px; height: 17px;"></i>
-            <span>Swap Requests</span>
+            <i data-lucide="user-plus" style="width: 17px; height: 17px;"></i>
+            <span>Follow Requests</span>
             {% if received_requests %}
             <span class="exchange-tab-badge highlight">{{ received_requests|length }}</span>
             {% elif sent_requests %}
@@ -181,59 +181,60 @@
                          data-learn="{{ (' '.join(item.learn_skills))|lower }}"
                          style="display: flex; flex-direction: column; justify-content: space-between; border-radius: 14px;">
                         <div>
-                            <!-- Header with Avatar and Basic Info -->
-                            <div class="student-card-header">
-                                <img src="{{ student.avatar_url }}" alt="avatar" class="avatar-img">
+                            <!-- Instagram-Style Header: Story Gradient Ring, Name, Branch & Match Badge -->
+                            <div style="display: flex; gap: 14px; align-items: center; margin-bottom: 14px;">
+                                <div style="position: relative; flex-shrink: 0;">
+                                    <div style="width: 54px; height: 54px; border-radius: 50%; padding: 2px; background: linear-gradient(45deg, #F59E0B, #EC4899, #8B5CF6); display: flex; align-items: center; justify-content: center;">
+                                        <img src="{{ student.avatar_url }}" alt="{{ student.name }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #FFFFFF; border: 2px solid var(--bg-card);">
+                                    </div>
+                                </div>
                                 <div style="flex: 1; min-width: 0;">
-                                    <h3 style="margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1.05rem;">
-                                        {{ student.name }}
-                                    </h3>
-                                    <div style="font-size: 0.82rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                        {{ student.branch }} • {{ student.year }}
+                                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                        <a href="{{ url_for('profile.view_user_profile', user_id=student.id) }}" style="text-decoration: none; color: inherit; min-width: 0;">
+                                            <h3 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                {{ student.name }}
+                                            </h3>
+                                        </a>
+                                        <span class="match-pill" style="font-size: 0.72rem; padding: 2px 8px; flex-shrink: 0;">{{ item.score }}% Match</span>
                                     </div>
-                                    <div style="font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                        {{ student.college }}
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;">
+                                        {{ student.branch or 'Engineering' }} • {{ student.year or 'Student' }}
+                                    </div>
+                                    <div style="font-size: 0.76rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ student.college or 'SkillRock Campus' }}
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Match Badge & Rating -->
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                                <span class="match-pill">{{ item.score }}% Match</span>
-                                <span style="font-size: 0.8rem; color: var(--text-secondary);">
-                                    {{ student.rating_display }}
-                                </span>
-                            </div>
-
-                            <!-- Can Teach -->
-                            <div style="margin-bottom: 12px;">
-                                <div class="section-label" style="font-size: 0.74rem; font-weight: 700; color: var(--success); margin-bottom: 6px;">CAN TEACH</div>
-                                <div class="skills-wrap">
-                                    {% for s in student.teaching_skills %}
-                                        <span class="skill-tag teach">{{ s.name }}</span>
-                                    {% else %}
-                                        <span style="font-size: 0.8rem; color: var(--text-muted);">None listed</span>
-                                    {% endfor %}
+                            <!-- Skills Exchange Grid -->
+                            <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px;">
+                                <div style="margin-bottom: 8px;">
+                                    <div style="font-size: 0.68rem; font-weight: 800; color: #10B981; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">CAN TEACH</div>
+                                    <div class="skills-wrap" style="gap: 4px;">
+                                        {% for s in student.teaching_skills %}
+                                            <span class="skill-tag teach" style="font-size: 0.75rem; padding: 2px 8px;">{{ s.name }}</span>
+                                        {% else %}
+                                            <span style="font-size: 0.75rem; color: var(--text-muted);">None listed</span>
+                                        {% endfor %}
+                                    </div>
                                 </div>
-                            </div>
-
-                            <!-- Wants to Learn -->
-                            <div style="margin-bottom: 14px;">
-                                <div class="section-label" style="font-size: 0.74rem; font-weight: 700; color: var(--secondary-indigo); margin-bottom: 6px;">WANTS TO LEARN</div>
-                                <div class="skills-wrap">
-                                    {% for s in student.learning_skills %}
-                                        <span class="skill-tag learn">{{ s.name }}</span>
-                                    {% else %}
-                                        <span style="font-size: 0.8rem; color: var(--text-muted);">None listed</span>
-                                    {% endfor %}
+                                <div>
+                                    <div style="font-size: 0.68rem; font-weight: 800; color: #5B46F6; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">WANTS TO LEARN</div>
+                                    <div class="skills-wrap" style="gap: 4px;">
+                                        {% for s in student.learning_skills %}
+                                            <span class="skill-tag learn" style="font-size: 0.75rem; padding: 2px 8px;">{{ s.name }}</span>
+                                        {% else %}
+                                            <span style="font-size: 0.75rem; color: var(--text-muted);">None listed</span>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Match Reasons -->
                             {% if item.reasons %}
-                                <details style="margin-bottom: 14px; font-size: 0.82rem; color: var(--primary-blue); cursor: pointer;">
+                                <details style="margin-bottom: 12px; font-size: 0.78rem; color: var(--primary-action); cursor: pointer;">
                                     <summary style="font-weight: 600; outline: none; user-select: none;">Why this match?</summary>
-                                    <ul class="match-reasons-box" style="margin-top: 6px;">
+                                    <ul class="match-reasons-box" style="margin-top: 6px; font-size: 0.76rem; padding: 6px 10px;">
                                         {% for r in item.reasons %}
                                             <li><span>✓</span> <span>{{ r }}</span></li>
                                         {% endfor %}
@@ -242,35 +243,37 @@
                             {% endif %}
                         </div>
 
-                        <!-- Action Buttons -->
-                        <div style="display: flex; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 8px;">
-                            <a href="{{ url_for('profile.view_user_profile', user_id=student.id) }}" class="btn btn-secondary btn-sm" style="flex: 1;">
-                                View Profile
+                        <!-- 1-Click Instagram Actions -->
+                        <div style="display: flex; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 6px;">
+                            <a href="{{ url_for('profile.view_user_profile', user_id=student.id) }}" class="btn btn-secondary btn-sm" style="flex: 0 0 auto; padding: 7px 12px; font-size: 0.8rem; font-weight: 600;">
+                                Profile
                             </a>
                             {% if current_user.is_authenticated %}
                                 {% if item.is_connected %}
-                                    <a href="{{ url_for('chat.conversation', partner_id=student.id) }}" class="btn btn-secondary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: var(--primary-blue); font-weight: 600; border-color: #BFDBFE; background: #EFF6FF;">
+                                    <a href="{{ url_for('chat.conversation', partner_id=student.id) }}" class="btn btn-secondary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: #10B981; font-weight: 700; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.1);">
                                         <i data-lucide="send" style="width: 13px; height: 13px;"></i>
                                         <span>Message</span>
                                     </a>
-                                {% elif item.is_pending %}
-                                    <span class="btn btn-secondary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #F8FAFC; color: var(--text-secondary); cursor: default;">
+                                {% elif item.is_pending_incoming %}
+                                    <button type="button" class="btn btn-primary btn-sm btn-insta-follow follow-back" onclick="handleInstagramFollow(this, '{{ student.id }}')" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: linear-gradient(135deg, #8B5CF6, #6366F1); border: none; font-weight: 700;">
+                                        <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
+                                        <span>Follow Back (+20 XP)</span>
+                                    </button>
+                                {% elif item.is_pending_outgoing %}
+                                    <button type="button" class="btn btn-secondary btn-sm btn-insta-follow requested" onclick="handleInstagramFollow(this, '{{ student.id }}')" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid var(--border-color);">
                                         <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
                                         <span>Requested</span>
-                                    </span>
+                                    </button>
                                 {% else %}
-                                    <button type="button" class="btn btn-primary btn-sm btn-request-swap" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #5B46F6;"
-                                            data-user-id="{{ student.id }}"
-                                            data-user-name="{{ student.name }}"
-                                            data-teaches='[{% for s in student.teaching_skills %}{"id": "{{ s.id }}", "name": "{{ s.name }}"}{% if not loop.last %},{% endif %}{% endfor %}]'>
+                                    <button type="button" class="btn btn-primary btn-sm btn-insta-follow follow" onclick="handleInstagramFollow(this, '{{ student.id }}')" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #5B46F6; border: none; font-weight: 700; transition: all 0.15s ease;">
                                         <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
-                                        <span>Connect & Swap</span>
+                                        <span>Follow</span>
                                     </button>
                                 {% endif %}
                             {% else %}
-                                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #5B46F6;">
+                                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #5B46F6; border: none; font-weight: 700;">
                                     <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
-                                    <span>Connect</span>
+                                    <span>Follow</span>
                                 </a>
                             {% endif %}
                         </div>
@@ -336,16 +339,14 @@
                         {% endif %}
 
                         {% if req.status == 'pending' %}
-                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                            <form action="{{ url_for('swap.reject_request', request_id=req.id) }}" method="POST">
-                                <button type="submit" class="btn btn-secondary btn-sm">Decline</button>
-                            </form>
-                            <form action="{{ url_for('swap.accept_request', request_id=req.id) }}" method="POST">
-                                <button type="submit" class="btn btn-primary btn-sm" style="background: #16A34A; border-color: #16A34A;">
-                                    <i data-lucide="check" style="width: 14px; height: 14px;"></i>
-                                    <span>Accept Swap (+20 XP)</span>
-                                </button>
-                            </form>
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;" id="reqActions-{{ req.id }}">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="handleRejectSwapRequest(this, '{{ req.id }}')">
+                                Decline
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="handleAcceptSwapRequest(this, '{{ req.id }}', '{{ req.sender_id }}')" style="background: linear-gradient(135deg, #10B981, #059669); border: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                                <span>Follow Back (+20 XP)</span>
+                            </button>
                         </div>
                         {% endif %}
                     </div>
@@ -389,9 +390,11 @@
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <span class="badge" style="background: #F1F5F9; color: #475569; font-weight: 600;">{{ req.status_label }}</span>
                                 {% if req.status == 'pending' %}
-                                <form action="{{ url_for('swap.cancel_request', request_id=req.id) }}" method="POST">
-                                    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 4px 10px;">Cancel</button>
-                                </form>
+                                <div id="reqCancelWrap-{{ req.id }}">
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="handleCancelSwapRequest(this, '{{ req.id }}')" style="font-size: 0.78rem; padding: 4px 10px;">
+                                        Cancel Request
+                                    </button>
+                                </div>
                                 {% endif %}
                             </div>
                         </div>
@@ -558,6 +561,78 @@ document.addEventListener("DOMContentLoaded", function() {
             applyStudentFilters();
         });
     }
+
+    // Interactive Follow & Swap Request Handlers for Pane 2
+    window.handleAcceptSwapRequest = async function(btn, reqId, senderId) {
+        if (!btn || !reqId) return;
+        btn.disabled = true;
+        const container = document.getElementById(`reqActions-${reqId}`);
+        if (container) {
+            container.innerHTML = `<span style="font-size:0.85rem;color:#10B981;font-weight:700;">Connecting...</span>`;
+        }
+
+        try {
+            const res = await fetch(`/requests/${reqId}/accept`, {
+                method: "POST",
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (container) {
+                    container.innerHTML = `
+                        <a href="${data.chat_url || `/chat/${senderId}`}" class="btn btn-sm btn-primary" style="background:#5B46F6;display:inline-flex;align-items:center;gap:5px;">
+                            <i data-lucide="send" style="width:13px;height:13px;"></i>
+                            <span>Message Partner</span>
+                        </a>
+                        <span style="font-size:0.82rem;color:#10B981;font-weight:700;">Connected ✓ (+20 XP)</span>
+                    `;
+                }
+                showCampusToast("🎉 Connected! +20 XP awarded to both students.", "success");
+                if (window.lucide) window.lucide.createIcons();
+            } else {
+                showCampusToast(data.error || "Could not accept request.", "warning");
+            }
+        } catch(err) {
+            showCampusToast("Request failed. Please try again.", "warning");
+        }
+    };
+
+    window.handleRejectSwapRequest = async function(btn, reqId) {
+        if (!btn || !reqId) return;
+        btn.disabled = true;
+        try {
+            const res = await fetch(`/requests/${reqId}/reject`, {
+                method: "POST",
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            });
+            const card = btn.closest(".card");
+            if (card) {
+                card.style.opacity = "0.5";
+                card.innerHTML = `<div style="padding:14px;text-align:center;color:var(--text-muted);font-size:0.85rem;">Declined follow request.</div>`;
+            }
+            showCampusToast("Declined request.", "info");
+        } catch(err) {
+            showCampusToast("Failed to decline.", "warning");
+        }
+    };
+
+    window.handleCancelSwapRequest = async function(btn, reqId) {
+        if (!btn || !reqId) return;
+        btn.disabled = true;
+        try {
+            const res = await fetch(`/requests/${reqId}/cancel`, {
+                method: "POST",
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            });
+            const wrap = document.getElementById(`reqCancelWrap-${reqId}`);
+            if (wrap) {
+                wrap.innerHTML = `<span style="font-size:0.78rem;color:var(--text-muted);">Cancelled</span>`;
+            }
+            showCampusToast("Follow request cancelled.", "info");
+        } catch(err) {
+            showCampusToast("Failed to cancel.", "warning");
+        }
+    };
 
     // Initialize icons in newly rendered elements
     if (window.lucide) {

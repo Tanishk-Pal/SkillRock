@@ -1441,6 +1441,173 @@ class Message:
 
 
 # ==============================================================================
+# 8.5. Notification Model (Instagram / Campus Activity Feed)
+# ==============================================================================
+
+class Notification:
+    collection_name = "notifications"
+    query = _ModelQueryDescriptor()
+
+    def __init__(self, data=None):
+        self._data = data or {}
+        self._id = self._data.get("_id")
+        self.id = str(self._id) if self._id else ""
+        self.recipient_id = str(self._data.get("recipient_id", ""))
+        self.sender_id = str(self._data.get("sender_id", ""))
+        self.type = self._data.get("type", "follow_request")  # follow_request, follow_accept, connection_new, message, system
+        self.title = self._data.get("title", "New Notification")
+        self.message = self._data.get("message", "")
+        self.link = self._data.get("link", "/discover?tab=requests")
+        self.is_read = bool(self._data.get("is_read", False))
+        self.created_at = self._data.get("created_at") or datetime.now(timezone.utc)
+
+    @property
+    def sender(self):
+        if self.sender_id:
+            return User.get_by_id(self.sender_id)
+        return None
+
+    @property
+    def recipient(self):
+        if self.recipient_id:
+            return User.get_by_id(self.recipient_id)
+        return None
+
+    def time_ago(self):
+        try:
+            now = datetime.now(timezone.utc)
+            dt = self.created_at
+            if dt is None:
+                return "just now"
+            if isinstance(dt, str):
+                return dt
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            diff = now - dt
+            sec = int(diff.total_seconds())
+            if sec < 60:
+                return "just now"
+            elif sec < 3600:
+                return f"{sec // 60}m ago"
+            elif sec < 86400:
+                return f"{sec // 3600}h ago"
+            elif sec < 604800:
+                return f"{sec // 86400}d ago"
+            else:
+                return dt.strftime("%b %d")
+        except Exception:
+            return "recently"
+
+    def to_dict(self):
+        s_name = "Campus Student"
+        s_avatar = "/static/img/default-avatar.svg"
+        sender_obj = self.sender
+        if sender_obj:
+            s_name = sender_obj.name
+            s_avatar = sender_obj.avatar_url
+
+        return {
+            "id": self.id,
+            "recipient_id": self.recipient_id,
+            "sender_id": self.sender_id,
+            "sender_name": s_name,
+            "sender_avatar": s_avatar,
+            "type": self.type,
+            "title": self.title,
+            "message": self.message,
+            "link": self.link,
+            "is_read": self.is_read,
+            "time_ago": self.time_ago(),
+            "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at)
+        }
+
+    def save(self):
+        db = get_db()
+        self._data["recipient_id"] = str(self.recipient_id)
+        self._data["sender_id"] = str(self.sender_id)
+        self._data["type"] = self.type
+        self._data["title"] = self.title
+        self._data["message"] = self.message
+        self._data["link"] = self.link
+        self._data["is_read"] = bool(self.is_read)
+        self._data["updated_at"] = datetime.now(timezone.utc)
+
+        if self._id:
+            db[self.collection_name].update_one({"_id": self._id}, {"$set": self._data})
+        else:
+            self._data["created_at"] = datetime.now(timezone.utc)
+            res = db[self.collection_name].insert_one(self._data)
+            self._id = res.inserted_id
+            self.id = str(self._id)
+        return self
+
+    def delete(self):
+        if self._id:
+            db = get_db()
+            db[self.collection_name].delete_one({"_id": self._id})
+
+    @classmethod
+    def get_by_id(cls, notif_id):
+        if not notif_id:
+            return None
+        db = get_db()
+        doc = db[cls.collection_name].find_one({"_id": _to_obj_id(notif_id)})
+        return cls(doc) if doc else None
+
+    @classmethod
+    def create(cls, **kwargs):
+        notif = cls(kwargs)
+        notif.save()
+        return notif
+
+    @classmethod
+    def notify(cls, recipient_id, sender_id, notif_type, title, message, link="/discover?tab=requests"):
+        if not recipient_id or str(recipient_id) == str(sender_id):
+            return None
+        return cls.create(
+            recipient_id=str(recipient_id),
+            sender_id=str(sender_id),
+            type=notif_type,
+            title=title,
+            message=message,
+            link=link,
+            is_read=False
+        )
+
+    @classmethod
+    def find_by_recipient(cls, recipient_id, limit=30):
+        db = get_db()
+        docs = db[cls.collection_name].find({"recipient_id": str(recipient_id)}).sort("created_at", -1).limit(limit)
+        return [cls(d) for d in docs]
+
+    @classmethod
+    def count_unread(cls, recipient_id):
+        if not recipient_id:
+            return 0
+        db = get_db()
+        return db[cls.collection_name].count_documents({
+            "recipient_id": str(recipient_id),
+            "is_read": False
+        })
+
+    @classmethod
+    def mark_as_read(cls, notif_id, recipient_id):
+        db = get_db()
+        db[cls.collection_name].update_one(
+            {"_id": _to_obj_id(notif_id), "recipient_id": str(recipient_id)},
+            {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc)}}
+        )
+
+    @classmethod
+    def mark_all_read(cls, recipient_id):
+        db = get_db()
+        db[cls.collection_name].update_many(
+            {"recipient_id": str(recipient_id), "is_read": False},
+            {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc)}}
+        )
+
+
+# ==============================================================================
 # 9. Learn & Build — Courses, Assignments, Submissions & Certificates
 # ==============================================================================
 

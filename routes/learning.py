@@ -28,9 +28,12 @@ from models import (
     Submission,
     Review,
     Certificate,
+    SwapRequest,
+    Connection,
     extract_youtube_id,
     slugify
 )
+from models.mongo import _to_obj_id
 from services.quiz_evaluator import sanitize_for_student, evaluate_quiz_submission
 
 logger = logging.getLogger(__name__)
@@ -300,6 +303,67 @@ def courses_list():
         except Exception as e_rm:
             logger.warning(f"Could not fetch roadmap packages: {e_rm}")
 
+        # 4 Random Suggested Campus Peers (Instagram-Style Study Buddies)
+        suggested_peers = []
+        try:
+            peer_query = {}
+            if current_user.is_authenticated and current_user.id:
+                peer_query["_id"] = {"$ne": _to_obj_id(current_user.id)}
+
+            all_candidates = User.find_all(peer_query) or []
+            if all_candidates:
+                import random
+                # Filter candidates who are not already connected
+                unconnected = []
+                for u in all_candidates:
+                    if current_user.is_authenticated and current_user.id:
+                        if Connection.find_between(current_user.id, u.id):
+                            continue
+                    unconnected.append(u)
+
+                pool = unconnected if len(unconnected) >= 4 else all_candidates
+                sample_users = random.sample(pool, min(4, len(pool)))
+
+                for u in sample_users:
+                    score = 85
+                    if current_user.is_authenticated and current_user.id:
+                        try:
+                            from services.matching import calculate_match_score
+                            m_data = calculate_match_score(current_user, u)
+                            score = m_data.get("score", 85)
+                        except Exception:
+                            score = 85
+                    else:
+                        score = random.randint(86, 98)
+
+                    is_conn = False
+                    is_pending_out = False
+                    is_pending_in = False
+                    if current_user.is_authenticated and current_user.id:
+                        if Connection.find_between(current_user.id, u.id):
+                            is_conn = True
+                        else:
+                            if SwapRequest.find_pending_between(current_user.id, u.id):
+                                is_pending_out = True
+                            if SwapRequest.find_pending_between(u.id, current_user.id):
+                                is_pending_in = True
+
+                    top_skill = "Python & DSA"
+                    if u.teaching_skills and len(u.teaching_skills) > 0:
+                        top_skill = u.teaching_skills[0].name
+
+                    suggested_peers.append({
+                        "user": u,
+                        "score": score,
+                        "teach_skill": top_skill,
+                        "is_connected": is_conn,
+                        "is_pending_outgoing": is_pending_out,
+                        "is_pending_incoming": is_pending_in
+                    })
+        except Exception as e_peers:
+            logger.warning(f"Could not load suggested peers: {e_peers}")
+            suggested_peers = []
+
         return render_template(
             "learning/courses.html",
             courses=courses,
@@ -315,6 +379,7 @@ def courses_list():
             available_categories=available_categories,
             enrolled_course_ids=enrolled_course_ids,
             completed_course_ids=completed_course_ids,
+            suggested_peers=suggested_peers,
             total_courses=len(courses)
         )
     except Exception as e:

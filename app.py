@@ -50,7 +50,8 @@ from routes import (
     test_series_bp,
     payment_bp,
     roadmap_bp,
-    bhavishya_bp
+    bhavishya_bp,
+    notifications_bp
 )
 
 def create_app(config_class=Config):
@@ -101,6 +102,7 @@ def create_app(config_class=Config):
     app.register_blueprint(payment_bp)
     app.register_blueprint(roadmap_bp)
     app.register_blueprint(bhavishya_bp)
+    app.register_blueprint(notifications_bp)
 
     # Provide global utilities & model classes safely in Jinja templates
     from services.payment_service import verify_student_unlock
@@ -285,6 +287,8 @@ def create_app(config_class=Config):
         if not hasattr(g, "_cached_global_data"):
             pending_requests_count = 0
             unread_messages_count = 0
+            unread_notifications_count = 0
+            recent_notifications = []
             pending_payments_count = 0
             if current_user.is_authenticated and current_user.id:
                 pending_requests_count = SwapRequest.count({
@@ -292,6 +296,14 @@ def create_app(config_class=Config):
                     "status": "pending"
                 })
                 unread_messages_count = Message.count_unread(current_user.id)
+                try:
+                    from models import Notification
+                    unread_notifications_count = Notification.count_unread(current_user.id)
+                    recent_notifications = [n.to_dict() for n in Notification.find_by_recipient(current_user.id, limit=8)]
+                except Exception:
+                    unread_notifications_count = 0
+                    recent_notifications = []
+
                 if getattr(current_user, "is_admin", False):
                     try:
                         pending_payments_count = get_db().payments.count_documents({"status": "pending"})
@@ -302,6 +314,8 @@ def create_app(config_class=Config):
             g._cached_global_data = {
                 "pending_requests_count": pending_requests_count,
                 "unread_messages_count": unread_messages_count,
+                "unread_notifications_count": unread_notifications_count,
+                "recent_notifications": recent_notifications,
                 "pending_payments_count": pending_payments_count,
                 "platform_settings": settings,
                 "announcement_enabled": settings.get("announcement_enabled", False),

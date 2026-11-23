@@ -73,12 +73,16 @@ def discover():
 
         # Check follow/connection status with current user
         is_conn = False
-        is_pending = False
+        is_pending_outgoing = False
+        is_pending_incoming = False
         if current_user.is_authenticated and current_user.id:
             if Connection.find_between(current_user.id, user.id):
                 is_conn = True
-            elif SwapRequest.find_pending_between(current_user.id, user.id):
-                is_pending = True
+            else:
+                if SwapRequest.find_pending_between(current_user.id, user.id):
+                    is_pending_outgoing = True
+                if SwapRequest.find_pending_between(user.id, current_user.id):
+                    is_pending_incoming = True
 
         student_cards.append({
             "user": user,
@@ -89,7 +93,9 @@ def discover():
             "b_teaches_a_wants": b_teaches_a_wants,
             "a_teaches_b_wants": a_teaches_b_wants,
             "is_connected": is_conn,
-            "is_pending": is_pending
+            "is_pending": is_pending_outgoing,
+            "is_pending_outgoing": is_pending_outgoing,
+            "is_pending_incoming": is_pending_incoming
         })
 
     # Sort by compatibility score descending
