@@ -121,14 +121,14 @@ def dashboard():
     - 50% completion cashback and certificate status indicators
     """
     pkg = BhavishyaPackage()
-    is_unlocked = False
+    # Bhavishya 1.0 is 100% FREE for all students
+    is_unlocked = True
     progress = None
     cashback_status = None
     user_id = None
 
     if current_user.is_authenticated:
         user_id = str(current_user.id)
-        is_unlocked = verify_student_unlock(current_user, "bhavishya", "bhavishya-1-0")
         progress = BhavishyaProgress.get_or_create_for_user(user_id)
         cashback_record = BhavishyaCashback.get_by_user(user_id)
         cashback_status = cashback_record.status if cashback_record else BhavishyaCashback.STATUS_IN_PROGRESS
@@ -169,6 +169,61 @@ def dashboard():
     all_live_lectures = BhavishyaLiveLecture.get_all("bhavishya-1-0")
     completed_lectures_count = sum(1 for l in all_live_lectures if l.is_completed)
 
+    # Physics Wallah-style Dual Flagship Batches: Python & English
+    python_lectures = BhavishyaLiveLecture.get_all("bhavishya-1-0", subject_slug="python")
+    english_lectures = BhavishyaLiveLecture.get_all("bhavishya-1-0", subject_slug="english")
+    python_modules = BhavishyaLiveLecture.get_modules_grouped("bhavishya-1-0", subject_slug="python")
+    english_modules = BhavishyaLiveLecture.get_modules_grouped("bhavishya-1-0", subject_slug="english")
+    python_active_live = BhavishyaLiveLecture.get_active_live("bhavishya-1-0", subject_slug="python")
+    english_active_live = BhavishyaLiveLecture.get_active_live("bhavishya-1-0", subject_slug="english")
+    python_next = BhavishyaLiveLecture.get_next_scheduled("bhavishya-1-0", subject_slug="python")
+    english_next = BhavishyaLiveLecture.get_next_scheduled("bhavishya-1-0", subject_slug="english")
+
+    batch_courses = [
+        {
+            "id": "python-batch",
+            "slug": "python",
+            "title": "Python Mastery — Zero to Placement",
+            "badge_title": "Python Live Batch",
+            "tag": "Live Interactive Batch",
+            "certification": "With Certification",
+            "language": "Hinglish",
+            "teacher_name": "Tanishk Pal Sir",
+            "teacher_title": "Founder & Lead Python Educator",
+            "teacher_avatar": "/static/img/teacher_tanishk.svg",
+            "schedule": "Starts on 24 Nov 2026 | Daily Live 7:00 PM IST",
+            "total_lectures": len(python_lectures),
+            "modules_count": len(python_modules),
+            "active_live": python_active_live,
+            "next_scheduled": python_next,
+            "study_url": url_for("bhavishya.subject_detail", slug="python"),
+            "features": ["Daily Google Meet Live Classes", "Topic-wise DPPs with Instant Solutions", "Class Notes & Cheatsheets", "In-Browser Python IDE", "Ski AI Doubt Solver 24/7"],
+            "gradient": "linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)",
+            "accent": "#6366F1"
+        },
+        {
+            "id": "english-batch",
+            "slug": "english",
+            "title": "Professional English & Communication",
+            "badge_title": "English Academy",
+            "tag": "Speaking & Fluency Academy",
+            "certification": "With Certification",
+            "language": "Hinglish / English",
+            "teacher_name": "Ananya Sharma Ma'am",
+            "teacher_title": "Lead Communication & Verbal Coach",
+            "teacher_avatar": "/static/img/teacher_ananya.svg",
+            "schedule": "Starts on 24 Nov 2026 | Daily Live 8:30 PM IST",
+            "total_lectures": len(english_lectures),
+            "modules_count": len(english_modules),
+            "active_live": english_active_live,
+            "next_scheduled": english_next,
+            "study_url": url_for("bhavishya.subject_detail", slug="english"),
+            "features": ["Live Google Meet Speaking Circles", "Phonetics & Accent Softening", "Corporate Email & Standup Etiquette", "Behavioral Interview STAR Framework", "JAM & Impromptu Talk Drills"],
+            "gradient": "linear-gradient(135deg, #064E3B 0%, #047857 100%)",
+            "accent": "#10B981"
+        }
+    ]
+
     return render_template(
         "bhavishya/dashboard.html",
         package=pkg,
@@ -188,7 +243,10 @@ def dashboard():
         next_scheduled_lecture=next_scheduled_lecture,
         live_modules=live_modules,
         all_live_lectures=all_live_lectures,
-        completed_lectures_count=completed_lectures_count
+        completed_lectures_count=completed_lectures_count,
+        batch_courses=batch_courses,
+        python_lectures=python_lectures,
+        english_lectures=english_lectures
     )
 
 
@@ -221,39 +279,101 @@ def roadmap():
 @bhavishya_bp.route("/subject/<slug>")
 def subject_detail(slug):
     """
-    Shows full syllabus, chapter breakdown, prerequisites, and learning progress
-    for one of the 19 Bhavishya subjects.
+    Physics Wallah-style Subject & Chapter Playlist View:
+    - Supports Flagship Live Batches (Python, English) with Chapter navigation and tabs
+    - Also supports traditional 19 self-paced Bhavishya subjects
     """
-    subject = BhavishyaSubject.get_by_slug(slug)
-    if not subject:
-        flash("The requested Bhavishya subject was not found.", "warning")
-        return redirect(url_for("bhavishya.dashboard"))
-
+    clean_slug = str(slug).strip().lower()
+    is_python = clean_slug in ("python", "python-live", "python-programming")
+    is_english = clean_slug in ("english", "english-live", "english-academy", "communication")
+    
+    # 100% Free for all students
+    is_unlocked = True
     pkg = BhavishyaPackage()
-    is_unlocked = False
     progress = None
     subject_progress_pct = 0.0
 
     if current_user.is_authenticated:
-        is_unlocked = verify_student_unlock(current_user, "bhavishya", "bhavishya-1-0")
         progress = BhavishyaProgress.get_or_create_for_user(str(current_user.id))
-        subject_progress_pct = progress.calculate_subject_progress(subject)
 
-    # Check prerequisites
+    # Resolve subject object or fallback
+    subject = BhavishyaSubject.get_by_slug(clean_slug)
+    if not subject and is_python:
+        subject = BhavishyaSubject.get_by_slug("python-programming")
+    elif not subject and is_english:
+        subject = BhavishyaSubject.get_by_slug("communication-mastery")
+
+    # Flagship Live Batch info
+    subject_slug = "python" if is_python else ("english" if is_english else clean_slug)
+    is_live_batch = is_python or is_english or clean_slug.endswith("-live")
+
+    if is_python:
+        subject_info = {
+            "title": "Python Mastery — Zero to Placement",
+            "slug": "python",
+            "teacher_name": "Tanishk Pal Sir",
+            "teacher_title": "Founder & Lead Python Educator",
+            "teacher_avatar": "/static/img/teacher_tanishk.svg",
+            "language": "Hinglish",
+            "accent_color": "#6366F1",
+            "schedule": "Daily Live at 7:00 PM IST • Google Meet",
+            "description": "Comprehensive live interactive classes on Google Meet with daily practice problems (DPP), lecture notes, in-browser compiler, and placement projects."
+        }
+    elif is_english:
+        subject_info = {
+            "title": "Professional English & Communication",
+            "slug": "english",
+            "teacher_name": "Ananya Sharma Ma'am",
+            "teacher_title": "Lead Communication & Verbal Coach",
+            "teacher_avatar": "/static/img/teacher_ananya.svg",
+            "language": "Hinglish / English",
+            "accent_color": "#10B981",
+            "schedule": "Daily Live at 8:30 PM IST • Google Meet",
+            "description": "Interactive speaking circles on Google Meet covering spoken English, pronunciation, corporate emails, and GD/interview prep."
+        }
+    else:
+        subject_info = {
+            "title": subject.title if subject else slug.replace("-", " ").title(),
+            "slug": clean_slug,
+            "teacher_name": "SkillRock Faculty",
+            "teacher_title": "Academic Lead",
+            "teacher_avatar": "/static/img/logo.jpg",
+            "language": "Hinglish",
+            "accent_color": "#38BDF8",
+            "schedule": "Self-Paced & Live Mentorship",
+            "description": subject.short_description if subject else ""
+        }
+
+    # Fetch live modules & lectures for this subject
+    live_modules = BhavishyaLiveLecture.get_modules_grouped("bhavishya-1-0", subject_slug=subject_slug)
+    all_lectures = BhavishyaLiveLecture.get_all("bhavishya-1-0", subject_slug=subject_slug)
+    active_live_lecture = BhavishyaLiveLecture.get_active_live("bhavishya-1-0", subject_slug=subject_slug)
+    next_scheduled_lecture = BhavishyaLiveLecture.get_next_scheduled("bhavishya-1-0", subject_slug=subject_slug)
+
+    # Self-paced fallback
     prereqs = []
-    for p_slug in subject.prerequisites:
-        p_subj = BhavishyaSubject.get_by_slug(p_slug)
-        if p_subj:
-            p_done = progress.calculate_subject_progress(p_subj) >= 80 if progress else False
-            prereqs.append({"subject": p_subj, "is_satisfied": p_done})
-
     first_lesson_id = ""
-    if subject.chapters and subject.chapters[0].get("lessons"):
-        first_lesson_id = subject.chapters[0]["lessons"][0].get("id", "")
+    if subject:
+        if progress:
+            subject_progress_pct = progress.calculate_subject_progress(subject)
+        for p_slug in subject.prerequisites:
+            p_subj = BhavishyaSubject.get_by_slug(p_slug)
+            if p_subj:
+                p_done = progress.calculate_subject_progress(p_subj) >= 80 if progress else False
+                prereqs.append({"subject": p_subj, "is_satisfied": p_done})
+        if subject.chapters and subject.chapters[0].get("lessons"):
+            first_lesson_id = subject.chapters[0]["lessons"][0].get("id", "")
 
     return render_template(
         "bhavishya/subject_detail.html",
         subject=subject,
+        subject_info=subject_info,
+        subject_slug=subject_slug,
+        is_live_batch=is_live_batch,
+        live_modules=live_modules,
+        all_lectures=all_lectures,
+        active_live_lecture=active_live_lecture,
+        next_scheduled_lecture=next_scheduled_lecture,
         package=pkg,
         is_unlocked=is_unlocked,
         progress=progress,
@@ -281,12 +401,8 @@ def classroom(subject_slug, lesson_id):
         flash("Subject not found.", "warning")
         return redirect(url_for("bhavishya.dashboard"))
 
-    # Access check: verify payment, admin status, or free trial for Subject 01 Lesson 1
-    is_unlocked = verify_student_unlock(current_user, "bhavishya", "bhavishya-1-0") or getattr(current_user, "is_admin", False)
-    is_free_trial = (subject_slug == "python-programming" and str(lesson_id) in ("py-l1", "1"))
-    if not is_unlocked and not is_free_trial:
-        flash("Subject 01 (Python) Lesson 1 is 100% free to try! To access Lesson 2+ and the complete 19-subject curriculum, please enroll for ₹299.", "info")
-        return redirect(url_for("payment.checkout", item_type="bhavishya", item_id="bhavishya-1-0"))
+    # 100% Free for all students
+    is_unlocked = True
 
     lesson, chapter = subject.get_lesson_by_id(lesson_id)
     if not lesson:
@@ -332,7 +448,7 @@ def classroom(subject_slug, lesson_id):
         chapter=chapter,
         lesson=lesson,
         interactive_data=interactive_data,
-        is_free_trial=is_free_trial,
+        is_free_trial=False,
         is_unlocked=is_unlocked,
         progress=progress,
         memory=memory,
@@ -746,17 +862,13 @@ def live_classroom(lecture_id):
         return redirect(url_for("bhavishya.dashboard"))
 
     batch_config = BhavishyaBatchConfig.get_config("bhavishya-1-0")
-    all_lectures = BhavishyaLiveLecture.get_all("bhavishya-1-0")
+    # Stay within the active subject (Python or English)
+    subj_slug = getattr(lecture, "subject_slug", "python") or "python"
+    all_lectures = BhavishyaLiveLecture.get_all("bhavishya-1-0", subject_slug=subj_slug)
 
-    # Access control: Lecture 1 is free preview; subsequent lectures require enrollment
-    is_unlocked = False
-    if current_user.is_authenticated:
-        is_unlocked = verify_student_unlock(current_user, "bhavishya", "bhavishya-1-0")
-
-    is_free_trial = (lecture.order == 1)
-    if not is_unlocked and not is_free_trial:
-        flash(f"'{lecture.title}' is part of the Bhavishya 1.0 Live Batch. Enroll to access all 16 live lectures, Google Meet sessions, DPPs & certificates!", "info")
-        return redirect(url_for("payment.checkout", item_type="bhavishya", item_id="bhavishya-1-0"))
+    # Bhavishya 1.0 is 100% Free for all students!
+    is_unlocked = True
+    is_free_trial = True
 
     # Determine prev and next lectures
     prev_lec = None

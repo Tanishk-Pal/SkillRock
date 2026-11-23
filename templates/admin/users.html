@@ -100,6 +100,11 @@
                             <i data-lucide="shield-check" style="width: 11px; height: 11px;"></i>
                             <span>Admin</span>
                         </span>
+                        {% elif u.is_teacher %}
+                        <span class="admin-badge" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3); display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">
+                            <i data-lucide="graduation-cap" style="width: 12px; height: 12px;"></i>
+                            <span>Teacher</span>
+                        </span>
                         {% else %}
                         <span class="admin-badge admin-badge-blue">Student</span>
                         {% endif %}
@@ -172,6 +177,16 @@
                                 <i data-lucide="sliders" style="width: 14px; height: 14px;"></i>
                                 <span>Inspect</span>
                             </a>
+
+                            <!-- Toggle Teacher -->
+                            {% if not u.is_admin %}
+                            <form method="POST" action="{{ url_for('admin.user_toggle_teacher', user_id=u.id) }}" style="margin: 0;">
+                                <button type="submit" class="admin-btn" style="padding: 6px 10px; font-size: 0.76rem; font-weight: 700; background: {% if u.is_teacher %}rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3);{% else %}rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3);{% endif %}" title="{% if u.is_teacher %}Revoke Teacher Privileges{% else %}Make Faculty Teacher{% endif %}">
+                                    <i data-lucide="graduation-cap" style="width: 14px; height: 14px;"></i>
+                                    <span>{% if u.is_teacher %}Demote{% else %}Teacher{% endif %}</span>
+                                </button>
+                            </form>
+                            {% endif %}
 
                             <!-- Quick Delete (Protect Super Admin) -->
                             {% if (u.email or '').lower() != 'palt51419@gmail.com' %}

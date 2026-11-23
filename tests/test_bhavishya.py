@@ -12,6 +12,7 @@ Validates:
 """
 
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timezone
 from app import create_app
 from config import Config
@@ -115,22 +116,14 @@ class BhavishyaPlatformTestCase(unittest.TestCase):
     # ==========================================================================
 
     def test_02_bhavishya_package_pricing(self):
-        """Verifies Bhavishya 1.0 package is priced at ₹299 with 50% cashback enabled."""
+        """Verifies Bhavishya 1.0 package is 100% free for all students."""
         pkg = BhavishyaPackage()
-        self.assertEqual(pkg.price, 299.0)
-        self.assertTrue(pkg.cashback_enabled)
-        self.assertEqual(pkg.cashback_percentage, 50.0)
+        self.assertEqual(pkg.price, 0.0)
+        self.assertFalse(pkg.is_paid)
 
     def test_03_access_gating_and_unlock(self):
-        """Verifies Bhavishya is gated for non-enrolled students and unlocked upon granted access."""
-        # Unlocked status before grant
-        self.assertFalse(verify_student_unlock(self.student, "bhavishya", "bhavishya-1-0"))
-        # Admin is always unlocked
+        """Verifies Bhavishya is 100% free and accessible."""
         self.assertTrue(verify_student_unlock(self.admin, "bhavishya", "bhavishya-1-0"))
-
-        # Grant student access
-        grant_student_access(self.student.id, "bhavishya", "bhavishya-1-0", amount=299.0)
-        self.assertTrue(verify_student_unlock(self.student, "bhavishya", "bhavishya-1-0"))
 
     # ==========================================================================
     # 3. Routes & UI Rendering
@@ -142,9 +135,9 @@ class BhavishyaPlatformTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.data.decode("utf-8")
         self.assertIn("Bhavishya 1.0", body)
-        self.assertIn("Python Programming", body)
-        self.assertIn("Placement & Interview", body)
-        self.assertIn("50% Completion Cashback", body)
+        self.assertIn("Python Mastery", body)
+        self.assertIn("English", body)
+        self.assertIn("Let's Study", body)
 
     def test_05_roadmap_route_renders(self):
         """Verifies /bhavishya/roadmap renders HTTP 200 with 6 phases."""
@@ -156,37 +149,32 @@ class BhavishyaPlatformTestCase(unittest.TestCase):
         self.assertIn("Phase 6: Recruitment Arena", body)
 
     def test_06_subject_detail_renders(self):
-        """Verifies /bhavishya/subject/python-programming renders HTTP 200 with full chapters."""
-        resp = self.client.get("/bhavishya/subject/python-programming", follow_redirects=True)
+        """Verifies /bhavishya/subject/python renders HTTP 200 with full chapters."""
+        resp = self.client.get("/bhavishya/subject/python", follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         body = resp.data.decode("utf-8")
-        self.assertIn("Chapter 1: Python Core Foundations", body)
+        self.assertIn("All Chapters", body)
+        self.assertIn("Live Lecture", body)
 
     # ==========================================================================
     # 4. AI Classroom Gating & Interaction
     # ==========================================================================
 
     def test_07_classroom_access_gating(self):
-        """Verifies locked students are redirected to payment checkout."""
+        """Verifies students have 100% free access to classroom lessons."""
         self.login_student()
 
-        # Locked student: gets redirected to checkout
-        resp = self.client.get("/bhavishya/learn/python-programming/py-l1")
-        self.assertEqual(resp.status_code, 302)
-        self.assertIn("payment/checkout", resp.headers["Location"])
-
-        # Grant access
-        grant_student_access(self.student.id, "bhavishya", "bhavishya-1-0", amount=299.0)
-
-        # Unlocked student: loads classroom
+        # Unlocked student: loads classroom directly without paywall
         resp = self.client.get("/bhavishya/learn/python-programming/py-l1")
         self.assertEqual(resp.status_code, 200)
         body = resp.data.decode("utf-8")
-        self.assertIn("Prof. Bhavishya", body)
-        self.assertIn("Mode A: Live AI Classroom", body)
-        self.assertIn("Mode B: Interactive Coding Lab", body)
+        self.assertIn("100% Free Access", body)
+        self.assertIn("Conceptual Notes & Breakdown", body)
+        self.assertIn("Try It Yourself — Interactive Lab", body)
+        self.assertIn("Ski Assistant", body)
 
-    def test_08_ai_teacher_interaction_api(self):
+    @patch("routes.bhavishya.call_bhavishya_gemini", return_value="Great question! Variables in Python act like labels attached to memory objects.")
+    def test_08_ai_teacher_interaction_api(self, mock_gemini):
         """Verifies /bhavishya/api/ai-teacher/interact processes student question and records memory."""
         self.login_student()
         grant_student_access(self.student.id, "bhavishya", "bhavishya-1-0")
@@ -278,15 +266,14 @@ class BhavishyaPlatformTestCase(unittest.TestCase):
     # ==========================================================================
 
     def test_13_bhavishya_checkout_screen_loads(self):
-        """Verifies clicking Enroll in Bhavishya renders official ₹299 checkout (never redirects to /learning/courses)."""
+        """Verifies Bhavishya 1.0 is 100% free: checkout redirects directly to free enrollment and unlocks."""
         self.login_student()
 
-        resp = self.client.get("/payment/checkout/bhavishya/bhavishya-1-0")
+        resp = self.client.get("/payment/checkout/bhavishya/bhavishya-1-0", follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         body = resp.data.decode("utf-8")
         self.assertIn("Bhavishya 1.0", body)
-        self.assertIn("299", body)
-        self.assertIn("Payment Options", body)
+        self.assertIn("100% Free", body)
 
     def test_14_ski_bot_hub_and_api(self):
         """Verifies Ski Grok-style companion hub renders and chat/quote endpoints respond with high motivation."""
@@ -316,6 +303,59 @@ class BhavishyaPlatformTestCase(unittest.TestCase):
         qdata = quote_resp.get_json()
         self.assertTrue(qdata.get("success"))
         self.assertTrue(len(qdata.get("quote", "")) > 10)
+
+    # ==========================================================================
+    # 8. Faculty & Teacher Role Management Tests
+    # ==========================================================================
+
+    def test_15_admin_teacher_assignment_and_privileges(self):
+        """Verifies Super Admin can appoint teacher by email and teacher can access course/bhavishya admin consoles."""
+        ts = int(datetime.now().timestamp() * 1000)
+        faculty_email = f"lead_faculty_{ts}@skillrock.edu"
+        candidate = User({
+            "name": "Dr. Ramanujan",
+            "email": faculty_email,
+            "role": "student"
+        })
+        candidate.set_password("FacultyPass123!")
+        candidate.save()
+
+        # 1. Non-teacher student cannot access admin console
+        self.login_student()
+        resp = self.client.get("/admin/bhavishya")
+        self.assertIn(resp.status_code, [302, 403])
+
+        # 2. Admin assigns teacher via email
+        self.login_admin()
+        get_resp = self.client.get("/admin/teachers")
+        self.assertEqual(get_resp.status_code, 200)
+
+        assign_resp = self.client.post("/admin/teachers/assign", data={
+            "email": faculty_email,
+            "teacher_title": "Lead Python Faculty"
+        }, follow_redirects=True)
+        self.assertEqual(assign_resp.status_code, 200)
+
+        # 3. Verify user model privileges
+        updated_faculty = User.get_by_id(str(candidate.id))
+        self.assertTrue(updated_faculty.is_teacher)
+        self.assertEqual(updated_faculty.role, "teacher")
+        self.assertTrue(updated_faculty.can_manage_courses)
+
+        # 4. Teacher logs in and accesses Bhavishya and Courses admin consoles
+        with self.client.session_transaction() as sess:
+            sess['_user_id'] = str(candidate.id)
+            sess['_fresh'] = True
+
+        teach_bhavishya_resp = self.client.get("/admin/bhavishya")
+        self.assertEqual(teach_bhavishya_resp.status_code, 200)
+
+        teach_courses_resp = self.client.get("/admin/courses")
+        self.assertEqual(teach_courses_resp.status_code, 200)
+
+        # 5. Clean up
+        self.db.users.delete_one({"_id": candidate._id})
+        self.db.authorized_teachers.delete_one({"email": faculty_email.lower().strip()})
 
 
 

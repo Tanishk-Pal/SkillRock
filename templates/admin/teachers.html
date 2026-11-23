@@ -1,0 +1,191 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Faculty & Teachers Management — SkillRock Admin{% endblock %}
+{% block page_title %}Faculty & Teachers Management{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 24px;">
+
+    <!-- Top Action Banner & Quick Add Card -->
+    <div style="background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); padding: 24px; display: flex; flex-direction: column; gap: 18px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: #FFFFFF; margin-bottom: 4px; display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="graduation-cap" style="color: #F59E0B; width: 22px; height: 22px;"></i>
+                    Appoint Faculty Member by Email
+                </h3>
+                <p style="font-size: 0.85rem; color: var(--admin-text-muted); margin: 0;">
+                    Grant full course and live batch management privileges to teachers. Teachers can edit lectures, start Google Meet sessions, upload notes & DPPs, and review submissions.
+                </p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="background: rgba(16, 185, 129, 0.12); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.25); font-size: 0.78rem; font-weight: 700; padding: 4px 12px; border-radius: 9999px;">
+                    {{ teachers|length }} Active Faculty Members
+                </span>
+            </div>
+        </div>
+
+        <!-- Add Teacher Form -->
+        <form method="POST" action="{{ url_for('admin.teachers_assign') }}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) 160px; gap: 14px; align-items: flex-end; background: rgba(0,0,0,0.2); padding: 18px; border-radius: var(--admin-radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+            <div>
+                <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                    Teacher Email Address *
+                </label>
+                <input type="email" name="email" required placeholder="e.g. teacher@skillrock.in or gmail.com" 
+                       style="width: 100%; background: var(--admin-surface-card); border: 1px solid var(--admin-border); border-radius: 8px; color: #FFFFFF; padding: 10px 14px; font-size: 0.88rem; outline: none; transition: border-color 0.2s;">
+            </div>
+
+            <div>
+                <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                    Faculty Title / Designation
+                </label>
+                <input type="text" name="teacher_title" placeholder="e.g. Lead Python Educator" 
+                       style="width: 100%; background: var(--admin-surface-card); border: 1px solid var(--admin-border); border-radius: 8px; color: #FFFFFF; padding: 10px 14px; font-size: 0.88rem; outline: none;">
+            </div>
+
+            <div>
+                <label style="display: block; font-size: 0.76rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                    Specialization
+                </label>
+                <select name="specialization" style="width: 100%; background: var(--admin-surface-card); border: 1px solid var(--admin-border); border-radius: 8px; color: #FFFFFF; padding: 10px 14px; font-size: 0.88rem; outline: none;">
+                    <option value="Python Mastery">Python Mastery</option>
+                    <option value="English & Communication">English & Communication</option>
+                    <option value="Data Structures & Algorithms">Data Structures & Algorithms</option>
+                    <option value="Full Stack Web Dev">Full Stack Web Dev</option>
+                    <option value="General Faculty">General Faculty</option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; padding: 11px 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
+                    Appoint
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Faculty Table -->
+    <div class="admin-card">
+        <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-weight: 700; font-size: 1rem; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="users" style="color: #6366F1; width: 18px; height: 18px;"></i>
+                Registered Teachers & Course Editors
+            </div>
+        </div>
+
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Faculty Member</th>
+                        <th>Email</th>
+                        <th>Role & Title</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in teachers %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #6366F1, #8B5CF6); display: flex; align-items: center; justify-content: center; font-weight: 800; color: #FFFFFF; font-size: 0.9rem; flex-shrink: 0;">
+                                    {{ t.name[0]|upper if t.name else 'T' }}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; color: #FFFFFF; font-size: 0.9rem;">{{ t.name or 'Faculty Member' }}</div>
+                                    <div style="font-size: 0.75rem; color: var(--admin-text-muted);">Joined {{ t.created_at.strftime('%d %b %Y') if t.created_at else 'Recent' }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="font-family: monospace; font-size: 0.84rem; color: #E2E8F0;">{{ t.email }}</span>
+                        </td>
+                        <td>
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                {% if t.is_admin %}
+                                    <span style="background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; width: fit-content;">
+                                        👑 Super Administrator
+                                    </span>
+                                {% else %}
+                                    <span style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; width: fit-content;">
+                                        👨‍🏫 Faculty Teacher
+                                    </span>
+                                {% endif %}
+                                <span style="font-size: 0.76rem; color: #94A3B8;">{{ t._data.get('teacher_title') or 'Course Editor & Teacher' }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 700; color: #10B981;">
+                                <span style="width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
+                                Active
+                            </span>
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; align-items: center; gap: 8px;">
+                                <a href="{{ url_for('admin.bhavishya_admin') }}" class="admin-btn admin-btn-sm admin-btn-secondary" title="Manage Bhavishya Live Batch">
+                                    <i data-lucide="video" style="width: 14px; height: 14px;"></i>
+                                    Batches
+                                </a>
+                                {% if not t.is_admin %}
+                                <form method="POST" action="{{ url_for('admin.teachers_remove', user_id=t.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to revoke teacher privileges for {{ t.email }}?');">
+                                    <button type="submit" class="admin-btn admin-btn-sm" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3);" title="Demote to Student">
+                                        <i data-lucide="user-x" style="width: 14px; height: 14px;"></i>
+                                        Demote
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 36px; color: var(--admin-text-muted);">
+                            No faculty members found. Use the form above to appoint teachers.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pre-Authorized Teacher Invitations (if any) -->
+    {% if authorized_list %}
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <div style="font-weight: 700; font-size: 0.95rem; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="mail-check" style="color: #10B981; width: 18px; height: 18px;"></i>
+                Pre-Authorized Teacher Invitations (Pending Registration/Login)
+            </div>
+        </div>
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Invited Email</th>
+                        <th>Assigned Title</th>
+                        <th>Specialization</th>
+                        <th>Appointed By</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for auth in authorized_list %}
+                    <tr>
+                        <td><span style="font-family: monospace; font-size: 0.85rem; color: #E2E8F0;">{{ auth.email }}</span></td>
+                        <td>{{ auth.title or 'Faculty' }}</td>
+                        <td><span style="background: rgba(99, 102, 241, 0.15); color: #A5B4FC; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem;">{{ auth.specialization or 'General' }}</span></td>
+                        <td>{{ auth.appointed_by or 'Admin' }}</td>
+                        <td>{{ auth.created_at.strftime('%d %b %Y') if auth.created_at else 'Recent' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

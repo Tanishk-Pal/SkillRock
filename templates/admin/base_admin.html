@@ -642,6 +642,10 @@
                 <i data-lucide="users"></i>
                 <span>User Management</span>
             </a>
+            <a href="{{ url_for('admin.teachers_list') }}" class="admin-nav-item {% if 'teacher' in request.endpoint %}active{% endif %}">
+                <i data-lucide="graduation-cap"></i>
+                <span>Faculty & Teachers</span>
+            </a>
             <a href="{{ url_for('admin.skills_list') }}" class="admin-nav-item {% if 'skills' in request.endpoint %}active{% endif %}">
                 <i data-lucide="award"></i>
                 <span>Skills Directory</span>

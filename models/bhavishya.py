@@ -13,14 +13,15 @@ from models.mongo import db, get_db, _to_obj_id, slugify
 class BhavishyaPackage:
     id = "bhavishya-1-0"
     slug = "bhavishya-1-0"
-    title = "Bhavishya 1.0 — Python Master Live Batch"
-    short_description = "Live Interactive Lectures on Google Meet with Teacher, Structured Python Curriculum (Zero to Placement), Daily Practice Problems (DPP), Handwritten Notes & 24/7 AI Doubt Solver."
-    duration = "8 Weeks (16 Live Lectures)"
+    title = "Bhavishya 1.0 — Free Live & Masterclass Batch"
+    short_description = "Live Interactive Lectures on Google Meet with Teachers (Python & English), Daily Practice Problems (DPP), Class Notes & 24/7 AI Doubt Solver. 100% Free for all students."
+    duration = "8 Weeks (Live Batches)"
     level = "Zero to Placement (Beginner to Advanced)"
-    price = 299.0
-    original_price = 2499.0
+    price = 0.0
+    original_price = 0.0
     currency = "INR"
-    is_paid = True
+    is_paid = False
+    is_free = True
     cashback_enabled = False
     cashback_percentage = 0.0
     completion_deadline_days = 180
@@ -571,8 +572,8 @@ class BhavishyaBatchConfig:
         self.whatsapp_url = self._data.get("whatsapp_url", "https://chat.whatsapp.com/SkillRockPython")
         self.telegram_url = self._data.get("telegram_url", "https://t.me/SkillRockCampus")
         self.total_lectures = int(self._data.get("total_lectures", 16))
-        self.price = float(self._data.get("price", 299.0))
-        self.original_price = float(self._data.get("original_price", 2499.0))
+        self.price = float(self._data.get("price", 0.0))
+        self.original_price = float(self._data.get("original_price", 0.0))
 
     def save(self):
         db = get_db()
@@ -623,12 +624,15 @@ class BhavishyaLiveLecture:
         self.id = str(self._id) if self._id else str(self._data.get("lecture_id", ""))
         self.lecture_id = str(self._data.get("lecture_id", self.id))
         self.batch_id = self._data.get("batch_id", "bhavishya-1-0")
+        self.subject_slug = str(self._data.get("subject_slug", "python")).strip().lower()
         self.module_number = int(self._data.get("module_number", 1))
         self.module_name = self._data.get("module_name", "Module 1: Python Essentials")
         self.lecture_number = int(self._data.get("lecture_number", 1))
         self.title = self._data.get("title", "")
         self.description = self._data.get("description", "")
         self.teacher_name = self._data.get("teacher_name", "Tanishk Pal")
+        self.teacher_title = self._data.get("teacher_title", "")
+        self.teacher_avatar = self._data.get("teacher_avatar", "")
         self.scheduled_at = self._data.get("scheduled_at", "")
         self.scheduled_display = self._data.get("scheduled_display", "")
         self.duration_minutes = int(self._data.get("duration_minutes", 90))
@@ -668,6 +672,7 @@ class BhavishyaLiveLecture:
         doc = {
             "lecture_id": self.lecture_id,
             "batch_id": self.batch_id,
+            "subject_slug": self.subject_slug,
             "module_number": self.module_number,
             "module_name": self.module_name,
             "lecture_number": self.lecture_number,
@@ -675,6 +680,8 @@ class BhavishyaLiveLecture:
             "title": self.title,
             "description": self.description,
             "teacher_name": self.teacher_name,
+            "teacher_title": self.teacher_title,
+            "teacher_avatar": self.teacher_avatar,
             "scheduled_at": self.scheduled_at,
             "scheduled_display": self.scheduled_display,
             "duration_minutes": self.duration_minutes,
@@ -709,29 +716,35 @@ class BhavishyaLiveLecture:
         return cls(doc) if doc else None
 
     @classmethod
-    def get_all(cls, batch_id="bhavishya-1-0"):
+    def get_all(cls, batch_id="bhavishya-1-0", subject_slug=None):
         db = get_db()
-        cursor = db[cls.collection_name].find({"batch_id": batch_id}).sort("order", 1)
+        q = {"batch_id": batch_id}
+        if subject_slug:
+            q["subject_slug"] = str(subject_slug).strip().lower()
+        cursor = db[cls.collection_name].find(q).sort("order", 1)
         return [cls(doc) for doc in cursor]
 
     @classmethod
-    def get_active_live(cls, batch_id="bhavishya-1-0"):
+    def get_active_live(cls, batch_id="bhavishya-1-0", subject_slug=None):
         db = get_db()
-        doc = db[cls.collection_name].find_one({"batch_id": batch_id, "status": cls.STATUS_LIVE})
+        q = {"batch_id": batch_id, "status": cls.STATUS_LIVE}
+        if subject_slug:
+            q["subject_slug"] = str(subject_slug).strip().lower()
+        doc = db[cls.collection_name].find_one(q)
         return cls(doc) if doc else None
 
     @classmethod
-    def get_next_scheduled(cls, batch_id="bhavishya-1-0"):
+    def get_next_scheduled(cls, batch_id="bhavishya-1-0", subject_slug=None):
         db = get_db()
-        doc = db[cls.collection_name].find_one(
-            {"batch_id": batch_id, "status": cls.STATUS_SCHEDULED},
-            sort=[("order", 1)]
-        )
+        q = {"batch_id": batch_id, "status": cls.STATUS_SCHEDULED}
+        if subject_slug:
+            q["subject_slug"] = str(subject_slug).strip().lower()
+        doc = db[cls.collection_name].find_one(q, sort=[("order", 1)])
         return cls(doc) if doc else None
 
     @classmethod
-    def get_modules_grouped(cls, batch_id="bhavishya-1-0"):
-        lectures = cls.get_all(batch_id)
+    def get_modules_grouped(cls, batch_id="bhavishya-1-0", subject_slug=None):
+        lectures = cls.get_all(batch_id, subject_slug=subject_slug)
         modules = {}
         for l in lectures:
             m_key = l.module_number
@@ -742,4 +755,5 @@ class BhavishyaLiveLecture:
                     "lectures": []
                 }
             modules[m_key]["lectures"].append(l)
+        return sorted(modules.values(), key=lambda x: x["module_number"])
         return [modules[k] for k in sorted(modules.keys())]

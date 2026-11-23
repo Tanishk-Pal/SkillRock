@@ -6,22 +6,18 @@
 {% block content %}
 <div class="bh-classroom-wrapper" style="max-width: 1440px; margin: 0 auto; padding: 16px 16px 80px;">
 
-    <!-- 1. Free Trial Banner (Shown for Lesson 1 when student hasn't purchased ₹299 full package) -->
-    {% if is_free_trial and not is_unlocked %}
-    <div style="background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(56, 189, 248, 0.2)); border: 1.5px solid rgba(16, 185, 129, 0.5); border-radius: 14px; padding: 14px 20px; margin-bottom: 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="background: #10B981; color: #FFFFFF; font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 3px 10px; border-radius: 9999px;">Free Trial Active</span>
-            <span style="color: #F8FAFC; font-size: 13.5px; font-weight: 600;">
-                You are experiencing <strong>Subject 01 — Lesson 1</strong> completely free! Try the interactive lab, curated lecture, and Ski Doubt Solver.
+    <!-- 1. Free Batch Badge -->
+    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 10px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="background: #10B981; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 9999px;">100% Free Access</span>
+            <span style="color: #E2E8F0; font-size: 13px; font-weight: 600;">
+                All curriculum subjects, interactive labs, and Ski AI Doubt Solver are completely free for all students.
             </span>
         </div>
-        <a href="{{ url_for('payment.checkout', item_type='bhavishya', item_id='bhavishya-1-0') }}" 
-           class="btn btn-sm" 
-           style="background: linear-gradient(135deg, #7C3AED, #5B46F6); color: #FFFFFF; font-weight: 800; padding: 8px 18px; border-radius: 10px; font-size: 13px; text-decoration: none; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">
-            Enroll in Bhavishya 1.0 (₹299) to Unlock All 19 Subjects →
+        <a href="{{ url_for('bhavishya.subject_detail', slug=subject.slug) }}" style="color: #38BDF8; font-size: 12.5px; font-weight: 700; text-decoration: none;">
+            ← Back to Syllabus
         </a>
     </div>
-    {% endif %}
 
     <!-- 2. Top Navigation & Header Controls Bar -->
     <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 14px 20px; margin-bottom: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px;">
@@ -62,15 +58,9 @@
                 </a>
             {% endif %}
             {% if next_lesson %}
-                {% if is_unlocked or (subject.slug == 'python-programming' and prev_lesson and not is_unlocked) %}
-                    <a href="{{ url_for('bhavishya.classroom', subject_slug=subject.slug, lesson_id=next_lesson.id) }}" class="btn btn-sm" style="background: linear-gradient(135deg, #0284C7, #0369A1); color: #FFFFFF; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
-                        Next Lesson →
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('payment.checkout', item_type='bhavishya', item_id='bhavishya-1-0') }}" class="btn btn-sm" style="background: linear-gradient(135deg, #7C3AED, #5B46F6); color: #FFFFFF; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;" title="Enroll to unlock next lessons">
-                        Unlock Lesson 2 (₹299) 🔒
-                    </a>
-                {% endif %}
+                <a href="{{ url_for('bhavishya.classroom', subject_slug=subject.slug, lesson_id=next_lesson.id) }}" class="btn btn-sm" style="background: linear-gradient(135deg, #0284C7, #0369A1); color: #FFFFFF; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
+                    Next Lesson →
+                </a>
             {% endif %}
         </div>
     </div>

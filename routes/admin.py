@@ -63,28 +63,43 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 @admin_bp.before_request
 def require_admin():
-    """Restricts entire /admin suite exclusively to verified administrators."""
-    # Allow public access to dedicated admin login route
+    """Restricts entire /admin suite to verified administrators and faculty teachers."""
+    # Allow public access to dedicated admin/teacher login route
     if request.endpoint == "admin.admin_login":
         return
 
     if not current_user.is_authenticated:
-        flash("Please log in with administrator credentials to access the Admin Panel.", "warning")
+        flash("Please log in with administrator or teacher credentials to access the Portal.", "warning")
         return redirect(url_for("admin.admin_login", next=request.url))
 
-    if not getattr(current_user, "is_admin", False):
-        flash("Access Denied: Administrator privileges required.", "danger")
+    is_adm = getattr(current_user, "is_admin", False)
+    is_tch = getattr(current_user, "is_teacher", False)
+
+    if not (is_adm or is_tch):
+        flash("Access Denied: Teacher or Administrator privileges required.", "danger")
         return redirect(url_for("learning.courses_list"))
+
+    # Protect financial, platform settings, and user deletion from standard teachers
+    admin_only_endpoints = {
+        "admin.user_delete", "admin.user_toggle_ban", "admin.user_reset_password",
+        "admin.payments_list", "admin.payment_approve", "admin.payment_reject",
+        "admin.payment_delete", "admin.cashback_process", "admin.cashback_reject",
+        "admin.settings_page", "admin.teachers_assign", "admin.teachers_remove",
+        "admin.ambassadors_admin", "admin.ambassador_payout", "admin.payments_purge_test_records"
+    }
+    if request.endpoint in admin_only_endpoints and not is_adm:
+        flash("Access Denied: Super Administrator privileges required for financial & system settings.", "danger")
+        return redirect(url_for("admin.courses_list"))
 
 
 # ==============================================================================
-# Dedicated Admin Authentication
+# Dedicated Admin & Faculty Authentication
 # ==============================================================================
 
 @admin_bp.route("/login", methods=["GET", "POST"])
 def admin_login():
-    """Dedicated high-security login portal for the SkillSwap Administrator."""
-    if current_user.is_authenticated and getattr(current_user, "is_admin", False):
+    """Dedicated high-security login portal for SkillRock Administrators and Faculty Teachers."""
+    if current_user.is_authenticated and (getattr(current_user, "is_admin", False) or getattr(current_user, "is_teacher", False)):
         return redirect(url_for("admin.admin_dashboard"))
 
     if request.method == "POST":
@@ -92,20 +107,21 @@ def admin_login():
         password = request.form.get("password", "")
 
         if not email or not password:
-            flash("Please enter both administrator email and password.", "danger")
+            flash("Please enter both email and password.", "danger")
             return render_template("admin/admin_login.html", email=email)
 
         user = User.get_by_email(email)
         if not user or not user.check_password(password):
-            flash("Invalid administrator credentials. Access denied.", "danger")
+            flash("Invalid credentials. Access denied.", "danger")
             return render_template("admin/admin_login.html", email=email)
 
-        if not user.is_admin:
-            flash("This account does not have administrator privileges.", "danger")
+        if not (user.is_admin or user.is_teacher):
+            flash("This account does not have teacher or administrator privileges.", "danger")
             return render_template("admin/admin_login.html", email=email)
 
         login_user(user, remember=True)
-        flash(f"Welcome to SkillSwap Admin Suite, {user.name}!", "success")
+        role_label = "Administrator" if user.is_admin else "Faculty Teacher"
+        flash(f"Welcome to SkillRock Management Suite, {user.name} ({role_label})!", "success")
 
         next_url = request.args.get("next")
         if not next_url or any(x in str(next_url).lower() for x in ["login", "register"]):
@@ -2407,6 +2423,132 @@ def ambassador_payout(srid):
 
     flash(f"Successfully processed payout for {clean_srid}! Updated {result.modified_count} sales to Paid status.", "success")
     return redirect(url_for("admin.ambassadors_admin"))
+
+
+# ==============================================================================
+# Faculty & Teacher Management
+# ==============================================================================
+
+@admin_bp.route("/teachers", methods=["GET"])
+def teachers_list():
+    """Renders the Faculty & Teachers management console."""
+    db = get_db()
+    teacher_docs = list(db.users.find({
+        "$or": [{"role": "teacher"}, {"is_teacher": True}, {"role": "admin"}]
+    }).sort("created_at", -1))
+    
+    teachers = [User(doc) for doc in teacher_docs]
+    authorized_list = list(db.authorized_teachers.find({}).sort("created_at", -1))
+    
+    return render_template(
+        "admin/teachers.html",
+        teachers=teachers,
+        authorized_list=authorized_list
+    )
+
+
+@admin_bp.route("/teachers/assign", methods=["POST"])
+def teachers_assign():
+    """Appoints a user as Teacher by their email address."""
+    if not getattr(current_user, "is_admin", False):
+        flash("Access Denied: Super Administrator privileges required to appoint faculty.", "danger")
+        return redirect(url_for("admin.teachers_list"))
+
+    email = request.form.get("email", "").strip().lower()
+    title = request.form.get("teacher_title", "").strip() or "Faculty Educator"
+    specialization = request.form.get("specialization", "Python & English")
+
+    if not email or "@" not in email:
+        flash("Please provide a valid email address.", "danger")
+        return redirect(url_for("admin.teachers_list"))
+
+    db = get_db()
+    now = datetime.now(timezone.utc)
+
+    # 1. Upsert in db.authorized_teachers
+    db.authorized_teachers.update_one(
+        {"email": email},
+        {"$set": {
+            "email": email,
+            "title": title,
+            "specialization": specialization,
+            "appointed_by": getattr(current_user, "email", "admin"),
+            "updated_at": now
+        }, "$setOnInsert": {"created_at": now}},
+        upsert=True
+    )
+
+    # 2. Update existing user record if already registered
+    existing_user = User.get_by_email(email)
+    if existing_user:
+        existing_user.role = "teacher" if existing_user.role != "admin" else "admin"
+        existing_user._data["is_teacher"] = True
+        existing_user._data["teacher_title"] = title
+        existing_user.save()
+        flash(f"🎉 Successfully designated {existing_user.name} ({email}) as Faculty Teacher! They can now log in to edit courses and live batches.", "success")
+    else:
+        flash(f"✅ {email} has been pre-authorized as a Faculty Teacher. As soon as they register or sign in with Google, they will automatically receive full Teacher privileges!", "success")
+
+    return redirect(url_for("admin.teachers_list"))
+
+
+@admin_bp.route("/teachers/remove/<user_id>", methods=["POST"])
+def teachers_remove(user_id):
+    """Demotes a teacher back to student."""
+    if not getattr(current_user, "is_admin", False):
+        flash("Access Denied: Super Administrator privileges required.", "danger")
+        return redirect(url_for("admin.teachers_list"))
+
+    target_user = User.get_by_id(user_id)
+    if not target_user:
+        flash("Teacher not found.", "warning")
+        return redirect(url_for("admin.teachers_list"))
+
+    if target_user.is_admin:
+        flash("Cannot demote an Administrator account from the teacher console.", "danger")
+        return redirect(url_for("admin.teachers_list"))
+
+    db = get_db()
+    target_user.role = "student"
+    target_user._data["is_teacher"] = False
+    target_user.save()
+    db.authorized_teachers.delete_one({"email": target_user.email})
+
+    flash(f"Revoked teacher privileges for {target_user.name} ({target_user.email}).", "info")
+    return redirect(url_for("admin.teachers_list"))
+
+
+@admin_bp.route("/users/<user_id>/toggle_teacher", methods=["POST"])
+def user_toggle_teacher(user_id):
+    """Inline toggle for teacher privileges from user management table."""
+    if not getattr(current_user, "is_admin", False):
+        flash("Access Denied: Super Administrator privileges required.", "danger")
+        return redirect(url_for("admin.users_list"))
+
+    target_user = User.get_by_id(user_id)
+    if not target_user:
+        flash("User not found.", "warning")
+        return redirect(url_for("admin.users_list"))
+
+    db = get_db()
+    if target_user.role == "teacher" or target_user._data.get("is_teacher"):
+        target_user.role = "student"
+        target_user._data["is_teacher"] = False
+        target_user.save()
+        db.authorized_teachers.delete_one({"email": target_user.email})
+        flash(f"Removed teacher role from {target_user.name}.", "info")
+    else:
+        target_user.role = "teacher"
+        target_user._data["is_teacher"] = True
+        target_user.save()
+        db.authorized_teachers.update_one(
+            {"email": target_user.email},
+            {"$set": {"email": target_user.email, "title": "Faculty Instructor", "updated_at": datetime.now(timezone.utc)}},
+            upsert=True
+        )
+        flash(f"Granted teacher role to {target_user.name} ({target_user.email})!", "success")
+
+    return redirect(request.referrer or url_for("admin.users_list"))
 
 
 

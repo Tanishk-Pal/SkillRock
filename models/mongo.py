@@ -400,6 +400,18 @@ class User(UserMixin):
         return self.role == "admin" or self.email.lower() == "palt51419@gmail.com" or bool(self._data.get("is_admin", False))
 
     @property
+    def is_teacher(self):
+        return (
+            self.role in ["teacher", "admin"]
+            or self.is_admin
+            or bool(self._data.get("is_teacher", False))
+        )
+
+    @property
+    def can_manage_courses(self):
+        return self.is_admin or self.is_teacher
+
+    @property
     def is_authenticated(self):
         return True
 
@@ -660,6 +672,8 @@ class User(UserMixin):
         self._data["google_refresh_token"] = self.google_refresh_token
         self._data["google_token_expiry"] = self.google_token_expiry
         self._data["role"] = getattr(self, "role", "student")
+        self._data["is_teacher"] = bool(self.role in ["teacher", "admin"] or self._data.get("is_teacher", False))
+        self._data["teacher_title"] = getattr(self, "teacher_title", self._data.get("teacher_title", ""))
         self._data["is_banned"] = bool(getattr(self, "is_banned", False))
         self._data["ban_reason"] = getattr(self, "ban_reason", "")
         self._data["interests"] = self.interests
@@ -749,6 +763,13 @@ class User(UserMixin):
 
         db = get_db()
         doc = db[cls.collection_name].find_one({"_id": _to_obj_id(user_id)})
+        if doc and doc.get("role") != "admin" and not doc.get("is_teacher"):
+            auth_t = db.authorized_teachers.find_one({"email": doc.get("email", "").lower()})
+            if auth_t:
+                doc["role"] = "teacher"
+                doc["is_teacher"] = True
+                if auth_t.get("title"):
+                    doc["teacher_title"] = auth_t.get("title")
         user_obj = cls(doc) if doc else None
         if user_obj:
             cls._user_cache[uid_str] = (now, user_obj)
@@ -761,8 +782,18 @@ class User(UserMixin):
         if not email:
             return None
         db = get_db()
-        doc = db[cls.collection_name].find_one({"email": email.strip().lower()})
-        return cls(doc) if doc else None
+        norm_email = email.strip().lower()
+        doc = db[cls.collection_name].find_one({"email": norm_email})
+        if not doc:
+            return None
+        if doc.get("role") != "admin" and not doc.get("is_teacher"):
+            auth_t = db.authorized_teachers.find_one({"email": norm_email})
+            if auth_t:
+                doc["role"] = "teacher"
+                doc["is_teacher"] = True
+                if auth_t.get("title"):
+                    doc["teacher_title"] = auth_t.get("title")
+        return cls(doc)
 
     @classmethod
     def get_by_google_id(cls, google_id):

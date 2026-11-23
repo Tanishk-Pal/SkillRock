@@ -1,152 +1,575 @@
 {% extends "base.html" %}
 
-{% block title %}{{ subject.title }} — Bhavishya 1.0 | SkillRock{% endblock %}
-{% block meta_description %}{{ subject.short_description }}{% endblock %}
+{% block title %}{{ subject_info.title if subject_info else (subject.title if subject else 'Classes') }} — Bhavishya 1.0 | SkillRock{% endblock %}
+{% block meta_description %}{{ subject_info.description if subject_info else (subject.short_description if subject else 'Live classes, daily practice problems, and lecture notes.') }}{% endblock %}
+
+{% block head %}
+<style>
+    /* Physics Wallah 2-Column Classroom / Classes Layout */
+    .pw-classes-container {
+        max-width: 1360px;
+        margin: 0 auto;
+        padding: 20px 16px 80px;
+    }
+
+    .pw-header-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 22px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--border-color);
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .pw-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        font-size: 1.15rem;
+        color: var(--text-main);
+        text-decoration: none;
+        transition: color 0.15s ease;
+    }
+    .pw-back-link:hover {
+        color: #818CF8;
+    }
+
+    .pw-faculty-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        padding: 5px 14px 5px 6px;
+        border-radius: 9999px;
+    }
+
+    .pw-faculty-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #1E1B4B;
+    }
+
+    /* 2-Column Split: Left Chapters (Playlist), Right Content (Lectures, DPPs, Notes) */
+    .pw-classes-layout {
+        display: grid;
+        grid-template-columns: 310px 1fr;
+        gap: 28px;
+        align-items: flex-start;
+    }
+
+    @media (max-width: 960px) {
+        .pw-classes-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Left Column: ALL CHAPTERS Sidebar */
+    .pw-chapters-sidebar {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 18px;
+        position: sticky;
+        top: 84px;
+    }
+
+    .pw-chapters-heading {
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 14px;
+        padding: 0 4px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .pw-chapter-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-decoration: none;
+        margin-bottom: 6px;
+        transition: all 0.15s ease;
+        border: 1.5px solid transparent;
+        cursor: pointer;
+    }
+
+    .pw-chapter-item:hover {
+        background: var(--bg-hover);
+        color: var(--text-main);
+    }
+
+    .pw-chapter-item.active {
+        background: rgba(99, 102, 241, 0.12);
+        color: #818CF8;
+        border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .pw-ch-num {
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        color: #818CF8;
+        white-space: nowrap;
+    }
+
+    /* Right Column: Filter Tabs & Lecture Cards */
+    .pw-content-main {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .pw-tabs-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-bottom: 1.5px solid var(--border-color);
+        padding-bottom: 12px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .pw-tab-btn {
+        padding: 8px 18px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+        position: relative;
+    }
+
+    .pw-tab-btn:hover {
+        color: var(--text-main);
+    }
+
+    .pw-tab-btn.active {
+        color: #818CF8;
+        background: rgba(99, 102, 241, 0.12);
+    }
+
+    /* Lecture Card (Matching PW video style) */
+    .pw-lecture-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 18px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        transition: all 0.2s ease;
+    }
+
+    .pw-lecture-card:hover {
+        border-color: rgba(99, 102, 241, 0.35);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.15);
+    }
+
+    .pw-lecture-left {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        flex: 1;
+    }
+
+    .pw-thumb-box {
+        width: 78px;
+        height: 78px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #1E1B4B, #312E81);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    .pw-thumb-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .pw-play-badge {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #EF4444;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .pw-lecture-meta {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .pw-lecture-title {
+        font-size: 1.02rem;
+        font-weight: 800;
+        color: var(--text-main);
+        line-height: 1.35;
+        margin-bottom: 6px;
+    }
+
+    .pw-lecture-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .pw-action-btn-primary {
+        background: #0F172A;
+        color: #FFFFFF;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 9px 18px;
+        border-radius: 10px;
+        font-size: 0.86rem;
+        font-weight: 800;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.15s ease;
+    }
+    .pw-action-btn-primary:hover {
+        background: linear-gradient(135deg, #7C3AED, #5B46F6);
+        border-color: transparent;
+        color: #FFFFFF;
+    }
+
+    .pw-action-btn-live {
+        background: #EF4444;
+        color: #FFFFFF;
+        border: none;
+        padding: 9px 18px;
+        border-radius: 10px;
+        font-size: 0.86rem;
+        font-weight: 800;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        animation: pulseRed 1.5s infinite;
+    }
+
+    .pw-action-btn-sub {
+        background: var(--bg-hover);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        padding: 9px 14px;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.15s ease;
+    }
+    .pw-action-btn-sub:hover {
+        color: var(--text-main);
+        border-color: var(--border-focus);
+    }
+
+    @keyframes pulseRed {
+        0% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+        70% { transform: scale(1.02); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        100% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    @media (max-width: 640px) {
+        .pw-lecture-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .pw-lecture-actions {
+            width: 100%;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="bh-subject-detail-container" style="max-width: 1200px; margin: 0 auto; padding: 24px 16px 80px;">
+<div class="pw-classes-container">
 
-    <!-- Breadcrumb -->
-    <div style="display: flex; align-items: center; gap: 8px; color: #94A3B8; font-size: 13px; margin-bottom: 20px;">
-        <a href="{{ url_for('bhavishya.dashboard') }}" style="color: #94A3B8; text-decoration: none;">Bhavishya 1.0</a>
-        <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
-        <span style="color: #E2E8F0; font-weight: 600;">{{ subject.title }}</span>
-    </div>
+    <!-- Top Navigation Header -->
+    <div class="pw-header-bar">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <a href="{{ url_for('bhavishya.dashboard') }}" class="pw-back-link">
+                <i data-lucide="arrow-left" style="width: 22px; height: 22px;"></i>
+                <span>All Classes</span>
+            </a>
+            <span style="font-size: 0.95rem; color: var(--text-muted); font-weight: 700;">
+                / {{ subject_info.title if subject_info else subject.title }}
+            </span>
+        </div>
 
-    <!-- Subject Hero Header -->
-    <div style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.95), rgba(15, 23, 42, 0.98)); border: 1px solid {{ subject.color_accent }}44; border-radius: 20px; padding: 32px; margin-bottom: 28px; position: relative; overflow: hidden; box-shadow: 0 16px 36px -10px rgba(0,0,0,0.5);">
-        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 24px;">
-            <div style="max-width: 760px;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                    <span style="background: {{ subject.color_accent }}22; border: 1px solid {{ subject.color_accent }}55; color: {{ subject.color_accent }}; font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 6px;">
-                        {{ subject.category }}
-                    </span>
-                    <span style="background: rgba(255,255,255,0.06); color: #CBD5E1; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px;">
-                        {{ subject.difficulty }}
-                    </span>
-                </div>
-                <h1 style="font-size: 30px; font-weight: 800; color: #FFFFFF; margin: 0 0 12px; letter-spacing: -0.02em;">
-                    {{ subject.title }}
-                </h1>
-                <p style="color: #94A3B8; font-size: 15px; line-height: 1.55; margin: 0 0 20px;">
-                    {{ subject.full_description }}
-                </p>
-                <div style="display: flex; flex-wrap: wrap; gap: 18px; color: #CBD5E1; font-size: 13px;">
-                    <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="clock" style="width: 15px; color: #38BDF8;"></i> {{ subject.estimated_hours }} Hours Estimated</span>
-                    <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="book-open" style="width: 15px; color: #A855F7;"></i> {{ subject.chapters|length }} Chapters</span>
-                    <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="layers" style="width: 15px; color: #EC4899;"></i> {{ subject.total_lessons_count }} Interactive Lessons</span>
-                    <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="check-circle" style="width: 15px; color: #10B981;"></i> {{ subject_progress_pct }}% Completed</span>
+        <!-- Teacher / Faculty Pill -->
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="pw-faculty-pill">
+                <img src="{{ subject_info.teacher_avatar or '/static/img/teacher_tanishk.svg' }}" alt="Teacher" class="pw-faculty-avatar">
+                <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-main);">
+                    {{ subject_info.teacher_name or 'Faculty Lead' }}
                 </div>
             </div>
-
-            <!-- Right CTA Action Card -->
-            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 22px; min-width: 250px; text-align: center;">
-                <div style="font-size: 12px; color: #94A3B8; text-transform: uppercase; font-weight: 700; margin-bottom: 6px;">Subject Completion</div>
-                <div style="font-size: 32px; font-weight: 800; color: {{ subject.color_accent }}; margin-bottom: 8px;">{{ subject_progress_pct }}%</div>
-                <div style="height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 9999px; margin-bottom: 18px; overflow: hidden;">
-                    <div style="height: 100%; width: {{ subject_progress_pct }}%; background: {{ subject.color_accent }}; border-radius: 9999px;"></div>
-                </div>
-
-                {% if is_unlocked %}
-                    {% if first_lesson_id %}
-                        <a href="{{ url_for('bhavishya.classroom', subject_slug=subject.slug, lesson_id=first_lesson_id) }}" 
-                           class="btn" 
-                           style="display: block; width: 100%; background: linear-gradient(135deg, #7C3AED, #5B46F6); color: #FFFFFF; font-weight: 700; padding: 12px 20px; border-radius: 10px; font-size: 13px; text-decoration: none; box-shadow: 0 8px 20px -4px rgba(124, 58, 237, 0.4);">
-                            <i data-lucide="play" style="width: 14px; margin-right: 4px;"></i> Launch AI Classroom →
-                        </a>
-                    {% endif %}
-                {% else %}
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        {% if subject.slug == 'python-programming' %}
-                            <a href="{{ url_for('bhavishya.classroom', subject_slug='python-programming', lesson_id='py-l1') }}" 
-                               class="btn" 
-                               style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10B981; color: #34D399; font-weight: 800; padding: 10px 16px; border-radius: 10px; font-size: 13px; text-decoration: none;">
-                                <i data-lucide="play-circle" style="width: 15px; height: 15px;"></i> Try Lesson 1 Free
-                            </a>
-                        {% endif %}
-                        <a href="{{ url_for('payment.checkout', item_type='bhavishya', item_id='bhavishya-1-0') }}" 
-                           class="btn" 
-                           style="display: block; width: 100%; background: linear-gradient(135deg, #7C3AED, #5B46F6); color: #FFFFFF; font-weight: 700; padding: 12px 20px; border-radius: 10px; font-size: 13px; text-decoration: none;">
-                            Enroll to Unlock All 19 (₹299) →
-                        </a>
-                    </div>
-                {% endif %}
-            </div>
+            <span style="background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px;">
+                100% FREE
+            </span>
         </div>
     </div>
 
-    <!-- Prerequisites Check (if any) -->
-    {% if prereqs %}
-    <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 16px 20px; margin-bottom: 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <i data-lucide="alert-circle" style="width: 18px; color: #F59E0B;"></i>
-            <span style="color: #E2E8F0; font-size: 13px; font-weight: 600;">Recommended Prerequisites:</span>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                {% for pr in prereqs %}
-                    <a href="{{ url_for('bhavishya.subject_detail', slug=pr.subject.slug) }}" style="font-size: 12px; background: rgba(255,255,255,0.06); border: 1px solid {% if pr.is_satisfied %}rgba(16, 185, 129, 0.4){% else %}rgba(245, 158, 11, 0.4){% endif %}; color: {% if pr.is_satisfied %}#34D399{% else %}#FBBF24{% endif %}; padding: 2px 10px; border-radius: 9999px; text-decoration: none;">
-                        {{ pr.subject.title }} {% if pr.is_satisfied %}✓{% endif %}
-                    </a>
-                {% endfor %}
+    <!-- Active Live Stream Banner if Live -->
+    {% if active_live_lecture %}
+    <div style="background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), rgba(15, 23, 42, 0.95)); border: 1.5px solid #EF4444; border-radius: 16px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: #EF4444; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
+                <i data-lucide="video" style="width: 20px; height: 20px;"></i>
             </div>
+            <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="background: #EF4444; color: #FFFFFF; font-size: 0.7rem; font-weight: 900; padding: 2px 8px; border-radius: 9999px;">
+                        🔴 CLASS IS CURRENTLY LIVE
+                    </span>
+                    <span style="font-size: 0.8rem; color: #FCA5A5; font-weight: 700;">Google Meet Stream Active</span>
+                </div>
+                <div style="font-size: 1.05rem; font-weight: 800; color: #FFFFFF; margin-top: 2px;">
+                    {{ active_live_lecture.title }}
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="{{ active_live_lecture.active_meet_url }}" target="_blank" class="btn pw-action-btn-live">
+                <i data-lucide="external-link" style="width: 15px; height: 15px;"></i>
+                Join Google Meet
+            </a>
+            <a href="{{ url_for('bhavishya.live_classroom', lecture_id=active_live_lecture.lecture_id) }}" class="btn pw-action-btn-primary">
+                Open Classroom
+            </a>
         </div>
     </div>
     {% endif %}
 
-    <!-- Chapter List & Lessons Breakdown -->
-    <div style="display: flex; flex-direction: column; gap: 20px;">
-        {% for ch in subject.chapters %}
-            <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; overflow: hidden;">
-                <div style="padding: 18px 24px; background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid rgba(255, 255, 255, 0.06); display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 16px; font-weight: 700; color: #F8FAFC;">{{ ch.title }}</div>
-                    <span style="font-size: 12px; color: #64748B;">{{ ch.lessons|length }} Lessons</span>
+    <!-- 2-Column Classes Layout -->
+    <div class="pw-classes-layout">
+
+        <!-- Left Column: ALL CHAPTERS Playlist -->
+        <aside class="pw-chapters-sidebar">
+            <div class="pw-chapters-heading">
+                <span>All Chapters</span>
+                <span>{{ live_modules|length }} Topics</span>
+            </div>
+
+            <!-- Chapter 0: All Modules -->
+            <div class="pw-chapter-item active" onclick="filterByModule('all', this)">
+                <span class="pw-ch-num">ALL</span>
+                <span>Complete Course Playlist</span>
+            </div>
+
+            <!-- Chapters List -->
+            {% for mod in live_modules %}
+            <div class="pw-chapter-item" onclick="filterByModule('{{ mod.module_number }}', this)">
+                <span class="pw-ch-num">CH - 0{{ mod.module_number }}</span>
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    {{ mod.module_name.split(': ')[1] if ': ' in mod.module_name else mod.module_name }}
+                </span>
+            </div>
+            {% endfor %}
+
+            <!-- Teacher Info Card in Sidebar -->
+            <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">
+                    Faculty In Charge
                 </div>
-
-                <div style="padding: 12px 24px; display: flex; flex-direction: column; gap: 10px;">
-                    {% for l in ch.lessons %}
-                        {% set is_done = progress.is_lesson_completed(l.id) if progress else False %}
-                        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 12px; gap: 12px;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 28px; height: 28px; border-radius: 50%; background: {% if is_done %}rgba(16, 185, 129, 0.15){% else %}rgba(255, 255, 255, 0.05){% endif %}; display: flex; align-items: center; justify-content: center; color: {% if is_done %}#10B981{% else %}#64748B{% endif %}; font-size: 12px; font-weight: 700;">
-                                    {% if is_done %}✓{% else %}{{ loop.index }}{% endif %}
-                                </div>
-                                <div>
-                                    <div style="font-size: 14px; font-weight: 600; color: #F1F5F9;">{{ l.title }}</div>
-                                    <div style="font-size: 12px; color: #64748B; margin-top: 2px;">
-                                        {{ l.duration_mins }} mins · 
-                                        <span style="color: {% if l.type == 'coding_lab' %}#38BDF8{% else %}#A855F7{% endif %}; font-weight: 600; text-transform: capitalize;">
-                                            {{ l.type.replace('_', ' ') }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                {% if is_unlocked %}
-                                    <a href="{{ url_for('bhavishya.classroom', subject_slug=subject.slug, lesson_id=l.id) }}" 
-                                       class="btn btn-sm" 
-                                       style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #C084FC; font-weight: 700; padding: 6px 14px; border-radius: 8px; font-size: 12px; text-decoration: none;">
-                                        {% if is_done %}Review Lesson{% else %}Enter Classroom →{% endif %}
-                                    </a>
-                                {% elif subject.slug == 'python-programming' and (l.id == 'py-l1' or loop.first) %}
-                                    <a href="{{ url_for('bhavishya.classroom', subject_slug=subject.slug, lesson_id=l.id) }}" 
-                                       class="btn btn-sm" 
-                                       style="background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10B981; color: #34D399; font-weight: 800; padding: 6px 14px; border-radius: 8px; font-size: 12px; text-decoration: none;">
-                                        Try Free →
-                                    </a>
-                                {% else %}
-                                    <a href="{{ url_for('payment.checkout', item_type='bhavishya', item_id='bhavishya-1-0') }}" 
-                                       class="btn btn-sm" 
-                                       style="background: rgba(255, 255, 255, 0.06); color: #94A3B8; padding: 6px 14px; border-radius: 8px; font-size: 12px; text-decoration: none;">
-                                        🔒 Locked
-                                    </a>
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endfor %}
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="{{ subject_info.teacher_avatar or '/static/img/teacher_tanishk.svg' }}" alt="Teacher" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #1E1B4B; border: 2px solid #6366F1;">
+                    <div>
+                        <div style="font-weight: 800; font-size: 0.88rem; color: var(--text-main);">{{ subject_info.teacher_name }}</div>
+                        <div style="font-size: 0.74rem; color: var(--text-secondary);">{{ subject_info.teacher_title }}</div>
+                    </div>
                 </div>
             </div>
-        {% endfor %}
+        </aside>
+
+        <!-- Right Column: Tabs & Lecture Playlist -->
+        <main class="pw-content-main">
+
+            <!-- Top Filter Tabs: All | Live & Upcoming | Lectures | DPPs | Notes -->
+            <div class="pw-tabs-header">
+                <button class="pw-tab-btn active" onclick="filterTab('all', this)">All</button>
+                <button class="pw-tab-btn" onclick="filterTab('live', this)">🔴 Live & Upcoming</button>
+                <button class="pw-tab-btn" onclick="filterTab('lectures', this)">Lectures</button>
+                <button class="pw-tab-btn" onclick="filterTab('dpps', this)">DPPs</button>
+                <button class="pw-tab-btn" onclick="filterTab('notes', this)">Notes</button>
+            </div>
+
+            <!-- Lecture Items List -->
+            <div id="lecturesList" style="display: flex; flex-direction: column; gap: 14px;">
+                {% for lec in all_lectures %}
+                <div class="pw-lecture-card" 
+                     data-module="{{ lec.module_number }}" 
+                     data-status="{{ lec.status }}"
+                     data-has-dpp="true"
+                     data-has-notes="true">
+                    
+                    <div class="pw-lecture-left">
+                        <div class="pw-thumb-box">
+                            <img src="{{ lec.teacher_avatar or subject_info.teacher_avatar or '/static/img/teacher_tanishk.svg' }}" alt="Teacher" class="pw-thumb-img">
+                            <div class="pw-play-badge" style="background: {% if lec.is_live %}#EF4444{% elif lec.is_completed %}#10B981{% else %}#6366F1{% endif %};">
+                                <i data-lucide="{% if lec.is_live %}video{% elif lec.is_completed %}check{% else %}play{% endif %}" style="width: 12px; height: 12px;"></i>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="pw-lecture-meta">
+                                <span style="color: #818CF8;">CH - 0{{ lec.module_number }}</span>
+                                <span>•</span>
+                                {% if lec.is_live %}
+                                    <span style="color: #EF4444; font-weight: 800;">🔴 LIVE NOW</span>
+                                {% elif lec.is_completed %}
+                                    <span style="color: #10B981;">Recorded (Replay Available)</span>
+                                {% else %}
+                                    <span style="color: #F59E0B;">⏳ {{ lec.scheduled_display or 'Upcoming' }}</span>
+                                {% endif %}
+                                <span>•</span>
+                                <span>{{ lec.duration_minutes }}m</span>
+                            </div>
+
+                            <div class="pw-lecture-title">
+                                {{ lec.title }}
+                            </div>
+
+                            <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                {{ lec.description }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lecture Actions -->
+                    <div class="pw-lecture-actions">
+                        {% if lec.is_live %}
+                            <a href="{{ lec.active_meet_url }}" target="_blank" class="pw-action-btn-live">
+                                <i data-lucide="video" style="width: 15px; height: 15px;"></i>
+                                Join Live
+                            </a>
+                            <a href="{{ url_for('bhavishya.live_classroom', lecture_id=lec.lecture_id) }}" class="pw-action-btn-primary">
+                                Classroom
+                            </a>
+                        {% elif lec.is_completed %}
+                            <a href="{{ url_for('bhavishya.live_classroom', lecture_id=lec.lecture_id) }}" class="pw-action-btn-primary">
+                                <i data-lucide="play" style="width: 14px; height: 14px;"></i>
+                                Watch
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('bhavishya.live_classroom', lecture_id=lec.lecture_id) }}" class="pw-action-btn-sub">
+                                <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
+                                Open Room
+                            </a>
+                        {% endif %}
+
+                        <!-- Notes & DPP shortcuts -->
+                        <a href="{{ url_for('bhavishya.live_classroom', lecture_id=lec.lecture_id) }}#notes" class="pw-action-btn-sub" title="Class Notes">
+                            <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
+                            <span>Notes</span>
+                        </a>
+
+                        <a href="{{ url_for('bhavishya.live_classroom', lecture_id=lec.lecture_id) }}#dpp" class="pw-action-btn-sub" title="Daily Practice Problems">
+                            <i data-lucide="help-circle" style="width: 14px; height: 14px;"></i>
+                            <span>DPP</span>
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 48px; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color); color: var(--text-muted);">
+                    No lectures found for this selection.
+                </div>
+                {% endfor %}
+            </div>
+
+        </main>
     </div>
 
 </div>
+
+<script>
+    let activeModule = 'all';
+    let activeTab = 'all';
+
+    function filterByModule(modNum, elem) {
+        activeModule = String(modNum);
+        document.querySelectorAll('.pw-chapter-item').forEach(i => i.classList.remove('active'));
+        if (elem) elem.classList.add('active');
+        applyFilters();
+    }
+
+    function filterTab(tab, elem) {
+        activeTab = tab;
+        document.querySelectorAll('.pw-tab-btn').forEach(b => b.classList.remove('active'));
+        if (elem) elem.classList.add('active');
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const cards = document.querySelectorAll('#lecturesList .pw-lecture-card');
+        cards.forEach(card => {
+            const cardMod = card.dataset.module;
+            const cardStatus = card.dataset.status;
+
+            let modMatch = (activeModule === 'all' || cardMod === activeModule);
+            let tabMatch = true;
+
+            if (activeTab === 'live') {
+                tabMatch = (cardStatus === 'live' || cardStatus === 'scheduled');
+            } else if (activeTab === 'lectures') {
+                tabMatch = (cardStatus === 'completed');
+            } else if (activeTab === 'dpps') {
+                tabMatch = card.dataset.hasDpp === 'true';
+            } else if (activeTab === 'notes') {
+                tabMatch = card.dataset.hasNotes === 'true';
+            }
+
+            if (modMatch && tabMatch) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+</script>
 {% endblock %}

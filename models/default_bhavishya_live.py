@@ -25,6 +25,8 @@ DEFAULT_LIVE_LECTURES = [
     {
         "lecture_id": "py-live-01",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 1,
         "module_name": "Module 1: Python Fundamentals & Environment Setup",
         "lecture_number": 1,
@@ -81,6 +83,8 @@ print(f"Welcome to Bhavishya 1.0, {name}! In 5 years you will be {age + 5} years
     {
         "lecture_id": "py-live-02",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 1,
         "module_name": "Module 1: Python Fundamentals & Environment Setup",
         "lecture_number": 2,
@@ -137,6 +141,8 @@ print("Are a and b the same object?", a is b)
     {
         "lecture_id": "py-live-03",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 2,
         "module_name": "Module 2: Operators & Decision Making",
         "lecture_number": 3,
@@ -187,6 +193,8 @@ print("Is 10 < x < 20?", 10 < x < 20)
     {
         "lecture_id": "py-live-04",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 2,
         "module_name": "Module 2: Operators & Decision Making",
         "lecture_number": 4,
@@ -237,6 +245,8 @@ match status_code:
     {
         "lecture_id": "py-live-05",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 3,
         "module_name": "Module 3: Loops & Pattern Logic",
         "lecture_number": 5,
@@ -275,6 +285,8 @@ for idx, (skill, level) in enumerate(zip(skills, levels), start=1):
     {
         "lecture_id": "py-live-06",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 3,
         "module_name": "Module 3: Loops & Pattern Logic",
         "lecture_number": 6,
@@ -322,6 +334,8 @@ for i in range(1, n + 1):
     {
         "lecture_id": "py-live-07",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 4,
         "module_name": "Module 4: Functions & Modularity",
         "lecture_number": 7,
@@ -367,6 +381,8 @@ build_profile("Tanishk", "SkillRock Campus", "Python", "Flask", "MongoDB", gpa="
     {
         "lecture_id": "py-live-08",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 4,
         "module_name": "Module 4: Functions & Modularity",
         "lecture_number": 8,
@@ -419,6 +435,8 @@ for s in sorted_students:
     {
         "lecture_id": "py-live-09",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 5,
         "module_name": "Module 5: Core Data Structures for Problem Solving",
         "lecture_number": 9,
@@ -455,6 +473,8 @@ print("Odd numbers from matrix:", flattened)
     {
         "lecture_id": "py-live-10",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 5,
         "module_name": "Module 5: Core Data Structures for Problem Solving",
         "lecture_number": 10,
@@ -505,6 +525,8 @@ for word, count in sorted(freq.items(), key=lambda x: x[1], reverse=True):
     {
         "lecture_id": "py-live-11",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 6,
         "module_name": "Module 6: Object-Oriented Programming (OOP)",
         "lecture_number": 11,
@@ -554,6 +576,8 @@ print(s1)
     {
         "lecture_id": "py-live-12",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 6,
         "module_name": "Module 6: Object-Oriented Programming (OOP)",
         "lecture_number": 12,
@@ -609,6 +633,8 @@ print("Current balance:", acc.balance)
     {
         "lecture_id": "py-live-13",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 7,
         "module_name": "Module 7: File I/O, Error Handling & APIs",
         "lecture_number": 13,
@@ -664,6 +690,8 @@ print(safe_divide(10, 0))
     {
         "lecture_id": "py-live-14",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 7,
         "module_name": "Module 7: File I/O, Error Handling & APIs",
         "lecture_number": 14,
@@ -717,6 +745,8 @@ print("Parsed Course Name:", parsed["course"])
     {
         "lecture_id": "py-live-15",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 8,
         "module_name": "Module 8: Capstone Real-World Project & Placement Prep",
         "lecture_number": 15,
@@ -779,6 +809,8 @@ print(analytics.summary())
     {
         "lecture_id": "py-live-16",
         "batch_id": "bhavishya-1-0",
+        "subject_slug": "python",
+        "teacher_avatar": "/static/img/teacher_tanishk.svg",
         "module_number": 8,
         "module_name": "Module 8: Capstone Real-World Project & Placement Prep",
         "lecture_number": 16,
@@ -828,10 +860,706 @@ print("Indices summing to 9:", indices)
 ]
 
 
+
+DEFAULT_ENGLISH_LIVE_LECTURES = [
+    # --------------------------------------------------------------------------
+    # MODULE 1: Spoken English & Accent Foundations
+    # --------------------------------------------------------------------------
+    {
+        "lecture_id": "eng-live-01",
+        "batch_id": "bhavishya-1-0",
+        "subject_slug": "english",
+        "module_number": 1,
+        "module_name": "Module 1: Spoken English & Accent Foundations",
+        "lecture_number": 1,
+        "order": 1,
+        "title": "Live Lecture 01: Breaking Fear & Building Natural Speaking Fluency",
+        "description": "Overcome hesitations, build instant conversational confidence, learn the daily 15-minute speaking habit, and master clear articulation without fake accents.",
+        "teacher_name": "Ananya Sharma (Senior English Faculty)",
+        "teacher_title": "Communication & Soft Skills Coach",
+        "teacher_avatar": "/static/img/teacher_ananya.svg",
+        "scheduled_at": "2026-11-20T20:30:00Z",
+        "scheduled_display": "Completed • Replay & Notes Available",
+        "duration_minutes": 60,
+        "status": "completed",
+        "google_meet_url": "https://meet.google.com/new",
+        "recording_url": "60ItHLz5WEA",
+        "notes_url": "",
+        "notes_content": """### Spoken English Masterclass 01 Notes
+1. **The 3-Second Rule**: Avoid internal translation from regional language. Form simple, active English sentences directly.
+2. **Clarity Over Accent**: Neutral Indian English with clear pronunciation of consonant endings (e.g. -ed, -s, -th) is the global gold standard in tech.
+3. **Daily Habit**: Read aloud 1 technical or news article for 10 minutes every morning to calibrate mouth muscle memory.""",
+        "starter_code": """# Interactive Speaking Exercise
+name = input("Enter your full name: ")
+city = input("Enter your college/city: ")
+dream_role = input("What role are you targeting (e.g. Python Developer)? ")
+
+print(f"Self-Intro Practice:\n'Hello everyone, my name is {name}. I am based in {city} and currently preparing to excel as a {dream_role}. Excited to connect!'")
+""",
+        "dpp_list": [
+            {
+                "id": "eng-dpp-1-1",
+                "question": "Which of the following is grammatically correct and standard in professional English?",
+                "options": ["Please revert back at the earliest.", "Please revert at your earliest convenience.", "Please revert back again.", "Revert back to me."],
+                "answer_index": 1,
+                "explanation": "'Revert' already means to return or reply; adding 'back' is redundant. The correct phrase is 'Please revert at your earliest convenience' or 'Please reply'."
+            },
+            {
+                "id": "eng-dpp-1-2",
+                "question": "Choose the most appropriate response when someone says: 'Thank you for your assistance today!'",
+                "options": ["Mention not.", "You're most welcome! Glad I could help.", "No problem at all, leave it.", "Why thank you?"],
+                "answer_index": 1,
+                "explanation": "'You're most welcome! Glad I could help.' is professional and warm. 'Mention not' is an informal Indianism."
+            },
+            {
+                "id": "eng-dpp-1-3",
+                "question": "Identify the sentence free from grammatical errors:",
+                "options": ["I am having two years of coding experience.", "I have two years of coding experience.", "I am possessing two years experience.", "I have been having two years experience."],
+                "answer_index": 1,
+                "explanation": "State of possession uses the simple present 'I have', not continuous 'I am having'."
+            }
+        ]
+    },
+    {
+        "lecture_id": "eng-live-02",
+        "batch_id": "bhavishya-1-0",
+        "subject_slug": "english",
+        "module_number": 1,
+        "module_name": "Module 1: Spoken English & Accent Foundations",
+        "lecture_number": 2,
+        "order": 2,
+        "title": "Live Lecture 02: English Phonetics, Silent Letters & Sentence Rhythm",
+        "description": "Master silent letters (doubt, subtle, receipt, pseudo), correct syllable stress, intonation patterns, and speaking with a pleasant, confident rhythm.",
+        "teacher_name": "Ananya Sharma (Senior English Faculty)",
+        "teacher_title": "Communication & Soft Skills Coach",
+        "teacher_avatar": "/static/img/teacher_ananya.svg",
+        "scheduled_at": "2026-11-21T20:30:00Z",
+        "scheduled_display": "Completed • Replay & Notes Available",
+        "duration_minutes": 60,
+        "status": "completed",
+        "google_meet_url": "https://meet.google.com/new",
+        "recording_url": "FGa8xO6mUio",
+        "notes_url": "",
+        "notes_content": """### Phonetics & Silent Letters Cheatsheet
+- **Silent B**: Doubt, subtle, debt, thumb, tomb.
+- **Silent P**: Receipt, psychology, pneumonia, pseudo.
+- **Silent K**: Knife, knee, knock, knowledge.
+- **Silent W**: Write, wrong, sword, wrist.
+- **Intonation**: Rising tone for questions, falling tone for definitive statements.""",
+        "starter_code": """# Pronunciation Practice
+words = ["subtle", "receipt", "cache", "hierarchy", "suite"]
+print("Commonly Mispronounced Words in Tech:")
+for w in words:
+    print(f"Practice saying: {w}")
+""",
+        "dpp_list": [
+            {
+                "id": "eng-dpp-2-1",
+                "question": "In the word 'RECEIPT', which letter is silent?",
+                "options": ["C", "P", "T", "E"],
+                "answer_index": 1,
+                "explanation": "'P' is silent in 'receipt' (pronounced ri-seet)."
+            },
+            {
+                "id": "eng-dpp-2-2",
+                "question": "How is the word 'CACHE' (as in memory cache) pronounced?",
+                "options": ["Catch", "Cash", "Kay-sh", "Cash-ay"],
+                "answer_index": 1,
+                "explanation": "'Cache' is pronounced exactly like 'cash'."
+            },
+            {
+                "id": "eng-dpp-2-3",
+                "question": "In the word 'SUBTLE', which letter is silent?",
+                "options": ["B", "T", "L", "E"],
+                "answer_index": 0,
+                "explanation": "The letter 'B' is silent; it is pronounced 'suh-tl'."
+            }
+        ]
+    },
+
+    # --------------------------------------------------------------------------
+    # MODULE 2: Daily Life & Conversational Confidence
+    # --------------------------------------------------------------------------
+    {
+        "lecture_id": "eng-live-03",
+        "batch_id": "bhavishya-1-0",
+        "subject_slug": "english",
+        "module_number": 2,
+        "module_name": "Module 2: Daily Life & Conversational Confidence",
+        "lecture_number": 3,
+        "order": 3,
+        "title": "Live Lecture 03: Everyday Conversations: Introductions & Small Talk",
+        "description": "Interactive speaking circle on Google Meet: making friends, engaging senior developers at hackathons, networking on LinkedIn, and keeping dialogues lively.",
+        "teacher_name": "Ananya Sharma (Senior English Faculty)",
+        "teacher_title": "Communication & Soft Skills Coach",
+        "teacher_avatar": "/static/img/teacher_ananya.svg",
+        "scheduled_at": "2026-11-23T20:30:00Z",
+        "scheduled_display": "Live Tonight at 8:30 PM • Google Meet",
+        "duration_minutes": 60,
+        "status": "live",
+        "google_meet_url": "https://meet.google.com/new",
+        "recording_url": "",
+        "notes_url": "",
+        "notes_content": """### Small Talk & Networking Framework
+1. **FORD Framework for Small Talk**: Family, Occupation, Recreation, Dreams.
+2. **Open-Ended Starters**:
+   - 'What brought you to this hackathon/webinar?'
+   - 'How do you usually structure your Python projects?'
+3. **Graceful Exit**:
+   - 'It was great chatting with you, let me grab a quick drink. Let's connect on LinkedIn!'""",
+        "starter_code": """# Small Talk Icebreakers
+topics = ["Project tech stacks", "Favorite IDE shortcuts", "Upcoming college fests"]
+print("Try initiating a conversation about:", topics[0])
+""",
+        "dpp_list": [
+            {
+                "id": "eng-dpp-3-1",
+                "question": "Which question is best suited to initiate small talk at a tech conference?",
+                "options": ["Why are you sitting here?", "How did you find the keynote session on AI?", "Tell me your salary.", "Do you know who I am?"],
+                "answer_index": 1,
+                "explanation": "Asking about shared experiences (like a keynote speech) is polite, engaging, and professional."
+            },
+            {
+                "id": "eng-dpp-3-2",
+                "question": "What is an effective way to keep an English conversation flowing?",
+                "options": ["Answer with only 'Yes' or 'No'.", "Answer and follow up with an open-ended question.", "Interrupt constantly.", "Look at your phone while speaking."],
+                "answer_index": 1,
+                "explanation": "Adding context and returning an open-ended question keeps the conversational ball rolling smoothly."
+            },
+            {
+                "id": "eng-dpp-3-3",
+                "question": "Choose the most polite way to ask for someone's contact information:",
+                "options": ["Give me your phone number now.", "Could we connect on LinkedIn to stay in touch?", "What is your secret email?", "I demand your WhatsApp."],
+                "answer_index": 1,
+                "explanation": "'Could we connect on LinkedIn to stay in touch?' is courteous, professional, and standard."
+            }
+        ]
+    },
+    {
+        "lecture_id": "eng-live-04",
+        "batch_id": "bhavishya-1-0",
+        "subject_slug": "english",
+        "module_number": 2,
+        "module_name": "Module 2: Daily Life & Conversational Confidence",
+        "lecture_number": 4,
+        "order": 4,
+        "title": "Live Lecture 04: Expressing Opinions, Agreeing & Diplomatically Disagreeing",
+        "description": "Learn professional disagreement phrases for code reviews and team meetings without sounding rude, defensive, or insecure.",
+        "teacher_name": "Ananya Sharma (Senior English Faculty)",
+        "teacher_title": "Communication & Soft Skills Coach",
+        "teacher_avatar": "/static/img/teacher_ananya.svg",
+        "scheduled_at": "2026-11-25T20:30:00Z",
+        "scheduled_display": "Wednesday, Nov 25 • 8:30 PM",
+        "duration_minutes": 60,
+        "status": "scheduled",
+        "google_meet_url": "https://meet.google.com/new",
+        "recording_url": "",
+        "notes_url": "",
+        "notes_content": """### Diplomatic Disagreement Formulas
+- Instead of 'You are completely wrong', say:
+  'I see your perspective, however, considering performance benchmarks, we might encounter a latency bottleneck here.'
+- Instead of 'That makes no sense', say:
+  'Could you walk me through the edge cases this approach handles?'""",
+        "starter_code": """# Diplomatic Code Review Feedback Generator
+def feedback(issue, suggestion):
+    return f"Great work on this module! One minor observation: regarding {issue}, could we explore {suggestion} to optimize runtime?"
+
+print(feedback("nested loops", "using a hash set"))
+""",
+        "dpp_list": [
+            {
+                "id": "eng-dpp-4-1",
+                "question": "Select the most diplomatic way to disagree during a team meeting:",
+                "options": ["Your idea is terribly flawed.", "I see what you mean, but have we considered the cost implications?", "Nobody agrees with that.", "Quiet down, listen to me."],
+                "answer_index": 1,
+                "explanation": "'I see what you mean, but have we considered...' acknowledges the speaker while steering focus toward objective facts."
+            },
+            {
+                "id": "eng-dpp-4-2",
+                "question": "Which phrase expresses strong yet professional agreement?",
+                "options": ["I couldn't agree more with that approach.", "Fine, whatever you say.", "You might be right or wrong.", "I tolerate this."],
+                "answer_index": 0,
+                "explanation": "'I couldn't agree more with that approach' is an idiomatic and confident expression of alignment."
+            },
+            {
+                "id": "eng-dpp-4-3",
+                "question": "What does the phrase 'Devil's advocate' mean in a discussion?",
+                "options": ["Someone who is malicious.", "Taking an opposing viewpoint to test the strength of an idea.", "A lawyer who fights crime.", "Someone who refuses to talk."],
+                "answer_index": 1,
+                "explanation": "Playing Devil's advocate means putting forward counterarguments to rigorously evaluate a proposal."
+            }
+        ]
+    },
+
+    # --------------------------------------------------------------------------
+    # MODULE 3: Grammar That Actually Matters in Speaking
+    # --------------------------------------------------------------------------
+    {
+        "lecture_id": "eng-live-05",
+        "batch_id": "bhavishya-1-0",
+        "subject_slug": "english",
+        "module_number": 3,
+        "module_name": "Module 3: Grammar That Actually Matters in Speaking",
+        "lecture_number": 5,
+        "order": 5,
+        "title": "Live Lecture 05: Practical Tenses: Past vs Present vs Future in Tech Discussions",
+        "description": "Eliminate tense confusion once and for all: Simple Past ('I built the feature') vs Present Perfect ('I have built three web apps').",
+        "teacher_name": "Ananya Sharma (Senior English Faculty)",
+        "teacher_title": "Communication & Soft Skills Coach",
+        "teacher_avatar": "/static/img/teacher_ananya.svg",
+        "scheduled_at": "2026-11-27T20:30:00Z",
+        "scheduled_display": "Friday, Nov 27 • 8:30 PM",
+        "duration_minutes": 60,
+        "status": "scheduled",
+        "google_meet_url": "https://meet.google.com/new",
+        "recording_url": "",
+        "notes_url": "",
+        "notes_content": """### Practical Tenses for Engineers
+- **Simple Past**: Specific completed event at a stated time.
+  'I fixed that bug yesterday afternoon.'
+- **Present Perfect**: Experience or result with present relevance.
+  'I have worked extensively with MongoDB.'
+- **Past Continuous**: Action in progress interrupted by another.
+  'I was refactoring the auth controller when the server crashed.'""",
+        "starter_code": """# Tense Converter Helper
+activities = [
+    ("Yesterday", "I refactored the database schema."),
+    ("So far in my career", "I have deployed 5 web apps."),
+    ("Tomorrow", "I will lead the sprint demonstration.")
+]
+for time, sentence in activities:
+    print(f"[{time}]: {sentence}")
+""",
+        "dpp_list": [
+            {
+                "id": "eng-dpp-5-1",
+                "question": "Fill in the blank: 'I ______ in this tech startup since January 2024.'",
+                "options": ["am working", "have been working", "was working", "worked"],
+                "answer_index": 1,
+                "explanation": "Actions starting in the past and continuing into the present require Present Perfect Continuous: 'have been working'."
+            },
+            {
+                "id": "eng-dpp-5-2",
+                "question": "Choose the correct sentence:",
+                "options": ["Yesterday I have submitted the assignment.", "Yesterday I submitted the assignment.", "Yesterday I had been submitting the assignment.", "Yesterday I submit the assignment."],
+                "answer_index": 1,
+                "explanation": "Specific past time markers ('yesterday', 'in 2023', 'last week') strictly require Simple Past ('submitted')."
+            },
+            {
+                "id": "eng-dpp-5-3",
+                "question": "Which tense is best suited for sharing an overarching career achievement?",
+                "options": ["Simple Future", "Present Perfect ('I have developed...')", "Past Perfect Continuous", "Future Continuous"],
+                "answer_index": 1,
+                "explanation": "Present Perfect highlights life experience and ongoing relevance without pinning down a single timestamp."
+            }
+        ]
+    },
+    {
+        "lecture_id": "eng-live-06",
+        "batch_id": "bhavishya-1-0",
+        "subject_slug": "english",
+        "module_number": 3,
+        "module_name": "Module 3: Grammar That Actually Matters in Speaking",
+        "lecture_number": 6,
+        "order": 6,
+        "title": "Live Lecture 06: Modals (Could, Should, Would) & Eliminating Common Indianisms",
+        "description": "Polite corporate requests using modal verbs, fixing prepositions of time/place, and replacing outdated expressions ('do the needful', 'prepone', 'pass out').",
+        "teacher_name": "Ananya Sharma (Senior English Faculty)",
+        "teacher_title": "Communication & Soft Skills Coach",
+        "teacher_avatar": "/static/img/teacher_ananya.svg",
+        "scheduled_at": "2026-11-29T20:30:00Z",
+        "scheduled_display": "Sunday, Nov 29 • 8:30 PM",
+        "duration_minutes": 60,
+        "status": "scheduled",
+        "google_meet_url": "https://meet.google.com/new",
+        "recording_url": "",
+        "notes_url": "",
+        "notes_content": """### Indianisms vs Global Corporate English
+| Common Indianism | Standard Global Alternative |
+| --- | --- |
+| I passed out of college in 2024 | I graduated from college in 2024 |
+| Can we prepone the standup? | Can we reschedule the standup earlier? |
+| Please do the needful | Please take appropriate action / look into this |
+| I will revert back | I will get back to you / I will reply |
+| Myself Tanishk | My name is Tanishk / I am Tanishk |""",
+        "starter_code": """# Indianism Filter Tool
+bad_phrases = ["passed out of college", "do the needful", "revert back"]
+good_phrases = ["graduated from college", "take required action", "revert / reply"]
+print("Always replace outdated phrasing with crisp modern alternatives!")
+""",
+        "dpp_list": [
+            {
+                "id": "eng-dpp-6-1",
+                "question": "Which option correctly replaces: 'Myself Rahul from Computer Science'?",
+                "options": ["Myself is Rahul from CS.", "I am Rahul from Computer Science.", "Mine Rahul from CS.", "Me Rahul."],
+                "answer_index": 1,
+                "explanation": "'Myself' is a reflexive pronoun and cannot stand as a sentence subject. Use 'I am Rahul' or 'My name is Rahul'."
+            },
+            {
+                "id": "eng-dpp-6-2",
+                "question": "What is the proper expression for finishing university?",
+                "options": ["I passed out from IIT in 2024.", "I graduated from IIT in 2024.", "I retired from IIT in 2024.", "I dropped off from IIT in 2024."],
+                "answer_index": 1,
+                "explanation": "In standard English, 'passed out' means fainted or lost consciousness. 'Graduated' is the correct term for college completion."
+            },
+            {
+                "id": "eng-dpp-6-3",
+                "question": "Select the most polite request for assistance:",
+                "options": ["You must give me access right now.", "Could you please grant me read access to the GitHub repository?", "Give access.", "I want access immediately."],
+                "answer_index": 1,
+                "explanation": "Modal verb 'Could' with 'please' forms the quintessential professional polite request."
+            }
+        ]
+    },
+
+    # --------------------------------------------------------------------------
+    # MODULE 4: Professional Workplace Communication
+    # --------------------------------------------------------------------------
+    {
+        "lecture_id": "eng-live-07",
+        "batch_id": "bhavishya-1-0",
+        "subject_slug": "english",
+        "module_number": 4,
+        "module_name": "Module 4: Professional Workplace Communication",
+        "lecture_number": 7,
+        "order": 7,
+        "title": "Live Lecture 07: High-Impact Corporate Email Writing & Message Etiquette",
+        "description": "Master subject lines that get opened, concise 3-paragraph email structures, polite follow-ups, and professional email sign-offs.",
+        "teacher_name": "Ananya Sharma (Senior English Faculty)",
+        "teacher_title": "Communication & Soft Skills Coach",
+        "teacher_avatar": "/static/img/teacher_ananya.svg",
+        "scheduled_at": "2026-12-02T20:30:00Z",
+        "scheduled_display": "Wednesday, Dec 2 • 8:30 PM",
+        "duration_minutes": 60,
+        "status": "scheduled",
+        "google_meet_url": "https://meet.google.com/new",
+        "recording_url": "",
+        "notes_url": "",
+        "notes_content": """### The 3-Paragraph Email Architecture
+1. **Paragraph 1 (The Hook/Context)**: State purpose in sentence one ('I am writing to share the updated API schema...').
+2. **Paragraph 2 (Details/Actionables)**: Bullet points of core metrics or tasks.
+3. **Paragraph 3 (Call-to-Action & Sign-off)**: Next step + deadline ('Kindly review by Thursday 4 PM. Best regards, [Name]').""",
+        "starter_code": """# Email Template Generator
+def generate_email(subject, recipient, context, cta):
+    return f"Subject: {subject}\n\nHi {recipient},\n\nHope you are having a productive week.\n\n{context}\n\n{cta}\n\nBest regards,\nSkillRock Fellow"
+
+print(generate_email("[Update] Sprint 3 Deployment", "Ananya", "The payment gateway integration is tested.", "Please test and confirm."))
+""",
+        "dpp_list": [
+            {
+                "id": "eng-dpp-7-1",
+                "question": "Which email subject line is most effective and professional?",
+                "options": ["URGENT PLEASE READ!!!", "Hey check this", "[Action Required] Code Review for Payment Gateway Pull Request #42", "Meeting."],
+                "answer_index": 2,
+                "explanation": "Clear prefix tag, specific topic, and pull request identifier provide immediate context."
+            },
+            {
+                "id": "eng-dpp-7-2",
+                "question": "Which sign-off is best suited for external clients or senior executives?",
+                "options": ["Cheers bro,", "Warm regards,", "Later,", "Yours faithfully,"],
+                "answer_index": 1,
+                "explanation": "'Warm regards' or 'Best regards' strikes the ideal balance of warmth, respect, and modern corporate professionalism."
+            },
+            {
+                "id": "eng-dpp-7-3",
+                "question": "What is the recommended maximum paragraph length in professional email communication?",
+                "options": ["10-15 lines", "2-4 concise lines", "1 single endless block", "50 words per letter"],
+                "answer_index": 1,
+                "explanation": "Short 2-4 line paragraphs enhance scannability on mobile screens and laptop clients."
+            }
+        ]
+    },
+    {
+        "lecture_id": "eng-live-08",
+        "batch_id": "bhavishya-1-0",
+        "subject_slug": "english",
+        "module_number": 4,
+        "module_name": "Module 4: Professional Workplace Communication",
+        "lecture_number": 8,
+        "order": 8,
+        "title": "Live Lecture 08: Daily Standups, Sprint Demos & Slack/Teams Etiquette",
+        "description": "Speak with crisp clarity in Agile daily scrums: 'What I achieved yesterday, what I'm executing today, and my blockers'.",
+        "teacher_name": "Ananya Sharma (Senior English Faculty)",
+        "teacher_title": "Communication & Soft Skills Coach",
+        "teacher_avatar": "/static/img/teacher_ananya.svg",
+        "scheduled_at": "2026-12-04T20:30:00Z",
+        "scheduled_display": "Friday, Dec 4 • 8:30 PM",
+        "duration_minutes": 60,
+        "status": "scheduled",
+        "google_meet_url": "https://meet.google.com/new",
+        "recording_url": "",
+        "notes_url": "",
+        "notes_content": """### Agile Standup Delivery Script
+- 'Good morning team. Yesterday I completed the unit test coverage for the authentication middleware.'
+- 'Today my goal is to implement the Redis caching layer.'
+- 'Currently I have no blockers, but I might sync with Tanishk later on Docker deployment.'""",
+        "starter_code": """# Scrum Standup Formatter
+yesterday = "Implemented Google OAuth login bridge"
+today = "Designing Physics Wallah-style batch UI"
+blockers = "None currently"
+
+print(f"Standup Update:\n- Yesterday: {yesterday}\n- Today: {today}\n- Blockers: {blockers}")
+""",
+        "dpp_list": [
+            {
+                "id": "eng-dpp-8-1",
+                "question": "What is the primary objective of an Agile daily standup update?",
+                "options": ["To boast about hours worked", "To share concise progress, commitments, and blockers", "To debate company politics", "To read code line by line"],
+                "answer_index": 1,
+                "explanation": "Standups are brief synchronizations focusing on yesterday's output, today's targets, and active blockers."
+            },
+            {
+                "id": "eng-dpp-8-2",
+                "question": "How long should an individual's standup update typically take?",
+                "options": ["1 to 2 minutes", "15 to 20 minutes", "1 hour", "30 seconds total for entire team"],
+                "answer_index": 0,
+                "explanation": "A crisp, prepared developer update takes approximately 60 to 90 seconds."
+            },
+            {
+                "id": "eng-dpp-8-3",
+                "question": "When you have a technical blocker requiring deep discussion with a teammate, what should you say?",
+                "options": ["Start arguing right away in the meeting", "I have a blocker on Redis; let's take that offline right after standup", "Ignore the blocker", "Blame the teammate publicly"],
+                "answer_index": 1,
+                "explanation": "'Taking it offline' preserves everyone's time while prioritizing targeted resolution."
+            }
+        ]
+    },
+
+    # --------------------------------------------------------------------------
+    # MODULE 5: Interview Mastery & Group Discussions (GD)
+    # --------------------------------------------------------------------------
+    {
+        "lecture_id": "eng-live-09",
+        "batch_id": "bhavishya-1-0",
+        "subject_slug": "english",
+        "module_number": 5,
+        "module_name": "Module 5: Interview Mastery & Group Discussions (GD)",
+        "lecture_number": 9,
+        "order": 9,
+        "title": "Live Lecture 09: Cracking 'Tell Me About Yourself' with the STAR Method",
+        "description": "Craft an irresistible 90-second elevator pitch and answer behavioral questions using Situation, Task, Action, and Result.",
+        "teacher_name": "Ananya Sharma (Senior English Faculty)",
+        "teacher_title": "Communication & Soft Skills Coach",
+        "teacher_avatar": "/static/img/teacher_ananya.svg",
+        "scheduled_at": "2026-12-07T20:30:00Z",
+        "scheduled_display": "Monday, Dec 7 • 8:30 PM",
+        "duration_minutes": 60,
+        "status": "scheduled",
+        "google_meet_url": "https://meet.google.com/new",
+        "recording_url": "",
+        "notes_url": "",
+        "notes_content": """### STAR Framework for Tech Interviews
+- **S (Situation)**: Set the scene (e.g., 'In my college final year project...').
+- **T (Task)**: What challenge or goal did you need to accomplish?
+- **A (Action)**: What specific Python/engineering action did YOU take?
+- **R (Result)**: Quantifiable outcome ('Reduced query latency by 40% and published an open-source tool').""",
+        "starter_code": """# STAR Story Builder
+situation = "High database latency on user query page"
+task = "Optimize queries and prevent 500 timeouts"
+action = "Replaced N+1 loop with bulk MongoDB $in aggregation"
+result = "Decreased response time from 61.8s to 0.56s (108x speedup)"
+
+print(f"STAR Summary:\nWhen faced with {situation}, I was tasked to {task}. I {action}, which resulted in {result}!")
+""",
+        "dpp_list": [
+            {
+                "id": "eng-dpp-9-1",
+                "question": "What does the 'R' in the STAR behavioral interview method represent?",
+                "options": ["Reasoning", "Result", "Rebuttal", "Reflection"],
+                "answer_index": 1,
+                "explanation": "'R' stands for Result, emphasizing measurable outcomes and lessons learned."
+            },
+            {
+                "id": "eng-dpp-9-2",
+                "question": "When asked 'What is your greatest weakness?', what is the best strategy?",
+                "options": ["Say 'I have no weaknesses, I am perfect'", "Mention an authentic area of growth and the concrete steps you are actively taking to improve it", "Say 'I hate waking up early'", "Refuse to answer"],
+                "answer_index": 1,
+                "explanation": "Self-awareness and proactive learning demonstrate maturity, coachability, and emotional intelligence."
+            },
+            {
+                "id": "eng-dpp-9-3",
+                "question": "How long should your initial answer to 'Tell me about yourself' ideally last?",
+                "options": ["10 seconds", "60 to 90 seconds", "15 minutes", "Half an hour"],
+                "answer_index": 1,
+                "explanation": "60 to 90 seconds provides ample depth without rambling or overwhelming the interviewer."
+            }
+        ]
+    },
+    {
+        "lecture_id": "eng-live-10",
+        "batch_id": "bhavishya-1-0",
+        "subject_slug": "english",
+        "module_number": 5,
+        "module_name": "Module 5: Interview Mastery & Group Discussions (GD)",
+        "lecture_number": 10,
+        "order": 10,
+        "title": "Live Lecture 10: Group Discussion (GD) Tactics: Entering, Asserting & Summarizing",
+        "description": "How to command respect without shouting in GD rounds: conversational entry strategies, bridging opinions, and delivering winning summaries.",
+        "teacher_name": "Ananya Sharma (Senior English Faculty)",
+        "teacher_title": "Communication & Soft Skills Coach",
+        "teacher_avatar": "/static/img/teacher_ananya.svg",
+        "scheduled_at": "2026-12-09T20:30:00Z",
+        "scheduled_display": "Wednesday, Dec 9 • 8:30 PM",
+        "duration_minutes": 60,
+        "status": "scheduled",
+        "google_meet_url": "https://meet.google.com/new",
+        "recording_url": "",
+        "notes_url": "",
+        "notes_content": """### GD Round Golden Rules
+1. **Entry Strategy**: Jump in on the pause, not during someone's mid-sentence ('Building upon what Priya mentioned...').
+2. **Moderator Role**: If the group goes off-track, gently guide them: 'Friends, we have 5 minutes left; let us converge on the key solutions.'
+3. **Neutral Summary**: Include both perspectives and tie with a constructive conclusion.""",
+        "starter_code": """# GD Phrase Bank
+entry = "I would like to add an important dimension to this point..."
+agreement = "That is a valid insight, and extending that further..."
+conclusion = "To synthesize our discussion today..."
+print("Ready for GD live practice!")
+""",
+        "dpp_list": [
+            {
+                "id": "eng-dpp-10-1",
+                "question": "If two participants are aggressively shouting in a GD, what is the best way to earn high marks?",
+                "options": ["Shout louder than both of them", "Remain completely silent until the round ends", "Politely intervene: 'Friends, let us maintain decorum so everyone gets a chance to articulate'", "Walk out of the room"],
+                "answer_index": 2,
+                "explanation": "Demonstrating group leadership and composure in high-pressure moments is highly scored by evaluators."
+            },
+            {
+                "id": "eng-dpp-10-2",
+                "question": "When summarizing a Group Discussion, you should:",
+                "options": ["Only repeat your own personal points", "Fairly represent both the pros and cons discussed by the group and state the consensus", "Declare yourself the winner", "Introduce completely new points never raised before"],
+                "answer_index": 1,
+                "explanation": "A summary must be an objective consolidation of the entire group's insights."
+            },
+            {
+                "id": "eng-dpp-10-3",
+                "question": "Which transition phrase allows you to interject politely during a group discussion?",
+                "options": ["Shut up everyone", "Allow me to build on that fascinating point...", "You guys know nothing", "Listen to me only"],
+                "answer_index": 1,
+                "explanation": "'Allow me to build on that fascinating point...' shows active listening and constructive collaboration."
+            }
+        ]
+    },
+
+    # --------------------------------------------------------------------------
+    # MODULE 6: Public Speaking, Impromptu Talks & Storytelling
+    # --------------------------------------------------------------------------
+    {
+        "lecture_id": "eng-live-11",
+        "batch_id": "bhavishya-1-0",
+        "subject_slug": "english",
+        "module_number": 6,
+        "module_name": "Module 6: Public Speaking, Impromptu Talks & Storytelling",
+        "lecture_number": 11,
+        "order": 11,
+        "title": "Live Lecture 11: JAM (Just A Minute) Impromptu Speaking & Overcoming Hesitation",
+        "description": "Live 60-second speaking challenges on Google Meet: eradicate filler sounds ('um', 'ah', 'like', 'you know'), control pacing, and think on your feet.",
+        "teacher_name": "Ananya Sharma (Senior English Faculty)",
+        "teacher_title": "Communication & Soft Skills Coach",
+        "teacher_avatar": "/static/img/teacher_ananya.svg",
+        "scheduled_at": "2026-12-12T20:30:00Z",
+        "scheduled_display": "Saturday, Dec 12 • 8:30 PM",
+        "duration_minutes": 60,
+        "status": "scheduled",
+        "google_meet_url": "https://meet.google.com/new",
+        "recording_url": "",
+        "notes_url": "",
+        "notes_content": """### JAM Rules & Delivery Framework
+- **Rule**: Speak for 60 seconds without repetition, hesitation, or deviation.
+- **PPF Formula**: Past, Present, Future (e.g. 'How computing was, how it is now, where it will go').
+- **Pause Power**: Whenever you feel like saying 'ummm', take a deliberate 1-second breath. Silence radiates confidence.""",
+        "starter_code": """# JAM Random Topic Selector
+import random
+topics = ["Artificial Intelligence in Education", "Remote Work vs Office", "The Book That Changed My Mindset", "Open Source Software"]
+selected = random.choice(topics)
+print(f"Your 60-second JAM topic is: {selected}\nTake 10 seconds to think, then speak!")
+""",
+        "dpp_list": [
+            {
+                "id": "eng-dpp-11-1",
+                "question": "What is the most effective replacement for filler words like 'um', 'uh', and 'basically'?",
+                "options": ["Saying 'like' repeatedly", "A deliberate, confident 1-second pause", "Talking twice as fast", "Coughing"],
+                "answer_index": 1,
+                "explanation": "Pausing gives you time to think while projecting poise and control to listeners."
+            },
+            {
+                "id": "eng-dpp-11-2",
+                "question": "What is the Past-Present-Future (PPF) formula in impromptu speaking?",
+                "options": ["Reciting grammar charts", "Structuring a talk by examining how things began, where they stand today, and future potential", "Predicting horoscopes", "Speaking in three accents"],
+                "answer_index": 1,
+                "explanation": "The PPF framework ensures a seamless, logical story arc when given any impromptu topic."
+            },
+            {
+                "id": "eng-dpp-11-3",
+                "question": "Which element most captivates an audience during an impromptu tech talk?",
+                "options": ["Monotone reading from a slide", "A brief relatable story or personal anecdote", "Using the longest possible dictionary words", "Never making eye contact"],
+                "answer_index": 1,
+                "explanation": "Stories and analogies humanize abstract technical concepts and keep audiences hooked."
+            }
+        ]
+    },
+    {
+        "lecture_id": "eng-live-12",
+        "batch_id": "bhavishya-1-0",
+        "subject_slug": "english",
+        "module_number": 6,
+        "module_name": "Module 6: Public Speaking, Impromptu Talks & Storytelling",
+        "lecture_number": 12,
+        "order": 12,
+        "title": "Live Lecture 12: Capstone Speaking Arena: Live Student Talks & Feedback",
+        "description": "Graduation ceremony of the English Live Batch! Students present 3-minute capstone tech talks on Google Meet and receive personalized faculty critique.",
+        "teacher_name": "Ananya Sharma (Senior English Faculty)",
+        "teacher_title": "Communication & Soft Skills Coach",
+        "teacher_avatar": "/static/img/teacher_ananya.svg",
+        "scheduled_at": "2026-12-15T20:30:00Z",
+        "scheduled_display": "Tuesday, Dec 15 • 8:30 PM",
+        "duration_minutes": 90,
+        "status": "scheduled",
+        "google_meet_url": "https://meet.google.com/new",
+        "recording_url": "",
+        "notes_url": "",
+        "notes_content": """### Capstone Presentation Rubric
+1. **Introduction & Hook (20%)**: Grab attention with a surprising statistic or rhetorical question.
+2. **Core Message & Logic (40%)**: Structured key insights with clear transitions.
+3. **Delivery & Body Language (25%)**: Steady eye contact with camera, open posture, vocal variety.
+4. **Conclusion & Q&A (15%)**: Crisp summary and gracious response to peer questions.""",
+        "starter_code": """# Capstone Presentation Timer & Outline
+print("=== SKILLROCK CAPSTONE SPEAKING ARENA ===")
+print("Outline Check:")
+print("1. Hook: 'Did you know that 85% of job success comes from communication skills?'")
+print("2. Tech Insight: 'How Python microservices communicate.'")
+print("3. Takeaway: 'Clarity in code, clarity in speech.'")
+""",
+        "dpp_list": [
+            {
+                "id": "eng-dpp-12-1",
+                "question": "What is the best way to handle an audience question you do not know the answer to?",
+                "options": ["Guess wildly and pretend you know", "Acknowledge honestly: 'That is a great question. I don't have the exact data offhand, but let me research that and follow up with you after this session'", "Insult the questioner", "Ignore the question completely"],
+                "answer_index": 1,
+                "explanation": "Honesty combined with a commitment to follow up demonstrates integrity and executive presence."
+            },
+            {
+                "id": "eng-dpp-12-2",
+                "question": "What is the recommended focal point when presenting in virtual Google Meet meetings?",
+                "options": ["Look directly at the webcam lens intermittently to create perceived eye contact", "Look only at your keyboard", "Stare at your own video thumbnail the entire time", "Look out the window"],
+                "answer_index": 0,
+                "explanation": "Looking directly into the camera lens creates direct personal connection for virtual viewers."
+            },
+            {
+                "id": "eng-dpp-12-3",
+                "question": "Congratulations on completing the Bhavishya 1.0 English Academy! What is the primary key to maintaining lifelong fluency?",
+                "options": ["Never speaking again", "Consistent daily immersion: reading, listening to podcasts, and conversing in English", "Memorizing the dictionary front to back", "Waiting 5 years before speaking"],
+                "answer_index": 1,
+                "explanation": "Continuous exposure and active practice solidify fluency for a lifetime."
+            }
+        ]
+    }
+]
+
+
 def ensure_default_bhavishya_live_batch():
     """
-    Seeds and ensures the Bhavishya 1.0 Physics Wallah-style Python Live Batch
-    and all 16 live lectures exist in MongoDB.
+    Seeds and ensures the Bhavishya 1.0 Physics Wallah-style Live Batches
+    (both Python Mastery and English Communication) and all live lectures exist in MongoDB.
     Safe and idempotent.
     """
     from models.bhavishya import BhavishyaBatchConfig, BhavishyaLiveLecture
@@ -839,18 +1567,21 @@ def ensure_default_bhavishya_live_batch():
     try:
         # 1. Seed or refresh Batch Config
         config = BhavishyaBatchConfig.get_config("bhavishya-1-0")
-        config.title = "Bhavishya 1.0 — Python Master Live Batch"
-        config.tagline = "Interactive Live Lectures on Google Meet with Teacher, Daily Practice Problems (DPP), Handwritten Notes, and 24/7 AI Doubt Solving"
-        config.teacher_name = "Tanishk Pal"
-        config.teacher_title = "Lead Python Educator & Software Architect"
+        config.title = "Bhavishya 1.0 — Free Live & Masterclass Batch"
+        config.tagline = "Interactive Live Lectures on Google Meet with Teachers (Python & English), Daily Practice Problems (DPP), Handwritten Notes, and 24/7 AI Doubt Solving"
+        config.teacher_name = "Tanishk Pal & Ananya Sharma"
+        config.teacher_title = "Lead Faculty Team"
+        config.price = 0.0
+        config.original_price = 0.0
         config.global_meet_url = config.global_meet_url or "https://meet.google.com/new"
         config.save()
 
-        # 2. Seed or update each of the 16 live lectures
+        # 2. Seed or update each of the Python & English live lectures
         db = get_db()
         seeded = 0
         updated = 0
-        for data in DEFAULT_LIVE_LECTURES:
+        all_lectures = DEFAULT_LIVE_LECTURES + DEFAULT_ENGLISH_LIVE_LECTURES
+        for data in all_lectures:
             lid = data["lecture_id"]
             existing = db.bhavishya_live_lectures.find_one({"lecture_id": lid})
             if not existing:
@@ -860,6 +1591,7 @@ def ensure_default_bhavishya_live_batch():
             else:
                 # Update content, notes, DPPs while preserving custom status/meet URL if set by admin
                 update_fields = {
+                    "subject_slug": data.get("subject_slug", "python"),
                     "module_number": data["module_number"],
                     "module_name": data["module_name"],
                     "lecture_number": data["lecture_number"],
@@ -867,6 +1599,8 @@ def ensure_default_bhavishya_live_batch():
                     "title": data["title"],
                     "description": data["description"],
                     "teacher_name": data["teacher_name"],
+                    "teacher_title": data.get("teacher_title", ""),
+                    "teacher_avatar": data.get("teacher_avatar", ""),
                     "duration_minutes": data["duration_minutes"],
                     "recording_url": data["recording_url"],
                     "notes_url": data["notes_url"],
