@@ -32,6 +32,10 @@ from models.bhavishya import (
     BhavishyaBatchConfig,
     BhavishyaLiveLecture
 )
+from models.bhavishya_recordings import (
+    BhavishyaLectureRecording,
+    get_recordings_db
+)
 from models.default_bhavishya_curriculum import ensure_default_bhavishya_subjects
 from models.default_bhavishya_live import ensure_default_bhavishya_live_batch
 
@@ -112,6 +116,8 @@ __all__ = [
     "BhavishyaUsage",
     "BhavishyaBatchConfig",
     "BhavishyaLiveLecture",
+    "BhavishyaLectureRecording",
+    "get_recordings_db",
     "ensure_default_bhavishya_subjects",
     "ensure_default_bhavishya_live_batch",
 ]

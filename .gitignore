@@ -10,3 +10,6 @@ scratch/
 .agents/
 .DS_Store
 Thumbs.db
+static/recordings/bhavishya/*.webm
+static/recordings/bhavishya/*.mp4
+!static/recordings/bhavishya/.gitkeep

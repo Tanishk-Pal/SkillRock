@@ -1,18 +1,116 @@
 {% extends "base.html" %}
 
-{% block title %}{{ lecture.title }} | Bhavishya 1.0 Python Live Batch{% endblock %}
-{% block meta_description %}Attend {{ lecture.title }} live with the teacher on Google Meet or watch recorded replay, download class notes, solve DPPs, and run Python code live on SkillRock.{% endblock %}
+{% block title %}{{ lecture.title }} | Bhavishya 1.0 Real Live Stream Batch{% endblock %}
+{% block meta_description %}Attend {{ lecture.title }} real-time in-app live stream on SkillRock, interact with the educator, ask live doubts, download class notes, solve DPPs, and run Python code live.{% endblock %}
+
+{% block head %}
+<style>
+    @keyframes pulseLive {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    .pw-tab-btn {
+        background: transparent;
+        color: #94A3B8;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+    .pw-tab-btn:hover {
+        color: #FFFFFF;
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .pw-tab-btn.active {
+        background: #7C3AED !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+    }
+
+    .studio-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.08);
+        color: #FFFFFF;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .studio-btn:hover {
+        background: rgba(255,255,255,0.15);
+    }
+    .studio-btn.active {
+        background: #10B981;
+        border-color: #10B981;
+        color: #FFFFFF;
+    }
+    .studio-btn.danger {
+        background: #EF4444;
+        border-color: #EF4444;
+        color: #FFFFFF;
+    }
+
+    /* Live Chat Stream */
+    .chat-bubble {
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 12.5px;
+        line-height: 1.4;
+        max-width: 90%;
+        word-break: break-word;
+    }
+    .chat-bubble.teacher {
+        background: rgba(124, 58, 237, 0.25);
+        border: 1px solid #7C3AED;
+        color: #FFFFFF;
+        align-self: flex-start;
+    }
+    .chat-bubble.student {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #E2E8F0;
+        align-self: flex-start;
+    }
+    .chat-bubble.me {
+        background: rgba(56, 189, 248, 0.2);
+        border: 1px solid rgba(56, 189, 248, 0.4);
+        color: #FFFFFF;
+        align-self: flex-end;
+    }
+
+    @media (max-width: 1024px) {
+        .pw-classroom-grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="bh-live-container" style="max-width: 1480px; margin: 0 auto; padding: 18px 16px 80px;">
 
-    <!-- 1. Free Trial Notice for Demo Lecture -->
     <!-- 1. Free Live Batch Banner -->
     <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 10px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="background: #10B981; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 9999px;">100% Free Live Batch</span>
+            <span style="background: #10B981; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 9999px;">Real-Time In-App Live Batch</span>
             <span style="color: #E2E8F0; font-size: 13px; font-weight: 600;">
-                Google Meet live classes, handwritten notes, DPP quizzes, and Python IDE are completely free for all students.
+                SkillRock Native Streaming Classroom — Attend lectures right on this screen with live chat, notes, DPPs, and Python lab.
             </span>
         </div>
         <a href="{{ url_for('bhavishya.subject_detail', slug=lecture.subject_slug or 'python') }}" style="color: #38BDF8; font-size: 12.5px; font-weight: 700; text-decoration: none;">
@@ -20,7 +118,7 @@
         </a>
     </div>
 
-    <!-- 2. Physics Wallah-Style Live Status & Google Meet Header -->
+    <!-- 2. Physics Wallah-Style Live Status & Stream Controls Header -->
     <div class="pw-live-header" style="background: linear-gradient(135deg, #0F172A, #1E1B4B); border: 1.5px solid {% if lecture.is_live %}#EF4444{% else %}rgba(168, 85, 247, 0.35){% endif %}; border-radius: 18px; padding: 22px 26px; margin-bottom: 22px; box-shadow: 0 16px 36px -10px {% if lecture.is_live %}rgba(239, 68, 68, 0.3){% else %}rgba(124, 58, 237, 0.2){% endif %}; position: relative; overflow: hidden;">
         <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 18px; position: relative; z-index: 2;">
             
@@ -34,20 +132,22 @@
                     <span style="color: #A855F7; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">{{ lecture.module_name }}</span>
                     <span style="color: rgba(255, 255, 255, 0.3);">•</span>
                     
-                    {% if lecture.is_live %}
-                        <span style="background: rgba(239, 68, 68, 0.2); border: 1.5px solid #EF4444; color: #FCA5A5; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px; animation: pulseLive 1.5s infinite;">
-                            <span style="width: 8px; height: 8px; background: #EF4444; border-radius: 50%;"></span>
-                            🔴 LIVE NOW ON GOOGLE MEET
-                        </span>
-                    {% elif lecture.is_completed %}
-                        <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
-                            <i data-lucide="check-circle" style="width: 12px; height: 12px;"></i> Class Completed • Replay Ready
-                        </span>
-                    {% else %}
-                        <span style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38BDF8; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
-                            <i data-lucide="clock" style="width: 12px; height: 12px;"></i> {{ lecture.scheduled_display or 'Upcoming Live Class' }}
-                        </span>
-                    {% endif %}
+                    <span id="liveBadgeContainer">
+                        {% if lecture.is_live %}
+                            <span style="background: rgba(239, 68, 68, 0.2); border: 1.5px solid #EF4444; color: #FCA5A5; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px; animation: pulseLive 1.5s infinite;">
+                                <span style="width: 8px; height: 8px; background: #EF4444; border-radius: 50%;"></span>
+                                🔴 LIVE STREAM ACTIVE
+                            </span>
+                        {% elif has_recording %}
+                            <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="check-circle" style="width: 12px; height: 12px;"></i> Class Recording Ready
+                            </span>
+                        {% else %}
+                            <span style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38BDF8; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="clock" style="width: 12px; height: 12px;"></i> {{ lecture.scheduled_display or 'Upcoming Live Class' }}
+                            </span>
+                        {% endif %}
+                    </span>
                 </div>
 
                 <h1 style="font-size: 24px; font-weight: 800; color: #FFFFFF; margin: 0 0 8px; line-height: 1.3;">
@@ -69,21 +169,29 @@
                     <span style="display: inline-flex; align-items: center; gap: 5px;">
                         <i data-lucide="file-text" style="width: 14px; color: #10B981;"></i> DPPs: <strong>{{ lecture.dpp_list|length }} Problems</strong>
                     </span>
+                    <span>•</span>
+                    <span id="liveViewersDisplay" style="display: inline-flex; align-items: center; gap: 5px; color: #34D399; font-weight: 700;">
+                        <i data-lucide="users" style="width: 14px;"></i> In Classroom: <strong id="viewerCountNum">1</strong> Live
+                    </span>
                 </div>
             </div>
 
-            <!-- Right: Direct Google Meet Launch & Next/Prev Nav -->
+            <!-- Right: Studio Controls or Student Action & Prev/Next Nav -->
             <div style="display: flex; flex-direction: column; gap: 10px; min-width: 260px; text-align: right;">
-                <a href="{{ lecture.active_meet_url }}" 
-                   target="_blank" 
-                   rel="noopener noreferrer" 
-                   class="btn" 
-                   style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: {% if lecture.is_live %}linear-gradient(135deg, #EF4444, #DC2626){% else %}linear-gradient(135deg, #2563EB, #1D4ED8){% endif %}; color: #FFFFFF; font-weight: 800; font-size: 14.5px; padding: 12px 22px; border-radius: 12px; text-decoration: none; box-shadow: 0 8px 24px -4px {% if lecture.is_live %}rgba(239, 68, 68, 0.5){% else %}rgba(37, 99, 235, 0.4){% endif %}; transition: transform 0.15s ease;"
-                   onmouseover="this.style.transform='translateY(-2px)'"
-                   onmouseout="this.style.transform='translateY(0)'">
-                    <i data-lucide="video" style="width: 18px; height: 18px;"></i>
-                    <span>{% if lecture.is_live %}Join Live Class on Google Meet{% else %}Open Google Meet Room{% endif %}</span>
-                </a>
+                {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_teacher) %}
+                <button type="button" 
+                        onclick="toggleTeacherStudio()" 
+                        class="btn" 
+                        style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #7C3AED, #5B46F6); color: #FFFFFF; font-weight: 800; font-size: 14px; padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer; box-shadow: 0 8px 24px -4px rgba(124, 58, 237, 0.45);">
+                    <i data-lucide="sliders" style="width: 18px; height: 18px;"></i>
+                    <span id="studioToggleText">Open Educator Studio</span>
+                </button>
+                {% else %}
+                <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 8px 14px; text-align: center; color: #CBD5E1; font-size: 12px; font-weight: 600;">
+                    <i data-lucide="tv" style="width: 14px; color: #38BDF8; display: inline-block; vertical-align: middle;"></i>
+                    SkillRock Live Broadcast Active
+                </div>
+                {% endif %}
 
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     {% if prev_lec %}
@@ -106,89 +214,206 @@
     <div style="display: grid; grid-template-columns: 2.4fr 1fr; gap: 24px; align-items: start;" class="pw-classroom-grid">
 
         <!-- ====================================================================
-             LEFT PANE: 4-Pillar Physics Wallah Workspace (Tabs)
+             LEFT PANE: 5-Pillar Physics Wallah Workspace (Tabs)
              ==================================================================== -->
         <div>
             <!-- Navigation Tabs Bar -->
             <div style="display: flex; gap: 8px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 6px; margin-bottom: 20px; overflow-x: auto;">
-                <button onclick="switchTab('lecture')" id="tabBtn-lecture" class="pw-tab-btn active" style="flex: 1; min-width: 130px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 10px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+                <button onclick="switchTab('lecture')" id="tabBtn-lecture" class="pw-tab-btn active" style="flex: 1; min-width: 130px;">
                     <i data-lucide="tv" style="width: 15px; height: 15px;"></i>
-                    <span>{% if lecture.is_live %}Live Class{% else %}Lecture Replay{% endif %}</span>
+                    <span>Live Stream & Replay</span>
                 </button>
 
-                <button onclick="switchTab('notes')" id="tabBtn-notes" class="pw-tab-btn" style="flex: 1; min-width: 120px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 10px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+                <button onclick="switchTab('chat')" id="tabBtn-chat" class="pw-tab-btn" style="flex: 1; min-width: 120px;">
+                    <i data-lucide="message-square" style="width: 15px; height: 15px;"></i>
+                    <span>Live Chat</span>
+                </button>
+
+                <button onclick="switchTab('notes')" id="tabBtn-notes" class="pw-tab-btn" style="flex: 1; min-width: 120px;">
                     <i data-lucide="book-open" style="width: 15px; height: 15px;"></i>
                     <span>Class Notes</span>
                 </button>
 
-                <button onclick="switchTab('dpp')" id="tabBtn-dpp" class="pw-tab-btn" style="flex: 1; min-width: 120px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 10px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+                <button onclick="switchTab('dpp')" id="tabBtn-dpp" class="pw-tab-btn" style="flex: 1; min-width: 120px;">
                     <i data-lucide="check-square" style="width: 15px; height: 15px;"></i>
                     <span>DPP ({{ lecture.dpp_list|length }})</span>
                 </button>
 
-                <button onclick="switchTab('lab')" id="tabBtn-lab" class="pw-tab-btn" style="flex: 1; min-width: 130px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 10px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+                <button onclick="switchTab('lab')" id="tabBtn-lab" class="pw-tab-btn" style="flex: 1; min-width: 130px;">
                     <i data-lucide="terminal" style="width: 15px; height: 15px;"></i>
                     <span>Python Code Lab</span>
                 </button>
 
-                <button onclick="switchTab('doubts')" id="tabBtn-doubts" class="pw-tab-btn" style="flex: 1; min-width: 120px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 10px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+                <button onclick="switchTab('doubts')" id="tabBtn-doubts" class="pw-tab-btn" style="flex: 1; min-width: 120px;">
                     <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>
-                    <span>Ask Doubt</span>
+                    <span>Ask Ski AI</span>
                 </button>
             </div>
 
-            <!-- TAB 1: Live Stream / Recorded Replay Video -->
+            <!-- ================================================================
+                 TAB 1: SKILLROCK REAL LIVE STREAMING / REPLAY STAGE
+                 ================================================================ -->
             <div id="tabContent-lecture" class="pw-tab-panel">
-                <div style="background: #000000; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; overflow: hidden; box-shadow: 0 16px 36px -10px rgba(0,0,0,0.7);">
+                
+                <!-- TEACHER BROADCAST STUDIO CONSOLE (Visible to Educators / Admins) -->
+                {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_teacher) %}
+                <div id="teacherStudioPanel" style="display: none; background: #0B0F19; border: 2px solid #7C3AED; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 12px 30px rgba(124, 58, 237, 0.25);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <span style="font-size: 11px; font-weight: 800; color: #C084FC; text-transform: uppercase; letter-spacing: 0.05em;">Educator Broadcast Studio</span>
+                            <h3 style="font-size: 18px; font-weight: 800; color: #FFFFFF; margin: 2px 0 0;">SkillRock Live Camera & Screen Broadcaster</h3>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span id="studioStatusPill" style="font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 9999px; background: rgba(255,255,255,0.08); color: #94A3B8;">
+                                Studio Standby
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Video Preview Stage for Educator -->
+                    <div style="position: relative; aspect-ratio: 16 / 9; background: #000000; border-radius: 12px; overflow: hidden; margin-bottom: 14px; display: flex; align-items: center; justify-content: center;">
+                        <video id="teacherStudioVideo" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>
+                        <div id="teacherStudioPlaceholder" style="position: absolute; text-align: center; color: #64748B;">
+                            <i data-lucide="video-off" style="width: 48px; height: 48px; margin-bottom: 8px;"></i>
+                            <div style="font-size: 14px; font-weight: 600;">Camera & Screen sharing preview is currently inactive</div>
+                            <div style="font-size: 12px; margin-top: 4px;">Click "Start Camera" or "Share Screen" below to prepare your live lecture</div>
+                        </div>
+                    </div>
+
+                    <!-- Educator Broadcast Control Bar -->
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="studio-btn" id="btnToggleCamera" onclick="toggleCamera()">
+                                <i data-lucide="camera" style="width: 15px;"></i>
+                                <span id="lblToggleCamera">Start Camera</span>
+                            </button>
+                            <button type="button" class="studio-btn" id="btnToggleMic" onclick="toggleMic()">
+                                <i data-lucide="mic" style="width: 15px;"></i>
+                                <span id="lblToggleMic">Mute Mic</span>
+                            </button>
+                            <button type="button" class="studio-btn" id="btnToggleScreen" onclick="toggleScreenShare()">
+                                <i data-lucide="monitor" style="width: 15px;"></i>
+                                <span id="lblToggleScreen">Share Screen / VS Code</span>
+                            </button>
+                            <button type="button" class="studio-btn" id="btnToggleRecord" onclick="toggleRecording()" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #FBBF24;">
+                                <i data-lucide="disc" style="width: 15px;"></i>
+                                <span id="lblToggleRecord">Record Stream to Vault</span>
+                            </button>
+                        </div>
+
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" id="btnGoLive" onclick="startBroadcast()" class="btn" style="background: #EF4444; color: #FFFFFF; font-weight: 800; font-size: 13px; padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                <i data-lucide="radio" style="width: 16px;"></i>
+                                <span>Go Live on SkillRock</span>
+                            </button>
+                            <button type="button" id="btnEndLive" onclick="endBroadcast()" class="btn" style="display: none; background: #475569; color: #FFFFFF; font-weight: 800; font-size: 13px; padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer;">
+                                End Class
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- LIVE VIDEO / REPLAY CONTAINER (STUDENT & EDUCATOR PLAYER) -->
+                <div style="background: #000000; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; overflow: hidden; box-shadow: 0 16px 36px -10px rgba(0,0,0,0.7); position: relative;">
                     
-                    {% if lecture.is_live %}
-                    <!-- Live Stream Banner Card -->
-                    <div style="padding: 40px 30px; text-align: center; background: radial-gradient(circle at center, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.95) 75%);">
-                        <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(239, 68, 68, 0.2); border: 2px solid #EF4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #EF4444; animation: pulseLive 1.5s infinite;">
-                            <i data-lucide="video" style="width: 32px; height: 32px;"></i>
+                    <!-- LIVE STREAM PLAYER VIEW (Active when lecture is live) -->
+                    <div id="liveStreamView" style="{% if not lecture.is_live %}display: none;{% endif %} position: relative; aspect-ratio: 16 / 9; background: #000000; overflow: hidden;">
+                        <video id="studentLiveVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>
+                        
+                        <!-- Top Floating Stream HUD -->
+                        <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 10;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="background: #EF4444; color: #FFFFFF; font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 5px; animation: pulseLive 1.5s infinite;">
+                                    <span style="width: 6px; height: 6px; background: white; border-radius: 50%;"></span>
+                                    LIVE
+                                </span>
+                                <span style="background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); color: #E2E8F0; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px;">
+                                    SkillRock In-App Stream
+                                </span>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); color: #34D399; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px;">
+                                👥 <span id="hudViewerCount">32</span> Watching
+                            </div>
+                        </div>
+
+                        <!-- Fallback Waiting Indicator within Live View -->
+                        <div id="studentWaitingNotice" style="display: none; position: absolute; inset: 0; background: rgba(11, 15, 25, 0.9); flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 20px;">
+                            <div style="width: 50px; height: 50px; border-radius: 50%; border: 3px solid #7C3AED; border-top-color: transparent; animation: spin 1s linear infinite; margin-bottom: 14px;"></div>
+                            <div style="font-size: 16px; font-weight: 700;">Connecting to Educator's Live Broadcast...</div>
+                            <div style="font-size: 13px; color: #94A3B8; margin-top: 4px;">Please keep this tab open; streaming directly inside SkillRock.</div>
+                        </div>
+                    </div>
+
+                    <!-- RECORDED REPLAY VIEW (Active when class is completed and has a vault recording) -->
+                    <div id="recordingReplayView" style="{% if lecture.is_live or not has_recording %}display: none;{% endif %} position: relative; aspect-ratio: 16 / 9; background: #000000;">
+                        <video id="lectureReplayPlayer" controls playsinline style="width: 100%; height: 100%; object-fit: contain;">
+                            {% if playback_url %}
+                            <source src="{{ playback_url }}" type="video/webm">
+                            <source src="{{ playback_url }}" type="video/mp4">
+                            {% endif %}
+                            Your browser does not support HTML5 video playback.
+                        </video>
+                        <!-- Replay Badge Overlay -->
+                        <div style="position: absolute; top: 14px; left: 16px; background: rgba(16, 185, 129, 0.85); backdrop-filter: blur(6px); color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 9999px; pointer-events: none;">
+                            ✓ SkillRock Vault Recording Replay
+                        </div>
+                    </div>
+
+                    <!-- SCHEDULED / WAITING ROOM VIEW (When lecture is upcoming or scheduled) -->
+                    <div id="scheduledWaitingView" style="{% if lecture.is_live or has_recording %}display: none;{% endif %} padding: 60px 24px; text-align: center; background: radial-gradient(circle at center, rgba(124, 58, 237, 0.12) 0%, rgba(15, 23, 42, 0.98) 75%); color: #94A3B8;">
+                        <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(124, 58, 237, 0.2); border: 2px solid #7C3AED; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #C084FC;">
+                            <i data-lucide="tv" style="width: 32px; height: 32px;"></i>
                         </div>
                         <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin: 0 0 8px;">
-                            Teacher is Teaching Live on Google Meet!
+                            Live Lecture Scheduled in SkillRock App
                         </h2>
-                        <p style="color: #94A3B8; font-size: 14.5px; max-width: 580px; margin: 0 auto 24px; line-height: 1.5;">
-                            Click below to enter the live Google Meet classroom. Keep your microphone muted upon entry and raise your hand or ask doubts anytime.
+                        <p style="color: #CBD5E1; font-size: 14.5px; max-width: 580px; margin: 0 auto 18px; line-height: 1.5;">
+                            This lecture is scheduled for <strong>{{ lecture.scheduled_display }}</strong>. The live video broadcast will start automatically right on this screen when {{ lecture.teacher_name }} goes live!
                         </p>
-                        <a href="{{ lecture.active_meet_url }}" target="_blank" rel="noopener noreferrer" 
-                           class="btn" style="display: inline-flex; align-items: center; gap: 10px; background: #EF4444; color: #FFFFFF; font-weight: 800; font-size: 16px; padding: 14px 32px; border-radius: 12px; text-decoration: none; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.45);">
-                            <i data-lucide="external-link" style="width: 20px; height: 20px;"></i>
-                            <span>Join Google Meet Live Stream Now →</span>
-                        </a>
+                        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); padding: 8px 16px; border-radius: 9999px; font-size: 12.5px; color: #38BDF8;">
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #38BDF8; animation: pulseLive 2s infinite;"></span>
+                            Live Streaming Player Standing By • No External Apps Needed
+                        </div>
                     </div>
-                    {% endif %}
-
-                    <!-- Video Replay Frame -->
-                    {% if clean_recording_id %}
-                    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000000;">
-                        <iframe src="https://www.youtube.com/embed/{{ clean_recording_id }}?rel=0&modestbranding=1" 
-                                title="{{ lecture.title }}" 
-                                frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                allowfullscreen 
-                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
-                        </iframe>
-                    </div>
-                    {% elif not lecture.is_live %}
-                    <div style="padding: 60px 24px; text-align: center; color: #94A3B8;">
-                        <i data-lucide="calendar" style="width: 48px; height: 48px; color: #38BDF8; margin-bottom: 12px;"></i>
-                        <h3 style="color: #FFFFFF; font-size: 18px; margin: 0 0 6px;">Class Scheduled</h3>
-                        <p style="font-size: 14px; max-width: 460px; margin: 0 auto 18px;">
-                            This lecture is scheduled for <strong>{{ lecture.scheduled_display }}</strong>. The live Google Meet button will be activated automatically at class time!
-                        </p>
-                        <a href="{{ lecture.active_meet_url }}" target="_blank" class="btn" style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38BDF8; color: #38BDF8; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 13px;">
-                            Open Class Meet Link Ahead of Time
-                        </a>
-                    </div>
-                    {% endif %}
 
                 </div>
             </div>
 
-            <!-- TAB 2: Class Notes & Handouts -->
+            <!-- ================================================================
+                 TAB 2: REAL-TIME IN-CLASS CHAT & DOUBTS STREAM
+                 ================================================================ -->
+            <div id="tabContent-chat" class="pw-tab-panel" style="display: none;">
+                <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 22px; display: flex; flex-direction: column; height: 560px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 14px;">
+                        <div>
+                            <span style="font-size: 11px; font-weight: 800; color: #38BDF8; text-transform: uppercase;">Classroom Conversation</span>
+                            <h3 style="font-size: 17px; font-weight: 800; color: #FFFFFF; margin: 2px 0 0;">Live Chat & Interactive Doubts</h3>
+                        </div>
+                        <span style="font-size: 11.5px; color: #94A3B8;">Auto-syncing active</span>
+                    </div>
+
+                    <!-- Chat Scroll Stream -->
+                    <div id="liveChatMessagesStream" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 6px; margin-bottom: 14px;">
+                        <div style="text-align: center; color: #64748B; font-size: 12px; margin: 20px 0;">
+                            Welcome to the live chat! Ask doubts and interact with your educator and classmates.
+                        </div>
+                    </div>
+
+                    <!-- Chat Input Form -->
+                    <form onsubmit="event.preventDefault(); sendChatMessage();" style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="liveChatInput" class="admin-input" placeholder="Type your doubt or message..." style="flex: 1; border-radius: 10px; background: rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.15); color: #FFFFFF; font-size: 13.5px; padding: 10px 14px;" {% if not current_user.is_authenticated %}disabled placeholder="Please log in to chat"{% endif %}>
+                        <button type="submit" class="btn" style="background: #7C3AED; color: #FFFFFF; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 10px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" {% if not current_user.is_authenticated %}disabled{% endif %}>
+                            <i data-lucide="send" style="width: 14px;"></i>
+                            <span>Send</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ================================================================
+                 TAB 3: CLASS NOTES & HANDOUTS
+                 ================================================================ -->
             <div id="tabContent-notes" class="pw-tab-panel" style="display: none;">
                 <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 26px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
@@ -209,7 +434,9 @@
                 </div>
             </div>
 
-            <!-- TAB 3: Daily Practice Problems (DPP) -->
+            <!-- ================================================================
+                 TAB 4: DAILY PRACTICE PROBLEMS (DPP)
+                 ================================================================ -->
             <div id="tabContent-dpp" class="pw-tab-panel" style="display: none;">
                 <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 26px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 22px; flex-wrap: wrap; gap: 10px;">
@@ -238,129 +465,123 @@
                                 </p>
                                 <div style="display: flex; flex-direction: column; gap: 8px;">
                                     {% for opt in q.options %}
-                                    <label style="display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: background 0.15s ease;">
-                                        <input type="radio" name="dpp_{{ q.id }}" value="{{ loop.index0 }}" style="accent-color: #7C3AED; width: 16px; height: 16px;">
-                                        <span style="font-size: 13.5px; color: #CBD5E1;">{{ opt }}</span>
+                                    <label style="display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 10px 14px; cursor: pointer; transition: all 0.15s ease;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+                                        <input type="radio" name="dpp_{{ q.id }}" value="{{ loop.index0 }}" style="accent-color: #F59E0B;">
+                                        <span style="font-size: 14px; color: #CBD5E1;">{{ opt }}</span>
                                     </label>
                                     {% endfor %}
                                 </div>
-                                <div class="dpp-explanation" id="exp-{{ q.id }}" style="display: none; margin-top: 12px; padding: 10px 14px; background: rgba(56, 189, 248, 0.1); border-left: 3px solid #38BDF8; border-radius: 0 8px 8px 0; font-size: 12.5px; color: #E0F2FE;">
-                                </div>
+                                <div class="dpp-explanation" id="exp-{{ q.id }}" style="display: none; margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #A7F3D0; font-size: 13px; line-height: 1.5;"></div>
                             </div>
                             {% endfor %}
                         </div>
 
-                        <div style="margin-top: 24px; text-align: center;">
-                            <button type="submit" id="dppSubmitBtn" class="btn" style="background: linear-gradient(135deg, #10B981, #059669); color: #FFFFFF; font-weight: 800; padding: 12px 36px; border-radius: 12px; font-size: 14.5px; border: none; cursor: pointer; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);">
-                                Submit DPP & Check Answers →
+                        <div style="margin-top: 24px; text-align: right;">
+                            <button type="submit" class="btn" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: #FFFFFF; font-weight: 800; font-size: 15px; padding: 12px 28px; border-radius: 12px; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);">
+                                Submit DPP & Claim XP →
                             </button>
                         </div>
                     </form>
                     {% else %}
-                    <p style="color: #94A3B8; text-align: center; padding: 30px;">
-                        Daily Practice Problems for this lecture are being curated and will be uploaded shortly.
-                    </p>
+                    <p style="color: #94A3B8; font-size: 14px;">No DPP assigned for this lecture yet.</p>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- TAB 4: In-Browser Python Lab -->
+            <!-- ================================================================
+                 TAB 5: PYTHON CODE LAB & COMPILER
+                 ================================================================ -->
             <div id="tabContent-lab" class="pw-tab-panel" style="display: none;">
-                <div style="background: rgba(15, 23, 42, 0.95); border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 18px; padding: 22px;">
+                <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 22px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="terminal" style="width: 20px; height: 20px; color: #38BDF8;"></i>
-                            <h3 style="font-size: 17px; font-weight: 800; color: #F8FAFC; margin: 0;">Interactive Python Playground</h3>
+                        <div>
+                            <span style="font-size: 11px; font-weight: 800; color: #10B981; text-transform: uppercase;">In-Browser Python IDE</span>
+                            <h2 style="font-size: 19px; font-weight: 800; color: #FFFFFF; margin: 2px 0 0;">Interactive Code Playground</h2>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <button onclick="resetEditorCode()" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); color: #CBD5E1; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">
-                                ↺ Reset Code
-                            </button>
-                            <button onclick="runPythonSandbox()" id="runCodeBtn" style="background: linear-gradient(135deg, #10B981, #059669); border: none; color: #FFFFFF; padding: 6px 18px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
-                                <i data-lucide="play" style="width: 14px;"></i> Run Code ▶
+                            <button type="button" onclick="resetEditorCode()" class="btn btn-sm" style="background: rgba(255, 255, 255, 0.08); color: #CBD5E1; padding: 7px 14px; border-radius: 8px; font-size: 12px;">Reset Code</button>
+                            <button type="button" onclick="runPythonSandbox()" class="btn btn-sm" style="background: #10B981; color: #FFFFFF; font-weight: 800; padding: 7px 18px; border-radius: 8px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+                                <i data-lucide="play" style="width: 14px; height: 14px; fill: white;"></i>
+                                Run Code
                             </button>
                         </div>
                     </div>
 
-                    <textarea id="liveCodeEditor" 
-                              style="width: 100%; height: 260px; background: #070B14; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 12px; padding: 14px 16px; color: #38BDF8; font-family: 'Consolas', 'Courier New', monospace; font-size: 13.5px; line-height: 1.5; resize: vertical; outline: none;" 
-                              spellcheck="false">{{ lecture.starter_code }}</textarea>
+                    <textarea id="liveCodeEditor" style="width: 100%; height: 260px; background: #0A0F1D; color: #38BDF8; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 13.5px; padding: 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12); resize: vertical; line-height: 1.5;">{{ lecture.starter_code }}</textarea>
 
-                    <div style="background: #020617; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 14px 16px; margin-top: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; font-weight: 700; color: #64748B;">
-                            <span>Output Terminal</span>
-                            <span id="sandboxStatusBadge" style="color: #10B981;">Ready</span>
+                    <div style="margin-top: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-size: 12px; font-weight: 700; color: #94A3B8;">Terminal Output</span>
+                            <span id="sandboxStatusBadge" style="font-size: 11px; color: #64748B;">Ready</span>
                         </div>
-                        <pre id="sandboxOutputTerminal" style="color: #E2E8F0; font-family: 'Consolas', monospace; font-size: 12.5px; margin: 0; white-space: pre-wrap; word-break: break-all;">Click 'Run Code ▶' above to test your code in the isolated Python sandbox.</pre>
+                        <pre id="sandboxOutputTerminal" style="background: #000000; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 14px; color: #E2E8F0; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 13px; min-height: 80px; max-height: 180px; overflow-y: auto; margin: 0; white-space: pre-wrap;">Click "Run Code" to execute your program.</pre>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 5: Live Doubts Solver (Ski AI) -->
+            <!-- ================================================================
+                 TAB 6: 24/7 SKI AI Socratic Doubt Solver
+                 ================================================================ -->
             <div id="tabContent-doubts" class="pw-tab-panel" style="display: none;">
-                <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 18px; padding: 22px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="sparkles" style="width: 20px; height: 20px; color: #C084FC;"></i>
-                            <h3 style="font-size: 17px; font-weight: 800; color: #FFFFFF; margin: 0;">24/7 AI Doubt Partner (Ski)</h3>
+                <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 22px;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #EC4899, #8B5CF6); display: flex; align-items: center; justify-content: center; color: white;">
+                            <i data-lucide="sparkles" style="width: 20px; height: 20px;"></i>
                         </div>
-                        <span style="font-size: 11px; font-weight: 700; color: #34D399; background: rgba(16, 185, 129, 0.15); padding: 3px 8px; border-radius: 6px;">
-                            ● Online • Hindi & English
-                        </span>
-                    </div>
-
-                    <div id="doubtChatStream" style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 16px; max-height: 380px; min-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px;">
-                        <div style="background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 12px; padding: 12px 14px; max-width: 90%;">
-                            <div style="font-size: 11px; color: #EC4899; font-weight: 800; margin-bottom: 3px;">Ski (AI Study Partner)</div>
-                            <div style="color: #F8FAFC; font-size: 13.5px; line-height: 1.5;">
-                                Hi {{ current_user.name or 'friend' }}! Ask me any doubt about <strong>{{ lecture.title }}</strong> in Hindi, Hinglish, or English. You can also paste your code!
-                            </div>
+                        <div>
+                            <h3 style="font-size: 17px; font-weight: 800; color: #FFFFFF; margin: 0;">Ski — 24/7 AI Teaching Assistant</h3>
+                            <span style="font-size: 12px; color: #94A3B8;">Ask any programming doubt from {{ lecture.title }} in Hindi, Hinglish, or English.</span>
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="doubtInput" placeholder="Type your doubt here..." 
-                               style="flex: 1; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 12px; padding: 12px 16px; color: #FFFFFF; font-size: 13.5px; outline: none;"
-                               onkeydown="if(event.key === 'Enter') submitDoubt()">
-                        <button onclick="submitDoubt()" style="background: linear-gradient(135deg, #7C3AED, #5B46F6); border: none; padding: 0 22px; border-radius: 12px; color: #FFFFFF; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                            <i data-lucide="send" style="width: 16px; height: 16px;"></i>
-                            <span>Ask</span>
+                    <div id="doubtChatStream" style="height: 320px; overflow-y: auto; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 12px;">
+                        <div style="background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 12px; padding: 12px 14px; max-width: 85%; color: #F8FAFC; font-size: 13.5px; line-height: 1.5;">
+                            <div style="font-size: 11px; color: #EC4899; font-weight: 800; margin-bottom: 3px;">Ski Assistant</div>
+                            Namaste! I am Ski, your 24/7 AI doubt partner for Bhavishya 1.0. What concept from this lecture can I explain for you?
+                        </div>
+                    </div>
+
+                    <form onsubmit="event.preventDefault(); submitDoubt();" style="display: flex; gap: 10px;">
+                        <input type="text" id="doubtInput" class="admin-input" placeholder="e.g., Sir, can you explain difference between list and tuple with a simple example?" style="flex: 1; border-radius: 10px; background: rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.15); color: #FFFFFF; font-size: 13.5px; padding: 10px 14px;">
+                        <button type="submit" class="btn" style="background: linear-gradient(135deg, #EC4899, #8B5CF6); color: #FFFFFF; font-weight: 700; font-size: 13px; padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer;">
+                            Ask Doubt
                         </button>
-                    </div>
+                    </form>
                 </div>
             </div>
 
         </div>
 
         <!-- ====================================================================
-             RIGHT PANE: Full Batch Curriculum Drawer & Faculty Info
+             RIGHT COLUMN: Educator Info & Live Batch Curriculum Playlist
              ==================================================================== -->
         <div style="display: flex; flex-direction: column; gap: 20px;">
 
             <!-- Educator Card -->
-            <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 20px;">
-                <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px;">
-                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #7C3AED, #EC4899); display: flex; align-items: center; justify-content: center; font-weight: 800; color: #FFFFFF; font-size: 18px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);">
-                        TP
-                    </div>
+            <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 22px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <img src="{{ lecture.teacher_avatar or '/static/img/teacher_tanishk.svg' }}" 
+                         alt="{{ lecture.teacher_name }}" 
+                         style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #1E1B4B; border: 2px solid #7C3AED;">
                     <div>
-                        <div style="font-size: 15px; font-weight: 800; color: #FFFFFF;">{{ batch_config.teacher_name }}</div>
-                        <div style="font-size: 12px; color: #38BDF8; font-weight: 600;">{{ batch_config.teacher_title }}</div>
+                        <div style="font-size: 15px; font-weight: 800; color: #FFFFFF;">
+                            {{ lecture.teacher_name }}
+                        </div>
+                        <div style="font-size: 12px; color: #A855F7; font-weight: 700;">
+                            Lead Faculty • Bhavishya 1.0
+                        </div>
                     </div>
                 </div>
-                <p style="font-size: 12.5px; color: #94A3B8; margin: 0 0 14px; line-height: 1.45;">
-                    {{ batch_config.teacher_bio }}
+                <p style="font-size: 12.5px; color: #94A3B8; margin: 0; line-height: 1.45;">
+                    Live sessions conducted right inside SkillRock. Learn coding hands-on with real-world examples and industry projects.
                 </p>
-                <a href="{{ lecture.active_meet_url }}" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; background: rgba(37, 99, 235, 0.15); border: 1px solid #3B82F6; color: #60A5FA; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none;">
-                    <i data-lucide="video" style="width: 14px;"></i> Teacher Google Meet Link
-                </a>
             </div>
 
             <!-- Complete Lecture Navigation Playlist -->
             <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 20px; max-height: 600px; overflow-y: auto;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 10px;">
-                    <span style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Live Batch Curriculum</span>
-                    <span style="font-size: 11px; color: #94A3B8; font-weight: 700;">16 Lectures</span>
+                    <span style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Batch Curriculum</span>
+                    <span style="font-size: 11px; color: #94A3B8; font-weight: 700;">{{ all_lectures|length }} Lectures</span>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -384,7 +605,7 @@
                         <div>
                             {% if l.is_live %}
                                 <span style="font-size: 10px; font-weight: 800; color: #EF4444; background: rgba(239, 68, 68, 0.2); border: 1px solid #EF4444; padding: 2px 6px; border-radius: 4px;">LIVE</span>
-                            {% elif l.is_completed %}
+                            {% elif l.has_recording %}
                                 <span style="font-size: 10px; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.15); padding: 2px 6px; border-radius: 4px;">Replay</span>
                             {% else %}
                                 <span style="font-size: 10px; font-weight: 600; color: #94A3B8; background: rgba(255, 255, 255, 0.06); padding: 2px 6px; border-radius: 4px;">Upcoming</span>
@@ -401,42 +622,23 @@
 
 </div>
 
-<!-- Styles & Keyframes -->
-<style>
-@keyframes pulseLive {
-    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-}
-
-.pw-tab-btn {
-    background: transparent;
-    color: #94A3B8;
-}
-.pw-tab-btn:hover {
-    color: #FFFFFF;
-    background: rgba(255, 255, 255, 0.05);
-}
-.pw-tab-btn.active {
-    background: #7C3AED !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
-}
-
-@media (max-width: 1024px) {
-    .pw-classroom-grid {
-        grid-template-columns: 1fr !important;
-    }
-}
-</style>
-
-<!-- Physics Wallah Classroom Client Script -->
+<!-- Real In-App Live Streaming & Physics Wallah Client Script -->
 <script>
 const currentLectureId = "{{ lecture.lecture_id }}";
 const initialStarterCode = {{ lecture.starter_code|tojson }};
+const isTeacherOrAdmin = {{ 'true' if current_user.is_authenticated and (current_user.is_admin or current_user.is_teacher) else 'false' }};
+let isStreamingActive = {{ 'true' if lecture.is_live else 'false' }};
+
+// Media Stream & Recording variables
+let localMediaStream = null;
+let screenStream = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+let recordStartTime = 0;
+let recordTimerInterval = null;
 
 function switchTab(tabName) {
-    const tabs = ['lecture', 'notes', 'dpp', 'lab', 'doubts'];
+    const tabs = ['lecture', 'chat', 'notes', 'dpp', 'lab', 'doubts'];
     tabs.forEach(t => {
         const btn = document.getElementById('tabBtn-' + t);
         const panel = document.getElementById('tabContent-' + t);
@@ -447,8 +649,330 @@ function switchTab(tabName) {
     const activePanel = document.getElementById('tabContent-' + tabName);
     if (activeBtn) activeBtn.classList.add('active');
     if (activePanel) activePanel.style.display = 'block';
+
+    if (tabName === 'chat') {
+        fetchChatMessages();
+    }
 }
 
+// -----------------------------------------------------------------------------
+// TEACHER BROADCAST STUDIO FUNCTIONS
+// -----------------------------------------------------------------------------
+function toggleTeacherStudio() {
+    const panel = document.getElementById('teacherStudioPanel');
+    const txt = document.getElementById('studioToggleText');
+    if (!panel) return;
+    if (panel.style.display === 'none' || !panel.style.display) {
+        panel.style.display = 'block';
+        if (txt) txt.innerText = 'Close Studio';
+    } else {
+        panel.style.display = 'none';
+        if (txt) txt.innerText = 'Open Educator Studio';
+    }
+}
+
+async function toggleCamera() {
+    const video = document.getElementById('teacherStudioVideo');
+    const ph = document.getElementById('teacherStudioPlaceholder');
+    const btn = document.getElementById('btnToggleCamera');
+    const lbl = document.getElementById('lblToggleCamera');
+
+    if (localMediaStream && localMediaStream.getVideoTracks().length > 0 && localMediaStream.getVideoTracks()[0].enabled) {
+        localMediaStream.getVideoTracks()[0].enabled = false;
+        btn.classList.remove('active');
+        lbl.innerText = 'Start Camera';
+        return;
+    }
+
+    try {
+        if (!localMediaStream) {
+            localMediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        } else {
+            localMediaStream.getVideoTracks()[0].enabled = true;
+        }
+        if (video) {
+            video.srcObject = localMediaStream;
+            video.play();
+        }
+        if (ph) ph.style.display = 'none';
+        btn.classList.add('active');
+        lbl.innerText = 'Stop Camera';
+    } catch (e) {
+        alert('Could not access camera/mic: ' + e.message);
+    }
+}
+
+function toggleMic() {
+    const btn = document.getElementById('btnToggleMic');
+    const lbl = document.getElementById('lblToggleMic');
+    if (!localMediaStream || localMediaStream.getAudioTracks().length === 0) return;
+    const track = localMediaStream.getAudioTracks()[0];
+    track.enabled = !track.enabled;
+    if (track.enabled) {
+        btn.classList.add('active');
+        lbl.innerText = 'Mute Mic';
+    } else {
+        btn.classList.remove('active');
+        lbl.innerText = 'Unmute Mic';
+    }
+}
+
+async function toggleScreenShare() {
+    const video = document.getElementById('teacherStudioVideo');
+    const ph = document.getElementById('teacherStudioPlaceholder');
+    const btn = document.getElementById('btnToggleScreen');
+    const lbl = document.getElementById('lblToggleScreen');
+
+    if (screenStream) {
+        screenStream.getTracks().forEach(t => t.stop());
+        screenStream = null;
+        btn.classList.remove('active');
+        lbl.innerText = 'Share Screen / VS Code';
+        if (localMediaStream && video) {
+            video.srcObject = localMediaStream;
+        }
+        return;
+    }
+
+    try {
+        screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        if (video) {
+            video.srcObject = screenStream;
+            video.play();
+        }
+        if (ph) ph.style.display = 'none';
+        btn.classList.add('active');
+        lbl.innerText = 'Stop Screen Share';
+
+        screenStream.getVideoTracks()[0].onended = function() {
+            toggleScreenShare();
+        };
+    } catch (err) {
+        console.log('Screen share cancelled/denied');
+    }
+}
+
+async function startBroadcast() {
+    try {
+        const resp = await fetch(`/bhavishya/api/lecture/${currentLectureId}/stream_start`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        const data = await resp.json();
+        if (data.success) {
+            document.getElementById('btnGoLive').style.display = 'none';
+            document.getElementById('btnEndLive').style.display = 'inline-flex';
+            document.getElementById('studioStatusPill').innerText = '🔴 ON AIR (Broadcasting)';
+            document.getElementById('studioStatusPill').style.background = '#EF4444';
+            document.getElementById('studioStatusPill').style.color = '#FFFFFF';
+            
+            // Connect to student player screen directly
+            const studentVideo = document.getElementById('studentLiveVideo');
+            const streamToShare = screenStream || localMediaStream;
+            if (studentVideo && streamToShare) {
+                studentVideo.srcObject = streamToShare;
+                studentVideo.play();
+            }
+            document.getElementById('liveStreamView').style.display = 'block';
+            document.getElementById('scheduledWaitingView').style.display = 'none';
+        }
+    } catch (e) {
+        alert('Could not start live broadcast: ' + e.message);
+    }
+}
+
+async function endBroadcast() {
+    if (!confirm('Are you sure you want to end this live broadcast?')) return;
+    try {
+        const resp = await fetch(`/bhavishya/api/lecture/${currentLectureId}/stream_end`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        const data = await resp.json();
+        if (data.success) {
+            document.getElementById('btnGoLive').style.display = 'inline-flex';
+            document.getElementById('btnEndLive').style.display = 'none';
+            document.getElementById('studioStatusPill').innerText = 'Class Concluded';
+            document.getElementById('studioStatusPill').style.background = '#10B981';
+
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            alert('Live broadcast concluded! You can now save the recorded stream to the separate vault.');
+        }
+    } catch (e) {
+        alert('Error ending broadcast: ' + e.message);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// SEPARATE RECORDINGS VAULT (MediaRecorder & Upload)
+// -----------------------------------------------------------------------------
+function toggleRecording() {
+    const btn = document.getElementById('btnToggleRecord');
+    const lbl = document.getElementById('lblToggleRecord');
+
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        btn.classList.remove('active');
+        lbl.innerText = 'Record Stream to Vault';
+        return;
+    }
+
+    const stream = screenStream || localMediaStream;
+    if (!stream) {
+        alert('Please start camera or screen share first before recording.');
+        return;
+    }
+
+    recordedChunks = [];
+    try {
+        const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+        mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
+
+        mediaRecorder.ondataavailable = function(e) {
+            if (e.data && e.data.size > 0) {
+                recordedChunks.push(e.data);
+            }
+        };
+
+        mediaRecorder.onstop = async function() {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            if (confirm('Lecture recording complete! Do you want to upload and store this recording in the separate Bhavishya Recordings Vault?')) {
+                await uploadRecordingToVault(blob);
+            }
+        };
+
+        mediaRecorder.start(2000); // 2s chunks
+        recordStartTime = Date.now();
+        btn.classList.add('active');
+        lbl.innerText = '⏺️ Recording... (Click to Stop)';
+    } catch (err) {
+        alert('Recording error: ' + err.message);
+    }
+}
+
+async function uploadRecordingToVault(blob) {
+    const duration = Math.round((Date.now() - recordStartTime) / 1000);
+    const formData = new FormData();
+    formData.append('video', blob, `lecture_${currentLectureId}.webm`);
+    formData.append('duration', duration);
+
+    try {
+        const resp = await fetch(`/bhavishya/api/recordings/upload/${currentLectureId}`, {
+            method: 'POST',
+            body: formData
+        });
+        const result = await resp.json();
+        if (result.success) {
+            alert('✅ Recording successfully saved to separate Recordings Vault database (' + result.vault_db + ')!');
+            window.location.reload();
+        } else {
+            alert('Recording upload error: ' + (result.error || 'Failed'));
+        }
+    } catch (e) {
+        alert('Could not upload recording to vault: ' + e.message);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// STUDENT REAL-TIME STREAM SYNCHRONIZATION (Auto-Poll & Connect)
+// -----------------------------------------------------------------------------
+async function checkLiveStreamStatus() {
+    try {
+        const resp = await fetch(`/bhavishya/api/lecture/${currentLectureId}/stream_status`);
+        const data = await resp.json();
+        if (data.success) {
+            const liveView = document.getElementById('liveStreamView');
+            const schedView = document.getElementById('scheduledWaitingView');
+            const replayView = document.getElementById('recordingReplayView');
+            const hudCount = document.getElementById('hudViewerCount');
+            const countNum = document.getElementById('viewerCountNum');
+
+            if (hudCount && data.viewers_count) hudCount.innerText = data.viewers_count;
+            if (countNum && data.viewers_count) countNum.innerText = data.viewers_count;
+
+            if (data.is_live) {
+                if (liveView) liveView.style.display = 'block';
+                if (schedView) schedView.style.display = 'none';
+                if (replayView) replayView.style.display = 'none';
+            } else if (data.has_recording) {
+                if (replayView && replayView.style.display === 'none') {
+                    // Update replay source if fresh recording landed
+                    if (data.playback_url) {
+                        const player = document.getElementById('lectureReplayPlayer');
+                        if (player && !player.src) player.src = data.playback_url;
+                    }
+                    if (replayView) replayView.style.display = 'block';
+                    if (schedView) schedView.style.display = 'none';
+                    if (liveView) liveView.style.display = 'none';
+                }
+            }
+        }
+    } catch (e) {}
+}
+
+// Poll stream status every 4 seconds for instant classroom transitions
+setInterval(checkLiveStreamStatus, 4000);
+
+// -----------------------------------------------------------------------------
+// LIVE CLASSROOM INTERACTIVE CHAT
+// -----------------------------------------------------------------------------
+async function fetchChatMessages() {
+    try {
+        const resp = await fetch(`/bhavishya/api/lecture/${currentLectureId}/chat`);
+        const data = await resp.json();
+        if (data.success && data.messages) {
+            const stream = document.getElementById('liveChatMessagesStream');
+            if (!stream) return;
+            stream.innerHTML = '';
+            data.messages.forEach(m => {
+                const bubble = document.createElement('div');
+                bubble.className = 'chat-bubble ' + (m.is_teacher ? 'teacher' : 'student');
+                bubble.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px;">
+                        <strong style="font-size: 11px; color: ${m.is_teacher ? '#C084FC' : '#38BDF8'};">${m.user_name} ${m.is_teacher ? '• 👨‍🏫 FACULTY' : ''}</strong>
+                        <span style="font-size: 10px; color: #64748B;">${m.timestamp || ''}</span>
+                    </div>
+                    <div>${m.message}</div>
+                `;
+                stream.appendChild(bubble);
+            });
+            stream.scrollTop = stream.scrollHeight;
+        }
+    } catch (e) {}
+}
+
+async function sendChatMessage() {
+    const input = document.getElementById('liveChatInput');
+    const msg = input ? input.value.trim() : '';
+    if (!msg) return;
+
+    input.value = '';
+    try {
+        const resp = await fetch(`/bhavishya/api/lecture/${currentLectureId}/chat`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ message: msg })
+        });
+        const data = await resp.json();
+        if (data.success) {
+            fetchChatMessages();
+        }
+    } catch (e) {}
+}
+
+// Poll chat every 3 seconds
+setInterval(() => {
+    const chatTab = document.getElementById('tabContent-chat');
+    if (chatTab && chatTab.style.display !== 'none') {
+        fetchChatMessages();
+    }
+}, 3000);
+
+// -----------------------------------------------------------------------------
+// DPP SUBMISSION & CODE SANDBOX
+// -----------------------------------------------------------------------------
 function resetEditorCode() {
     const editor = document.getElementById('liveCodeEditor');
     if (editor) editor.value = initialStarterCode;
@@ -478,7 +1002,7 @@ async function runPythonSandbox() {
         const data = await resp.json();
         badge.innerText = 'Completed';
         badge.style.color = '#10B981';
-        term.innerText = (data.stdout || '') + (data.stderr ? '\\nError:\\n' + data.stderr : '') || 'Code executed successfully with no output.';
+        term.innerText = (data.stdout || '') + (data.stderr ? '\nError:\n' + data.stderr : '') || 'Code executed successfully with no output.';
     } catch (err) {
         badge.innerText = 'Failed';
         badge.style.color = '#EF4444';
@@ -550,14 +1074,12 @@ async function submitDoubt() {
 
     input.value = '';
 
-    // Append student bubble
     const userBubble = document.createElement('div');
     userBubble.style.cssText = 'background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 10px 14px; max-width: 85%; align-self: flex-end; color: #FFFFFF; font-size: 13.5px;';
     userBubble.innerText = query;
     stream.appendChild(userBubble);
     stream.scrollTop = stream.scrollHeight;
 
-    // Append loading bubble
     const skiBubble = document.createElement('div');
     skiBubble.style.cssText = 'background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 12px; padding: 12px 14px; max-width: 88%; color: #F8FAFC; font-size: 13.5px; line-height: 1.5;';
     skiBubble.innerHTML = '<div style="font-size: 11px; color: #EC4899; font-weight: 800; margin-bottom: 3px;">Ski (Thinking...)</div>Thinking...';

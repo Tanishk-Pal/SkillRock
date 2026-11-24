@@ -360,14 +360,14 @@
     <div style="background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), rgba(15, 23, 42, 0.95)); border: 1.5px solid #EF4444; border-radius: 16px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);">
         <div style="display: flex; align-items: center; gap: 14px;">
             <div style="width: 42px; height: 42px; border-radius: 10px; background: #EF4444; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
-                <i data-lucide="video" style="width: 20px; height: 20px;"></i>
+                <i data-lucide="radio" style="width: 20px; height: 20px;"></i>
             </div>
             <div>
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="background: #EF4444; color: #FFFFFF; font-size: 0.7rem; font-weight: 900; padding: 2px 8px; border-radius: 9999px;">
                         🔴 CLASS IS CURRENTLY LIVE
                     </span>
-                    <span style="font-size: 0.8rem; color: #FCA5A5; font-weight: 700;">Google Meet Stream Active</span>
+                    <span style="font-size: 0.8rem; color: #FCA5A5; font-weight: 700;">In-App Live Stream Active</span>
                 </div>
                 <div style="font-size: 1.05rem; font-weight: 800; color: #FFFFFF; margin-top: 2px;">
                     {{ active_live_lecture.title }}
@@ -375,12 +375,9 @@
             </div>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="{{ active_live_lecture.active_meet_url }}" target="_blank" class="btn pw-action-btn-live">
-                <i data-lucide="external-link" style="width: 15px; height: 15px;"></i>
-                Join Google Meet
-            </a>
-            <a href="{{ url_for('bhavishya.live_classroom', lecture_id=active_live_lecture.lecture_id) }}" class="btn pw-action-btn-primary">
-                Open Classroom
+            <a href="{{ url_for('bhavishya.live_classroom', lecture_id=active_live_lecture.lecture_id) }}" class="btn pw-action-btn-live">
+                <i data-lucide="play" style="width: 15px; height: 15px;"></i>
+                Enter Live Stream
             </a>
         </div>
     </div>
@@ -484,12 +481,9 @@
                     <!-- Lecture Actions -->
                     <div class="pw-lecture-actions">
                         {% if lec.is_live %}
-                            <a href="{{ lec.active_meet_url }}" target="_blank" class="pw-action-btn-live">
-                                <i data-lucide="video" style="width: 15px; height: 15px;"></i>
+                            <a href="{{ url_for('bhavishya.live_classroom', lecture_id=lec.lecture_id) }}" class="pw-action-btn-live">
+                                <i data-lucide="radio" style="width: 15px; height: 15px;"></i>
                                 Join Live
-                            </a>
-                            <a href="{{ url_for('bhavishya.live_classroom', lecture_id=lec.lecture_id) }}" class="pw-action-btn-primary">
-                                Classroom
                             </a>
                         {% elif lec.is_completed %}
                             <a href="{{ url_for('bhavishya.live_classroom', lecture_id=lec.lecture_id) }}" class="pw-action-btn-primary">

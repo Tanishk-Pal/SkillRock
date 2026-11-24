@@ -14,7 +14,7 @@ class BhavishyaPackage:
     id = "bhavishya-1-0"
     slug = "bhavishya-1-0"
     title = "Bhavishya 1.0 — Free Live & Masterclass Batch"
-    short_description = "Live Interactive Lectures on Google Meet with Teachers (Python & English), Daily Practice Problems (DPP), Class Notes & 24/7 AI Doubt Solver. 100% Free for all students."
+    short_description = "Live Interactive In-App Streaming Lectures with Teachers (Python & English), Daily Practice Problems (DPP), Class Notes & 24/7 AI Doubt Solver. 100% Free for all students."
     duration = "8 Weeks (Live Batches)"
     level = "Zero to Placement (Beginner to Advanced)"
     price = 0.0
@@ -637,6 +637,8 @@ class BhavishyaLiveLecture:
         self.scheduled_display = self._data.get("scheduled_display", "")
         self.duration_minutes = int(self._data.get("duration_minutes", 90))
         self.status = self._data.get("status", self.STATUS_SCHEDULED)
+        self.stream_room_id = str(self._data.get("stream_room_id", f"bhavishya-{self.lecture_id}"))
+        self.stream_viewers_count = int(self._data.get("stream_viewers_count", 0))
         self.google_meet_url = self._data.get("google_meet_url", "")
         self.recording_url = self._data.get("recording_url", "")
         self.notes_url = self._data.get("notes_url", "")
@@ -658,6 +660,25 @@ class BhavishyaLiveLecture:
     @property
     def is_scheduled(self):
         return self.status == self.STATUS_SCHEDULED
+
+    @property
+    def has_recording(self):
+        return bool(self.playback_url)
+
+    @property
+    def playback_url(self):
+        url = (self.recording_url or "").strip()
+        # Strictly ignore legacy fake YouTube links / IDs
+        if "youtube" in url.lower() or "youtu.be" in url.lower() or (len(url) == 11 and "/" not in url):
+            url = ""
+        if url:
+            return url
+        try:
+            from models.bhavishya_recordings import BhavishyaLectureRecording
+            rec = BhavishyaLectureRecording.get_by_lecture(self.lecture_id)
+            return rec.file_url if rec else ""
+        except Exception:
+            return ""
 
     @property
     def active_meet_url(self):
@@ -686,6 +707,8 @@ class BhavishyaLiveLecture:
             "scheduled_display": self.scheduled_display,
             "duration_minutes": self.duration_minutes,
             "status": self.status,
+            "stream_room_id": self.stream_room_id,
+            "stream_viewers_count": self.stream_viewers_count,
             "google_meet_url": self.google_meet_url,
             "recording_url": self.recording_url,
             "notes_url": self.notes_url,

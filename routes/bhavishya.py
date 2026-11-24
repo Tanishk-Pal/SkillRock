@@ -881,13 +881,9 @@ def live_classroom(lecture_id):
                 next_lec = all_lectures[idx + 1]
             break
 
-    # Clean YouTube embed ID if provided
-    clean_recording_id = lecture.recording_url
-    if "youtube.com" in clean_recording_id or "youtu.be" in clean_recording_id:
-        from models.mongo import extract_youtube_id
-        extracted = extract_youtube_id(clean_recording_id)
-        if extracted:
-            clean_recording_id = extracted
+    # Native In-App Recording Replay & Live Playback
+    has_recording = lecture.has_recording
+    playback_url = lecture.playback_url
 
     return render_template(
         "bhavishya/live_classroom.html",
@@ -898,8 +894,212 @@ def live_classroom(lecture_id):
         next_lec=next_lec,
         is_unlocked=is_unlocked,
         is_free_trial=is_free_trial,
-        clean_recording_id=clean_recording_id
+        has_recording=has_recording,
+        playback_url=playback_url
     )
+
+
+@bhavishya_bp.route("/api/lecture/<lecture_id>/stream_status")
+def api_lecture_stream_status(lecture_id):
+    """Real-time In-App Live Stream status and viewer synchronization."""
+    lecture = BhavishyaLiveLecture.get_by_id(lecture_id)
+    if not lecture:
+        return jsonify({"error": "Lecture not found"}), 404
+
+    return jsonify({
+        "success": True,
+        "lecture_id": lecture.lecture_id,
+        "is_live": lecture.is_live,
+        "status": lecture.status,
+        "title": lecture.title,
+        "teacher_name": lecture.teacher_name,
+        "stream_room_id": lecture.stream_room_id,
+        "viewers_count": max(1, lecture.stream_viewers_count),
+        "has_recording": lecture.has_recording,
+        "playback_url": lecture.playback_url
+    })
+
+
+@bhavishya_bp.route("/api/lecture/<lecture_id>/stream_start", methods=["POST"])
+@login_required
+def api_lecture_stream_start(lecture_id):
+    """Educator endpoint to start in-app live broadcasting."""
+    if not (getattr(current_user, "is_admin", False) or getattr(current_user, "is_teacher", False)):
+        return jsonify({"error": "Unauthorized. Only educators and admins can start broadcasting."}), 403
+
+    lecture = BhavishyaLiveLecture.get_by_id(lecture_id)
+    if not lecture:
+        return jsonify({"error": "Lecture not found"}), 404
+
+    lecture.status = BhavishyaLiveLecture.STATUS_LIVE
+    lecture.stream_viewers_count = 1
+    lecture.save()
+
+    return jsonify({
+        "success": True,
+        "message": f"Broadcasting live: {lecture.title}",
+        "status": "live",
+        "is_live": True,
+        "stream_room_id": lecture.stream_room_id
+    })
+
+
+@bhavishya_bp.route("/api/lecture/<lecture_id>/stream_end", methods=["POST"])
+@login_required
+def api_lecture_stream_end(lecture_id):
+    """Educator endpoint to end in-app live broadcasting."""
+    if not (getattr(current_user, "is_admin", False) or getattr(current_user, "is_teacher", False)):
+        return jsonify({"error": "Unauthorized. Only educators and admins can end broadcasting."}), 403
+
+    lecture = BhavishyaLiveLecture.get_by_id(lecture_id)
+    if not lecture:
+        return jsonify({"error": "Lecture not found"}), 404
+
+    lecture.status = BhavishyaLiveLecture.STATUS_COMPLETED
+    lecture.save()
+
+    return jsonify({
+        "success": True,
+        "message": "Live lecture broadcasting concluded.",
+        "status": "completed",
+        "is_live": False
+    })
+
+
+@bhavishya_bp.route("/api/lecture/<lecture_id>/chat", methods=["GET", "POST"])
+def api_lecture_chat(lecture_id):
+    """Live classroom interactive chat & doubts stream."""
+    db = get_db()
+    room_id = f"chat-{lecture_id}"
+
+    if request.method == "POST":
+        if not current_user.is_authenticated:
+            return jsonify({"error": "Please log in to chat."}), 401
+
+        data = request.get_json() or {}
+        msg_text = str(data.get("message", "")).strip()
+        if not msg_text:
+            return jsonify({"error": "Message cannot be empty."}), 400
+
+        is_teacher = bool(getattr(current_user, "is_admin", False) or getattr(current_user, "is_teacher", False))
+        chat_doc = {
+            "room_id": room_id,
+            "lecture_id": lecture_id,
+            "user_id": str(current_user.id),
+            "user_name": current_user.name or "Student",
+            "user_avatar": getattr(current_user, "avatar_url", "") or "/static/img/avatar.png",
+            "message": msg_text,
+            "is_teacher": is_teacher,
+            "created_at": datetime.now(timezone.utc),
+            "timestamp_display": datetime.now().strftime("%I:%M %p")
+        }
+        db.bhavishya_live_chat.insert_one(chat_doc)
+        return jsonify({"success": True, "chat": {
+            "user_name": chat_doc["user_name"],
+            "user_avatar": chat_doc["user_avatar"],
+            "message": chat_doc["message"],
+            "is_teacher": chat_doc["is_teacher"],
+            "timestamp": chat_doc["timestamp_display"]
+        }})
+
+    # GET: return latest 60 messages
+    messages = list(db.bhavishya_live_chat.find({"room_id": room_id}).sort("created_at", -1).limit(60))
+    messages.reverse()
+    formatted = []
+    for m in messages:
+        formatted.append({
+            "user_name": m.get("user_name", "Student"),
+            "user_avatar": m.get("user_avatar", "/static/img/avatar.png"),
+            "message": m.get("message", ""),
+            "is_teacher": bool(m.get("is_teacher", False)),
+            "timestamp": m.get("timestamp_display", "")
+        })
+
+    return jsonify({"success": True, "messages": formatted})
+
+
+@bhavishya_bp.route("/api/recordings/upload/<lecture_id>", methods=["POST"])
+@login_required
+def api_upload_lecture_recording(lecture_id):
+    """
+    Saves in-app recorded lecture video into dedicated storage,
+    registers metadata in the ISOLATED recordings database vault,
+    and links to the lecture without altering core SkillRock collections.
+    """
+    if not (getattr(current_user, "is_admin", False) or getattr(current_user, "is_teacher", False)):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    lecture = BhavishyaLiveLecture.get_by_id(lecture_id)
+    if not lecture:
+        return jsonify({"error": "Lecture not found"}), 404
+
+    video_file = request.files.get("video") or request.files.get("recording_file")
+    if not video_file:
+        return jsonify({"error": "No recording file provided"}), 400
+
+    import os
+    from werkzeug.utils import secure_filename
+    from models.bhavishya_recordings import BhavishyaLectureRecording
+
+    # Save to local recordings directory
+    upload_dir = os.path.join(current_app.root_path, "static", "recordings", "bhavishya")
+    os.makedirs(upload_dir, exist_ok=True)
+
+    ts = int(time.time())
+    ext = "webm"
+    if "." in video_file.filename:
+        ext = video_file.filename.rsplit(".", 1)[1].lower()
+
+    filename = secure_filename(f"rec_{lecture.lecture_id}_{ts}.{ext}")
+    dest_path = os.path.join(upload_dir, filename)
+    video_file.save(dest_path)
+
+    file_size = os.path.getsize(dest_path) if os.path.exists(dest_path) else 0
+    file_url = f"/static/recordings/bhavishya/{filename}"
+
+    duration_sec = int(request.form.get("duration", 0))
+
+    # Save exclusively into the isolated recordings vault database
+    rec = BhavishyaLectureRecording({
+        "lecture_id": lecture.lecture_id,
+        "batch_id": lecture.batch_id,
+        "title": lecture.title,
+        "file_url": file_url,
+        "local_path": dest_path,
+        "duration_seconds": duration_sec,
+        "file_size_bytes": file_size,
+        "mime_type": f"video/{ext}",
+        "recorded_by": current_user.name or lecture.teacher_name,
+        "status": "ready"
+    })
+    rec.save()
+
+    # Update lecture playback pointer & status
+    lecture.recording_url = file_url
+    lecture.status = BhavishyaLiveLecture.STATUS_COMPLETED
+    lecture.save()
+
+    return jsonify({
+        "success": True,
+        "recording_id": rec.recording_id,
+        "file_url": file_url,
+        "file_size": file_size,
+        "vault_db": "bhavishya_recordings_vault"
+    })
+
+
+@bhavishya_bp.route("/api/recordings/<lecture_id>")
+def api_get_lecture_recording(lecture_id):
+    """Retrieves recording details from the isolated recordings database vault."""
+    from models.bhavishya_recordings import BhavishyaLectureRecording
+    rec = BhavishyaLectureRecording.get_by_lecture(lecture_id)
+    if not rec:
+        return jsonify({"success": False, "has_recording": False}), 404
+    return jsonify({
+        "success": True,
+        "has_recording": True,
+        "recording": rec.to_dict()
+    })
 
 
 @bhavishya_bp.route("/api/live_status")

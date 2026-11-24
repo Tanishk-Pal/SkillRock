@@ -13,7 +13,7 @@
                 <span>Bhavishya 1.0 — Python Master Live Batch Settings</span>
             </div>
             <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
-                Manage teacher profile, global Google Meet link, batch announcements, and live stream settings.
+                Manage teacher profile, batch announcements, and SkillRock live broadcast studio settings.
             </p>
         </div>
         <div>
@@ -42,9 +42,9 @@
 
         <div>
             <label style="font-size: 0.8rem; font-weight: 700; color: #38BDF8; display: block; margin-bottom: 6px;">
-                Default Google Meet Link (Used for all live lectures):
+                Live Broadcast Room ID / Stream Key (SkillRock Studio):
             </label>
-            <input type="url" name="global_meet_url" value="{{ batch_config.global_meet_url }}" class="admin-input" placeholder="https://meet.google.com/xyz-abcd-efg" required>
+            <input type="text" name="global_meet_url" value="{{ batch_config.global_meet_url or 'room-bhavishya-live-main' }}" class="admin-input" placeholder="e.g. room-bhavishya-live-main" required>
         </div>
 
         <div style="grid-column: 1 / -1;">
@@ -72,7 +72,7 @@
                 <span>Live Lectures Schedule & Faculty Controls (Python & English)</span>
             </div>
             <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
-                Teachers and admins can start live classes (Google Meet), upload recorded YouTube replays, attach lecture notes, and edit DPPs.
+                Teachers and admins can start live classes inside the SkillRock Broadcast Studio, manage vault replays, attach lecture notes, and edit DPPs.
             </p>
         </div>
         <!-- Subject Filter Pills -->
@@ -92,7 +92,7 @@
                     <th>Module & Title</th>
                     <th>Status</th>
                     <th>Scheduled Display</th>
-                    <th>Google Meet Link</th>
+                    <th>Broadcast Studio</th>
                     <th>Recording Replay</th>
                     <th>Notes & DPP</th>
                     <th style="text-align: right;">Live Action</th>
@@ -138,8 +138,8 @@
                     </td>
 
                     <td>
-                        <a href="{{ lec.active_meet_url }}" target="_blank" style="font-size: 0.76rem; color: #60A5FA; display: inline-flex; align-items: center; gap: 4px;">
-                            <i data-lucide="video" style="width: 12px;"></i> Open Meet
+                        <a href="{{ url_for('bhavishya.live_classroom', lecture_id=lec.lecture_id) }}" target="_blank" style="font-size: 0.76rem; color: #60A5FA; display: inline-flex; align-items: center; gap: 4px;">
+                            <i data-lucide="radio" style="width: 12px;"></i> Open Studio
                         </a>
                     </td>
 
@@ -168,7 +168,7 @@
                             {% else %}
                             <form method="POST" action="{{ url_for('admin.bhavishya_lecture_status', lecture_id=lec.lecture_id) }}" style="margin: 0;">
                                 <input type="hidden" name="status" value="live">
-                                <button type="submit" class="admin-btn admin-btn-danger" style="padding: 4px 8px; font-size: 0.72rem;" title="Go LIVE now with Google Meet link">
+                                <button type="submit" class="admin-btn admin-btn-danger" style="padding: 4px 8px; font-size: 0.72rem;" title="Go LIVE in SkillRock Studio">
                                     🔴 Go Live
                                 </button>
                             </form>
@@ -203,13 +203,13 @@
                 </div>
 
                 <div>
-                    <label style="font-size: 0.78rem; font-weight: 700; color: #38BDF8; display: block; margin-bottom: 4px;">Lecture Google Meet URL:</label>
-                    <input type="url" id="modalMeet" name="google_meet_url" class="admin-input" placeholder="https://meet.google.com/xyz-abcd-efg">
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #38BDF8; display: block; margin-bottom: 4px;">Live Stream Room Key / ID:</label>
+                    <input type="text" id="modalMeet" name="google_meet_url" class="admin-input" placeholder="e.g. room-python-01">
                 </div>
 
                 <div>
-                    <label style="font-size: 0.78rem; font-weight: 700; color: #F59E0B; display: block; margin-bottom: 4px;">YouTube Recording URL / ID (Replay):</label>
-                    <input type="text" id="modalRecording" name="recording_url" class="admin-input" placeholder="e.g. UrsmFxEIp5k">
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #F59E0B; display: block; margin-bottom: 4px;">Recording Vault URL / Video Path (Replay):</label>
+                    <input type="text" id="modalRecording" name="recording_url" class="admin-input" placeholder="/static/recordings/bhavishya/... or storage URL">
                 </div>
 
                 <div>

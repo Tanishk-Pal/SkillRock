@@ -39,7 +39,7 @@ DEFAULT_LIVE_LECTURES = [
         "duration_minutes": 90,
         "status": "completed",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "UrsmFxEIp5k",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/tutorial/",
         "notes_content": """### Lecture 01 Key Takeaways
 1. **Python Interpretation Flow**: Source Code (.py) ➔ Bytecode Compiler (.pyc) ➔ Python Virtual Machine (PVM) ➔ Machine Code.
@@ -97,7 +97,7 @@ print(f"Welcome to Bhavishya 1.0, {name}! In 5 years you will be {age + 5} years
         "duration_minutes": 90,
         "status": "completed",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "_uQrJ0TkZlc",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/library/stdtypes.html",
         "notes_content": """### Lecture 02 Key Takeaways
 1. **Dynamic Typing**: Variables in Python are tags/references to objects in heap memory, not fixed memory slots.
@@ -155,7 +155,7 @@ print("Are a and b the same object?", a is b)
         "duration_minutes": 90,
         "status": "live",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "vLqTf2b6GZw",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/reference/expressions.html",
         "notes_content": """### Lecture 03 Key Takeaways
 1. **Integer vs Float Division**: `/` always returns a float (`7 / 2 = 3.5`); `//` performs floor division (`7 // 2 = 3`).
@@ -207,7 +207,7 @@ print("Is 10 < x < 20?", 10 < x < 20)
         "duration_minutes": 90,
         "status": "scheduled",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "kqtD5dpn9C8",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/tutorial/controlflow.html",
         "notes_content": """### Lecture 04 Key Takeaways
 1. **Truthy and Falsy**: 0, empty containers (`[]`, `{}`, `""`, `()`), `None`, and `False` evaluate to Falsy. Everything else is Truthy.
@@ -259,7 +259,7 @@ match status_code:
         "duration_minutes": 90,
         "status": "scheduled",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "6iF8Xb7Z3wQ",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/tutorial/controlflow.html#for-statements",
         "notes_content": """### Lecture 05 Key Takeaways
 1. **range() Function**: `range(1, 10, 2)` generates values 1, 3, 5, 7, 9. Memory-efficient generator (does not store list).
@@ -299,7 +299,7 @@ for idx, (skill, level) in enumerate(zip(skills, levels), start=1):
         "duration_minutes": 90,
         "status": "scheduled",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "4oxCAm4UfCc",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/tutorial/controlflow.html#break-and-continue-statements-and-else-clauses-on-loops",
         "notes_content": """### Lecture 06 Key Takeaways
 1. **for-else Clause**: The `else` block executes ONLY if the loop completes without hitting a `break` statement.
@@ -348,7 +348,7 @@ for i in range(1, n + 1):
         "duration_minutes": 90,
         "status": "scheduled",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "9Os0o3wzS_I",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/tutorial/controlflow.html#defining-functions",
         "notes_content": """### Lecture 07 Key Takeaways
 1. **Mutable Default Argument Trap**: Never use mutable objects like `def f(x=[])`. Use `def f(x=None)` and initialize inside.
@@ -395,7 +395,7 @@ build_profile("Tanishk", "SkillRock Campus", "Python", "Flask", "MongoDB", gpa="
         "duration_minutes": 90,
         "status": "scheduled",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "25ovCm9jKfA",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/tutorial/controlflow.html#lambda-expressions",
         "notes_content": """### Lecture 08 Key Takeaways
 1. **LEGB Rule**: Scope search order: Local ➔ Enclosing (closures) ➔ Global (module level) ➔ Built-in.
@@ -449,7 +449,7 @@ for s in sorted_students:
         "duration_minutes": 90,
         "status": "scheduled",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "W8KRzm-HUcc",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/tutorial/datastructures.html",
         "notes_content": """### Lecture 09 Key Takeaways
 1. **List Comprehensions**: `[expr for item in iterable if condition]` is faster than manual for-loop appends.
@@ -487,7 +487,7 @@ print("Odd numbers from matrix:", flattened)
         "duration_minutes": 90,
         "status": "scheduled",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "daefaLgNkw0",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/tutorial/datastructures.html#dictionaries",
         "notes_content": """### Lecture 10 Key Takeaways
 1. **Hash Maps**: Dictionaries and sets rely on `hash(key)`. Keys MUST be hashable (immutable objects like int, str, tuple).
@@ -539,7 +539,7 @@ for word, count in sorted(freq.items(), key=lambda x: x[1], reverse=True):
         "duration_minutes": 90,
         "status": "scheduled",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "JeznW_74eSL",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/tutorial/classes.html",
         "notes_content": """### Lecture 11 Key Takeaways
 1. **self**: Explicit reference to the current instance of the class.
@@ -590,7 +590,7 @@ print(s1)
         "duration_minutes": 90,
         "status": "scheduled",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "RSl87lqOXDE",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/tutorial/classes.html#inheritance",
         "notes_content": """### Lecture 12 Key Takeaways
 1. **Inheritance & super()**: Reuses logic across class hierarchies and enables clean initialization.
@@ -647,7 +647,7 @@ print("Current balance:", acc.balance)
         "duration_minutes": 90,
         "status": "scheduled",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "NIWwJbo-9_8",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/tutorial/errors.html",
         "notes_content": """### Lecture 13 Key Takeaways
 1. **try-except-else-finally**:
@@ -704,7 +704,7 @@ print(safe_divide(10, 0))
         "duration_minutes": 90,
         "status": "scheduled",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "tb8gHvYlCFs",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/tutorial/inputoutput.html#reading-and-writing-files",
         "notes_content": """### Lecture 14 Key Takeaways
 1. **JSON Serialization**: `json.dumps()` converts Python dict ➔ JSON string; `json.loads()` converts JSON string ➔ Python dict.
@@ -759,7 +759,7 @@ print("Parsed Course Name:", parsed["course"])
         "duration_minutes": 90,
         "status": "scheduled",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "X1b3C54XflU",
+        "recording_url": "",
         "notes_url": "https://docs.python.org/3/tutorial/modules.html",
         "notes_content": """### Lecture 15 Key Takeaways
 1. **Industry Project Architecture**: Separation of concerns (`main.py`, `services/`, `models/`, `utils/`).
@@ -823,7 +823,7 @@ print(analytics.summary())
         "duration_minutes": 90,
         "status": "scheduled",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "8DvywoWvM8I",
+        "recording_url": "",
         "notes_url": "https://github.com/Tanishk-Pal/SkillRock",
         "notes_content": """### Lecture 16 Key Takeaways
 1. **Top Interview Topics**: Mutability, Generators & Iterators, Decorators, GIL (Global Interpreter Lock), List vs Tuple internals.
@@ -883,7 +883,7 @@ DEFAULT_ENGLISH_LIVE_LECTURES = [
         "duration_minutes": 60,
         "status": "completed",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "60ItHLz5WEA",
+        "recording_url": "",
         "notes_url": "",
         "notes_content": """### Spoken English Masterclass 01 Notes
 1. **The 3-Second Rule**: Avoid internal translation from regional language. Form simple, active English sentences directly.
@@ -938,7 +938,7 @@ print(f"Self-Intro Practice:\n'Hello everyone, my name is {name}. I am based in 
         "duration_minutes": 60,
         "status": "completed",
         "google_meet_url": "https://meet.google.com/new",
-        "recording_url": "FGa8xO6mUio",
+        "recording_url": "",
         "notes_url": "",
         "notes_content": """### Phonetics & Silent Letters Cheatsheet
 - **Silent B**: Doubt, subtle, debt, thumb, tomb.
