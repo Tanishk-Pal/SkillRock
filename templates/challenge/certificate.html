@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate of Completion — {{ user.name }} | SkillRock</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #0B0F19;
+            color: #F8FAFC;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .cert-container {
+            width: 960px;
+            height: 680px;
+            background: radial-gradient(circle at center, #1E293B 0%, #0F172A 100%);
+            border: 12px double #F59E0B;
+            border-radius: 12px;
+            position: relative;
+            padding: 40px 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+        }
+        .cert-corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-color: #F59E0B;
+            border-style: solid;
+        }
+        .corner-tl { top: 12px; left: 12px; border-width: 4px 0 0 4px; }
+        .corner-tr { top: 12px; right: 12px; border-width: 4px 4px 0 0; }
+        .corner-bl { bottom: 12px; left: 12px; border-width: 0 0 4px 4px; }
+        .corner-br { bottom: 12px; right: 12px; border-width: 0 4px 4px 0; }
+
+        .cert-logo {
+            font-family: 'Cinzel', serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: 0.15em;
+            color: #FFFFFF;
+        }
+        .cert-logo span {
+            color: #F59E0B;
+        }
+        .cert-header {
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            color: #FBBF24;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .cert-sub {
+            font-size: 0.95rem;
+            color: #94A3B8;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .cert-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.6rem;
+            font-style: italic;
+            font-weight: 700;
+            color: #FFFFFF;
+            border-bottom: 2px solid rgba(245, 158, 11, 0.5);
+            padding: 0 40px 8px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .cert-body {
+            max-width: 680px;
+            text-align: center;
+            font-size: 1rem;
+            color: #CBD5E1;
+            line-height: 1.6;
+        }
+        .cert-challenge-title {
+            color: #F59E0B;
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin-top: 4px;
+            display: block;
+        }
+        .cert-footer {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .cert-seal {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: #0F172A;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-weight: 800;
+            font-size: 0.65rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.5);
+            border: 2px dashed #0F172A;
+        }
+        .print-btn-bar {
+            margin-top: 24px;
+            display: flex;
+            gap: 12px;
+        }
+        .btn-action {
+            background: #5B46F6;
+            color: #FFFFFF;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        @media print {
+            body {
+                background: none;
+                padding: 0;
+            }
+            .print-btn-bar {
+                display: none !important;
+            }
+            .cert-container {
+                box-shadow: none;
+                border-color: #D97706;
+                width: 100%;
+                height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cert-container">
+        <div class="cert-corner corner-tl"></div>
+        <div class="cert-corner corner-tr"></div>
+        <div class="cert-corner corner-bl"></div>
+        <div class="cert-corner corner-br"></div>
+
+        <div>
+            <div class="cert-logo" style="text-align: center;">SKILL<span>ROCK</span></div>
+            <div class="cert-header" style="text-align: center;">Certificate of Completion</div>
+            <div class="cert-sub" style="text-align: center;">Monthly Challenge Excellence Award</div>
+        </div>
+
+        <div style="width: 100%; text-align: center;">
+            <div style="font-size: 0.85rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.1em;">This is proudly presented to</div>
+            <div class="cert-name">{{ user.name }}</div>
+            <div class="cert-body">
+                For successfully completing all rigorous requirements, coding sandbox algorithms, practical portfolio deliverables, and scoring ≥80% in the proctored final assessment for:
+                <span class="cert-challenge-title">{{ challenge.title }}</span>
+            </div>
+        </div>
+
+        <div class="cert-footer">
+            <div style="text-align: left;">
+                <div style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase;">Verification ID</div>
+                <div style="font-family: monospace; font-size: 0.95rem; font-weight: 700; color: #FBBF24;">{{ enrollment.certificate_id }}</div>
+                <div style="font-size: 0.72rem; color: #64748B; margin-top: 2px;">Issued on {{ enrollment.certificate_issued_at.strftime('%B %d, %Y') if enrollment.certificate_issued_at else 'November 2026' }}</div>
+            </div>
+
+            <div class="cert-seal">
+                <div>SKILLROCK</div>
+                <div style="font-size: 0.9rem; font-weight: 900;">★</div>
+                <div>VERIFIED</div>
+            </div>
+
+            <div style="text-align: right;">
+                <div style="font-family: 'Playfair Display', serif; font-size: 1.2rem; font-style: italic; color: #FFFFFF;">SkillRock Academy</div>
+                <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 2px;">Academic Certification Board</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="print-btn-bar">
+        <button class="btn-action" onclick="window.print()">
+            🖨 Print / Download PDF
+        </button>
+        <a href="{{ url_for('challenge.dashboard', slug=challenge.slug) }}" class="btn-action" style="background: rgba(255,255,255,0.1);">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+</body>
+</html>

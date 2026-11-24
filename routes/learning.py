@@ -306,12 +306,12 @@ def courses_list():
             logger.warning(f"Could not fetch distinct categories: {e_cat}")
             available_categories = ["Programming", "Web Development", "AI & Machine Learning", "Data Science", "Mobile Apps"]
 
-        roadmap_packages = []
+        active_challenges = []
         try:
-            from models.roadmap import RoadmapPackage
-            roadmap_packages = RoadmapPackage.get_all(published_only=True) or []
-        except Exception as e_rm:
-            logger.warning(f"Could not fetch roadmap packages: {e_rm}")
+            from models.challenge import MonthlyChallenge
+            active_challenges = MonthlyChallenge.get_all_active() or []
+        except Exception as e_ch:
+            logger.warning(f"Could not fetch active challenges: {e_ch}")
 
         # 4 Random Suggested Campus Peers (Instagram-Style Study Buddies)
         suggested_peers = []
@@ -392,7 +392,7 @@ def courses_list():
             courses=courses,
             recommended_courses=recommended_courses,
             other_courses=other_courses,
-            roadmap_packages=roadmap_packages,
+            active_challenges=active_challenges,
             user_interests=user_interests,
             available_interests=AVAILABLE_INTERESTS,
             selected_category=category,
@@ -413,7 +413,7 @@ def courses_list():
             courses=[],
             recommended_courses=[],
             other_courses=[],
-            roadmap_packages=[],
+            active_challenges=[],
             user_interests=[],
             available_interests=AVAILABLE_INTERESTS,
             selected_category="",

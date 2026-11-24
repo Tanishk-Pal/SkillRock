@@ -616,12 +616,9 @@
                         <i data-lucide="cpu" style="width: 14px; height: 14px;"></i>
                         <span>Bhavishya 1.0</span>
                     </a>
-                    <a href="{{ url_for('learning.courses_list') }}#careerRoadmapsSection" class="btn btn-secondary btn-sm" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #FBBF24; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
-
-                        <i data-lucide="map" style="width: 14px; height: 14px;"></i>
-
-                        <span>Roadmaps</span>
-
+                    <a href="{{ url_for('challenge.catalog') }}" class="btn btn-secondary btn-sm" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%); border-color: rgba(245, 158, 11, 0.5); color: #FBBF24; border-radius: 9999px; padding: 6px 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                        <i data-lucide="trophy" style="width: 14px; height: 14px; color: #F59E0B;"></i>
+                        <span>Monthly Challenge</span>
                     </a>
 
                                         <a href="{{ url_for('test_series.landing') }}" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #FFFFFF; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
@@ -677,6 +674,13 @@
 
                     <span>Learn & Build</span>
 
+                </a>
+
+                <a href="{{ url_for('challenge.catalog') }}" 
+                   class="pw-nav-item {% if request.endpoint and 'challenge.' in request.endpoint %}active{% endif %}">
+                    <i data-lucide="trophy" style="color: #F59E0B;"></i>
+                    <span>Monthly Challenge</span>
+                    <span class="pw-nav-badge" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: #0F172A; font-weight: 800;">₹499 REFUND</span>
                 </a>
 
                 <a href="{{ url_for('bhavishya.dashboard') }}" 

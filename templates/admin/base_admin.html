@@ -660,21 +660,21 @@
                 <i data-lucide="check-square"></i>
                 <span>Project Submissions</span>
             </a>
-            <a href="{{ url_for('admin.roadmaps_list') }}" class="admin-nav-item {% if 'roadmaps' in request.endpoint %}active{% endif %}">
-                <i data-lucide="map"></i>
-                <span>Career Roadmaps</span>
+            <a href="{{ url_for('admin.challenges_list') }}" class="admin-nav-item {% if 'challenges' in request.endpoint and 'submission' not in request.endpoint and 'refund' not in request.endpoint %}active{% endif %}">
+                <i data-lucide="trophy"></i>
+                <span>Monthly Challenges</span>
             </a>
             <a href="{{ url_for('admin.bhavishya_admin') }}" class="admin-nav-item {% if 'bhavishya' in request.endpoint %}active{% endif %}">
                 <i data-lucide="cpu"></i>
                 <span>Bhavishya 1.0 AI</span>
             </a>
-            <a href="{{ url_for('admin.roadmap_submissions_list') }}" class="admin-nav-item {% if 'roadmap_submissions' in request.endpoint %}active{% endif %}">
-                <i data-lucide="folder-check"></i>
-                <span>Roadmap Submissions</span>
+            <a href="{{ url_for('admin.challenge_submissions_list') }}" class="admin-nav-item {% if 'challenge_submissions' in request.endpoint %}active{% endif %}">
+                <i data-lucide="folder-git-2"></i>
+                <span>Challenge Submissions</span>
             </a>
-            <a href="{{ url_for('admin.cashback_list') }}" class="admin-nav-item {% if 'cashback' in request.endpoint %}active{% endif %}">
-                <i data-lucide="gift"></i>
-                <span>Cashback Claims</span>
+            <a href="{{ url_for('admin.challenge_refunds_list') }}" class="admin-nav-item {% if 'challenge_refunds' in request.endpoint %}active{% endif %}">
+                <i data-lucide="banknote"></i>
+                <span>100% Refund Console</span>
             </a>
             <a href="{{ url_for('admin.payments_list') }}" class="admin-nav-item {% if 'payments_list' in request.endpoint %}active{% endif %}">
                 <i data-lucide="credit-card"></i>

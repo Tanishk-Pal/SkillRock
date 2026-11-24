@@ -51,7 +51,8 @@ from routes import (
     payment_bp,
     roadmap_bp,
     bhavishya_bp,
-    notifications_bp
+    notifications_bp,
+    challenge_bp
 )
 
 def create_app(config_class=Config):
@@ -103,6 +104,7 @@ def create_app(config_class=Config):
     app.register_blueprint(roadmap_bp)
     app.register_blueprint(bhavishya_bp)
     app.register_blueprint(notifications_bp)
+    app.register_blueprint(challenge_bp)
 
     # Provide global utilities & model classes safely in Jinja templates
     from services.payment_service import verify_student_unlock
@@ -403,6 +405,8 @@ def create_app(config_class=Config):
             "Allow: /\n"
             "Allow: /learning/courses\n"
             "Allow: /learning/courses/\n"
+            "Allow: /challenge\n"
+            "Allow: /challenge/\n"
             "Allow: /learning/verify/\n"
             "Allow: /verify/\n"
             "Allow: /static/\n"
@@ -440,6 +444,7 @@ def create_app(config_class=Config):
         urls = [
             f"<url><loc>{canonical_base}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>",
             f"<url><loc>{canonical_base}/learning/courses</loc><changefreq>daily</changefreq><priority>0.9</priority></url>",
+            f"<url><loc>{canonical_base}/challenge</loc><changefreq>daily</changefreq><priority>0.9</priority></url>",
         ]
 
         # Dynamically append all published courses for rich search indexing

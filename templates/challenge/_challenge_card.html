@@ -1,0 +1,104 @@
+{# Reusable Monthly Challenge Card - Identical visual language and typography as Learn & Build course cards #}
+<div class="card course-card-custom"
+     style="position: relative; border-radius: 16px; overflow: hidden; background: var(--bg-surface, #1E293B); border: 1px solid rgba(245, 158, 11, 0.35); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); transition: transform 0.2s ease, box-shadow 0.2s ease;"
+     data-category="monthly challenge"
+     data-title="{{ challenge.title|lower }}"
+     data-difficulty="{{ challenge.difficulty|lower }}">
+    <div>
+        <!-- Thumbnail Header -->
+        <div style="position: relative; height: 185px; width: 100%; background: #0F172A; overflow: hidden;">
+            <img src="{{ challenge.thumbnail_url }}" alt="{{ challenge.title }}" loading="lazy"
+                 onerror="this.src='https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=800&auto=format&fit=crop&q=80';"
+                 style="width: 100%; height: 100%; object-fit: cover;">
+            <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(15,23,42,0.85) 100%);"></div>
+
+            <!-- Badges on image -->
+            <div style="position: absolute; top: 12px; left: 12px; display: flex; gap: 6px; flex-wrap: wrap; z-index: 2;">
+                <!-- Distinctive Monthly Challenge badge -->
+                <span style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: #0F172A; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.45); display: inline-flex; align-items: center; gap: 4px;">
+                    <i data-lucide="trophy" style="width: 12px; height: 12px;"></i>
+                    MONTHLY CHALLENGE
+                </span>
+                <span style="background: rgba(16, 185, 129, 0.95); backdrop-filter: blur(6px); color: #FFFFFF; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);">
+                    100% REFUND
+                </span>
+            </div>
+
+            <div style="position: absolute; bottom: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 2;">
+                <span style="color: #F8FAFC; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.55); padding: 3px 8px; border-radius: 6px;">
+                    <i data-lucide="calendar" style="width: 13px; height: 13px; color: #FBBF24;"></i>
+                    {{ challenge.duration_days }} Days Duration
+                </span>
+                <span style="background: rgba(0,0,0,0.65); color: #F1F5F9; font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;">
+                    {{ challenge.difficulty }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Card Content -->
+        <div style="padding: 20px;">
+            <div style="font-size: 0.78rem; color: var(--text-muted, #94A3B8); margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+                <i data-lucide="user" style="width: 13px; height: 13px; color: #F59E0B;"></i>
+                <span>{{ challenge.instructor }}</span>
+            </div>
+
+            <h3 style="font-size: 1.15rem; font-weight: 700; line-height: 1.35; margin-bottom: 8px; color: var(--text-primary, #F8FAFC);">
+                <a href="{{ url_for('challenge.detail', slug=challenge.slug) }}" style="color: inherit; text-decoration: none;">
+                    {{ challenge.title }}
+                </a>
+            </h3>
+
+            <p style="font-size: 0.86rem; color: var(--text-secondary, #94A3B8); line-height: 1.5; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                {{ challenge.description }}
+            </p>
+
+            <!-- Refund Highlight Pill -->
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px dashed rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 8px 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="shield-check" style="width: 16px; height: 16px; color: #10B981; flex-shrink: 0;"></i>
+                <span style="font-size: 0.78rem; color: #34D399; font-weight: 600;">
+                    Complete all requirements in 28 days &amp; qualify for 100% refund!
+                </span>
+            </div>
+
+            <!-- Skills Chips -->
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;">
+                {% for sk in (challenge.skills_covered or ['Python', 'DSA', 'OOP', 'Projects', 'Interview Prep'])[:4] %}
+                <span style="font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: rgba(91, 70, 246, 0.12); color: #A78BFA; border: 1px solid rgba(139, 92, 246, 0.25);">
+                    {{ sk }}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Footer -->
+    <div style="padding: 14px 20px; border-top: 1px solid var(--border-color, rgba(255,255,255,0.08)); background: rgba(0, 0, 0, 0.15); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <span style="display: block; font-size: 0.7rem; color: var(--text-muted, #94A3B8); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">
+                Enrolment Fee
+            </span>
+            <div style="display: flex; align-items: baseline; gap: 6px;">
+                <span style="font-size: 1.15rem; font-weight: 800; color: #F59E0B;">
+                    ₹{{ challenge.price|int }}
+                </span>
+                <span style="font-size: 0.75rem; color: #10B981; font-weight: 700;">
+                    (100% Refundable)
+                </span>
+            </div>
+        </div>
+
+        <div>
+            {% if user_enrollments and challenge.slug in user_enrollments %}
+                <a href="{{ url_for('challenge.dashboard', slug=challenge.slug) }}" class="btn btn-primary btn-sm" style="padding: 8px 16px; font-weight: 700; background: #5B46F6; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-lucide="layout-dashboard" style="width: 14px; height: 14px;"></i>
+                    <span>My Dashboard</span>
+                </a>
+            {% else %}
+                <a href="{{ url_for('challenge.detail', slug=challenge.slug) }}" class="btn btn-primary btn-sm" style="padding: 8px 16px; font-weight: 700; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-color: #D97706; color: #0F172A; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                    <span>Explore Challenge</span>
+                    <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

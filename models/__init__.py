@@ -39,6 +39,20 @@ from models.bhavishya_recordings import (
 from models.default_bhavishya_curriculum import ensure_default_bhavishya_subjects
 from models.default_bhavishya_live import ensure_default_bhavishya_live_batch
 
+from models.challenge import (
+    MonthlyChallenge,
+    ChallengeEnrollment,
+    PracticeQuestion,
+    InterviewQuestion,
+    CodingProblem,
+    AssessmentQuestion,
+    AssessmentAttempt,
+    PracticalAssignment,
+    ChallengeAssignmentSubmission,
+    RefundClaim
+)
+from models.default_challenge_data import ensure_default_monthly_challenge
+
 from models.mongo import (
     db,
     get_db,
@@ -120,4 +134,15 @@ __all__ = [
     "get_recordings_db",
     "ensure_default_bhavishya_subjects",
     "ensure_default_bhavishya_live_batch",
+    "MonthlyChallenge",
+    "ChallengeEnrollment",
+    "PracticeQuestion",
+    "InterviewQuestion",
+    "CodingProblem",
+    "AssessmentQuestion",
+    "AssessmentAttempt",
+    "PracticalAssignment",
+    "ChallengeAssignmentSubmission",
+    "RefundClaim",
+    "ensure_default_monthly_challenge",
 ]

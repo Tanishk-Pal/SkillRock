@@ -1,0 +1,267 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}100% Refund Management Console — Admin{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('admin.challenges_list') }}" style="color: inherit;">Monthly Challenges</a> / 100% Refunds{% endblock %}
+
+{% block content %}
+<!-- Financial Metrics Bar -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-3">
+        <div class="admin-card" style="padding: 20px;">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--admin-text-muted); text-transform: uppercase;">
+                Total Potential Liability
+            </div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #F59E0B; margin-top: 4px;">
+                ₹{{ total_liability|int }}
+            </div>
+            <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 2px;">
+                Based on active enrolled students
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-3">
+        <div class="admin-card" style="padding: 20px;">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--admin-text-muted); text-transform: uppercase;">
+                Pending Refund Claims
+            </div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: {% if pending_claims > 0 %}#EF4444{% else %}#10B981{% endif %}; margin-top: 4px;">
+                {{ pending_claims }}
+            </div>
+            <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 2px;">
+                Awaiting review or disbursement
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-3">
+        <div class="admin-card" style="padding: 20px;">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--admin-text-muted); text-transform: uppercase;">
+                Approved / Paid Claims
+            </div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #3B82F6; margin-top: 4px;">
+                {{ approved_claims }}
+            </div>
+            <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 2px;">
+                {{ total_claims }} total submitted claims
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-3">
+        <div class="admin-card" style="padding: 20px;">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--admin-text-muted); text-transform: uppercase;">
+                Total Refunded (Disbursed)
+            </div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #10B981; margin-top: 4px;">
+                ₹{{ total_refunded_amount|int }}
+            </div>
+            <div style="font-size: 0.72rem; color: #34D399; margin-top: 2px;">
+                Returned 100% to students
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div>
+            <div class="admin-card-title">
+                <i data-lucide="banknote"></i>
+                <span>100% Refund Claims Console</span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 4px;">
+                Review student 100% refund claims, verify the 7 audited criteria, and approve or execute UPI payouts.
+            </p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <a href="?status=all" class="admin-btn {% if status_filter == 'all' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">
+                All ({{ total_claims }})
+            </a>
+            <a href="?status=pending" class="admin-btn {% if status_filter == 'pending' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">
+                Pending ({{ pending_claims }})
+            </a>
+            <a href="?status=approved" class="admin-btn {% if status_filter == 'approved' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">
+                Approved
+            </a>
+            <a href="?status=paid" class="admin-btn {% if status_filter == 'paid' %}admin-btn-primary{% else %}admin-btn-secondary{% endif %}">
+                Disbursed
+            </a>
+        </div>
+    </div>
+
+    <!-- Refund Claims Table -->
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Claim Ref</th>
+                    <th>Student Details</th>
+                    <th>Eligible Amount</th>
+                    <th>Destination UPI / Account</th>
+                    <th>Submitted At</th>
+                    <th>7-Criteria Audit</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cl in claims %}
+                <tr>
+                    <td>
+                        <div style="font-family: monospace; font-size: 0.85rem; font-weight: 700; color: #F59E0B;">
+                            {{ cl.claim_id }}
+                        </div>
+                        <div style="font-size: 0.72rem; color: var(--admin-text-muted);">{{ cl.challenge_slug }}</div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 700; color: var(--admin-text-main);">{{ cl.student_name }}</div>
+                        <div style="font-size: 0.75rem; color: var(--admin-text-muted);">{{ cl.student_email }}</div>
+                        {% if cl.phone_number %}
+                        <div style="font-size: 0.72rem; color: #64748B;">{{ cl.phone_number }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-weight: 800; font-size: 1.05rem; color: #10B981;">
+                            ₹{{ cl.amount|int }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-family: monospace; font-weight: 700; color: #38BDF8;">
+                            {{ cl.upi_id }}
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--admin-text-muted);">
+                            A/c: {{ cl.account_holder_name }}
+                        </div>
+                        {% if cl.payout_reference %}
+                        <div style="font-size: 0.72rem; color: #34D399;">Ref: {{ cl.payout_reference }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-size: 0.8rem; color: var(--admin-text-main);">{{ cl.submitted_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                    </td>
+                    <td>
+                        <button type="button" class="admin-btn admin-btn-secondary" style="padding: 4px 8px; font-size: 0.72rem;" onclick="viewAuditModal('{{ cl.claim_id }}')">
+                            ✓ Verified 7/7
+                        </button>
+                    </td>
+                    <td>
+                        {% if cl.status == 'paid' %}
+                        <span class="admin-badge admin-badge-success">Disbursed (Paid)</span>
+                        {% elif cl.status == 'approved' %}
+                        <span class="admin-badge admin-badge-primary">Approved</span>
+                        {% elif cl.status == 'rejected' %}
+                        <span class="admin-badge admin-badge-danger">Rejected</span>
+                        {% else %}
+                        <span class="admin-badge admin-badge-warning">Pending Review</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="display: flex; justify-content: flex-end; gap: 6px;">
+                            {% if cl.status == 'pending' %}
+                            <form action="{{ url_for('admin.challenge_refund_action', claim_id=cl.id) }}" method="POST" style="display: inline;">
+                                <input type="hidden" name="action" value="approve">
+                                <button type="submit" class="admin-btn admin-btn-secondary" style="padding: 6px 10px; color: #34D399;" title="Approve Claim">
+                                    <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            {% if cl.status in ('pending', 'approved') %}
+                            <button type="button" class="admin-btn admin-btn-primary" style="padding: 6px 10px; background: #10B981; border-color: #10B981;" onclick="openDisburseModal('{{ cl.id }}', '{{ cl.claim_id }}', '{{ cl.amount|int }}', '{{ cl.upi_id }}')" title="Disburse Payout">
+                                <i data-lucide="send" style="width: 14px; height: 14px;"></i>
+                                <span>Pay</span>
+                            </button>
+                            {% endif %}
+
+                            {% if cl.status == 'pending' %}
+                            <button type="button" class="admin-btn admin-btn-secondary" style="padding: 6px 10px; color: #EF4444;" onclick="openRejectModal('{{ cl.id }}', '{{ cl.claim_id }}')" title="Reject Claim">
+                                <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px; color: var(--admin-text-muted);">
+                        No refund claims matching this filter.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Disburse / Pay Modal -->
+<div id="disburseModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; width: 480px; max-width: 90%; padding: 24px;">
+        <h4 style="margin: 0 0 8px; color: #FFFFFF; font-size: 1.15rem; font-weight: 700;">
+            Confirm 100% Refund Payout
+        </h4>
+        <p id="disbursePrompt" style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 16px;"></p>
+
+        <form id="disburseForm" method="POST">
+            <input type="hidden" name="action" value="pay">
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #CBD5E1; margin-bottom: 6px;">Bank UTR / Payout Reference</label>
+                <input type="text" name="payout_reference" placeholder="e.g. UPI Ref / Bank UTR 4123..." required style="width: 100%; padding: 10px; background: #0F172A; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #CBD5E1; margin-bottom: 6px;">Disbursement Notes</label>
+                <textarea name="admin_notes" rows="2" placeholder="Credited 100% refund via UPI." style="width: 100%; padding: 10px; background: #0F172A; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF;"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="admin-btn admin-btn-secondary" onclick="closeDisburseModal()">Cancel</button>
+                <button type="submit" class="admin-btn admin-btn-primary" style="background: #10B981; border-color: #10B981;">Confirm Disbursement</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: #1E293B; border: 1px solid rgba(239,68,68,0.3); border-radius: 16px; width: 480px; max-width: 90%; padding: 24px;">
+        <h4 style="margin: 0 0 8px; color: #EF4444; font-size: 1.15rem; font-weight: 700;">
+            Reject Refund Claim
+        </h4>
+        <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 16px;">
+            A specific rejection reason is mandatory and will be logged into the audit trail.
+        </p>
+
+        <form id="rejectForm" method="POST">
+            <input type="hidden" name="action" value="reject">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #CBD5E1; margin-bottom: 6px;">Mandatory Rejection Reason <span style="color: #EF4444;">*</span></label>
+                <textarea name="admin_notes" rows="3" placeholder="Explain which condition was violated or unmet..." required style="width: 100%; padding: 10px; background: #0F172A; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF;"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="admin-btn admin-btn-secondary" onclick="closeRejectModal()">Cancel</button>
+                <button type="submit" class="admin-btn admin-btn-danger" style="background: #EF4444; border-color: #EF4444;">Reject Claim</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openDisburseModal(claimId, ref, amount, upi) {
+    document.getElementById('disburseForm').action = `/admin/challenges/refunds/${claimId}/action`;
+    document.getElementById('disbursePrompt').innerText = `Crediting ₹${amount} for claim ${ref} to UPI destination: ${upi}`;
+    document.getElementById('disburseModal').style.display = 'flex';
+}
+function closeDisburseModal() {
+    document.getElementById('disburseModal').style.display = 'none';
+}
+function openRejectModal(claimId, ref) {
+    document.getElementById('rejectForm').action = `/admin/challenges/refunds/${claimId}/action`;
+    document.getElementById('rejectModal').style.display = 'flex';
+}
+function closeRejectModal() {
+    document.getElementById('rejectModal').style.display = 'none';
+}
+</script>
+{% endblock %}

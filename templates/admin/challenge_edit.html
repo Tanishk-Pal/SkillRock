@@ -1,0 +1,99 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Edit {{ challenge.title }} — SkillRock Admin{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('admin.challenges_list') }}" style="color: inherit;">Monthly Challenges</a> / Edit{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="max-width: 800px; margin: 0 auto;">
+    <div class="admin-card-header">
+        <div class="admin-card-title">
+            <i data-lucide="sliders"></i>
+            <span>Edit Monthly Challenge: {{ challenge.title }}</span>
+        </div>
+    </div>
+
+    <form method="POST" style="padding: 24px;">
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--admin-text-main); margin-bottom: 6px;">
+                Challenge Title <span style="color: #EF4444;">*</span>
+            </label>
+            <input type="text" name="title" value="{{ challenge.title }}" required
+                   style="width: 100%; padding: 10px 14px; background: #0F172A; border: 1px solid var(--admin-border); border-radius: 8px; color: var(--admin-text-main);">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--admin-text-main); margin-bottom: 6px;">
+                    Enrolment Price (INR) <span style="color: #EF4444;">*</span>
+                </label>
+                <input type="number" step="1" min="0" name="price" value="{{ challenge.price|int }}" required
+                       style="width: 100%; padding: 10px 14px; background: #0F172A; border: 1px solid var(--admin-border); border-radius: 8px; color: var(--admin-text-main);">
+                <div style="font-size: 0.72rem; color: #10B981; margin-top: 4px;">100% refundable upon 28-day completion.</div>
+            </div>
+
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--admin-text-main); margin-bottom: 6px;">
+                    Duration (Days) <span style="color: #EF4444;">*</span>
+                </label>
+                <input type="number" min="1" max="365" name="duration_days" value="{{ challenge.duration_days }}" required
+                       style="width: 100%; padding: 10px 14px; background: #0F172A; border: 1px solid var(--admin-border); border-radius: 8px; color: var(--admin-text-main);">
+                <div style="font-size: 0.72rem; color: var(--admin-text-muted); margin-top: 4px;">Strict 28-day countdown begins upon student enrolment.</div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--admin-text-main); margin-bottom: 6px;">
+                    Instructor / Curator Name
+                </label>
+                <input type="text" name="instructor" value="{{ challenge.instructor }}"
+                       style="width: 100%; padding: 10px 14px; background: #0F172A; border: 1px solid var(--admin-border); border-radius: 8px; color: var(--admin-text-main);">
+            </div>
+
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--admin-text-main); margin-bottom: 6px;">
+                    Difficulty Level
+                </label>
+                <select name="difficulty" style="width: 100%; padding: 10px 14px; background: #0F172A; border: 1px solid var(--admin-border); border-radius: 8px; color: var(--admin-text-main);">
+                    <option value="Beginner" {% if challenge.difficulty == 'Beginner' %}selected{% endif %}>Beginner</option>
+                    <option value="Intermediate" {% if challenge.difficulty == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+                    <option value="Advanced" {% if challenge.difficulty == 'Advanced' %}selected{% endif %}>Advanced</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--admin-text-main); margin-bottom: 6px;">
+                Short Promotional Hook
+            </label>
+            <input type="text" name="short_description" value="{{ challenge.short_description }}"
+                   style="width: 100%; padding: 10px 14px; background: #0F172A; border: 1px solid var(--admin-border); border-radius: 8px; color: var(--admin-text-main);">
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--admin-text-main); margin-bottom: 6px;">
+                Full Description
+            </label>
+            <textarea name="description" rows="4" style="width: 100%; padding: 10px 14px; background: #0F172A; border: 1px solid var(--admin-border); border-radius: 8px; color: var(--admin-text-main); line-height: 1.5;">{{ challenge.description }}</textarea>
+        </div>
+
+        <div style="margin-bottom: 24px; padding: 14px; background: rgba(0,0,0,0.25); border-radius: 8px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" name="is_active" {% if challenge.is_active %}checked{% endif %} style="width: 18px; height: 18px; accent-color: #10B981;">
+                <span style="font-weight: 700; color: var(--admin-text-main); font-size: 0.9rem;">
+                    Active Challenge (Visible in student catalog and course-card showcases)
+                </span>
+            </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+            <a href="{{ url_for('admin.challenges_list') }}" class="admin-btn admin-btn-secondary">
+                Cancel
+            </a>
+            <button type="submit" class="admin-btn admin-btn-primary" style="background: #F59E0B; border-color: #F59E0B; color: #0F172A; font-weight: 800;">
+                Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block title %}{{ challenge.title }} — SkillRock Monthly Challenge{% endblock %}
+
+{% block meta_description %}{{ challenge.short_description or challenge.description }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 1200px;">
+    <!-- Breadcrumb -->
+    <nav style="margin-bottom: 20px;">
+        <ol style="display: flex; gap: 8px; align-items: center; list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: var(--text-muted, #94A3B8);">
+            <li><a href="{{ url_for('challenge.catalog') }}" style="color: inherit; text-decoration: none;">Monthly Challenge</a></li>
+            <li><i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i></li>
+            <li style="color: var(--text-primary, #F8FAFC); font-weight: 600;">{{ challenge.title }}</li>
+        </ol>
+    </nav>
+
+    <!-- Hero Section -->
+    <div style="background: radial-gradient(100% 100% at 50% 0%, rgba(245, 158, 11, 0.12) 0%, rgba(15, 23, 42, 0.7) 100%), #0F172A; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 24px; padding: 36px; margin-bottom: 40px; box-shadow: 0 12px 36px rgba(0,0,0,0.45);">
+        <div class="row g-4 align-items-center">
+            <div class="col-12 col-lg-7">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+                    <span style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: #0F172A; font-size: 0.75rem; font-weight: 800; padding: 4px 12px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 5px;">
+                        <i data-lucide="trophy" style="width: 13px; height: 13px;"></i>
+                        SKILLROCK MONTHLY CHALLENGE
+                    </span>
+                    <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399; font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                        <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i>
+                        100% REFUND GUARANTEE
+                    </span>
+                    <span style="background: rgba(91, 70, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.4); color: #C4B5FD; font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 9999px;">
+                        {{ challenge.difficulty }}
+                    </span>
+                </div>
+
+                <h1 style="font-size: clamp(2rem, 3.5vw, 2.75rem); font-weight: 800; color: #FFFFFF; line-height: 1.25; margin-bottom: 14px;">
+                    {{ challenge.title }}
+                </h1>
+
+                <p style="font-size: 1.02rem; color: #94A3B8; line-height: 1.6; margin-bottom: 20px;">
+                    {{ challenge.short_description or challenge.description }}
+                </p>
+
+                <!-- Key Meta Details -->
+                <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; padding: 14px 18px; background: rgba(0,0,0,0.25); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="user" style="width: 18px; height: 18px; color: #F59E0B;"></i>
+                        <div>
+                            <div style="font-size: 0.72rem; color: #64748B; text-transform: uppercase;">Curator / Instructor</div>
+                            <div style="font-size: 0.88rem; font-weight: 700; color: #F1F5F9;">{{ challenge.instructor }}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="calendar" style="width: 18px; height: 18px; color: #F59E0B;"></i>
+                        <div>
+                            <div style="font-size: 0.72rem; color: #64748B; text-transform: uppercase;">Completion Window</div>
+                            <div style="font-size: 0.88rem; font-weight: 700; color: #F1F5F9;">{{ challenge.duration_days }} Days</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="layers" style="width: 18px; height: 18px; color: #F59E0B;"></i>
+                        <div>
+                            <div style="font-size: 0.72rem; color: #64748B; text-transform: uppercase;">Curriculum</div>
+                            <div style="font-size: 0.88rem; font-weight: 700; color: #F1F5F9;">{{ challenge.modules|length }} Structured Modules</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTAs -->
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 16px;">
+                    {% if is_enrolled %}
+                        <a href="{{ url_for('challenge.dashboard', slug=challenge.slug) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 700; font-size: 1rem; background: #5B46F6; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px;">
+                            <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+                            <span>Enter Challenge Dashboard</span>
+                        </a>
+                    {% else %}
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('payment.checkout', item_type='challenge', item_id=challenge.id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 1.05rem; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-color: #D97706; color: #0F172A; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);">
+                                <span>Enrol Now — ₹{{ challenge.price|int }}</span>
+                                <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='challenge', item_id=challenge.id)) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 1.05rem; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-color: #D97706; color: #0F172A; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);">
+                                <span>Enrol Now — ₹{{ challenge.price|int }}</span>
+                                <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
+                            </a>
+                        {% endif %}
+                    {% endif %}
+
+                    <a href="#curriculumSection" class="btn btn-outline-light" style="padding: 12px 22px; font-weight: 600; font-size: 0.95rem; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>View Curriculum</span>
+                        <i data-lucide="arrow-down" style="width: 16px; height: 16px;"></i>
+                    </a>
+                </div>
+
+                <!-- Refund Fine Print Banner -->
+                <div style="font-size: 0.8rem; color: #94A3B8; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="info" style="width: 14px; height: 14px; color: #10B981;"></i>
+                    <span><strong>100% Refund Condition:</strong> Complete all modules, practice MCQs, interview prep, coding problems, assignment, and pass the final exam in 28 days.</span>
+                </div>
+            </div>
+
+            <!-- Thumbnail Side -->
+            <div class="col-12 col-lg-5">
+                <div style="position: relative; border-radius: 18px; overflow: hidden; border: 2px solid rgba(245, 158, 11, 0.4); box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
+                    <img src="{{ challenge.thumbnail_url }}" alt="{{ challenge.title }}" style="width: 100%; height: 280px; object-fit: cover;">
+                    <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(15,23,42,0.85) 100%);"></div>
+                    
+                    <div style="position: absolute; bottom: 18px; left: 18px; right: 18px;">
+                        <div style="background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <span style="font-size: 0.75rem; color: #94A3B8; font-weight: 700; text-transform: uppercase;">Deposit Fee</span>
+                                <span style="font-size: 1.25rem; font-weight: 800; color: #F59E0B;">₹{{ challenge.price|int }}</span>
+                            </div>
+                            <div style="font-size: 0.78rem; color: #34D399; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                                <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                                Fully refunded on 28-day challenge completion
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- What You Will Get (9 Distinct Functional Deliverables) -->
+    <div style="margin-bottom: 48px;">
+        <div style="text-align: center; max-width: 640px; margin: 0 auto 28px;">
+            <span style="font-size: 0.78rem; font-weight: 800; color: #F59E0B; letter-spacing: 0.08em; text-transform: uppercase;">
+                EVERYTHING INCLUDED IN YOUR CHALLENGE
+            </span>
+            <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin: 6px 0 8px;">
+                What You Will Get
+            </h2>
+            <p style="font-size: 0.92rem; color: var(--text-secondary, #94A3B8); margin: 0;">
+                A complete full-stack learning and evaluation ecosystem engineered to get you job-ready.
+            </p>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12 col-md-4 col-lg-3">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px; height: 100%;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(239, 68, 68, 0.15); color: #EF4444; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                        <i data-lucide="video" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <h5 style="font-size: 1rem; font-weight: 700; color: var(--text-primary, #F8FAFC); margin-bottom: 6px;">Curated YouTube Course</h5>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary, #94A3B8); margin: 0; line-height: 1.5;">Structured 6-module roadmap linking directly into high-yield video tutorials with progress tracking.</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 col-lg-3">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px; height: 100%;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(59, 130, 246, 0.15); color: #3B82F6; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                        <i data-lucide="help-circle" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <h5 style="font-size: 1rem; font-weight: 700; color: var(--text-primary, #F8FAFC); margin-bottom: 6px;">Practice Arena MCQs</h5>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary, #94A3B8); margin: 0; line-height: 1.5;">Topic-wise practice questions with instant answer evaluation, explanations, and score tracking.</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 col-lg-3">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px; height: 100%;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(16, 185, 129, 0.15); color: #10B981; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                        <i data-lucide="briefcase" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <h5 style="font-size: 1rem; font-weight: 700; color: var(--text-primary, #F8FAFC); margin-bottom: 6px;">Interview Preparation</h5>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary, #94A3B8); margin: 0; line-height: 1.5;">Curated technical interview questions categorized by difficulty with comprehensive model answers.</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 col-lg-3">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px; height: 100%;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(245, 158, 11, 0.15); color: #F59E0B; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                        <i data-lucide="code-2" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <h5 style="font-size: 1rem; font-weight: 700; color: var(--text-primary, #F8FAFC); margin-bottom: 6px;">Inbuilt Coding Terminal</h5>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary, #94A3B8); margin: 0; line-height: 1.5;">LeetCode-style split-screen coding editor with live test case validation against hidden edge cases.</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 col-lg-3">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px; height: 100%;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(139, 92, 246, 0.15); color: #8B5CF6; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                        <i data-lucide="check-square" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <h5 style="font-size: 1rem; font-weight: 700; color: var(--text-primary, #F8FAFC); margin-bottom: 6px;">50-Question Final Exam</h5>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary, #94A3B8); margin: 0; line-height: 1.5;">Strict 60-minute proctored exam from our randomized question bank requiring ≥80% to certify.</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 col-lg-3">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px; height: 100%;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(14, 165, 233, 0.15); color: #0EA5E9; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                        <i data-lucide="folder-git-2" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <h5 style="font-size: 1rem; font-weight: 700; color: var(--text-primary, #F8FAFC); margin-bottom: 6px;">Practical Assignment</h5>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary, #94A3B8); margin: 0; line-height: 1.5;">Real-world portfolio project submission evaluated against our 4-point production rubric.</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 col-lg-3">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px; height: 100%;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(236, 72, 153, 0.15); color: #EC4899; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                        <i data-lucide="award" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <h5 style="font-size: 1rem; font-weight: 700; color: var(--text-primary, #F8FAFC); margin-bottom: 6px;">SkillRock Certificate</h5>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary, #94A3B8); margin: 0; line-height: 1.5;">Shareable, digitally verifiable credential with unique serial verification code for LinkedIn.</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 col-lg-3">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 14px; padding: 20px; height: 100%;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); color: #10B981; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                        <i data-lucide="banknote" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <h5 style="font-size: 1rem; font-weight: 700; color: #34D399; margin-bottom: 6px;">100% Refund Payout</h5>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary, #94A3B8); margin: 0; line-height: 1.5;">Qualify for your full ₹499 refund via UPI upon meeting the 7 criteria in 28 days.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Curriculum Section (6 Modules) -->
+    <div id="curriculumSection" style="margin-bottom: 48px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+            <div>
+                <span style="font-size: 0.78rem; font-weight: 800; color: #F59E0B; letter-spacing: 0.08em; text-transform: uppercase;">
+                    STRUCTURED LEARNING PATH
+                </span>
+                <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin: 4px 0 0;">
+                    Course Curriculum (6 Modules)
+                </h2>
+            </div>
+            <span style="font-size: 0.85rem; color: #94A3B8;">
+                {{ challenge.modules|length }} modules • 28 days pace
+            </span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+            {% for mod in challenge.modules %}
+            <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px; transition: border-color 0.2s;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="width: 32px; height: 32px; border-radius: 8px; background: rgba(91, 70, 246, 0.15); color: #A78BFA; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem;">
+                            {{ mod.module_number }}
+                        </span>
+                        <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary, #F8FAFC); margin: 0;">
+                            {{ mod.title }}
+                        </h4>
+                    </div>
+                    <span style="font-size: 0.8rem; color: #94A3B8; display: inline-flex; align-items: center; gap: 4px;">
+                        <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
+                        {{ mod.duration_minutes }} mins
+                    </span>
+                </div>
+
+                <p style="font-size: 0.86rem; color: var(--text-secondary, #94A3B8); margin: 0 0 12px 42px; line-height: 1.5;">
+                    {{ mod.description }}
+                </p>
+
+                {% if mod.learning_objectives %}
+                <div style="margin-left: 42px; display: flex; flex-wrap: wrap; gap: 6px;">
+                    {% for obj in mod.learning_objectives %}
+                    <span style="font-size: 0.72rem; color: #CBD5E1; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 6px;">
+                        • {{ obj }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Refund Conditions Table & Terms -->
+    <div style="background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%), #0F172A; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 32px 28px; margin-bottom: 40px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); color: #10B981; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="shield-alert" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 1.25rem; font-weight: 800; color: #FFFFFF; margin: 0;">
+                    100% Refund Terms &amp; Published Eligibility Rules
+                </h3>
+                <span style="font-size: 0.82rem; color: #34D399; font-weight: 600;">Transparent, Automated, Fair</span>
+            </div>
+        </div>
+
+        <p style="font-size: 0.88rem; color: #94A3B8; line-height: 1.6; margin-bottom: 20px;">
+            SkillRock does not offer unconditional refunds. To qualify for a 100% return of your ₹{{ challenge.price|int }} enrolment fee, you must fulfil every single one of the published criteria below before the 28-day countdown expires:
+        </p>
+
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem; color: #E2E8F0;">
+                    <li style="display: flex; gap: 8px;">
+                        <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
+                        <span><strong>1. Video Course:</strong> Complete 100% of all {{ challenge.modules|length }} modules and video lessons.</span>
+                    </li>
+                    <li style="display: flex; gap: 8px;">
+                        <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
+                        <span><strong>2. Practice Arena:</strong> Attempt and solve 100% of module-wise practice questions.</span>
+                    </li>
+                    <li style="display: flex; gap: 8px;">
+                        <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
+                        <span><strong>3. Interview Prep:</strong> Complete 100% of technical interview preparation questions.</span>
+                    </li>
+                    <li style="display: flex; gap: 8px;">
+                        <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
+                        <span><strong>4. Coding Arena:</strong> Solve 100% of coding problems, passing both sample and hidden test cases.</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-12 col-md-6">
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem; color: #E2E8F0;">
+                    <li style="display: flex; gap: 8px;">
+                        <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
+                        <span><strong>5. Practical Project:</strong> Submit your practical project repository and live deployment link.</span>
+                    </li>
+                    <li style="display: flex; gap: 8px;">
+                        <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
+                        <span><strong>6. Final Assessment:</strong> Score ≥80% (at least 40/50) on the 50-MCQ final exam (2 attempts allowed).</span>
+                    </li>
+                    <li style="display: flex; gap: 8px;">
+                        <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
+                        <span><strong>7. Strict 28-Day Deadline:</strong> All requirements above must be completed before Day 28 ends.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="margin-top: 24px; text-align: center;">
+            {% if is_enrolled %}
+                <a href="{{ url_for('challenge.dashboard', slug=challenge.slug) }}" class="btn btn-primary" style="padding: 10px 24px; font-weight: 700; background: #5B46F6; border-radius: 8px;">
+                    Go to Your 28-Day Dashboard
+                </a>
+            {% else %}
+                <a href="{{ url_for('payment.checkout', item_type='challenge', item_id=challenge.id) }}" class="btn btn-primary" style="padding: 10px 24px; font-weight: 800; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: #0F172A; border-color: #D97706; border-radius: 8px;">
+                    Enrol for ₹{{ challenge.price|int }} &amp; Accept the Challenge
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

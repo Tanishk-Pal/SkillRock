@@ -1,0 +1,1326 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — {{ challenge.title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+/* 9-Tab Navigation Styling */
+.challenge-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-secondary, #94A3B8);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+.challenge-tab-btn:hover {
+    color: var(--text-primary, #F8FAFC);
+    background: rgba(255, 255, 255, 0.03);
+}
+.challenge-tab-btn.active {
+    color: #F59E0B;
+    border-bottom-color: #F59E0B;
+    background: rgba(245, 158, 11, 0.08);
+    font-weight: 700;
+}
+.tab-content-panel {
+    display: none;
+}
+.tab-content-panel.active {
+    display: block;
+}
+.milestone-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 9999px;
+}
+.milestone-badge.completed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34D399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.milestone-badge.pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #FBBF24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 1250px;">
+    <!-- Top 28-Day Command Center Header -->
+    <div style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 20px; padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);">
+        <div class="row g-3 align-items-center">
+            <div class="col-12 col-lg-6">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: #0F172A; font-size: 0.72rem; font-weight: 800; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                        <i data-lucide="trophy" style="width: 12px; height: 12px;"></i>
+                        MONTHLY CHALLENGE
+                    </span>
+                    {% if metrics.is_expired %}
+                    <span style="background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 9999px;">
+                        28-Day Window Expired
+                    </span>
+                    {% else %}
+                    <span style="background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 9999px;">
+                        Active Sprint (Day {{ metrics.days_elapsed }} of 28)
+                    </span>
+                    {% endif %}
+                </div>
+
+                <h1 style="font-size: 1.5rem; font-weight: 800; color: #FFFFFF; margin-bottom: 6px;">
+                    {{ challenge.title }}
+                </h1>
+                <p style="font-size: 0.85rem; color: #94A3B8; margin: 0;">
+                    Complete all 7 criteria within 28 days to unlock your SkillRock Certificate and 100% refund.
+                </p>
+            </div>
+
+            <!-- Countdown Timer & Milestone Progress Metric -->
+            <div class="col-12 col-lg-6">
+                <div class="row g-2 text-center">
+                    <div class="col-4">
+                        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 12px 6px;">
+                            <div style="font-size: 1.4rem; font-weight: 800; color: {% if metrics.days_remaining <= 3 %}#EF4444{% else %}#F59E0B{% endif %};">
+                                {{ metrics.days_remaining }}
+                            </div>
+                            <div style="font-size: 0.7rem; color: #94A3B8; text-transform: uppercase; font-weight: 600;">
+                                Days Left
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 12px 6px;">
+                            <div style="font-size: 1.4rem; font-weight: 800; color: #3B82F6;">
+                                {{ progress_stats.overall_completion_percentage }}%
+                            </div>
+                            <div style="font-size: 0.7rem; color: #94A3B8; text-transform: uppercase; font-weight: 600;">
+                                Completed
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 12px 6px;">
+                            <div style="font-size: 1.4rem; font-weight: 800; color: #10B981;">
+                                ₹{{ enrollment.amount_paid|int }}
+                            </div>
+                            <div style="font-size: 0.7rem; color: #94A3B8; text-transform: uppercase; font-weight: 600;">
+                                Refund Amount
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 28-Day Countdown Progress Bar -->
+                <div style="margin-top: 12px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #94A3B8; margin-bottom: 4px;">
+                        <span>Enrolled: {{ metrics.enrolled_date_str }}</span>
+                        <span>Deadline: {{ metrics.deadline_date_str }}</span>
+                    </div>
+                    <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 9999px; overflow: hidden;">
+                        <div style="width: {{ metrics.percent_time_elapsed }}%; height: 100%; background: linear-gradient(90deg, #3B82F6 0%, #F59E0B 100%);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9-Tab Navigation Bar -->
+    <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 16px; margin-bottom: 24px; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+        <nav style="display: flex; min-width: 880px; padding: 4px 8px;" id="challengeNavTabs">
+            <button class="challenge-tab-btn {% if active_tab == 'overview' %}active{% endif %}" data-tab="overview">
+                <i data-lucide="layout-grid" style="width: 15px; height: 15px;"></i>
+                <span>1. Overview</span>
+            </button>
+            <button class="challenge-tab-btn {% if active_tab == 'learn' %}active{% endif %}" data-tab="learn">
+                <i data-lucide="play-circle" style="width: 15px; height: 15px;"></i>
+                <span>2. Learn</span>
+                <span style="font-size: 0.7rem; background: rgba(255,255,255,0.1); padding: 1px 6px; border-radius: 9999px;">{{ enrollment.modules_completed|length }}/{{ challenge.modules|length }}</span>
+            </button>
+            <button class="challenge-tab-btn {% if active_tab == 'practice' %}active{% endif %}" data-tab="practice">
+                <i data-lucide="help-circle" style="width: 15px; height: 15px;"></i>
+                <span>3. Practice Arena</span>
+                <span style="font-size: 0.7rem; background: rgba(255,255,255,0.1); padding: 1px 6px; border-radius: 9999px;">{{ enrollment.practice_scores|length }}/{{ practice_questions|length }}</span>
+            </button>
+            <button class="challenge-tab-btn {% if active_tab == 'interview' %}active{% endif %}" data-tab="interview">
+                <i data-lucide="briefcase" style="width: 15px; height: 15px;"></i>
+                <span>4. Interview Prep</span>
+                <span style="font-size: 0.7rem; background: rgba(255,255,255,0.1); padding: 1px 6px; border-radius: 9999px;">{{ enrollment.interview_prep_status|length }}/{{ interview_questions|length }}</span>
+            </button>
+            <button class="challenge-tab-btn {% if active_tab == 'coding' %}active{% endif %}" data-tab="coding">
+                <i data-lucide="terminal" style="width: 15px; height: 15px;"></i>
+                <span>5. Coding Arena</span>
+                <span style="font-size: 0.7rem; background: rgba(255,255,255,0.1); padding: 1px 6px; border-radius: 9999px;">{{ enrollment.coding_problems_solved|length }}/{{ coding_problems|length }}</span>
+            </button>
+            <button class="challenge-tab-btn {% if active_tab == 'assignment' %}active{% endif %}" data-tab="assignment">
+                <i data-lucide="folder-git-2" style="width: 15px; height: 15px;"></i>
+                <span>6. Assignment</span>
+                {% if assignment_submission %}
+                <span style="font-size: 0.7rem; background: rgba(16,185,129,0.2); color: #34D399; padding: 1px 6px; border-radius: 9999px;">Submitted</span>
+                {% endif %}
+            </button>
+            <button class="challenge-tab-btn {% if active_tab == 'assessment' %}active{% endif %}" data-tab="assessment">
+                <i data-lucide="check-square" style="width: 15px; height: 15px;"></i>
+                <span>7. Final Exam (50 MCQs)</span>
+                {% if enrollment.assessment_passed %}
+                <span style="font-size: 0.7rem; background: rgba(16,185,129,0.2); color: #34D399; padding: 1px 6px; border-radius: 9999px;">Passed</span>
+                {% endif %}
+            </button>
+            <button class="challenge-tab-btn {% if active_tab == 'certificate' %}active{% endif %}" data-tab="certificate">
+                <i data-lucide="award" style="width: 15px; height: 15px;"></i>
+                <span>8. Certificate</span>
+            </button>
+            <button class="challenge-tab-btn {% if active_tab == 'refund' %}active{% endif %}" data-tab="refund">
+                <i data-lucide="banknote" style="width: 15px; height: 15px; color: #10B981;"></i>
+                <span style="color: #34D399;">9. 100% Refund</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: OVERVIEW -->
+    <!-- ========================================================================= -->
+    <div id="tab-overview" class="tab-content-panel {% if active_tab == 'overview' %}active{% endif %}">
+        <div class="row g-4 mb-4">
+            <!-- 6 Core Milestone Progress Cards -->
+            <div class="col-12 col-md-4">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #94A3B8;">1. COURSE MODULES</span>
+                        <span class="milestone-badge {% if progress_stats.modules_percent == 100 %}completed{% else %}pending{% endif %}">
+                            {{ progress_stats.modules_percent }}%
+                        </span>
+                    </div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin-bottom: 8px;">
+                        {{ enrollment.modules_completed|length }} of {{ challenge.modules|length }} Completed
+                    </div>
+                    <button class="btn btn-sm btn-outline-light w-100" onclick="switchChallengeTab('learn')" style="border-radius: 8px;">
+                        Go to Learn Modules
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #94A3B8;">2. PRACTICE MCQS</span>
+                        <span class="milestone-badge {% if progress_stats.practice_percent == 100 %}completed{% else %}pending{% endif %}">
+                            {{ progress_stats.practice_percent }}%
+                        </span>
+                    </div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin-bottom: 8px;">
+                        {{ enrollment.practice_scores|length }} of {{ practice_questions|length }} Attempted
+                    </div>
+                    <button class="btn btn-sm btn-outline-light w-100" onclick="switchChallengeTab('practice')" style="border-radius: 8px;">
+                        Practice Questions
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #94A3B8;">3. INTERVIEW PREPARATION</span>
+                        <span class="milestone-badge {% if progress_stats.interviews_percent == 100 %}completed{% else %}pending{% endif %}">
+                            {{ progress_stats.interviews_percent }}%
+                        </span>
+                    </div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin-bottom: 8px;">
+                        {{ enrollment.interview_prep_status|length }} of {{ interview_questions|length }} Completed
+                    </div>
+                    <button class="btn btn-sm btn-outline-light w-100" onclick="switchChallengeTab('interview')" style="border-radius: 8px;">
+                        Prepare for Interviews
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #94A3B8;">4. CODING ARENA</span>
+                        <span class="milestone-badge {% if progress_stats.coding_percent == 100 %}completed{% else %}pending{% endif %}">
+                            {{ progress_stats.coding_percent }}%
+                        </span>
+                    </div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin-bottom: 8px;">
+                        {{ enrollment.coding_problems_solved|length }} of {{ coding_problems|length }} Solved
+                    </div>
+                    <button class="btn btn-sm btn-outline-light w-100" onclick="switchChallengeTab('coding')" style="border-radius: 8px;">
+                        Open Code Terminal
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #94A3B8;">5. PRACTICAL PROJECT</span>
+                        <span class="milestone-badge {% if assignment_submission %}completed{% else %}pending{% endif %}">
+                            {% if assignment_submission %}{{ assignment_submission.status|upper }}{% else %}PENDING{% endif %}
+                        </span>
+                    </div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin-bottom: 8px;">
+                        {% if assignment_submission %}Repository Submitted{% else %}Submission Required{% endif %}
+                    </div>
+                    <button class="btn btn-sm btn-outline-light w-100" onclick="switchChallengeTab('assignment')" style="border-radius: 8px;">
+                        Project Details &amp; Rubric
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #94A3B8;">6. FINAL ASSESSMENT</span>
+                        <span class="milestone-badge {% if enrollment.assessment_passed %}completed{% else %}pending{% endif %}">
+                            {% if enrollment.assessment_passed %}PASSED (≥80%){% else %}{{ assessment_attempts|length }}/2 ATTEMPTS{% endif %}
+                        </span>
+                    </div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin-bottom: 8px;">
+                        50-Question Proctored Exam
+                    </div>
+                    <button class="btn btn-sm btn-outline-light w-100" onclick="switchChallengeTab('assessment')" style="border-radius: 8px;">
+                        Take Final Exam
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 100% Refund Quick Status Tracker Banner -->
+        <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(15, 23, 42, 0.5) 100%); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 16px; padding: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.2); color: #10B981; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div>
+                    <h4 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #FFFFFF;">
+                        100% Fee Refund Guarantee Eligibility Status
+                    </h4>
+                    <p style="margin: 2px 0 0; font-size: 0.85rem; color: #94A3B8;">
+                        {% if refund_check.all_eligible %}
+                            <strong style="color: #34D399;">Congratulations! You have fulfilled all 7 conditions.</strong> Claim your full ₹{{ enrollment.amount_paid|int }} refund now.
+                        {% else %}
+                            You have completed <strong>{{ refund_check.fulfilled_count }} of 7</strong> required criteria. Complete the remaining conditions to unlock your full ₹{{ enrollment.amount_paid|int }} refund.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <button class="btn btn-primary" onclick="switchChallengeTab('refund')" style="background: #10B981; border-color: #10B981; font-weight: 700; padding: 10px 20px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-lucide="wallet" style="width: 16px; height: 16px;"></i>
+                    <span>View Refund Checklist</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: LEARN (6 YOUTUBE MODULES) -->
+    <!-- ========================================================================= -->
+    <div id="tab-learn" class="tab-content-panel {% if active_tab == 'learn' %}active{% endif %}">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin: 0;">
+                    Curated YouTube Learning Course
+                </h3>
+                <p style="font-size: 0.86rem; color: var(--text-secondary, #94A3B8); margin: 2px 0 0;">
+                    Watch each structured module, review notes, and check the completion box to update your progress.
+                </p>
+            </div>
+            <span style="font-size: 0.85rem; color: #F59E0B; font-weight: 700;">
+                {{ enrollment.modules_completed|length }} / {{ challenge.modules|length }} Completed
+            </span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            {% for mod in challenge.modules %}
+            {% set is_mod_done = (mod.module_number in enrollment.modules_completed) %}
+            <div style="background: var(--bg-surface, #1E293B); border: 1px solid {% if is_mod_done %}rgba(16, 185, 129, 0.4){% else %}var(--border-color, rgba(255,255,255,0.08)){% endif %}; border-radius: 16px; padding: 22px;">
+                <div class="row g-3 align-items-center">
+                    <div class="col-12 col-md-8">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                            <span style="width: 28px; height: 28px; border-radius: 8px; background: {% if is_mod_done %}rgba(16, 185, 129, 0.2){% else %}rgba(91, 70, 246, 0.15){% endif %}; color: {% if is_mod_done %}#10B981{% else %}#A78BFA{% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem;">
+                                {{ mod.module_number }}
+                            </span>
+                            <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary, #F8FAFC); margin: 0;">
+                                {{ mod.title }}
+                            </h4>
+                            <span style="font-size: 0.75rem; color: #94A3B8; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 6px;">
+                                {{ mod.duration_minutes }} mins
+                            </span>
+                        </div>
+
+                        <p style="font-size: 0.86rem; color: var(--text-secondary, #94A3B8); margin: 0 0 10px 38px; line-height: 1.5;">
+                            {{ mod.description }}
+                        </p>
+
+                        <div style="margin-left: 38px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                            <a href="{{ mod.youtube_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-danger" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 6px;">
+                                <i data-lucide="youtube" style="width: 14px; height: 14px;"></i>
+                                <span>Watch Video on YouTube</span>
+                            </a>
+                            {% if mod.resources_url %}
+                            <a href="{{ mod.resources_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; font-size: 0.8rem; border-radius: 6px;">
+                                <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
+                                <span>Module Notes</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4 text-md-end">
+                        <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); padding: 10px 16px; border-radius: 10px;">
+                            <input type="checkbox"
+                                   class="form-check-input module-toggle-checkbox"
+                                   data-module-id="{{ mod.module_number }}"
+                                   {% if is_mod_done %}checked{% endif %}
+                                   style="width: 18px; height: 18px; cursor: pointer; accent-color: #10B981;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: {% if is_mod_done %}#34D399{% else %}var(--text-primary, #F8FAFC){% endif %};">
+                                {% if is_mod_done %}Module Completed{% else %}Mark as Completed{% endif %}
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: PRACTICE ARENA (MCQS) -->
+    <!-- ========================================================================= -->
+    <div id="tab-practice" class="tab-content-panel {% if active_tab == 'practice' %}active{% endif %}">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin: 0;">
+                    Practice Arena
+                </h3>
+                <p style="font-size: 0.86rem; color: var(--text-secondary, #94A3B8); margin: 2px 0 0;">
+                    Reinforce your understanding with module-wise MCQs. Get instant explanations without affecting your final assessment score.
+                </p>
+            </div>
+            <div style="font-size: 0.88rem; color: #F59E0B; font-weight: 700;">
+                Attempted: <span id="practiceAttemptedCount">{{ enrollment.practice_scores|length }}</span> / {{ practice_questions|length }}
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 18px;">
+            {% for q in practice_questions %}
+            {% set prev_score = enrollment.practice_scores.get(q.order_index|string) %}
+            <div class="card" style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 16px; padding: 22px;" id="practiceCard-{{ q.id }}">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #A78BFA; background: rgba(91, 70, 246, 0.15); padding: 3px 10px; border-radius: 9999px;">
+                            Question {{ q.order_index }}
+                        </span>
+                        <span style="font-size: 0.75rem; color: #94A3B8;">Topic: {{ q.topic }}</span>
+                    </div>
+                    <span style="font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(0,0,0,0.3); color: #CBD5E1;">
+                        {{ q.difficulty|capitalize }}
+                    </span>
+                </div>
+
+                <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary, #F8FAFC); margin-bottom: 16px; line-height: 1.4;">
+                    {{ q.question_text }}
+                </h4>
+
+                <!-- Options Grid -->
+                <div class="row g-2 mb-3">
+                    {% for opt in q.options %}
+                    {% set opt_idx = loop.index0 %}
+                    <div class="col-12 col-md-6">
+                        <button type="button"
+                                class="btn text-start w-100 practice-option-btn {% if prev_score and prev_score.selected == opt_idx %}{% if prev_score.is_correct %}btn-success{% else %}btn-danger{% endif %}{% else %}btn-outline-light{% endif %}"
+                                data-question-id="{{ q.id }}"
+                                data-option-index="{{ opt_idx }}"
+                                onclick="submitPracticeOption('{{ q.id }}', {{ opt_idx }})"
+                                style="border-radius: 10px; padding: 12px 16px; font-size: 0.88rem; font-weight: 500;">
+                            <strong>{{ ['A', 'B', 'C', 'D'][opt_idx] }}.</strong> {{ opt }}
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Explanation Box -->
+                <div id="practiceExplanation-{{ q.id }}" style="{% if not prev_score %}display: none;{% endif %} background: rgba(0,0,0,0.3); border-left: 3px solid #F59E0B; border-radius: 0 8px 8px 0; padding: 12px 16px; margin-top: 8px;">
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #F59E0B; text-transform: uppercase; margin-bottom: 4px;">
+                        Explanation:
+                    </div>
+                    <div style="font-size: 0.85rem; color: #E2E8F0; line-height: 1.5;">
+                        {{ q.explanation }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: INTERVIEW PREPARATION -->
+    <!-- ========================================================================= -->
+    <div id="tab-interview" class="tab-content-panel {% if active_tab == 'interview' %}active{% endif %}">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin: 0;">
+                    Technical Interview Preparation
+                </h3>
+                <p style="font-size: 0.86rem; color: var(--text-secondary, #94A3B8); margin: 2px 0 0;">
+                    Frequently asked placement questions with comprehensive model answers. Mark each question as you study.
+                </p>
+            </div>
+            <div style="font-size: 0.88rem; color: #F59E0B; font-weight: 700;">
+                Completed: <span id="interviewCompletedCount">{{ enrollment.interview_prep_status|length }}</span> / {{ interview_questions|length }}
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            {% for iq in interview_questions %}
+            {% set iq_status = enrollment.interview_prep_status.get(iq.order_index|string, 'not_started') %}
+            <div class="card" style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 16px; padding: 22px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 0.72rem; font-weight: 700; color: #38BDF8; background: rgba(56, 189, 248, 0.15); padding: 3px 10px; border-radius: 9999px;">
+                            {{ iq.topic }}
+                        </span>
+                        <span style="font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(0,0,0,0.3); color: #CBD5E1;">
+                            {{ iq.difficulty|capitalize }}
+                        </span>
+                    </div>
+
+                    <!-- Status Selector -->
+                    <select class="form-select form-select-sm"
+                            onchange="updateInterviewStatus('{{ iq.id }}', this.value)"
+                            style="width: 150px; background: #0F172A; color: #F8FAFC; border-color: rgba(255,255,255,0.15); font-size: 0.8rem; border-radius: 8px;">
+                        <option value="not_started" {% if iq_status == 'not_started' %}selected{% endif %}>Not Started</option>
+                        <option value="practising" {% if iq_status == 'practising' %}selected{% endif %}>Practising</option>
+                        <option value="completed" {% if iq_status == 'completed' %}selected{% endif %}>✓ Completed</option>
+                    </select>
+                </div>
+
+                <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary, #F8FAFC); margin-bottom: 12px;">
+                    {{ iq.question_text }}
+                </h4>
+
+                <!-- Collapsible Answer -->
+                <details style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 16px;">
+                    <summary style="cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #F59E0B; outline: none;">
+                        Reveal Model Answer &amp; Explanation
+                    </summary>
+                    <div style="margin-top: 12px; font-size: 0.88rem; color: #CBD5E1; line-height: 1.6; white-space: pre-wrap;">
+                        {{ iq.sample_answer }}
+                    </div>
+                </details>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 5: CODING ARENA (INBUILT TERMINAL) -->
+    <!-- ========================================================================= -->
+    <div id="tab-coding" class="tab-content-panel {% if active_tab == 'coding' %}active{% endif %}">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+                <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin: 0;">
+                    Inbuilt Coding Arena
+                </h3>
+                <p style="font-size: 0.86rem; color: var(--text-secondary, #94A3B8); margin: 2px 0 0;">
+                    Solve algorithmic programming challenges in Python. Tested against live test cases and hidden edge tests.
+                </p>
+            </div>
+            <div style="font-size: 0.88rem; color: #10B981; font-weight: 700;">
+                Solved: <span id="codingSolvedCount">{{ enrollment.coding_problems_solved|length }}</span> / {{ coding_problems|length }}
+            </div>
+        </div>
+
+        <!-- Problem Selector Tabs -->
+        <div style="display: flex; gap: 8px; overflow-x: auto; margin-bottom: 16px; padding-bottom: 4px;">
+            {% for prob in coding_problems %}
+            {% set is_solved = (prob.slug in enrollment.coding_problems_solved) %}
+            <button class="btn btn-sm {% if loop.first %}btn-primary{% else %}btn-outline-light{% endif %} coding-problem-tab-btn"
+                    id="probTab-{{ prob.id }}"
+                    data-problem-id="{{ prob.id }}"
+                    onclick="selectCodingProblem('{{ prob.id }}')"
+                    style="border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
+                {% if is_solved %}
+                <i data-lucide="check-circle-2" style="width: 13px; height: 13px; color: #10B981;"></i>
+                {% endif %}
+                <span>{{ prob.order_index }}. {{ prob.title }}</span>
+            </button>
+            {% endfor %}
+        </div>
+
+        <!-- Split-Screen Editor & Problem View -->
+        {% for prob in coding_problems %}
+        <div class="coding-problem-view" id="problemView-{{ prob.id }}" style="{% if not loop.first %}display: none;{% endif %}">
+            <div class="row g-3">
+                <!-- Left: Problem Description -->
+                <div class="col-12 col-lg-5">
+                    <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 14px; padding: 20px; height: 540px; overflow-y: auto;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin: 0;">
+                                {{ prob.title }}
+                            </h4>
+                            <span style="font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(0,0,0,0.3); color: #CBD5E1;">
+                                {{ prob.difficulty|capitalize }}
+                            </span>
+                        </div>
+
+                        <p style="font-size: 0.88rem; color: #CBD5E1; line-height: 1.6; margin-bottom: 16px;">
+                            {{ prob.description }}
+                        </p>
+
+                        {% if prob.constraints %}
+                        <div style="margin-bottom: 16px;">
+                            <div style="font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                                Constraints:
+                            </div>
+                            <ul style="padding-left: 18px; margin: 0; font-size: 0.82rem; color: #94A3B8;">
+                                {% for c in prob.constraints %}
+                                <li>{{ c }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <!-- Sample Test Cases -->
+                        <div style="font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 8px;">
+                            Sample Test Cases:
+                        </div>
+                        {% for tc in prob.test_cases %}
+                        {% if not tc.is_hidden %}
+                        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; margin-bottom: 8px; font-family: monospace; font-size: 0.82rem;">
+                            <div style="color: #94A3B8;">Input: <span style="color: #F8FAFC;">{{ tc.input }}</span></div>
+                            <div style="color: #94A3B8;">Expected Output: <span style="color: #34D399;">{{ tc.expected_output }}</span></div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Right: Code Editor & Terminal Output -->
+                <div class="col-12 col-lg-7">
+                    <div style="background: #0F172A; border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; height: 540px;">
+                        <!-- Editor Top Bar -->
+                        <div style="background: #1E293B; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="width: 10px; height: 10px; border-radius: 50%; background: #EF4444;"></span>
+                                <span style="width: 10px; height: 10px; border-radius: 50%; background: #F59E0B;"></span>
+                                <span style="width: 10px; height: 10px; border-radius: 50%; background: #10B981;"></span>
+                                <span style="font-size: 0.78rem; font-weight: 700; color: #94A3B8; margin-left: 6px;">Python 3.12 (Isolated Sandbox)</span>
+                            </div>
+
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" class="btn btn-sm btn-outline-light" onclick="runCodingCode('{{ prob.id }}')" style="font-size: 0.8rem; font-weight: 600; border-radius: 6px;">
+                                    <i data-lucide="play" style="width: 12px; height: 12px; display: inline;"></i> Run Samples
+                                </button>
+                                <button type="button" class="btn btn-sm btn-success" onclick="submitCodingProblem('{{ prob.id }}')" style="font-size: 0.8rem; font-weight: 700; border-radius: 6px; background: #10B981;">
+                                    <i data-lucide="check" style="width: 12px; height: 12px; display: inline;"></i> Submit Code
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Code Editor Textarea -->
+                        <textarea id="codeEditor-{{ prob.id }}"
+                                  spellcheck="false"
+                                  style="flex: 1; width: 100%; background: #0F172A; color: #F8FAFC; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.88rem; padding: 14px; border: none; outline: none; resize: none; line-height: 1.5;">{{ prob.starter_code or "import sys\n\ndef solve():\n    # Read input from standard input\n    pass\n\nif __name__ == '__main__':\n    solve()\n" }}</textarea>
+
+                        <!-- Terminal Output Console -->
+                        <div id="terminalOutput-{{ prob.id }}" style="height: 150px; background: #090D16; border-top: 1px solid rgba(255,255,255,0.08); padding: 12px; overflow-y: auto; font-family: monospace; font-size: 0.82rem; color: #94A3B8;">
+                            <div style="color: #64748B;">[SkillRock Sandbox Ready] Click "Run Samples" to test or "Submit Code" to test against hidden test cases.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 6: PRACTICAL ASSIGNMENT -->
+    <!-- ========================================================================= -->
+    <div id="tab-assignment" class="tab-content-panel {% if active_tab == 'assignment' %}active{% endif %}">
+        <div class="row g-4">
+            <div class="col-12 col-lg-7">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 16px; padding: 24px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                        <span style="font-size: 0.72rem; font-weight: 800; color: #0EA5E9; background: rgba(14, 165, 233, 0.15); padding: 3px 10px; border-radius: 9999px;">
+                            CAPSTONE PROJECT
+                        </span>
+                        {% if assignment_submission %}
+                        <span class="milestone-badge completed">SUBMISSION RECEIVED</span>
+                        {% endif %}
+                    </div>
+
+                    <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin-bottom: 12px;">
+                        {{ assignment.title if assignment else "Python CLI & Automated Data Processor" }}
+                    </h3>
+
+                    <p style="font-size: 0.92rem; color: #CBD5E1; line-height: 1.6; margin-bottom: 20px;">
+                        {{ assignment.problem_statement if assignment else "Build a production-grade Python tool that demonstrates modular architecture, exception handling, data structures, and unit testing." }}
+                    </p>
+
+                    <h5 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary, #F8FAFC); margin-bottom: 10px;">
+                        Deliverables &amp; Requirements:
+                    </h5>
+                    <ul style="padding-left: 20px; font-size: 0.88rem; color: #94A3B8; line-height: 1.6; margin-bottom: 24px;">
+                        <li>Public GitHub Repository with clean Git commit history</li>
+                        <li>Comprehensive README.md explaining architecture, setup, and usage</li>
+                        <li>Automated tests (using <code>pytest</code> or <code>unittest</code>)</li>
+                        <li>Live deployment link or terminal demo recording</li>
+                    </ul>
+
+                    <!-- 4-Point Evaluation Rubric -->
+                    <h5 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary, #F8FAFC); margin-bottom: 10px;">
+                        Evaluation Rubric:
+                    </h5>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px;">
+                                <div style="font-size: 0.8rem; font-weight: 700; color: #F59E0B;">Code Architecture (25%)</div>
+                                <div style="font-size: 0.75rem; color: #94A3B8;">Clean functions, OOP principles, and separation of concerns.</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px;">
+                                <div style="font-size: 0.8rem; font-weight: 700; color: #3B82F6;">Functionality &amp; CLI (25%)</div>
+                                <div style="font-size: 0.75rem; color: #94A3B8;">Accurate execution, robust arguments parsing, and error guards.</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px;">
+                                <div style="font-size: 0.8rem; font-weight: 700; color: #10B981;">Automated Tests (25%)</div>
+                                <div style="font-size: 0.75rem; color: #94A3B8;">Unit test suite with high branch &amp; edge case test coverage.</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px;">
+                                <div style="font-size: 0.8rem; font-weight: 700; color: #EC4899;">Documentation &amp; Demo (25%)</div>
+                                <div style="font-size: 0.75rem; color: #94A3B8;">Clear README, installation guide, and demonstration sample.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Submission Form / Status -->
+            <div class="col-12 col-lg-5">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 16px; padding: 24px;">
+                    <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin-bottom: 16px;">
+                        Submit Practical Project
+                    </h4>
+
+                    {% if assignment_submission %}
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #10B981;"></i>
+                            <span style="font-weight: 700; color: #34D399; font-size: 0.9rem;">Submission Active</span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #94A3B8;">
+                            Submitted at: {{ assignment_submission.submitted_at.strftime('%Y-%m-%d %H:%M UTC') }}
+                        </div>
+                        <div style="font-size: 0.82rem; color: #E2E8F0; margin-top: 8px; word-break: break-all;">
+                            <strong>GitHub:</strong> <a href="{{ assignment_submission.github_repo_url }}" target="_blank" style="color: #60A5FA;">{{ assignment_submission.github_repo_url }}</a>
+                        </div>
+                        {% if assignment_submission.live_demo_url %}
+                        <div style="font-size: 0.82rem; color: #E2E8F0; margin-top: 4px; word-break: break-all;">
+                            <strong>Live Demo:</strong> <a href="{{ assignment_submission.live_demo_url }}" target="_blank" style="color: #60A5FA;">{{ assignment_submission.live_demo_url }}</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <form action="{{ url_for('challenge.submit_assignment', slug=challenge.slug) }}" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">GitHub Repository URL <span style="color: #EF4444;">*</span></label>
+                            <input type="url" name="github_repo_url" class="form-control" placeholder="https://github.com/your-username/python-challenge-project" required value="{{ assignment_submission.github_repo_url if assignment_submission else '' }}" style="background: #0F172A; border-color: rgba(255,255,255,0.15); color: #FFF; border-radius: 8px;">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">Live Demo or Video Link (Optional)</label>
+                            <input type="url" name="live_demo_url" class="form-control" placeholder="https://your-demo.onrender.com or loom/drive video link" value="{{ assignment_submission.live_demo_url if assignment_submission else '' }}" style="background: #0F172A; border-color: rgba(255,255,255,0.15); color: #FFF; border-radius: 8px;">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">Submission Notes / Implementation Details</label>
+                            <textarea name="submission_notes" class="form-control" rows="3" placeholder="Briefly summarize libraries used, design choices, and test instructions." style="background: #0F172A; border-color: rgba(255,255,255,0.15); color: #FFF; border-radius: 8px;">{{ assignment_submission.submission_notes if assignment_submission else '' }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" style="background: #5B46F6; font-weight: 700; padding: 12px; border-radius: 8px;">
+                            {% if assignment_submission %}Update Assignment Submission{% else %}Submit Project for Review{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 7: FINAL ASSESSMENT (50 MCQS) -->
+    <!-- ========================================================================= -->
+    <div id="tab-assessment" class="tab-content-panel {% if active_tab == 'assessment' %}active{% endif %}">
+        <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 16px; padding: 28px; margin-bottom: 24px;">
+            <div class="row g-4 align-items-center">
+                <div class="col-12 col-md-8">
+                    <span style="font-size: 0.75rem; font-weight: 800; color: #F59E0B; background: rgba(245, 158, 11, 0.15); padding: 4px 12px; border-radius: 9999px;">
+                        CERTIFICATION &amp; REFUND EXAM
+                    </span>
+                    <h3 style="font-size: 1.45rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin: 8px 0 6px;">
+                        50-Question Comprehensive Final Assessment
+                    </h3>
+                    <p style="font-size: 0.88rem; color: var(--text-secondary, #94A3B8); margin: 0; line-height: 1.6;">
+                        This exam evaluates your complete mastery over all course modules. Exactly 50 MCQs, 60 minutes time limit, randomized from the challenge question bank.
+                        Passing threshold is <strong>≥80% (40 out of 50)</strong>. Maximum <strong>2 attempts</strong> allowed.
+                    </p>
+                </div>
+
+                <div class="col-12 col-md-4 text-md-end">
+                    {% if enrollment.assessment_passed %}
+                    <div style="display: inline-block; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 14px 20px; text-align: center;">
+                        <i data-lucide="award" style="width: 28px; height: 28px; color: #10B981; margin-bottom: 4px;"></i>
+                        <div style="font-size: 1.1rem; font-weight: 800; color: #34D399;">PASSED</div>
+                        <div style="font-size: 0.75rem; color: #94A3B8;">Score: {{ enrollment.assessment_score }}/50</div>
+                    </div>
+                    {% elif assessment_attempts|length >= 2 %}
+                    <div style="display: inline-block; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 14px 20px; text-align: center;">
+                        <i data-lucide="alert-octagon" style="width: 28px; height: 28px; color: #EF4444; margin-bottom: 4px;"></i>
+                        <div style="font-size: 1.1rem; font-weight: 800; color: #EF4444;">Attempts Exhausted</div>
+                        <div style="font-size: 0.75rem; color: #94A3B8;">2 of 2 Attempts Used</div>
+                    </div>
+                    {% else %}
+                    <button class="btn btn-primary" onclick="startAssessmentSession()" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: #0F172A; font-weight: 800; padding: 12px 24px; border-radius: 10px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);">
+                        <i data-lucide="play" style="width: 16px; height: 16px; display: inline;"></i>
+                        Start Attempt ({{ assessment_attempts|length + 1 }}/2)
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Past Attempts Table -->
+            {% if assessment_attempts %}
+            <div style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 18px;">
+                <h5 style="font-size: 0.9rem; font-weight: 700; color: #E2E8F0; margin-bottom: 12px;">Your Past Attempts:</h5>
+                <div class="table-responsive">
+                    <table class="table table-dark table-sm table-borderless" style="background: transparent; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="color: #94A3B8; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <th>Attempt</th>
+                                <th>Started</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for att in assessment_attempts %}
+                            <tr>
+                                <td>Attempt #{{ att.attempt_number }}</td>
+                                <td>{{ att.started_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ att.score }}/{{ att.total_questions }}</td>
+                                <td>{{ att.percentage }}%</td>
+                                <td>
+                                    {% if att.passed %}
+                                    <span style="color: #34D399; font-weight: 700;">✓ PASSED</span>
+                                    {% else %}
+                                    <span style="color: #EF4444; font-weight: 700;">✗ FAILED</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Live Assessment Container (Hidden until user clicks Start Attempt) -->
+        <div id="liveAssessmentModal" style="display: none; background: #0F172A; border: 2px solid #F59E0B; border-radius: 18px; padding: 24px; margin-bottom: 24px;">
+            <!-- Quiz Timer Bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 20px;">
+                <div>
+                    <span style="font-weight: 800; color: #F59E0B; font-size: 1.1rem;">Final Assessment In-Progress</span>
+                    <span style="font-size: 0.8rem; color: #94A3B8; margin-left: 8px;">(Total 50 MCQs)</span>
+                </div>
+                <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); padding: 6px 14px; border-radius: 8px; color: #EF4444; font-weight: 800; font-size: 1rem; font-family: monospace;">
+                    ⏱ Time Left: <span id="assessmentTimeRemaining">60:00</span>
+                </div>
+            </div>
+
+            <div id="assessmentQuestionsList" style="display: flex; flex-direction: column; gap: 20px; max-height: 600px; overflow-y: auto; padding-right: 8px;">
+                <!-- Questions injected dynamically by JS -->
+            </div>
+
+            <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.82rem; color: #94A3B8;">Ensure all questions are answered before submitting.</span>
+                <button type="button" class="btn btn-success" onclick="submitAssessmentAnswers()" style="font-weight: 800; padding: 10px 24px; border-radius: 8px; background: #10B981;">
+                    Submit Assessment Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 8: SKILLROCK CERTIFICATE -->
+    <!-- ========================================================================= -->
+    <div id="tab-certificate" class="tab-content-panel {% if active_tab == 'certificate' %}active{% endif %}">
+        {% if enrollment.certificate_id %}
+        <div style="background: linear-gradient(135deg, rgba(91, 70, 246, 0.12) 0%, rgba(15, 23, 42, 0.8) 100%); border: 2px solid #8B5CF6; border-radius: 20px; padding: 36px; text-align: center; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(139, 92, 246, 0.2); color: #C4B5FD; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                <i data-lucide="award" style="width: 32px; height: 32px;"></i>
+            </div>
+
+            <h2 style="font-size: 1.8rem; font-weight: 800; color: #FFFFFF; margin-bottom: 8px;">
+                Certificate of Completion Issued!
+            </h2>
+            <p style="font-size: 0.95rem; color: #CBD5E1; max-width: 600px; margin: 0 auto 18px;">
+                This certifies that <strong>{{ current_user.name }}</strong> has successfully fulfilled all 28-day requirements and passed the comprehensive assessment for <strong>{{ challenge.title }}</strong>.
+            </p>
+
+            <div style="display: inline-block; background: rgba(0,0,0,0.3); border: 1px dashed rgba(196, 181, 253, 0.4); border-radius: 10px; padding: 10px 20px; margin-bottom: 24px;">
+                <span style="font-size: 0.78rem; color: #94A3B8; text-transform: uppercase;">Verification ID: </span>
+                <strong style="font-family: monospace; font-size: 1rem; color: #C4B5FD;">{{ enrollment.certificate_id }}</strong>
+            </div>
+
+            <div>
+                <a href="{{ url_for('challenge.view_certificate', slug=challenge.slug) }}" target="_blank" class="btn btn-primary" style="background: #5B46F6; font-weight: 700; padding: 12px 28px; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px;">
+                    <i data-lucide="external-link" style="width: 16px; height: 16px;"></i>
+                    <span>View &amp; Print Full Certificate</span>
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 16px; padding: 40px; text-align: center;">
+            <i data-lucide="lock" style="width: 48px; height: 48px; color: #94A3B8; margin-bottom: 12px;"></i>
+            <h4 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin-bottom: 8px;">
+                Certificate Currently Locked
+            </h4>
+            <p style="font-size: 0.88rem; color: var(--text-secondary, #94A3B8); max-width: 520px; margin: 0 auto 20px;">
+                Your official SkillRock Certificate is automatically generated upon scoring ≥80% (40/50) in the 50-MCQ Final Assessment.
+            </p>
+            <button class="btn btn-outline-light" onclick="switchChallengeTab('assessment')" style="border-radius: 8px; font-weight: 600;">
+                Take the Final Assessment
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 9: 100% REFUND CLAIM SYSTEM -->
+    <!-- ========================================================================= -->
+    <div id="tab-refund" class="tab-content-panel {% if active_tab == 'refund' %}active{% endif %}">
+        <div class="row g-4">
+            <!-- Left: 7 Published Conditions Checklist -->
+            <div class="col-12 col-lg-7">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 16px; padding: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                        <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin: 0;">
+                            7 Published Refund Conditions Checklist
+                        </h4>
+                        <span style="font-size: 0.85rem; font-weight: 700; color: {% if refund_check.all_eligible %}#34D399{% else %}#F59E0B{% endif %};">
+                            {{ refund_check.fulfilled_count }} of 7 Fulfilled
+                        </span>
+                    </div>
+
+                    <p style="font-size: 0.85rem; color: var(--text-secondary, #94A3B8); margin-bottom: 18px; line-height: 1.5;">
+                        SkillRock guarantees a 100% refund of your ₹{{ enrollment.amount_paid|int }} enrolment fee upon fulfilling all published conditions before the 28-day countdown expires.
+                    </p>
+
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        {% for crit in refund_check.criteria %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 10px; background: {% if crit.fulfilled %}rgba(16, 185, 129, 0.08){% else %}rgba(0,0,0,0.2){% endif %}; border: 1px solid {% if crit.fulfilled %}rgba(16, 185, 129, 0.3){% else %}rgba(255,255,255,0.06){% endif %};">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                {% if crit.fulfilled %}
+                                <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #10B981;"></i>
+                                {% else %}
+                                <i data-lucide="circle-dashed" style="width: 18px; height: 18px; color: #94A3B8;"></i>
+                                {% endif %}
+                                <span style="font-size: 0.88rem; font-weight: 600; color: {% if crit.fulfilled %}#F8FAFC{% else %}#94A3B8{% endif %};">
+                                    {{ crit.condition }}
+                                </span>
+                            </div>
+                            <span style="font-size: 0.78rem; font-weight: 700; color: {% if crit.fulfilled %}#34D399{% else %}#F59E0B{% endif %};">
+                                {{ crit.status }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Claim Form or Tracker -->
+            <div class="col-12 col-lg-5">
+                <div style="background: var(--bg-surface, #1E293B); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 16px; padding: 24px;">
+                    <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary, #F8FAFC); margin-bottom: 14px;">
+                        100% Refund Payout
+                    </h4>
+
+                    {% if refund_claim %}
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 18px; text-align: center;">
+                        <div style="font-size: 0.78rem; color: #94A3B8; text-transform: uppercase; font-weight: 700;">Claim Reference</div>
+                        <div style="font-family: monospace; font-size: 1rem; color: #F59E0B; font-weight: 800; margin: 2px 0 8px;">{{ refund_claim.claim_id }}</div>
+                        
+                        <div style="font-size: 1.3rem; font-weight: 800; color: #34D399; margin-bottom: 6px;">
+                            ₹{{ refund_claim.amount|int }}
+                        </div>
+
+                        <span style="display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase;
+                            {% if refund_claim.status == 'approved' or refund_claim.status == 'paid' %}background: rgba(16,185,129,0.2); color: #34D399; border: 1px solid #10B981;
+                            {% elif refund_claim.status == 'rejected' %}background: rgba(239,68,68,0.2); color: #EF4444; border: 1px solid #EF4444;
+                            {% else %}background: rgba(245,158,11,0.2); color: #F59E0B; border: 1px solid #F59E0B;{% endif %}">
+                            Status: {{ refund_claim.status }}
+                        </span>
+
+                        <div style="font-size: 0.8rem; color: #94A3B8; margin-top: 12px; text-align: left;">
+                            <div><strong>UPI Destination:</strong> {{ refund_claim.upi_id }}</div>
+                            <div><strong>Account Name:</strong> {{ refund_claim.account_holder_name }}</div>
+                            <div><strong>Claimed At:</strong> {{ refund_claim.submitted_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                            {% if refund_claim.admin_notes %}
+                            <div style="margin-top: 6px; color: #CBD5E1;"><strong>Notes:</strong> {{ refund_claim.admin_notes }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% elif refund_check.all_eligible %}
+                    <form id="refundClaimForm" onsubmit="submitRefundClaimForm(event)">
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">UPI ID for 100% Refund Credit <span style="color: #EF4444;">*</span></label>
+                            <input type="text" id="refundUpiId" class="form-control" placeholder="yourname@okhdfcbank" required style="background: #0F172A; border-color: rgba(255,255,255,0.15); color: #FFF; border-radius: 8px;">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">Account Holder Name <span style="color: #EF4444;">*</span></label>
+                            <input type="text" id="refundAccountName" class="form-control" value="{{ current_user.name }}" required style="background: #0F172A; border-color: rgba(255,255,255,0.15); color: #FFF; border-radius: 8px;">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">Phone Number</label>
+                            <input type="tel" id="refundPhone" class="form-control" value="{{ current_user.phone or '' }}" placeholder="10-digit mobile number" style="background: #0F172A; border-color: rgba(255,255,255,0.15); color: #FFF; border-radius: 8px;">
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100" style="background: #10B981; border-color: #10B981; font-weight: 800; padding: 12px; border-radius: 8px;">
+                            Claim 100% Refund (₹{{ enrollment.amount_paid|int }})
+                        </button>
+                    </form>
+                    {% else %}
+                    <div style="background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; text-align: center;">
+                        <i data-lucide="lock" style="width: 36px; height: 36px; color: #94A3B8; margin-bottom: 8px;"></i>
+                        <h5 style="color: #E2E8F0; font-size: 0.95rem; margin-bottom: 4px;">Refund Form Locked</h5>
+                        <p style="font-size: 0.8rem; color: #94A3B8; margin: 0;">
+                            The UPI claim form unlocks automatically once all 7 conditions on the left are marked complete before Day 28 ends.
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Tab Switching Controller
+function switchChallengeTab(tabName) {
+    document.querySelectorAll('.challenge-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
+    document.querySelectorAll('.tab-content-panel').forEach(panel => {
+        panel.classList.toggle('active', panel.id === `tab-${tabName}`);
+    });
+    // Update URL query parameter without full reload
+    const url = new URL(window.location);
+    url.searchParams.set('tab', tabName);
+    window.history.replaceState({}, '', url);
+}
+
+document.querySelectorAll('.challenge-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchChallengeTab(btn.dataset.tab));
+});
+
+// Module Toggle Checkbox
+document.querySelectorAll('.module-toggle-checkbox').forEach(cb => {
+    cb.addEventListener('change', async function() {
+        const moduleId = this.dataset.moduleId;
+        const completed = this.checked;
+        try {
+            const resp = await fetch("{{ url_for('challenge.toggle_module', slug=challenge.slug) }}", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({module_id: parseInt(moduleId), completed: completed})
+            });
+            const data = await resp.json();
+            if (!data.success) {
+                alert(data.error || "Failed to update module status");
+                this.checked = !completed;
+            }
+        } catch (e) {
+            console.error(e);
+            this.checked = !completed;
+        }
+    });
+});
+
+// Practice MCQ Submission
+async function submitPracticeOption(questionId, optionIndex) {
+    try {
+        const resp = await fetch("{{ url_for('challenge.submit_practice', slug=challenge.slug) }}", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({question_id: questionId, selected_option: optionIndex})
+        });
+        const data = await resp.json();
+        if (data.success) {
+            const card = document.getElementById(`practiceCard-${questionId}`);
+            card.querySelectorAll('.practice-option-btn').forEach((btn, idx) => {
+                btn.classList.remove('btn-outline-light', 'btn-success', 'btn-danger');
+                if (idx === data.correct_option) {
+                    btn.classList.add('btn-success');
+                } else if (idx === optionIndex && !data.is_correct) {
+                    btn.classList.add('btn-danger');
+                } else {
+                    btn.classList.add('btn-outline-light');
+                }
+            });
+            const exp = document.getElementById(`practiceExplanation-${questionId}`);
+            if (exp) {
+                exp.style.display = 'block';
+            }
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+// Interview Prep Status Updater
+async function updateInterviewStatus(questionId, status) {
+    try {
+        const resp = await fetch("{{ url_for('challenge.update_interview_status', slug=challenge.slug) }}", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({question_id: questionId, status: status})
+        });
+        const data = await resp.json();
+        if (data.success) {
+            console.log("Updated interview status:", data);
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+// Coding Arena Tab Switching
+function selectCodingProblem(probId) {
+    document.querySelectorAll('.coding-problem-tab-btn').forEach(btn => {
+        btn.classList.toggle('btn-primary', btn.dataset.problemId === probId);
+        btn.classList.toggle('btn-outline-light', btn.dataset.problemId !== probId);
+    });
+    document.querySelectorAll('.coding-problem-view').forEach(view => {
+        view.style.display = (view.id === `problemView-${probId}`) ? 'block' : 'none';
+    });
+}
+
+// Run Code Samples in Coding Arena
+async function runCodingCode(probId) {
+    const editor = document.getElementById(`codeEditor-${probId}`);
+    const terminal = document.getElementById(`terminalOutput-${probId}`);
+    const code = editor.value;
+
+    terminal.innerHTML = `<span style="color: #F59E0B;">Running sample test cases in isolated Python sandbox...</span>`;
+
+    try {
+        const resp = await fetch("{{ url_for('challenge.run_coding_code', slug=challenge.slug) }}", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({problem_id: probId, code: code})
+        });
+        const data = await resp.json();
+        if (data.success) {
+            let output = `<div style="color: #38BDF8; font-weight: bold; margin-bottom: 6px;">Evaluation Results: ${data.passed_count}/${data.total_count} Sample Cases Passed</div>`;
+            data.results.forEach(r => {
+                output += `<div style="margin-bottom: 6px; padding: 6px; border-radius: 4px; background: ${r.passed ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'};">`;
+                output += `Test Case #${r.test_case_id}: ${r.passed ? '<span style="color: #34D399; font-weight: bold;">PASSED</span>' : '<span style="color: #EF4444; font-weight: bold;">FAILED</span>'} (${r.execution_time_ms} ms)<br>`;
+                output += `<span style="color: #64748B;">Input: ${r.input} | Expected: ${r.expected_output} | Output: ${r.actual_output}</span>`;
+                if (r.error) output += `<div style="color: #EF4444;">Error: ${r.error}</div>`;
+                output += `</div>`;
+            });
+            terminal.innerHTML = output;
+        } else {
+            terminal.innerHTML = `<span style="color: #EF4444;">Error: ${data.error || "Sandbox evaluation error"}</span>`;
+        }
+    } catch (e) {
+        terminal.innerHTML = `<span style="color: #EF4444;">Execution failed: ${e.message}</span>`;
+    }
+}
+
+// Submit Code in Coding Arena
+async function submitCodingProblem(probId) {
+    const editor = document.getElementById(`codeEditor-${probId}`);
+    const terminal = document.getElementById(`terminalOutput-${probId}`);
+    const code = editor.value;
+
+    terminal.innerHTML = `<span style="color: #F59E0B;">Running all tests (including hidden edge tests)...</span>`;
+
+    try {
+        const resp = await fetch("{{ url_for('challenge.submit_coding_problem', slug=challenge.slug) }}", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({problem_id: probId, code: code})
+        });
+        const data = await resp.json();
+        if (data.success) {
+            if (data.all_passed) {
+                terminal.innerHTML = `<div style="color: #34D399; font-size: 1rem; font-weight: bold;">✓ ACCEPTED! All ${data.total_count} test cases passed. Problem Solved!</div>`;
+                const tabBtn = document.getElementById(`probTab-${probId}`);
+                if (tabBtn && !tabBtn.querySelector('i')) {
+                    tabBtn.insertAdjacentHTML('afterbegin', `<i data-lucide="check-circle-2" style="width: 13px; height: 13px; color: #10B981;"></i> `);
+                    if (window.lucide) lucide.createIcons();
+                }
+            } else {
+                terminal.innerHTML = `<div style="color: #EF4444; font-weight: bold;">✗ Wrong Answer. Passed ${data.passed_count}/${data.total_count} test cases. Review edge cases and try again.</div>`;
+            }
+        } else {
+            terminal.innerHTML = `<span style="color: #EF4444;">Submission Error: ${data.error || "Check code syntax and constraints."}</span>`;
+        }
+    } catch (e) {
+        terminal.innerHTML = `<span style="color: #EF4444;">Submission failed: ${e.message}</span>`;
+    }
+}
+
+// Live 50-MCQ Assessment
+let currentAttemptId = null;
+let assessmentTimerInterval = null;
+
+async function startAssessmentSession() {
+    if (!confirm("Start your 50-MCQ Final Assessment attempt now? You will have 60 minutes to complete.")) {
+        return;
+    }
+
+    try {
+        const resp = await fetch("{{ url_for('challenge.start_assessment', slug=challenge.slug) }}", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"}
+        });
+        const data = await resp.json();
+        if (data.success) {
+            currentAttemptId = data.attempt_id;
+            renderAssessmentQuestions(data.questions);
+            document.getElementById('liveAssessmentModal').style.display = 'block';
+            startAssessmentTimer(60 * 60);
+        } else {
+            alert(data.error || "Could not initialize assessment attempt.");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Error starting assessment attempt.");
+    }
+}
+
+function renderAssessmentQuestions(questions) {
+    const container = document.getElementById('assessmentQuestionsList');
+    let html = '';
+    questions.forEach((q, idx) => {
+        html += `
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: #F59E0B; margin-bottom: 6px;">QUESTION ${q.order_index} OF 50 (${q.topic})</div>
+            <div style="font-size: 0.95rem; font-weight: 600; color: #FFFFFF; margin-bottom: 12px;">${q.question_text}</div>
+            <div class="row g-2">
+        `;
+        q.options.forEach((opt, optIdx) => {
+            html += `
+            <div class="col-12 col-md-6">
+                <label style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; cursor: pointer;">
+                    <input type="radio" name="q_${q.id}" value="${optIdx}" style="accent-color: #F59E0B;">
+                    <span style="font-size: 0.85rem; color: #E2E8F0;">${['A', 'B', 'C', 'D'][optIdx]}. ${opt}</span>
+                </label>
+            </div>
+            `;
+        });
+        html += `</div></div>`;
+    });
+    container.innerHTML = html;
+}
+
+function startAssessmentTimer(seconds) {
+    let remaining = seconds;
+    const timerElem = document.getElementById('assessmentTimeRemaining');
+    if (assessmentTimerInterval) clearInterval(assessmentTimerInterval);
+    assessmentTimerInterval = setInterval(() => {
+        remaining--;
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
+        timerElem.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        if (remaining <= 0) {
+            clearInterval(assessmentTimerInterval);
+            alert("Time limit reached! Submitting your answers automatically.");
+            submitAssessmentAnswers();
+        }
+    }, 1000);
+}
+
+async function submitAssessmentAnswers() {
+    if (!currentAttemptId) return;
+    const answers = {};
+    document.querySelectorAll('#assessmentQuestionsList input[type="radio"]:checked').forEach(r => {
+        const qId = r.name.replace('q_', '');
+        answers[qId] = parseInt(r.value);
+    });
+
+    try {
+        const resp = await fetch("{{ url_for('challenge.submit_assessment', slug=challenge.slug) }}", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({attempt_id: currentAttemptId, answers: answers})
+        });
+        const data = await resp.json();
+        if (data.success) {
+            clearInterval(assessmentTimerInterval);
+            alert(`Assessment evaluated! Score: ${data.score}/${data.total_questions} (${data.percentage}%). Result: ${data.passed ? 'PASSED (Certificate Issued!)' : 'FAILED (Under 80%)'}`);
+            window.location.reload();
+        } else {
+            alert(data.error || "Failed to submit assessment.");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Submission error.");
+    }
+}
+
+// 100% Refund Claim Form Submission
+async function submitRefundClaimForm(e) {
+    e.preventDefault();
+    const upiId = document.getElementById('refundUpiId').value.trim();
+    const accountName = document.getElementById('refundAccountName').value.trim();
+    const phone = document.getElementById('refundPhone').value.trim();
+
+    try {
+        const resp = await fetch("{{ url_for('challenge.submit_refund_claim', slug=challenge.slug) }}", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({upi_id: upiId, account_holder_name: accountName, phone_number: phone})
+        });
+        const data = await resp.json();
+        if (data.success) {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert(data.error || "Could not submit refund claim.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Submission failed. Please check connection.");
+    }
+}
+</script>
+{% endblock %}

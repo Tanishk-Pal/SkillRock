@@ -377,7 +377,7 @@ def checkout(item_type, item_id):
     - If item is free, redirects immediately to /enroll-free/<item_type>/<item_id>.
     - If user already unlocked item, redirects to the course/test player.
     """
-    if item_type not in ("course", "test_series", "roadmap", "bhavishya"):
+    if item_type not in ("course", "test_series", "roadmap", "bhavishya", "challenge", "monthly_challenge"):
         flash("Invalid item category selected.", "danger")
         return redirect(url_for("learning.courses_list"))
 
@@ -403,6 +403,8 @@ def checkout(item_type, item_id):
             return redirect(url_for("roadmap.dashboard", slug=item.slug))
         elif item_type == "bhavishya":
             return redirect(url_for("bhavishya.dashboard"))
+        elif item_type in ("challenge", "monthly_challenge"):
+            return redirect(url_for("challenge.dashboard", slug=item.slug))
         else:
             return redirect(url_for("test_series.test_detail", test_slug=item.slug))
 
@@ -645,6 +647,8 @@ def verify_razorpay_payment():
             redirect_url = url_for("roadmap.dashboard", slug=item.slug)
         elif item_type == "bhavishya":
             redirect_url = url_for("bhavishya.dashboard")
+        elif item_type in ("challenge", "monthly_challenge") and item and getattr(item, "slug", None):
+            redirect_url = url_for("challenge.dashboard", slug=item.slug)
         return jsonify({
             "success": True,
             "message": "Payment already verified.",
@@ -839,7 +843,7 @@ def submit_payment():
     item_id = request.form.get("item_id", "").strip()
     utr_raw = request.form.get("utr_number", "").strip()
 
-    if item_type not in ("course", "test_series", "roadmap", "bhavishya") or not item_id:
+    if item_type not in ("course", "test_series", "roadmap", "bhavishya", "challenge", "monthly_challenge") or not item_id:
         flash("Invalid payment target item.", "danger")
         return redirect(url_for("learning.courses_list"))
 
@@ -983,6 +987,8 @@ def submit_payment():
             return redirect(url_for("roadmap.dashboard", slug=item.slug))
         elif item_type == "bhavishya":
             return redirect(url_for("bhavishya.dashboard"))
+        elif item_type in ("challenge", "monthly_challenge"):
+            return redirect(url_for("challenge.dashboard", slug=item.slug))
         else:
             return redirect(url_for("test_series.test_detail", test_slug=item.slug))
 
@@ -1175,6 +1181,8 @@ def check_auto_status(item_type, item_id):
             redirect_url = url_for("roadmap.dashboard", slug=item.slug)
         elif item_type == "bhavishya":
             redirect_url = url_for("bhavishya.dashboard")
+        elif item_type in ("challenge", "monthly_challenge") and item and getattr(item, "slug", None):
+            redirect_url = url_for("challenge.dashboard", slug=item.slug)
         else:
             redirect_url = url_for("test_series.test_detail", test_slug=item.slug)
 

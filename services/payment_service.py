@@ -100,6 +100,8 @@ def generate_upi_qr_base64(amount, item_type, item_id, item_title="", session_to
         short_type = "RDM"
     elif item_type == "bhavishya":
         short_type = "BHV"
+    elif item_type in ("challenge", "monthly_challenge"):
+        short_type = "MCH"
     elif item_type == "test_pack":
         short_type = "PCK"
     else:
@@ -215,6 +217,13 @@ def get_item_by_type_and_id(item_type, item_id):
         subj = BhavishyaSubject.get_by_slug(str_id) or BhavishyaSubject.get_by_id(str_id)
         return subj or BhavishyaPackage()
 
+    elif item_type in ("challenge", "monthly_challenge"):
+        from models.challenge import MonthlyChallenge
+        ch = MonthlyChallenge.get_by_id(str_id)
+        if not ch:
+            ch = MonthlyChallenge.get_by_slug(str_id)
+        return ch
+
     return None
 
 
@@ -283,6 +292,22 @@ def verify_student_unlock(user, item_type, item_id):
             return True
         from models.test_series import UserEntitlement
         return UserEntitlement.has_access_to_pack(user.id, getattr(item, "id", str(item_id)))
+
+    if item_type in ("challenge", "monthly_challenge"):
+        access_doc = db.user_access.find_one({
+            "user_id": str(user.id),
+            "item_type": {"$in": ["challenge", "monthly_challenge"]},
+            "$or": [
+                {"item_id": str(item.id)},
+                {"item_id": getattr(item, "slug", str(item.id))}
+            ],
+            "is_active": True,
+        })
+        if access_doc:
+            return True
+        from models.challenge import ChallengeEnrollment
+        enr = ChallengeEnrollment.get_user_enrollment(str(user.id), getattr(item, "slug", str(item.id)))
+        return bool(enr)
 
     access_doc = db.user_access.find_one({
         "user_id": str(user.id),
@@ -377,6 +402,22 @@ def grant_student_access(user_id, item_type, item_id, granted_by="admin", paymen
             BhavishyaProgress.get_or_create_for_user(uid)
         except Exception as e:
             logger.warning(f"Bhavishya progress hook on grant_student_access error: {e}")
+
+    # Automatically initialize enrollment if challenge
+    if item_type in ("challenge", "monthly_challenge"):
+        try:
+            from models.challenge import ChallengeEnrollment, MonthlyChallenge
+            ch = MonthlyChallenge.get_by_id(iid) or MonthlyChallenge.get_by_slug(iid)
+            if ch:
+                ChallengeEnrollment.get_or_create(
+                    user_id=uid,
+                    challenge_id=str(ch.id),
+                    challenge_slug=ch.slug,
+                    payment_id=str(payment_id) if payment_id else "",
+                    amount_paid=float(amount or ch.price or 499.0)
+                )
+        except Exception as e:
+            logger.warning(f"Challenge enrollment hook on grant_student_access error: {e}")
 
     return True
 

@@ -1907,227 +1907,289 @@ def payments_purge_test_records():
 
 
 # ==============================================================================
-# Career Roadmaps, Submissions & 50% Completion Cashback Administration
+# Monthly Challenge, Submissions & 100% Refund Management Console
 # ==============================================================================
 
-@admin_bp.route("/roadmaps")
-def roadmaps_list():
-    """Master overview of all Career Roadmap Packages, pricing, and enrollments."""
-    from models.roadmap import RoadmapPackage, RoadmapProgress, RoadmapSubmission, RoadmapCashback
+@admin_bp.route("/challenges")
+def challenges_list():
+    """Master overview of Monthly Challenges, enrollment metrics, and refund stats."""
+    from models.challenge import MonthlyChallenge, ChallengeEnrollment, ChallengeAssignmentSubmission, RefundClaim
+    from models.default_challenge_data import ensure_default_monthly_challenge
+    ensure_default_monthly_challenge()
+    challenges = MonthlyChallenge.get_all(active_only=False)
     db = get_db()
-    packages = RoadmapPackage.get_all(published_only=False)
     
-    # Calculate stats per roadmap
-    roadmap_stats = {}
-    for p in packages:
-        enrolled_count = db.user_access.count_documents({"item_type": "roadmap", "item_id": str(p.id), "is_active": True})
-        submissions_count = db.roadmap_submissions.count_documents({"roadmap_slug": p.slug})
-        pending_sub_count = db.roadmap_submissions.count_documents({"roadmap_slug": p.slug, "status": RoadmapSubmission.STATUS_PENDING})
-        cashback_req_count = db.roadmap_cashback.count_documents({"roadmap_slug": p.slug})
-        roadmap_stats[p.slug] = {
+    challenge_stats = {}
+    for ch in challenges:
+        enrolled_count = db.challenge_enrollments.count_documents({"challenge_slug": ch.slug})
+        submissions_count = db.challenge_submissions.count_documents({"challenge_slug": ch.slug})
+        passed_assessment_count = db.challenge_enrollments.count_documents({"challenge_slug": ch.slug, "assessment_passed": True})
+        refund_claims_count = db.refund_claims.count_documents({"challenge_slug": ch.slug})
+        pending_refund_count = db.refund_claims.count_documents({"challenge_slug": ch.slug, "status": "pending"})
+        challenge_stats[ch.slug] = {
             "enrolled": enrolled_count,
             "submissions": submissions_count,
-            "pending_submissions": pending_sub_count,
-            "cashback_requests": cashback_req_count
+            "passed": passed_assessment_count,
+            "refund_claims": refund_claims_count,
+            "pending_refunds": pending_refund_count,
         }
 
     return render_template(
-        "admin/roadmaps.html",
-        packages=packages,
-        roadmap_stats=roadmap_stats
+        "admin/challenges.html",
+        challenges=challenges,
+        stats=challenge_stats,
     )
 
 
-@admin_bp.route("/roadmaps/<slug>/edit", methods=["GET", "POST"])
-def roadmap_edit(slug):
-    """Configures roadmap pricing, original price, cashback %, deadline, and publish status."""
-    from models.roadmap import RoadmapPackage
-    pkg = RoadmapPackage.get_by_slug(slug)
-    if not pkg:
-        flash("Roadmap package not found.", "warning")
-        return redirect(url_for("admin.roadmaps_list"))
+@admin_bp.route("/challenges/<slug>/edit", methods=["GET", "POST"])
+def challenge_edit(slug):
+    """Configures Monthly Challenge pricing, duration, refund guarantee, and active status."""
+    from models.challenge import MonthlyChallenge
+    ch = MonthlyChallenge.get_by_slug(slug) or MonthlyChallenge.get_by_id(slug)
+    if not ch:
+        flash("Challenge not found.", "warning")
+        return redirect(url_for("admin.challenges_list"))
 
     if request.method == "POST":
         try:
-            pkg.price = float(request.form.get("price", pkg.price))
-            pkg.original_price = float(request.form.get("original_price", pkg.original_price))
-            pkg.cashback_enabled = bool(request.form.get("cashback_enabled") == "on" or request.form.get("cashback_enabled") == "true")
-            pkg.cashback_percentage = float(request.form.get("cashback_percentage", pkg.cashback_percentage))
-            pkg.completion_deadline_days = int(request.form.get("completion_deadline_days", pkg.completion_deadline_days))
-            pkg.is_published = bool(request.form.get("is_published") == "on" or request.form.get("is_published") == "true")
-            pkg.short_description = request.form.get("short_description", pkg.short_description).strip()
-            pkg.save()
-            flash(f"Roadmap '{pkg.title}' settings updated successfully!", "success")
-            return redirect(url_for("admin.roadmaps_list"))
+            ch.title = request.form.get("title", ch.title).strip()
+            ch.price = float(request.form.get("price", ch.price or 499.0))
+            ch.duration_days = int(request.form.get("duration_days", ch.duration_days or 28))
+            ch.instructor = request.form.get("instructor", ch.instructor).strip()
+            ch.difficulty = request.form.get("difficulty", ch.difficulty).strip()
+            ch.is_active = bool(request.form.get("is_active") == "on" or request.form.get("is_active") == "true")
+            ch.short_description = request.form.get("short_description", ch.short_description).strip()
+            ch.description = request.form.get("description", ch.description).strip()
+            ch.save()
+            flash(f"Challenge '{ch.title}' updated successfully!", "success")
+            return redirect(url_for("admin.challenges_list"))
         except Exception as e:
-            logger.error(f"Error updating roadmap {slug}: {e}")
-            flash(f"Error updating roadmap: {e}", "danger")
+            logger.error(f"Error updating challenge {slug}: {e}")
+            flash(f"Error updating challenge: {e}", "danger")
 
-    return render_template("admin/roadmap_edit.html", roadmap=pkg)
-
-
-@admin_bp.route("/roadmaps/<slug>/toggle", methods=["POST"])
-def roadmap_toggle(slug):
-    """Toggles publishing state of a roadmap."""
-    from models.roadmap import RoadmapPackage
-    pkg = RoadmapPackage.get_by_slug(slug)
-    if not pkg:
-        flash("Roadmap package not found.", "warning")
-        return redirect(url_for("admin.roadmaps_list"))
-
-    pkg.is_published = not pkg.is_published
-    pkg.save()
-    status_str = "published" if pkg.is_published else "hidden as draft"
-    flash(f"Roadmap '{pkg.title}' is now {status_str}.", "info")
-    return redirect(url_for("admin.roadmaps_list"))
+    return render_template("admin/challenge_edit.html", challenge=ch)
 
 
-@admin_bp.route("/roadmaps/submissions")
-def roadmap_submissions_list():
-    """Review queue for all student Phase Project and Capstone submissions."""
-    from models.roadmap import RoadmapSubmission, RoadmapPackage
+@admin_bp.route("/challenges/<slug>/toggle", methods=["POST"])
+def challenge_toggle(slug):
+    """Toggles active/inactive state of a challenge."""
+    from models.challenge import MonthlyChallenge
+    ch = MonthlyChallenge.get_by_slug(slug) or MonthlyChallenge.get_by_id(slug)
+    if not ch:
+        flash("Challenge not found.", "warning")
+        return redirect(url_for("admin.challenges_list"))
+
+    ch.is_active = not ch.is_active
+    ch.save()
+    flash(f"Challenge '{ch.title}' is now {'active' if ch.is_active else 'inactive'}.", "info")
+    return redirect(url_for("admin.challenges_list"))
+
+
+@admin_bp.route("/challenges/submissions")
+def challenge_submissions_list():
+    """Review queue for student practical project submissions."""
+    from models.challenge import ChallengeAssignmentSubmission
+    from models import User
     db = get_db()
     status_filter = request.args.get("status", "all").strip()
 
     query = {}
-    if status_filter in (RoadmapSubmission.STATUS_PENDING, RoadmapSubmission.STATUS_APPROVED, RoadmapSubmission.STATUS_CHANGES):
+    if status_filter in ("submitted", "under_review", "approved", "rejected"):
         query["status"] = status_filter
 
-    cursor = db.roadmap_submissions.find(query).sort("submitted_at", -1)
-    submissions = [RoadmapSubmission(doc) for doc in cursor]
+    cursor = db.challenge_submissions.find(query).sort("submitted_at", -1)
+    raw_submissions = [ChallengeAssignmentSubmission(doc) for doc in cursor]
 
-    # Metrics
-    total_count = db.roadmap_submissions.count_documents({})
-    pending_count = db.roadmap_submissions.count_documents({"status": RoadmapSubmission.STATUS_PENDING})
-    approved_count = db.roadmap_submissions.count_documents({"status": RoadmapSubmission.STATUS_APPROVED})
-    changes_count = db.roadmap_submissions.count_documents({"status": RoadmapSubmission.STATUS_CHANGES})
+    # Attach user details
+    submissions = []
+    for sub in raw_submissions:
+        u = User.get_by_id(sub.user_id)
+        sub.student_name = getattr(u, "name", "Student") if u else "Student"
+        sub.student_email = getattr(u, "email", "") if u else ""
+        submissions.append(sub)
+
+    total_count = db.challenge_submissions.count_documents({})
+    pending_count = db.challenge_submissions.count_documents({"status": "submitted"})
+    approved_count = db.challenge_submissions.count_documents({"status": "approved"})
 
     return render_template(
-        "admin/roadmap_submissions.html",
+        "admin/challenge_submissions.html",
         submissions=submissions,
         status_filter=status_filter,
         total_count=total_count,
         pending_count=pending_count,
         approved_count=approved_count,
-        changes_count=changes_count,
     )
 
 
-@admin_bp.route("/roadmaps/submissions/<submission_id>/evaluate", methods=["POST"])
-def roadmap_submission_evaluate(submission_id):
-    """
-    Evaluates a student project submission against rubrics.
-    Updates submission status, score, admin feedback, and reviewer audit fields.
-    If Capstone is approved and student has 100% lessons, unlocks Certificate.
-    """
-    from models.roadmap import RoadmapSubmission, RoadmapPackage, RoadmapProgress
-    sub = RoadmapSubmission.get_by_id(submission_id)
+@admin_bp.route("/challenges/submissions/<submission_id>/evaluate", methods=["POST"])
+def challenge_submission_evaluate(submission_id):
+    """Evaluates student practical project against 4-point rubric."""
+    from models.challenge import ChallengeAssignmentSubmission, ChallengeEnrollment
+    sub = ChallengeAssignmentSubmission.get_by_id(submission_id)
     if not sub:
         flash("Submission record not found.", "warning")
-        return redirect(url_for("admin.roadmap_submissions_list"))
+        return redirect(url_for("admin.challenge_submissions_list"))
 
-    action = request.form.get("status", "").strip()
-    score_raw = request.form.get("score", "").strip()
+    action = request.form.get("status", "approved").strip()
+    score_raw = request.form.get("score", "100").strip()
     feedback = request.form.get("admin_feedback", "").strip()
 
-    if action not in (RoadmapSubmission.STATUS_APPROVED, RoadmapSubmission.STATUS_CHANGES):
-        flash("Invalid evaluation status.", "danger")
-        return redirect(url_for("admin.roadmap_submissions_list"))
-
     sub.status = action
-    sub.admin_feedback = feedback
-    if score_raw:
-        try:
-            sub.score = float(score_raw)
-        except ValueError:
-            pass
+    sub.feedback = feedback
+    try:
+        sub.score = float(score_raw)
+    except ValueError:
+        sub.score = 100.0
 
-    admin_identifier = getattr(current_user, "email", "admin")
-    sub.reviewed_by = admin_identifier
+    sub.reviewed_by = getattr(current_user, "email", "admin")
     sub.reviewed_at = datetime.now(timezone.utc)
     sub.save()
 
-    # If Capstone approved, check if student qualifies for certificate
-    if sub.is_capstone and action == RoadmapSubmission.STATUS_APPROVED:
-        pkg = RoadmapPackage.get_by_slug(sub.roadmap_slug)
-        prog = RoadmapProgress.get_user_progress(sub.user_id, sub.roadmap_slug)
-        if pkg and prog and prog.calculate_completion_percentage(pkg.total_lessons_count) >= 100.0:
-            cert = Certificate.get_by_user_course(sub.user_id, pkg.slug)
-            if not cert:
-                import hashlib
-                cert_id = Certificate.generate_cert_id()
-                now = datetime.now(timezone.utc)
-                clean_name = sub.user_name or "SkillRock Graduate"
-                raw_hash = f"{cert_id}:{sub.user_id}:{pkg.slug}:{clean_name}:{now.isoformat()}"
-                verification_hash = hashlib.sha256(raw_hash.encode("utf-8")).hexdigest()[:24]
-                cert = Certificate({
-                    "certificate_id": cert_id,
-                    "user_id": str(sub.user_id),
-                    "user_name": clean_name,
-                    "user_email": sub.user_email,
-                    "course_id": pkg.slug,
-                    "course_title": f"{pkg.title} — Career Roadmap",
-                    "submission_id": str(sub.id),
-                    "issued_at": now,
-                    "verification_hash": verification_hash,
-                    "name_locked": False,
-                })
-                cert.save()
-                logger.info(f"[ROADMAP CERTIFICATE AUTO-ISSUED] Certificate {cert_id} for user {sub.user_id}")
+    # Update enrollment
+    enrollment = ChallengeEnrollment.get_user_enrollment(sub.user_id, sub.challenge_slug)
+    if enrollment:
+        enrollment.assignment_status = action
+        enrollment.save()
 
-    flash(f"Submission for '{sub.project_title}' marked as {sub.status.replace('_', ' ').title()}.", "success")
-    return redirect(url_for("admin.roadmap_submissions_list"))
+    flash(f"Submission evaluated and marked as {action.replace('_', ' ').title()}.", "success")
+    return redirect(url_for("admin.challenge_submissions_list"))
 
 
-@admin_bp.route("/cashback")
-def cashback_list():
-    """
-    Master Review Console for 50% Completion Cashback Claims.
-    Displays student progress metrics, original payments, and refund controls.
-    """
-    from models.roadmap import RoadmapCashback
+@admin_bp.route("/challenges/refunds")
+def challenge_refunds_list():
+    """Master 100% Refund Management Console with liability metrics and approve/reject actions."""
+    from models.challenge import RefundClaim, ChallengeEnrollment
+    from models import User
     db = get_db()
     status_filter = request.args.get("status", "all").strip()
 
     query = {}
-    if status_filter in (
-        RoadmapCashback.STATUS_PENDING_REVIEW,
-        RoadmapCashback.STATUS_APPROVED,
-        RoadmapCashback.STATUS_PROCESSED,
-        RoadmapCashback.STATUS_REJECTED
-    ):
-        query["review_status"] = status_filter
+    if status_filter in ("pending", "approved", "paid", "rejected"):
+        query["status"] = status_filter
 
-    cursor = db.roadmap_cashback.find(query).sort("requested_at", -1)
-    requests = [RoadmapCashback(doc) for doc in cursor]
+    cursor = db.refund_claims.find(query).sort("submitted_at", -1)
+    raw_claims = [RefundClaim(doc) for doc in cursor]
 
-    # Metrics
-    total_count = db.roadmap_cashback.count_documents({})
-    pending_count = db.roadmap_cashback.count_documents({"review_status": RoadmapCashback.STATUS_PENDING_REVIEW})
-    approved_count = db.roadmap_cashback.count_documents({"review_status": RoadmapCashback.STATUS_APPROVED})
-    processed_count = db.roadmap_cashback.count_documents({"review_status": RoadmapCashback.STATUS_PROCESSED})
-    rejected_count = db.roadmap_cashback.count_documents({"review_status": RoadmapCashback.STATUS_REJECTED})
+    claims = []
+    for cl in raw_claims:
+        u = User.get_by_id(cl.user_id)
+        cl.student_name = getattr(u, "name", cl.account_holder_name) if u else cl.account_holder_name
+        cl.student_email = getattr(u, "email", "") if u else ""
+        claims.append(cl)
+
+    # Financial Liability Metrics
+    total_enrolled = db.challenge_enrollments.count_documents({})
+    total_liability = total_enrolled * 499.0
+    total_claims = db.refund_claims.count_documents({})
+    pending_claims = db.refund_claims.count_documents({"status": "pending"})
+    approved_claims = db.refund_claims.count_documents({"status": {"$in": ["approved", "paid"]}})
+    total_paid_docs = db.refund_claims.find({"status": {"$in": ["approved", "paid"]}})
+    total_refunded_amount = sum(float(d.get("amount", 499.0)) for d in total_paid_docs)
 
     return render_template(
-        "admin/cashback.html",
-        requests=requests,
+        "admin/refund_claims.html",
+        claims=claims,
         status_filter=status_filter,
-        total_count=total_count,
-        pending_count=pending_count,
-        approved_count=approved_count,
-        processed_count=processed_count,
-        rejected_count=rejected_count,
+        total_liability=total_liability,
+        total_claims=total_claims,
+        pending_claims=pending_claims,
+        approved_claims=approved_claims,
+        total_refunded_amount=total_refunded_amount,
     )
+
+
+@admin_bp.route("/challenges/refunds/<claim_id>/action", methods=["POST"])
+def challenge_refund_action(claim_id):
+    """Approves, marks paid, or rejects a student's 100% refund claim with audit logging."""
+    from models.challenge import RefundClaim, ChallengeEnrollment
+    claim = RefundClaim.get_by_id(claim_id)
+    if not claim:
+        flash("Refund claim record not found.", "warning")
+        return redirect(url_for("admin.challenge_refunds_list"))
+
+    action = request.form.get("action", "").strip().lower()
+    notes = request.form.get("admin_notes", "").strip()
+
+    if action not in ("approve", "pay", "reject"):
+        flash("Invalid refund action.", "danger")
+        return redirect(url_for("admin.challenge_refunds_list"))
+
+    now = datetime.now(timezone.utc)
+    admin_email = getattr(current_user, "email", "admin")
+
+    if action == "approve":
+        claim.status = "approved"
+        claim.reviewed_by = admin_email
+        claim.reviewed_at = now
+        claim.admin_notes = notes or "Approved for UPI disbursement."
+    elif action == "pay":
+        claim.status = "paid"
+        claim.reviewed_by = admin_email
+        claim.reviewed_at = now
+        claim.payout_reference = request.form.get("payout_reference", "").strip()
+        claim.admin_notes = notes or "Payout confirmed via UPI."
+    elif action == "reject":
+        if not notes:
+            flash("A reason must be provided when rejecting a refund claim.", "danger")
+            return redirect(url_for("admin.challenge_refunds_list"))
+        claim.status = "rejected"
+        claim.reviewed_by = admin_email
+        claim.reviewed_at = now
+        claim.admin_notes = notes
+
+    claim.save()
+
+    # Sync status back to enrollment
+    enrollment = ChallengeEnrollment.get_user_enrollment(claim.user_id, claim.challenge_slug)
+    if enrollment:
+        enrollment.refund_status = claim.status
+        enrollment.save()
+
+    flash(f"Refund claim {claim.claim_id} marked as {claim.status.upper()}.", "success")
+    return redirect(url_for("admin.challenge_refunds_list"))
+
+
+# ==============================================================================
+# Legacy Career Roadmaps Redirects (Discontinued in favor of Monthly Challenge)
+# ==============================================================================
+
+@admin_bp.route("/roadmaps")
+def roadmaps_list():
+    """Redirects legacy admin roadmaps to Monthly Challenge admin console."""
+    flash("Career Roadmaps have been superseded by the Monthly Challenge platform.", "info")
+    return redirect(url_for("admin.challenges_list"))
+
+
+@admin_bp.route("/roadmaps/<slug>/edit", methods=["GET", "POST"])
+def roadmap_edit(slug):
+    return redirect(url_for("admin.challenges_list"))
+
+
+@admin_bp.route("/roadmaps/<slug>/toggle", methods=["POST"])
+def roadmap_toggle(slug):
+    return redirect(url_for("admin.challenges_list"))
+
+
+@admin_bp.route("/roadmaps/submissions")
+def roadmap_submissions_list():
+    return redirect(url_for("admin.challenge_submissions_list"))
+
+
+@admin_bp.route("/roadmaps/submissions/<submission_id>/evaluate", methods=["POST"])
+def roadmap_submission_evaluate(submission_id):
+    return redirect(url_for("admin.challenge_submissions_list"))
+
+
+@admin_bp.route("/cashback")
+def cashback_list():
+    """Redirects legacy cashback console to 100% Monthly Challenge Refund console."""
+    return redirect(url_for("admin.challenge_refunds_list"))
 
 
 @admin_bp.route("/cashback/<request_id>/process", methods=["POST"])
 def cashback_process(request_id):
-    """
-    Processes a student's 50% Completion Cashback refund.
-    Attempts Razorpay gateway refund if original payment was online.
-    Falls back gracefully to manual UPI / bank transfer recording with full audit logging.
-    """
-    from models.roadmap import RoadmapCashback
+    return redirect(url_for("admin.challenge_refunds_list"))
     from routes.payment import get_razorpay_client
     req = RoadmapCashback.get_by_id(request_id)
     if not req:
