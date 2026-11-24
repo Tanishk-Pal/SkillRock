@@ -352,7 +352,7 @@
 <div class="cert-wrapper">
 
     <!-- One-Time Name Edit Opportunity Banner (Shown if not yet permanently locked) -->
-    {% if not certificate.name_locked and (current_user.id == certificate.user_id or current_user.is_admin) %}
+    {% if not certificate.name_locked and is_owner %}
     <div class="name-lock-banner" id="nameLockNoticeBanner">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(245, 158, 11, 0.2); color: #F59E0B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
@@ -394,7 +394,7 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            {% if not certificate.name_locked and (current_user.id == certificate.user_id or current_user.is_admin) %}
+            {% if not certificate.name_locked and is_owner %}
             <button onclick="openNameLockModal()" class="btn btn-secondary btn-sm" style="font-weight: 700; color: #F59E0B; border-color: rgba(245, 158, 11, 0.4);">
                 <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
                 <span>Edit Name (1x)</span>
@@ -665,6 +665,7 @@
     // 3. Download Certificate as PDF
     async function downloadCertificatePDF() {
         const certElement = document.getElementById('printableCertificate');
+        const scaler = document.getElementById('certScaler');
         const btn = document.getElementById('btnDownloadPdf');
         const btnText = document.getElementById('downloadBtnText');
         const originalText = btnText ? btnText.textContent : 'Download PDF';
@@ -673,6 +674,11 @@
 
         if (btnText) btnText.textContent = 'Generating PDF...';
         if (btn) btn.disabled = true;
+
+        // Reset scaler transform to prevent distorted/cropped PDFs
+        if (scaler) {
+            scaler.style.transform = 'none';
+        }
 
         const studentName = "{{ certificate.user_name | replace(' ', '_') | e }}";
         const certId = "{{ certificate.certificate_id | e }}";
@@ -697,11 +703,18 @@
         };
 
         try {
-            await html2pdf().set(opt).from(certElement).save();
+            if (typeof html2pdf !== 'undefined') {
+                await html2pdf().set(opt).from(certElement).save();
+            } else {
+                window.print();
+            }
         } catch (err) {
             console.error('PDF generation error, fallback to print:', err);
             window.print();
         } finally {
+            if (typeof updateCertificateScale === 'function') {
+                updateCertificateScale();
+            }
             if (btnText) btnText.textContent = originalText;
             if (btn) btn.disabled = false;
         }

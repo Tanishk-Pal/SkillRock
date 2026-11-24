@@ -266,6 +266,202 @@
             transition: transform 200ms cubic-bezier(0.1, 0.5, 0.1, 1), opacity 150ms ease;
         }
 
+        /* SkillRock 3D Flipping Book Page Transition Loader */
+        .skillrock-book-loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(11, 15, 25, 0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2147483646;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.22s ease, visibility 0.22s ease;
+        }
+
+        .skillrock-book-loader-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .book-loader-card {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 20px;
+            padding: 30px 34px 26px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(99, 102, 241, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-width: 260px;
+            max-width: 90vw;
+            transform: scale(0.92);
+            transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .skillrock-book-loader-overlay.active .book-loader-card {
+            transform: scale(1);
+        }
+
+        /* 3D Animated Flipping Book */
+        .flipping-book {
+            position: relative;
+            width: 82px;
+            height: 56px;
+            perspective: 600px;
+            margin: 0 auto 18px;
+        }
+
+        .flipping-book .book-spine {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: #4F46E5;
+            transform: translateX(-50%);
+            border-radius: 2px;
+            z-index: 15;
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.8);
+        }
+
+        .flipping-book .book-cover {
+            position: absolute;
+            top: 0;
+            width: 40px;
+            height: 100%;
+            background: linear-gradient(135deg, #4338CA, #6366F1);
+            border-radius: 3px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .flipping-book .book-cover.left {
+            left: 1px;
+            border-radius: 5px 0 0 5px;
+            transform-origin: right center;
+            transform: rotateY(-22deg);
+        }
+
+        .flipping-book .book-cover.right {
+            right: 1px;
+            border-radius: 0 5px 5px 0;
+            transform-origin: left center;
+            transform: rotateY(22deg);
+        }
+
+        .flipping-book .book-page {
+            position: absolute;
+            top: 3px;
+            right: 2px;
+            width: 38px;
+            height: 50px;
+            background: #F8FAFC;
+            border-radius: 0 3px 3px 0;
+            transform-origin: left center;
+            box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+            padding: 6px 4px 6px 6px;
+        }
+
+        .flipping-book .book-page .line {
+            height: 2px;
+            background: #CBD5E1;
+            border-radius: 2px;
+        }
+
+        .flipping-book .book-page .line:nth-child(1) { width: 85%; }
+        .flipping-book .book-page .line:nth-child(2) { width: 95%; }
+        .flipping-book .book-page .line:nth-child(3) { width: 70%; }
+
+        .flipping-book .book-page.page-1 {
+            animation: flipPage1 1.6s cubic-bezier(0.645, 0.045, 0.355, 1) infinite;
+            z-index: 12;
+        }
+
+        .flipping-book .book-page.page-2 {
+            animation: flipPage2 1.6s cubic-bezier(0.645, 0.045, 0.355, 1) 0.3s infinite;
+            z-index: 11;
+        }
+
+        .flipping-book .book-page.page-3 {
+            animation: flipPage3 1.6s cubic-bezier(0.645, 0.045, 0.355, 1) 0.6s infinite;
+            z-index: 10;
+        }
+
+        @keyframes flipPage1 {
+            0% { transform: rotateY(0deg); opacity: 1; }
+            45% { transform: rotateY(-180deg); opacity: 1; }
+            55% { transform: rotateY(-180deg); opacity: 0; }
+            100% { transform: rotateY(0deg); opacity: 0; }
+        }
+
+        @keyframes flipPage2 {
+            0% { transform: rotateY(0deg); opacity: 1; }
+            45% { transform: rotateY(-180deg); opacity: 1; }
+            55% { transform: rotateY(-180deg); opacity: 0; }
+            100% { transform: rotateY(0deg); opacity: 0; }
+        }
+
+        @keyframes flipPage3 {
+            0% { transform: rotateY(0deg); opacity: 1; }
+            45% { transform: rotateY(-180deg); opacity: 1; }
+            55% { transform: rotateY(-180deg); opacity: 0; }
+            100% { transform: rotateY(0deg); opacity: 0; }
+        }
+
+        .book-loader-title {
+            color: #FFFFFF;
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            margin-bottom: 4px;
+        }
+
+        .book-loader-subtext {
+            color: #94A3B8;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .book-loader-shimmer {
+            width: 140px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 9999px;
+            margin-top: 14px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .book-loader-shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, #6366F1, transparent);
+            animation: bookShimmer 1.4s ease-in-out infinite;
+        }
+
+        @keyframes bookShimmer {
+            0% { left: -60%; }
+            100% { left: 100%; }
+        }
+
     </style>
 
     
@@ -364,6 +560,35 @@
 
         </div>
 
+    </div>
+
+    <!-- SkillRock 3D Flipping Book Transition Loader -->
+    <div id="skillrockBookLoader" class="skillrock-book-loader-overlay" role="status" aria-live="polite" aria-label="Loading page">
+        <div class="book-loader-card">
+            <div class="flipping-book" aria-hidden="true">
+                <div class="book-spine"></div>
+                <div class="book-cover left"></div>
+                <div class="book-cover right"></div>
+                <div class="book-page page-1">
+                    <div class="line"></div>
+                    <div class="line"></div>
+                    <div class="line"></div>
+                </div>
+                <div class="book-page page-2">
+                    <div class="line"></div>
+                    <div class="line"></div>
+                    <div class="line"></div>
+                </div>
+                <div class="book-page page-3">
+                    <div class="line"></div>
+                    <div class="line"></div>
+                    <div class="line"></div>
+                </div>
+            </div>
+            <div class="book-loader-title" id="bookLoaderTitle">Opening Lesson...</div>
+            <div class="book-loader-subtext" id="bookLoaderSubtext">SkillRock is preparing your learning space</div>
+            <div class="book-loader-shimmer" aria-hidden="true"></div>
+        </div>
     </div>
 
 
@@ -1996,12 +2221,36 @@
 
 
 
-        // Instant Non-Blocking Navigation Engine (YouTube / GitHub / Turbo Pattern)
+        // Instant Non-Blocking Navigation Engine (YouTube / GitHub / Turbo Pattern) + Flipping Book Loader
         (function initInstantNavFeedback() {
             var bar = document.getElementById("topProgressBar");
+            var bookLoader = document.getElementById("skillrockBookLoader");
+            var bookLoaderTitle = document.getElementById("bookLoaderTitle");
+            var bookLoaderSubtext = document.getElementById("bookLoaderSubtext");
             var currentProgress = 0;
             var trickleTimer = null;
             var safetyTimer = null;
+            var bookLoaderSafetyTimer = null;
+
+            window.showSkillRockBookLoader = function(title, subtext) {
+                if (!bookLoader) return;
+                if (title && bookLoaderTitle) bookLoaderTitle.textContent = title;
+                if (subtext && bookLoaderSubtext) bookLoaderSubtext.textContent = subtext;
+                bookLoader.classList.add("active");
+                if (bookLoaderSafetyTimer) clearTimeout(bookLoaderSafetyTimer);
+                bookLoaderSafetyTimer = setTimeout(function() {
+                    window.hideSkillRockBookLoader();
+                }, 8000);
+            };
+
+            window.hideSkillRockBookLoader = function() {
+                if (!bookLoader) return;
+                bookLoader.classList.remove("active");
+                if (bookLoaderSafetyTimer) {
+                    clearTimeout(bookLoaderSafetyTimer);
+                    bookLoaderSafetyTimer = null;
+                }
+            };
 
             function setProgress(val) {
                 currentProgress = Math.min(Math.max(val, 0), 1);
@@ -2119,25 +2368,61 @@
             }, { passive: true });
 
             document.addEventListener("click", function(e) {
-                if (e.defaultPrevented || e.button !== 0) return;
+                if (e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
                 var link = e.target.closest("a");
-                if (link) handleNav(link);
+                if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
+                var href = link.getAttribute("href");
+                if (!href || href.startsWith("#") || href.startsWith("javascript:") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+                if (link.origin && link.origin !== window.location.origin) return;
+
+                // Determine context-sensitive title for the book loader
+                var title = "Opening Lesson...";
+                var subtext = "SkillRock is preparing your learning space";
+                var linkText = (link.textContent || "").toLowerCase();
+                if (href.includes("bhavishya")) {
+                    title = "Entering Bhavishya 1.0...";
+                    subtext = "Connecting to live classroom & educator stream";
+                } else if (href.includes("discover") || linkText.includes("exchange")) {
+                    title = "Loading Skill Exchange...";
+                    subtext = "Connecting you with peers and mentors";
+                } else if (href.includes("learning/certificate") || href.includes("/certificate/")) {
+                    title = "Verifying Certificate...";
+                    subtext = "Preparing official tamper-proof credential";
+                } else if (href.includes("challenges")) {
+                    title = "Opening Monthly Challenge...";
+                    subtext = "Loading syllabus and challenge track";
+                }
+
+                window.showSkillRockBookLoader(title, subtext);
+                handleNav(link);
             });
 
-            // Form Submissions: start progress bar without blocking viewport
+            // Form Submissions: start progress bar and book animation without blocking viewport
             document.addEventListener("submit", function(e) {
                 var form = e.target;
                 if (form && !form.target && (!form.method || form.method.toLowerCase() === "post")) {
                     startProgress();
+                    window.showSkillRockBookLoader("Processing & Saving...", "Please wait while SkillRock records your progress");
                 }
             });
 
             // Cleanup & Reset when page displays (bfcache Back/Forward & initial load)
             window.addEventListener("pageshow", function(e) {
                 finishProgress();
+                window.hideSkillRockBookLoader();
             });
-            window.addEventListener("popstate", resetProgress);
-            document.addEventListener("DOMContentLoaded", finishProgress);
+            window.addEventListener("popstate", function() {
+                resetProgress();
+                window.hideSkillRockBookLoader();
+            });
+            document.addEventListener("DOMContentLoaded", function() {
+                finishProgress();
+                window.hideSkillRockBookLoader();
+            });
+            window.addEventListener("load", function() {
+                finishProgress();
+                window.hideSkillRockBookLoader();
+            });
         })();
 
     </script>

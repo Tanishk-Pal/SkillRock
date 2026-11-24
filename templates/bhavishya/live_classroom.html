@@ -99,6 +99,86 @@
             grid-template-columns: 1fr !important;
         }
     }
+
+    @media (max-width: 768px) {
+        .bh-live-container {
+            padding: 10px 10px 100px !important;
+        }
+        .pw-live-header {
+            padding: 16px 14px !important;
+            border-radius: 14px !important;
+            margin-bottom: 16px !important;
+        }
+        .pw-live-header h1 {
+            font-size: 19px !important;
+            line-height: 1.35 !important;
+        }
+        .pw-live-header-right {
+            width: 100% !important;
+            min-width: 0 !important;
+            text-align: left !important;
+            margin-top: 8px !important;
+        }
+        .pw-live-header-right .btn {
+            width: 100% !important;
+            justify-content: center !important;
+        }
+        .pw-classroom-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+        }
+        /* Mobile Horizontal Scrollable Tabs */
+        .pw-tabs-scroll-container {
+            padding: 4px !important;
+            gap: 6px !important;
+            margin-bottom: 14px !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            overflow-x: auto !important;
+            flex-wrap: nowrap !important;
+        }
+        .pw-tabs-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+        .pw-tab-btn {
+            flex: 0 0 auto !important;
+            min-width: auto !important;
+            padding: 8px 14px !important;
+            font-size: 12px !important;
+            white-space: nowrap !important;
+        }
+        /* Video and Studio Controls */
+        .studio-btn {
+            flex: 1 1 calc(50% - 6px) !important;
+            min-height: 42px !important;
+            padding: 8px 10px !important;
+            font-size: 12px !important;
+            justify-content: center !important;
+        }
+        /* Chat view */
+        #liveChatStream {
+            height: 380px !important;
+            max-height: 52vh !important;
+            padding: 12px 10px !important;
+        }
+        #liveChatInput {
+            font-size: 14px !important;
+            padding: 9px 12px !important;
+        }
+        /* DPP Questions */
+        .dpp-card {
+            padding: 14px 14px !important;
+        }
+        .dpp-card label {
+            padding: 12px 12px !important;
+            min-height: 44px !important;
+        }
+        /* Code lab */
+        #pythonLiveCode {
+            font-size: 13.5px !important;
+            min-height: 220px !important;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -177,7 +257,7 @@
             </div>
 
             <!-- Right: Studio Controls or Student Action & Prev/Next Nav -->
-            <div style="display: flex; flex-direction: column; gap: 10px; min-width: 260px; text-align: right;">
+            <div class="pw-live-header-right" style="display: flex; flex-direction: column; gap: 10px; min-width: 260px; text-align: right;">
                 {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_teacher) %}
                 <button type="button" 
                         onclick="toggleTeacherStudio()" 
@@ -218,7 +298,7 @@
              ==================================================================== -->
         <div>
             <!-- Navigation Tabs Bar -->
-            <div style="display: flex; gap: 8px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 6px; margin-bottom: 20px; overflow-x: auto;">
+            <div class="pw-tabs-scroll-container" style="display: flex; gap: 8px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 6px; margin-bottom: 20px; overflow-x: auto;">
                 <button onclick="switchTab('lecture')" id="tabBtn-lecture" class="pw-tab-btn active" style="flex: 1; min-width: 130px;">
                     <i data-lucide="tv" style="width: 15px; height: 15px;"></i>
                     <span>Live Stream & Replay</span>
@@ -270,26 +350,34 @@
                         </div>
                     </div>
 
+                    <!-- Media Permission Diagnostic Banner -->
+                    <div id="studioPermissionAlert" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 12px 16px; margin-bottom: 14px; color: #FCA5A5; font-size: 13px;"></div>
+
                     <!-- Video Preview Stage for Educator -->
                     <div style="position: relative; aspect-ratio: 16 / 9; background: #000000; border-radius: 12px; overflow: hidden; margin-bottom: 14px; display: flex; align-items: center; justify-content: center;">
                         <video id="teacherStudioVideo" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>
                         <div id="teacherStudioPlaceholder" style="position: absolute; text-align: center; color: #64748B;">
                             <i data-lucide="video-off" style="width: 48px; height: 48px; margin-bottom: 8px;"></i>
                             <div style="font-size: 14px; font-weight: 600;">Camera & Screen sharing preview is currently inactive</div>
-                            <div style="font-size: 12px; margin-top: 4px;">Click "Start Camera" or "Share Screen" below to prepare your live lecture</div>
+                            <div style="font-size: 12px; margin-top: 4px;">Click "Start Camera" or "Start Mic" below to prepare your live lecture</div>
                         </div>
                     </div>
 
                     <!-- Educator Broadcast Control Bar -->
                     <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                             <button type="button" class="studio-btn" id="btnToggleCamera" onclick="toggleCamera()">
                                 <i data-lucide="camera" style="width: 15px;"></i>
                                 <span id="lblToggleCamera">Start Camera</span>
                             </button>
+                            <button type="button" class="studio-btn" id="btnFlipCamera" onclick="flipCamera()" style="display: none;">
+                                <i data-lucide="refresh-cw" style="width: 15px;"></i>
+                                <span>Flip Camera</span>
+                            </button>
                             <button type="button" class="studio-btn" id="btnToggleMic" onclick="toggleMic()">
                                 <i data-lucide="mic" style="width: 15px;"></i>
-                                <span id="lblToggleMic">Mute Mic</span>
+                                <span id="lblToggleMic">Start Mic</span>
+                                <span id="micVuMeter" style="display: none; width: 8px; height: 8px; border-radius: 50%; background: #10B981; margin-left: 4px; transition: transform 0.08s ease;"></span>
                             </button>
                             <button type="button" class="studio-btn" id="btnToggleScreen" onclick="toggleScreenShare()">
                                 <i data-lucide="monitor" style="width: 15px;"></i>
@@ -320,6 +408,12 @@
                     <!-- LIVE STREAM PLAYER VIEW (Active when lecture is live) -->
                     <div id="liveStreamView" style="{% if not lecture.is_live %}display: none;{% endif %} position: relative; aspect-ratio: 16 / 9; background: #000000; overflow: hidden;">
                         <video id="studentLiveVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>
+                        
+                        <!-- Audio Unmute Overlay (in case browser blocked autoplay sound) -->
+                        <div id="studentAudioPrompt" onclick="unmuteStudentAudio()" style="display: none; position: absolute; bottom: 18px; left: 18px; z-index: 25; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.2); color: #FFFFFF; padding: 8px 16px; border-radius: 9999px; font-size: 12px; font-weight: 700; cursor: pointer; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
+                            <i data-lucide="volume-x" style="width: 16px; height: 16px; color: #EF4444;"></i>
+                            <span>Tap to Unmute Audio</span>
+                        </div>
                         
                         <!-- Top Floating Stream HUD -->
                         <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 10;">
@@ -630,12 +724,77 @@ const isTeacherOrAdmin = {{ 'true' if current_user.is_authenticated and (current
 let isStreamingActive = {{ 'true' if lecture.is_live else 'false' }};
 
 // Media Stream & Recording variables
-let localMediaStream = null;
+let localVideoStream = null;
+let localAudioStream = null;
 let screenStream = null;
+let currentFacingMode = 'user';
+let audioContext = null;
+let audioAnalyser = null;
+let micAnimFrame = null;
 let mediaRecorder = null;
 let recordedChunks = [];
 let recordStartTime = 0;
 let recordTimerInterval = null;
+
+function showStudioError(msg, isHelpfulFix = true) {
+    const box = document.getElementById('studioPermissionAlert');
+    if (box) {
+        box.style.display = 'block';
+        box.innerHTML = `<div style="display: flex; align-items: flex-start; gap: 8px;">
+            <i data-lucide="alert-triangle" style="width: 18px; height: 18px; color: #EF4444; flex-shrink: 0;"></i>
+            <div>
+                <strong style="color: #FFFFFF;">Media Access Notice:</strong> ${msg}
+                ${isHelpfulFix ? '<div style="margin-top: 4px; font-size: 11.5px; color: #E2E8F0;">Tip: Click the padlock or camera icon in your browser address bar and set Camera & Microphone to <strong>Allow</strong>.</div>' : ''}
+            </div>
+        </div>`;
+        if (window.lucide) lucide.createIcons();
+    } else {
+        alert(msg);
+    }
+}
+
+function hideStudioError() {
+    const box = document.getElementById('studioPermissionAlert');
+    if (box) box.style.display = 'none';
+}
+
+function getCombinedStream() {
+    const tracks = [];
+    if (localVideoStream && localVideoStream.getVideoTracks().length > 0) {
+        tracks.push(...localVideoStream.getVideoTracks());
+    }
+    if (localAudioStream && localAudioStream.getAudioTracks().length > 0) {
+        tracks.push(...localAudioStream.getAudioTracks());
+    }
+    return tracks.length > 0 ? new MediaStream(tracks) : null;
+}
+
+function updateTeacherVideoPreview() {
+    const video = document.getElementById('teacherStudioVideo');
+    const ph = document.getElementById('teacherStudioPlaceholder');
+    const activeStream = screenStream || getCombinedStream();
+
+    if (video) {
+        if (activeStream && activeStream.getVideoTracks().length > 0) {
+            video.srcObject = activeStream;
+            video.play().catch(e => console.log('Preview video play notice:', e));
+            if (ph) ph.style.display = 'none';
+        } else {
+            video.srcObject = null;
+            if (ph) ph.style.display = 'block';
+        }
+    }
+}
+
+function unmuteStudentAudio() {
+    const v = document.getElementById('studentLiveVideo');
+    const prompt = document.getElementById('studentAudioPrompt');
+    if (v) {
+        v.muted = false;
+        v.play().catch(e => console.log('Unmute audio notice:', e));
+    }
+    if (prompt) prompt.style.display = 'none';
+}
 
 function switchTab(tabName) {
     const tabs = ['lecture', 'chat', 'notes', 'dpp', 'lab', 'doubts'];
@@ -672,87 +831,233 @@ function toggleTeacherStudio() {
 }
 
 async function toggleCamera() {
-    const video = document.getElementById('teacherStudioVideo');
-    const ph = document.getElementById('teacherStudioPlaceholder');
+    hideStudioError();
     const btn = document.getElementById('btnToggleCamera');
     const lbl = document.getElementById('lblToggleCamera');
+    const flipBtn = document.getElementById('btnFlipCamera');
 
-    if (localMediaStream && localMediaStream.getVideoTracks().length > 0 && localMediaStream.getVideoTracks()[0].enabled) {
-        localMediaStream.getVideoTracks()[0].enabled = false;
-        btn.classList.remove('active');
-        lbl.innerText = 'Start Camera';
+    // If camera is currently active, turn it off
+    if (localVideoStream && localVideoStream.getVideoTracks().length > 0 && localVideoStream.getVideoTracks()[0].enabled) {
+        localVideoStream.getVideoTracks().forEach(t => t.stop());
+        localVideoStream = null;
+        if (btn) btn.classList.remove('active');
+        if (lbl) lbl.innerText = 'Start Camera';
+        if (flipBtn) flipBtn.style.display = 'none';
+        updateTeacherVideoPreview();
+        return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showStudioError('Camera access requires a secure browser context (HTTPS or localhost). Please ensure you are accessing via https://www.skillrock.in');
         return;
     }
 
     try {
-        if (!localMediaStream) {
-            localMediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        } else {
-            localMediaStream.getVideoTracks()[0].enabled = true;
+        let stream = null;
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: currentFacingMode
+                }
+            });
+        } catch (errConstraint) {
+            console.warn('Fallback to basic video constraints:', errConstraint);
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
         }
-        if (video) {
-            video.srcObject = localMediaStream;
-            video.play();
-        }
-        if (ph) ph.style.display = 'none';
-        btn.classList.add('active');
-        lbl.innerText = 'Stop Camera';
+
+        localVideoStream = stream;
+        if (btn) btn.classList.add('active');
+        if (lbl) lbl.innerText = 'Stop Camera';
+
+        // Check if multiple cameras are available (e.g. mobile front/back)
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoInputs = devices.filter(d => d.kind === 'videoinput');
+            if (videoInputs.length > 1 && flipBtn) {
+                flipBtn.style.display = 'inline-flex';
+            }
+        } catch (eDev) {}
+
+        updateTeacherVideoPreview();
     } catch (e) {
-        alert('Could not access camera/mic: ' + e.message);
+        console.error('Camera access error:', e);
+        if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+            showStudioError('Camera permission was denied. Please click the lock/camera icon in your address bar and set Camera to Allow.');
+        } else if (e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError') {
+            showStudioError('No webcam or camera detected on your device. You can still teach using microphone and screen share.', false);
+        } else if (e.name === 'NotReadableError' || e.name === 'TrackStartError') {
+            showStudioError('Camera is in use by another app (e.g. Zoom, Google Meet, Teams). Please close other apps and try again.', false);
+        } else {
+            showStudioError('Could not access camera: ' + e.message, true);
+        }
     }
 }
 
-function toggleMic() {
+async function flipCamera() {
+    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    if (localVideoStream) {
+        localVideoStream.getVideoTracks().forEach(t => t.stop());
+        localVideoStream = null;
+    }
+    await toggleCamera();
+}
+
+async function toggleMic() {
+    hideStudioError();
     const btn = document.getElementById('btnToggleMic');
     const lbl = document.getElementById('lblToggleMic');
-    if (!localMediaStream || localMediaStream.getAudioTracks().length === 0) return;
-    const track = localMediaStream.getAudioTracks()[0];
-    track.enabled = !track.enabled;
-    if (track.enabled) {
-        btn.classList.add('active');
-        lbl.innerText = 'Mute Mic';
-    } else {
-        btn.classList.remove('active');
-        lbl.innerText = 'Unmute Mic';
+    const vu = document.getElementById('micVuMeter');
+
+    // If audio is already active, toggle mute/unmute
+    if (localAudioStream && localAudioStream.getAudioTracks().length > 0) {
+        const track = localAudioStream.getAudioTracks()[0];
+        track.enabled = !track.enabled;
+        if (track.enabled) {
+            if (btn) btn.classList.add('active');
+            if (lbl) lbl.innerText = 'Mute Mic';
+            if (vu) vu.style.display = 'inline-block';
+        } else {
+            if (btn) btn.classList.remove('active');
+            if (lbl) lbl.innerText = 'Unmute Mic';
+            if (vu) vu.style.display = 'none';
+        }
+        return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showStudioError('Microphone access requires a secure browser context (HTTPS or localhost). Please ensure you are accessing via https://www.skillrock.in');
+        return;
+    }
+
+    try {
+        let stream = null;
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
+            });
+        } catch (errAudio) {
+            console.warn('Fallback to basic audio constraints:', errAudio);
+            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        }
+
+        localAudioStream = stream;
+        if (btn) btn.classList.add('active');
+        if (lbl) lbl.innerText = 'Mute Mic';
+        if (vu) vu.style.display = 'inline-block';
+
+        // Connect real-time visual VU audio level indicator
+        setupAudioAnalyser(stream);
+        updateTeacherVideoPreview();
+    } catch (e) {
+        console.error('Microphone access error:', e);
+        if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+            showStudioError('Microphone permission was denied. Please allow microphone access in your browser settings.');
+        } else if (e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError') {
+            showStudioError('No microphone detected on your device. Please connect a microphone or headset.', false);
+        } else if (e.name === 'NotReadableError' || e.name === 'TrackStartError') {
+            showStudioError('Microphone is in use by another application. Please close other software and try again.', false);
+        } else {
+            showStudioError('Could not access microphone: ' + e.message, true);
+        }
+    }
+}
+
+function setupAudioAnalyser(stream) {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        if (!audioContext) audioContext = new AudioCtx();
+        const source = audioContext.createMediaStreamSource(stream);
+        audioAnalyser = audioContext.createAnalyser();
+        audioAnalyser.fftSize = 64;
+        source.connect(audioAnalyser);
+
+        const vu = document.getElementById('micVuMeter');
+        const dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
+
+        function updateVU() {
+            if (!localAudioStream || !localAudioStream.getAudioTracks()[0].enabled) {
+                if (vu) vu.style.transform = 'scale(1)';
+                return;
+            }
+            audioAnalyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+                sum += dataArray[i];
+            }
+            const avg = sum / dataArray.length;
+            const scale = Math.min(1 + (avg / 60), 1.9);
+            if (vu) {
+                vu.style.transform = `scale(${scale})`;
+                vu.style.background = avg > 8 ? '#10B981' : '#64748B';
+                vu.style.boxShadow = avg > 8 ? '0 0 8px #10B981' : 'none';
+            }
+            micAnimFrame = requestAnimationFrame(updateVU);
+        }
+        updateVU();
+    } catch (err) {
+        console.log('Audio analyser initialization notice:', err);
     }
 }
 
 async function toggleScreenShare() {
-    const video = document.getElementById('teacherStudioVideo');
-    const ph = document.getElementById('teacherStudioPlaceholder');
+    hideStudioError();
     const btn = document.getElementById('btnToggleScreen');
     const lbl = document.getElementById('lblToggleScreen');
 
     if (screenStream) {
         screenStream.getTracks().forEach(t => t.stop());
         screenStream = null;
-        btn.classList.remove('active');
-        lbl.innerText = 'Share Screen / VS Code';
-        if (localMediaStream && video) {
-            video.srcObject = localMediaStream;
-        }
+        if (btn) btn.classList.remove('active');
+        if (lbl) lbl.innerText = 'Share Screen / VS Code';
+        updateTeacherVideoPreview();
         return;
     }
 
     try {
-        screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-        if (video) {
-            video.srcObject = screenStream;
-            video.play();
+        let stream = null;
+        try {
+            stream = await navigator.mediaDevices.getDisplayMedia({
+                video: { cursor: "always" },
+                audio: false
+            });
+        } catch (e1) {
+            stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         }
-        if (ph) ph.style.display = 'none';
-        btn.classList.add('active');
-        lbl.innerText = 'Stop Screen Share';
+
+        screenStream = stream;
+        if (btn) btn.classList.add('active');
+        if (lbl) lbl.innerText = 'Stop Screen Share';
 
         screenStream.getVideoTracks()[0].onended = function() {
-            toggleScreenShare();
+            if (screenStream) {
+                screenStream = null;
+                if (btn) btn.classList.remove('active');
+                if (lbl) lbl.innerText = 'Share Screen / VS Code';
+                updateTeacherVideoPreview();
+            }
         };
+
+        updateTeacherVideoPreview();
     } catch (err) {
-        console.log('Screen share cancelled/denied');
+        console.log('Screen share cancelled/denied by user');
     }
 }
 
 async function startBroadcast() {
+    hideStudioError();
+    const streamToShare = screenStream || getCombinedStream();
+    if (!streamToShare || streamToShare.getTracks().length === 0) {
+        showStudioError('Please start your camera, microphone, or screen share before broadcasting live to students.', false);
+        return;
+    }
+
     try {
         const resp = await fetch(`/bhavishya/api/lecture/${currentLectureId}/stream_start`, {
             method: 'POST',
@@ -768,16 +1073,16 @@ async function startBroadcast() {
             
             // Connect to student player screen directly
             const studentVideo = document.getElementById('studentLiveVideo');
-            const streamToShare = screenStream || localMediaStream;
             if (studentVideo && streamToShare) {
                 studentVideo.srcObject = streamToShare;
-                studentVideo.play();
+                studentVideo.muted = true; // prevent local audio loopback
+                studentVideo.play().catch(e => console.log('Student video play notice:', e));
             }
             document.getElementById('liveStreamView').style.display = 'block';
             document.getElementById('scheduledWaitingView').style.display = 'none';
         }
     } catch (e) {
-        alert('Could not start live broadcast: ' + e.message);
+        showStudioError('Could not start live broadcast: ' + e.message, false);
     }
 }
 
@@ -801,7 +1106,7 @@ async function endBroadcast() {
             alert('Live broadcast concluded! You can now save the recorded stream to the separate vault.');
         }
     } catch (e) {
-        alert('Error ending broadcast: ' + e.message);
+        showStudioError('Error ending broadcast: ' + e.message, false);
     }
 }
 
@@ -814,21 +1119,38 @@ function toggleRecording() {
 
     if (mediaRecorder && mediaRecorder.state === 'recording') {
         mediaRecorder.stop();
-        btn.classList.remove('active');
-        lbl.innerText = 'Record Stream to Vault';
+        if (btn) btn.classList.remove('active');
+        if (lbl) lbl.innerText = 'Record Stream to Vault';
         return;
     }
 
-    const stream = screenStream || localMediaStream;
-    if (!stream) {
-        alert('Please start camera or screen share first before recording.');
+    // Mix screen or camera video with microphone audio track
+    const streamToRecord = new MediaStream();
+    const videoStream = screenStream || localVideoStream;
+    if (videoStream && videoStream.getVideoTracks().length > 0) {
+        streamToRecord.addTrack(videoStream.getVideoTracks()[0]);
+    }
+    if (localAudioStream && localAudioStream.getAudioTracks().length > 0) {
+        streamToRecord.addTrack(localAudioStream.getAudioTracks()[0]);
+    }
+
+    if (streamToRecord.getTracks().length === 0) {
+        showStudioError('Please start camera or microphone first before recording to vault.', false);
         return;
     }
 
     recordedChunks = [];
     try {
-        const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
-        mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
+        let mime = 'video/webm';
+        if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
+            mime = 'video/webm;codecs=vp9,opus';
+        } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+            mime = 'video/webm;codecs=vp8,opus';
+        } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+            mime = 'video/mp4';
+        }
+        
+        mediaRecorder = new MediaRecorder(streamToRecord, { mimeType: mime });
 
         mediaRecorder.ondataavailable = function(e) {
             if (e.data && e.data.size > 0) {
@@ -837,7 +1159,7 @@ function toggleRecording() {
         };
 
         mediaRecorder.onstop = async function() {
-            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const blob = new Blob(recordedChunks, { type: mime });
             if (confirm('Lecture recording complete! Do you want to upload and store this recording in the separate Bhavishya Recordings Vault?')) {
                 await uploadRecordingToVault(blob);
             }
@@ -845,11 +1167,12 @@ function toggleRecording() {
 
         mediaRecorder.start(2000); // 2s chunks
         recordStartTime = Date.now();
-        btn.classList.add('active');
-        lbl.innerText = '⏺️ Recording... (Click to Stop)';
+        if (btn) btn.classList.add('active');
+        if (lbl) lbl.innerText = '⏺️ Recording... (Click to Stop)';
     } catch (err) {
-        alert('Recording error: ' + err.message);
+        showStudioError('Recording error: ' + err.message, false);
     }
+}
 }
 
 async function uploadRecordingToVault(blob) {

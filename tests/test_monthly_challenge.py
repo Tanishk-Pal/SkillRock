@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import os
+os.environ["MONGODB_URI"] = ""
 """
 Automated Test Suite for SkillRock Monthly Challenge & Career Roadmap Sunset.
 Validates:

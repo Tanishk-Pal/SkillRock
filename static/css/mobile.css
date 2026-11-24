@@ -1222,6 +1222,113 @@
     min-width: 36px !important;
     min-height: 36px !important;
   }
+
+  /* --------------------------------------------------------------------------
+     15. BHAVISHYA 1.0 LIVE CLASSROOM & MOBILE VIDEO PLAYER OPTIMIZATION
+     -------------------------------------------------------------------------- */
+  .bh-live-container,
+  .bh-classroom-wrapper {
+    padding: 10px 10px 100px !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  .pw-classroom-grid,
+  .bh-grid-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Safe fluid video container */
+  #liveStreamView,
+  #recordingReplayView,
+  .bh-video-container {
+    border-radius: 12px !important;
+    aspect-ratio: 16 / 9 !important;
+    width: 100% !important;
+  }
+
+  #studentLiveVideo,
+  #lectureReplayPlayer,
+  #curatedVideoPlayer {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+  }
+
+  /* Horizontal touch tab bar */
+  .pw-tabs-scroll-container {
+    padding: 4px !important;
+    gap: 6px !important;
+    margin-bottom: 14px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .pw-tabs-scroll-container::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .pw-tab-btn {
+    flex: 0 0 auto !important;
+    min-width: auto !important;
+    padding: 8px 14px !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Live chat touch input and message flow */
+  #liveChatStream {
+    height: 360px !important;
+    max-height: 50vh !important;
+    padding: 10px !important;
+  }
+
+  .chat-bubble {
+    font-size: 12px !important;
+    padding: 7px 10px !important;
+    max-width: 92% !important;
+  }
+
+  #liveChatInput {
+    font-size: 14px !important;
+    padding: 9px 12px !important;
+  }
+
+  /* Daily Practice Problems (DPP) mobile touch targets */
+  .dpp-card {
+    padding: 14px 12px !important;
+  }
+
+  .dpp-card label {
+    padding: 12px 10px !important;
+    min-height: 44px !important;
+    font-size: 13px !important;
+  }
+
+  .dpp-card input[type="radio"] {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* Python Code Editor on mobile */
+  #pythonLiveCode,
+  .classroom-code-editor {
+    font-size: 13.5px !important;
+    min-height: 200px !important;
+    line-height: 1.45 !important;
+  }
+
+  /* Educator studio controls wrap ergonomically */
+  .studio-btn {
+    flex: 1 1 calc(50% - 6px) !important;
+    min-height: 40px !important;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+    justify-content: center !important;
+  }
 }
 
 

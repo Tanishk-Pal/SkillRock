@@ -1,4 +1,5 @@
 import os
+os.environ["MONGODB_URI"] = ""
 import sys
 import unittest
 from datetime import datetime, timezone

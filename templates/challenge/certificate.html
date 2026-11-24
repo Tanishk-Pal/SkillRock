@@ -7,6 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -186,10 +188,16 @@
         </div>
 
         <div class="cert-footer">
-            <div style="text-align: left;">
-                <div style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase;">Verification ID</div>
-                <div style="font-family: monospace; font-size: 0.95rem; font-weight: 700; color: #FBBF24;">{{ enrollment.certificate_id }}</div>
-                <div style="font-size: 0.72rem; color: #64748B; margin-top: 2px;">Issued on {{ enrollment.certificate_issued_at.strftime('%B %d, %Y') if enrollment.certificate_issued_at else 'November 2026' }}</div>
+            <div style="display: flex; align-items: center; gap: 14px; text-align: left;">
+                <div id="certQrBox" style="background: #FFFFFF; padding: 4px; border-radius: 6px; width: 76px; height: 76px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                    <div id="certQrCode"></div>
+                </div>
+                <div>
+                    <div style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase;">Verification ID</div>
+                    <div style="font-family: monospace; font-size: 0.95rem; font-weight: 700; color: #FBBF24;">{{ enrollment.certificate_id }}</div>
+                    <div style="font-size: 0.72rem; color: #64748B; margin-top: 2px;">Issued on {{ enrollment.certificate_issued_at.strftime('%B %d, %Y') if enrollment.certificate_issued_at else 'November 2026' }}</div>
+                    <div style="font-size: 0.7rem; color: #38BDF8; margin-top: 2px;">Scan QR to verify credential</div>
+                </div>
             </div>
 
             <div class="cert-seal">
@@ -206,13 +214,80 @@
     </div>
 
     <div class="print-btn-bar">
-        <button class="btn-action" onclick="window.print()">
-            🖨 Print / Download PDF
+        <button class="btn-action" id="btnDownloadPdf" onclick="downloadCertificatePDF()" style="background: #2563EB;">
+            📥 Download PDF
+        </button>
+        <button class="btn-action" onclick="window.print()" style="background: #5B46F6;">
+            🖨 Print
         </button>
         <a href="{{ url_for('challenge.dashboard', slug=challenge.slug) }}" class="btn-action" style="background: rgba(255,255,255,0.1);">
             ← Back to Dashboard
         </a>
     </div>
 
+    <script>
+        // 1. Generate QR Code linking to public verification
+        document.addEventListener('DOMContentLoaded', function() {
+            const qrTarget = document.getElementById('certQrCode');
+            if (qrTarget && typeof QRCode !== 'undefined') {
+                const verifyUrl = "https://skillrock.in/verify/{{ enrollment.certificate_id }}";
+                new QRCode(qrTarget, {
+                    text: verifyUrl,
+                    width: 68,
+                    height: 68,
+                    colorDark: "#0F172A",
+                    colorLight: "#FFFFFF",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            }
+        });
+
+        // 2. Download Certificate as PDF
+        async function downloadCertificatePDF() {
+            const certElement = document.querySelector('.cert-container');
+            const btn = document.getElementById('btnDownloadPdf');
+            if (!certElement) return;
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Generating PDF...';
+            }
+
+            const studentName = "{{ user.name | replace(' ', '_') | e }}";
+            const certId = "{{ enrollment.certificate_id | e }}";
+
+            const opt = {
+                margin: [6, 6, 6, 6],
+                filename: `SkillRock_Challenge_Certificate_${studentName}_${certId}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'landscape'
+                }
+            };
+
+            try {
+                if (typeof html2pdf !== 'undefined') {
+                    await html2pdf().set(opt).from(certElement).save();
+                } else {
+                    window.print();
+                }
+            } catch (err) {
+                console.error('PDF generation error, fallback to print:', err);
+                window.print();
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = '📥 Download PDF';
+                }
+            }
+        }
+    </script>
 </body>
 </html>

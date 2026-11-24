@@ -538,6 +538,32 @@ def submit_assessment(slug):
             enrollment.certificate_id = f"SR-MCH-{datetime.now(timezone.utc).strftime('%Y%m')}-{cert_random}"
             enrollment.certificate_issued_at = datetime.now(timezone.utc)
         enrollment.save()
+
+        # Persist corresponding Certificate in db.certificates primary ledger
+        try:
+            from models.mongo import Certificate
+            existing_cert = Certificate.get_by_cert_id(enrollment.certificate_id)
+            if not existing_cert:
+                import hashlib
+                issue_time = enrollment.certificate_issued_at or datetime.now(timezone.utc)
+                iso_time = issue_time.isoformat() if hasattr(issue_time, "isoformat") else str(issue_time)
+                raw_hash = f"{enrollment.certificate_id}:{enrollment.user_id}:{challenge.slug}:{iso_time}"
+                v_hash = hashlib.sha256(raw_hash.encode("utf-8")).hexdigest()[:24]
+                cert_record = Certificate({
+                    "certificate_id": enrollment.certificate_id,
+                    "user_id": str(enrollment.user_id),
+                    "user_name": current_user.name if hasattr(current_user, "name") else "SkillRock Student",
+                    "user_email": current_user.email if hasattr(current_user, "email") else "",
+                    "course_id": str(getattr(challenge, "id", challenge.slug)),
+                    "course_title": challenge.title,
+                    "issued_at": issue_time,
+                    "verification_hash": v_hash,
+                    "name_locked": True,
+                    "name_locked_at": issue_time
+                })
+                cert_record.save()
+        except Exception as e:
+            logger.error(f"Error persisting challenge certificate ledger record: {e}")
     else:
         # Check if user passed previously
         past_attempts = AssessmentAttempt.get_user_attempts(str(current_user.id), challenge.slug)

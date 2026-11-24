@@ -16,7 +16,8 @@ from flask import (
     url_for,
     flash,
     jsonify,
-    abort
+    abort,
+    current_app
 )
 from flask_login import login_required, current_user
 from models import (
@@ -1129,25 +1130,65 @@ def api_evaluate_milestone(assignment_id):
 # 7. Official Certificate Presentation View
 # ==============================================================================
 
-@learning_bp.route("/certificate/<cert_id>")
-@login_required
-def view_certificate(cert_id):
+def _resolve_certificate_or_challenge(cert_id):
     """
-    Official Certificate Presentation View.
-    Strictly protected: Only the student who earned this certificate or an administrator can access it.
-    External visitors and recruiters must use the public verification route: /verify/<cert_id>.
+    Resolves certificate from primary Certificate ledger or Monthly Challenge enrollments.
     """
+    if not cert_id:
+        return None
     certificate = Certificate.get_by_cert_id(cert_id)
     if not certificate:
         certificate = Certificate.get_by_id(cert_id)
     if not certificate:
+        try:
+            from models.challenge import ChallengeEnrollment, MonthlyChallenge
+            enrollment = ChallengeEnrollment.get_by_certificate_id(cert_id)
+            if enrollment:
+                enr_user = User.get_by_id(enrollment.user_id) if enrollment.user_id else None
+                user_name = enr_user.name if enr_user else "SkillRock Student"
+                user_email = enr_user.email if enr_user else ""
+                challenge = MonthlyChallenge.get_by_slug(enrollment.challenge_slug) or MonthlyChallenge.get_by_id(enrollment.challenge_id)
+                challenge_title = challenge.title if challenge else "Monthly Challenge Excellence Award"
+                issue_date = enrollment.certificate_issued_at or datetime.now(timezone.utc)
+                import hashlib
+                raw_hash = f"{enrollment.certificate_id}:{enrollment.user_id}:{challenge_title}"
+                verification_hash = hashlib.sha256(raw_hash.encode("utf-8")).hexdigest()[:24]
+
+                certificate = Certificate({
+                    "certificate_id": enrollment.certificate_id,
+                    "user_id": str(enrollment.user_id),
+                    "user_name": user_name,
+                    "user_email": user_email,
+                    "course_title": challenge_title,
+                    "issued_at": issue_date,
+                    "verification_hash": verification_hash,
+                    "name_locked": True,
+                    "name_locked_at": issue_date
+                })
+                certificate.display_course_title = challenge_title
+        except Exception as e:
+            logger.error(f"Error resolving challenge certificate {cert_id}: {e}")
+    return certificate
+
+
+@learning_bp.route("/certificate/<cert_id>")
+def view_certificate(cert_id):
+    """
+    Official Certificate Presentation View.
+    Allows public viewing of official verified credentials by students, recruiters, and institutions.
+    One-time legal name verification and locking remains strictly restricted to the certificate owner.
+    """
+    certificate = _resolve_certificate_or_challenge(cert_id)
+    if not certificate:
         flash("Certificate record not found.", "warning")
         return redirect(url_for("learning.courses_list"))
 
-    # Security: Verify that the current user is the owner of the certificate or an administrator
-    if str(certificate.user_id) != str(current_user.id) and not getattr(current_user, "is_admin", False):
-        flash("Access Denied: You are not authorized to view or download another student's certificate.", "danger")
-        return redirect(url_for("learning.my_learning"))
+    # Security check for name editing capabilities: only owner or admin can edit name
+    is_owner = current_user.is_authenticated and (
+        str(certificate.user_id) == str(current_user.id)
+        or getattr(current_user, "is_admin", False)
+        or getattr(current_user, "role", "") == "admin"
+    )
 
     student = certificate.user
     course = certificate.course
@@ -1164,7 +1205,8 @@ def view_certificate(cert_id):
         student=student,
         course=course,
         submission=submission,
-        verification_url=verification_url
+        verification_url=verification_url,
+        is_owner=is_owner
     )
 
 
@@ -1227,10 +1269,7 @@ def verify_certificate(cert_id):
     Allows recruiters, colleges, and peers to verify authenticity
     without exposing confidential student credentials.
     """
-    certificate = Certificate.get_by_cert_id(cert_id)
-    if not certificate:
-        certificate = Certificate.get_by_id(cert_id)
-
+    certificate = _resolve_certificate_or_challenge(cert_id)
     is_valid = certificate is not None
     return render_template(
         "verify_certificate.html",

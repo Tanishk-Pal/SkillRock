@@ -148,7 +148,7 @@ def create_app(config_class=Config):
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = "camera=(), microphone=(self), geolocation=()"
+        response.headers["Permissions-Policy"] = "camera=(self), microphone=(self), display-capture=(self), geolocation=()"
         response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
 
         # CORS Allowed Origins: skillrock.in, www.skillrock.in, skillrock.onrender.com, and local dev
@@ -358,6 +358,11 @@ def create_app(config_class=Config):
     @app.route("/verify/<cert_id>")
     def root_verify_cert(cert_id):
         return redirect(url_for("learning.verify_certificate", cert_id=cert_id))
+
+    # Certificate Presentation Root Alias
+    @app.route("/certificate/<cert_id>")
+    def root_certificate_view(cert_id):
+        return redirect(url_for("learning.view_certificate", cert_id=cert_id))
 
     # Course Catalogue Root Alias
     @app.route("/courses")
