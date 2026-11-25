@@ -556,14 +556,20 @@ class ChallengeEnrollment:
     @classmethod
     def get_by_certificate_id(cls, cert_id):
         """Finds a challenge enrollment by its issued certificate ID."""
+        cert_id = cert_id.strip() if isinstance(cert_id, str) else ""
         if not cert_id:
             return None
         database = get_db()
-        clean_id = str(cert_id).strip()
-        doc = database[cls.collection_name].find_one({"certificate_id": clean_id})
+        doc = database[cls.collection_name].find_one(
+            {"certificate_id": {"$nin": ["", None], "$eq": cert_id}}
+        )
         if not doc:
-            doc = database[cls.collection_name].find_one({"certificate_id": clean_id.upper()})
-        return cls(doc) if doc else None
+            doc = database[cls.collection_name].find_one(
+                {"certificate_id": {"$nin": ["", None], "$eq": cert_id.upper()}}
+            )
+        if not doc or not str(doc.get("certificate_id") or "").strip():
+            return None
+        return cls(doc)
 
 
 

@@ -295,44 +295,19 @@
             padding: 0 !important;
             page-break-after: avoid;
         }
-        /* Certificate Responsive Scaler Viewport */
-    .cert-viewport {
-        width: 100%;
-        overflow: hidden;
-        display: flex;
-        justify-content: center;
-        position: relative;
-        margin: 0 auto 24px auto;
-    }
-
-    .cert-scaler {
-        width: 960px;
-        flex-shrink: 0;
-        transform-origin: top center;
-    }
-
-    .mobile-cert-hint-banner {
-        display: none;
-    }
-
-    @media (max-width: 768px) {
         .mobile-cert-hint-banner {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-size: 0.76rem;
-            color: #64748B;
-            background: rgba(99, 102, 241, 0.08);
-            border: 1px dashed rgba(99, 102, 241, 0.25);
-            border-radius: 8px;
-            padding: 7px 12px;
-            margin-bottom: 14px;
-            text-align: center;
+            display: none !important;
         }
-    }
-
-    .cert-frame {
+        .cert-viewport {
+            height: auto !important;
+            overflow: visible !important;
+            margin: 0 !important;
+        }
+        .cert-scaler {
+            width: 100% !important;
+            transform: none !important;
+        }
+        .cert-frame {
             box-shadow: none !important;
             border-width: 8px !important;
             padding: 28px 36px !important;
@@ -513,6 +488,7 @@
     </div>
 </div>
 
+{% if is_owner and not certificate.name_locked %}
 <!-- Interactive One-Time Name Confirmation Modal -->
 <div class="modal-overlay" id="nameLockModal">
     <div class="modal-card">
@@ -567,12 +543,13 @@
         </form>
     </div>
 </div>
+{% endif %}
 
 <script>
     // 1. Vector QR Code Initialization
     document.addEventListener("DOMContentLoaded", function () {
         const qrContainer = document.getElementById("certQrCode");
-        const verifyUrl = "{{ verification_url }}";
+        const verifyUrl = {{ verification_url | tojson }};
 
         if (qrContainer && typeof QRCode !== "undefined") {
             // Render crisp vector QR code
@@ -620,7 +597,7 @@
         }
 
         try {
-            const resp = await fetch("{{ url_for('learning.lock_certificate_name', cert_id=certificate.certificate_id) }}", {
+            const resp = await fetch({{ url_for('learning.lock_certificate_name', cert_id=certificate.certificate_id) | tojson }}, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -680,8 +657,8 @@
             scaler.style.transform = 'none';
         }
 
-        const studentName = "{{ certificate.user_name | replace(' ', '_') | e }}";
-        const certId = "{{ certificate.certificate_id | e }}";
+        const studentName = {{ (certificate.user_name | replace(' ', '_')) | tojson }};
+        const certId = {{ certificate.certificate_id | tojson }};
 
         const opt = {
             margin: [6, 6, 6, 6],
@@ -722,7 +699,7 @@
 
     // 4. Copy Verification Link to Clipboard
     function copyVerifyLink() {
-        const verifyUrl = "{{ verification_url }}";
+        const verifyUrl = {{ verification_url | tojson }};
         navigator.clipboard.writeText(verifyUrl).then(() => {
             const btn = document.getElementById('copyBtn');
             btn.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i> <span>Copied!</span>';

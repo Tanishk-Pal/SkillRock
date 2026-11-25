@@ -303,6 +303,24 @@ if __name__ == '__main__':
         self.assertEqual(resp.status_code, 200)
         self.assertIn(b"Certificate of Completion", resp.data)
         self.assertIn(b"Aman Verma", resp.data)
+        # Verify dynamic verification URL respects request host (localhost in test client)
+        self.assertIn(f"/learning/verify/{data['certificate_id']}".encode("utf-8"), resp.data)
+
+        # Verify persisted Certificate matches fallback ChallengeEnrollment resolution
+        from models.mongo import Certificate
+        from routes.learning import _resolve_certificate_or_challenge
+        persisted_cert = Certificate.get_by_cert_id(data["certificate_id"])
+        self.assertIsNotNone(persisted_cert)
+        ch = MonthlyChallenge.get_by_slug(slug)
+        self.assertEqual(persisted_cert.display_course_title, ch.title)
+        self.db.certificates.delete_one({"certificate_id": data["certificate_id"]})
+        fallback_cert = _resolve_certificate_or_challenge(data["certificate_id"])
+        self.assertIsNotNone(fallback_cert)
+        self.assertEqual(persisted_cert.verification_hash, fallback_cert.verification_hash)
+        self.assertEqual(persisted_cert.display_course_title, fallback_cert.display_course_title)
+        # Re-save persisted cert so db state remains consistent
+        persisted_cert._id = None
+        persisted_cert.save()
 
     # ==========================================================================
     # 5. 100% Refund Claim Verification & Gate

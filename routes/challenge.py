@@ -544,24 +544,13 @@ def submit_assessment(slug):
             from models.mongo import Certificate
             existing_cert = Certificate.get_by_cert_id(enrollment.certificate_id)
             if not existing_cert:
-                import hashlib
-                issue_time = enrollment.certificate_issued_at or datetime.now(timezone.utc)
-                iso_time = issue_time.isoformat() if hasattr(issue_time, "isoformat") else str(issue_time)
-                raw_hash = f"{enrollment.certificate_id}:{enrollment.user_id}:{challenge.slug}:{iso_time}"
-                v_hash = hashlib.sha256(raw_hash.encode("utf-8")).hexdigest()[:24]
-                cert_record = Certificate({
-                    "certificate_id": enrollment.certificate_id,
-                    "user_id": str(enrollment.user_id),
-                    "user_name": current_user.name if hasattr(current_user, "name") else "SkillRock Student",
-                    "user_email": current_user.email if hasattr(current_user, "email") else "",
-                    "course_id": str(getattr(challenge, "id", challenge.slug)),
-                    "course_title": challenge.title,
-                    "issued_at": issue_time,
-                    "verification_hash": v_hash,
-                    "name_locked": True,
-                    "name_locked_at": issue_time
-                })
-                cert_record.save()
+                cert_record = Certificate.build_challenge_certificate(
+                    enrollment,
+                    challenge=challenge,
+                    user=current_user,
+                )
+                if cert_record:
+                    cert_record.save()
         except Exception as e:
             logger.error(f"Error persisting challenge certificate ledger record: {e}")
     else:
@@ -596,11 +585,18 @@ def view_certificate(slug):
         flash("Certificate is only issued after completing all challenge requirements and passing the assessment.", "warning")
         return redirect(url_for("challenge.dashboard", slug=challenge.slug, tab="certificate"))
 
+    site_url = current_app.config.get("SITE_URL", "https://skillrock.in").rstrip("/")
+    if request.host.startswith("localhost") or request.host.startswith("127.0.0.1"):
+        verification_url = url_for("learning.verify_certificate", cert_id=enrollment.certificate_id, _external=True)
+    else:
+        verification_url = f"{site_url}/verify/{enrollment.certificate_id}"
+
     return render_template(
         "challenge/certificate.html",
         challenge=challenge,
         enrollment=enrollment,
         user=current_user,
+        verification_url=verification_url,
     )
 
 

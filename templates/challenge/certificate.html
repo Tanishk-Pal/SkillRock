@@ -230,7 +230,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const qrTarget = document.getElementById('certQrCode');
             if (qrTarget && typeof QRCode !== 'undefined') {
-                const verifyUrl = "https://skillrock.in/verify/{{ enrollment.certificate_id }}";
+                const verifyUrl = {{ (verification_url or ('https://skillrock.in/verify/' ~ enrollment.certificate_id)) | tojson }};
                 new QRCode(qrTarget, {
                     text: verifyUrl,
                     width: 68,
@@ -253,8 +253,8 @@
                 btn.innerText = 'Generating PDF...';
             }
 
-            const studentName = "{{ user.name | replace(' ', '_') | e }}";
-            const certId = "{{ enrollment.certificate_id | e }}";
+            const studentName = {{ (user.name | replace(' ', '_')) | tojson }};
+            const certId = {{ enrollment.certificate_id | tojson }};
 
             const opt = {
                 margin: [6, 6, 6, 6],

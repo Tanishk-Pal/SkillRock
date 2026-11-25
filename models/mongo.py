@@ -1748,32 +1748,39 @@ class Course:
         "html-full-course-learn-html-in-5-hours": "Modern Web Architecture & HTML5 Standards"
     }
 
-    def get_certificate_title(self):
-        """Returns a prestigious, clean, concise academic course title for certificates."""
-        if self.certificate_title and self.certificate_title.strip():
-            return self.certificate_title.strip()
-        slug = getattr(self, "slug", "")
-        if slug in self.CANONICAL_CERT_TITLES:
-            return self.CANONICAL_CERT_TITLES[slug]
-        for canon_slug, canon_title in self.CANONICAL_CERT_TITLES.items():
-            if slug.startswith("cpp-") and "c-" in canon_slug:
-                return canon_title
-            if canon_slug in slug or (len(slug) > 8 and slug in canon_slug):
-                return canon_title
-        if "c++" in (self.title or "").lower() and "programming" in (self.title or "").lower():
-            return self.CANONICAL_CERT_TITLES["complete-c-programming-tutorial-for-beginners"]
-        
-        # Automated regex sanitization to remove clickbait and video duration
-        t = self.title or ""
-        t = re.sub(r'[\(\[]?\b(?:learn\s+)?(?:in\s+)?\d+[-\s]*(?:hours?|hrs?|mins?|days?)[^\]\)]*[\)\]]?', '', t, flags=re.IGNORECASE)
-        t = re.sub(r'\b(?:complete|full)\b', '', t, flags=re.IGNORECASE)
+    @staticmethod
+    def sanitize_certificate_title(title):
+        """Removes clickbait and video-duration noise without corrupting valid titles like 'Full Stack' or '28-Day'."""
+        t = title or ""
+        t = re.sub(r'[\(\[]\s*(?:learn\s+)?(?:in\s+)?\d+[-\s]*(?:hours?|hrs?|mins?|days?)[^\]\)]*[\)\]]', '', t, flags=re.IGNORECASE)
+        t = re.sub(r'\b(?:learn\s+)?in\s+\d+[-\s]*(?:hours?|hrs?|mins?|days?)\b', '', t, flags=re.IGNORECASE)
+        t = re.sub(r'\b\d+[-\s]*(?:hours?|hrs?|mins?)\b', '', t, flags=re.IGNORECASE)
+        t = re.sub(r'\b(?:complete|full)(?!\s+stack)\b', '', t, flags=re.IGNORECASE)
         t = re.sub(r'\b(?:course|tutorial|bootcamp|fundamentals|batch)\b', '', t, flags=re.IGNORECASE)
         t = re.sub(r'\b(?:for beginners|crash course|from scratch|beginner to (?:pro|advanced)|zero to hero)\b', '', t, flags=re.IGNORECASE)
         t = re.sub(r'[\(\[]\s*[\)\]]', '', t)
         t = re.sub(r'[\s—–:-]+$', '', t)
         t = re.sub(r'^[\s—–:-]+', '', t)
         t = re.sub(r'\s{2,}', ' ', t).strip()
-        return t or self.title
+        return t or title
+
+    def get_certificate_title(self):
+        """Returns a prestigious, clean, concise academic course title for certificates."""
+        if self.certificate_title and self.certificate_title.strip():
+            return self.certificate_title.strip()
+        slug = (getattr(self, "slug", "") or "").strip().lower()
+        title_lower = (self.title or "").strip().lower()
+        if slug in self.CANONICAL_CERT_TITLES:
+            return self.CANONICAL_CERT_TITLES[slug]
+        for canon_slug, canon_title in self.CANONICAL_CERT_TITLES.items():
+            if slug.startswith(canon_slug):
+                return canon_title
+        if title_lower == "complete c++ programming tutorial for beginners" or (
+            slug.startswith("cpp-") and "c++" in title_lower and "programming" in title_lower and "beginners" in title_lower
+        ):
+            return self.CANONICAL_CERT_TITLES["complete-c-programming-tutorial-for-beginners"]
+
+        return self.sanitize_certificate_title(self.title or "")
 
     @property
     def enrolled_count(self):
@@ -2581,29 +2588,24 @@ class Certificate:
         self.verification_hash = self._data.get("verification_hash", "")
         self.name_locked = bool(self._data.get("name_locked", False))
         self.name_locked_at = self._data.get("name_locked_at")
+        self.certificate_type = self._data.get("certificate_type", "")
+        self.challenge_slug = self._data.get("challenge_slug", "")
 
     @property
     def display_course_title(self):
         """Returns clean, academic course title from course model or sanitized fallback."""
         if hasattr(self, "_display_course_title") and self._display_course_title:
             return self._display_course_title
+        if self.certificate_type == "challenge" or (self.certificate_id or "").upper().startswith("SR-MCH-"):
+            return (self.course_title or "").strip() or "Monthly Challenge Excellence Award"
         c = self.course
         if c:
             return c.get_certificate_title()
         # Fallback sanitization on stored course_title string
         t = self.course_title or ""
-        for canon_slug, canon_title in Course.CANONICAL_CERT_TITLES.items():
-            if "c++" in t.lower() and "c-" in canon_slug:
-                return canon_title
-        t = re.sub(r'[\(\[]?\b(?:learn\s+)?(?:in\s+)?\d+[-\s]*(?:hours?|hrs?|mins?|days?)[^\]\)]*[\)\]]?', '', t, flags=re.IGNORECASE)
-        t = re.sub(r'\b(?:complete|full)\b', '', t, flags=re.IGNORECASE)
-        t = re.sub(r'\b(?:course|tutorial|bootcamp|fundamentals|batch)\b', '', t, flags=re.IGNORECASE)
-        t = re.sub(r'\b(?:for beginners|crash course|from scratch|beginner to (?:pro|advanced)|zero to hero)\b', '', t, flags=re.IGNORECASE)
-        t = re.sub(r'[\(\[]\s*[\)\]]', '', t)
-        t = re.sub(r'[\s—–:-]+$', '', t)
-        t = re.sub(r'^[\s—–:-]+', '', t)
-        t = re.sub(r'\s{2,}', ' ', t).strip()
-        return t or self.course_title
+        if t.strip().lower() == "complete c++ programming tutorial for beginners":
+            return Course.CANONICAL_CERT_TITLES["complete-c-programming-tutorial-for-beginners"]
+        return Course.sanitize_certificate_title(t)
 
     @display_course_title.setter
     def display_course_title(self, value):
@@ -2675,6 +2677,10 @@ class Certificate:
         self._data["verification_hash"] = self.verification_hash
         self._data["name_locked"] = bool(getattr(self, "name_locked", False))
         self._data["name_locked_at"] = getattr(self, "name_locked_at", None)
+        if getattr(self, "certificate_type", ""):
+            self._data["certificate_type"] = self.certificate_type
+        if getattr(self, "challenge_slug", ""):
+            self._data["challenge_slug"] = self.challenge_slug
 
         if self._id:
             db[self.collection_name].update_one({"_id": self._id}, {"$set": self._data})
@@ -2684,6 +2690,59 @@ class Certificate:
             self.id = str(self._id)
         return self
 
+    @staticmethod
+    def compute_challenge_verification_hash(certificate_id, user_id, challenge_slug, issued_at=None):
+        """Computes a deterministic SHA-256 verification hash for Monthly Challenge certificates."""
+        if isinstance(issued_at, datetime):
+            issued_utc = issued_at.astimezone(timezone.utc) if issued_at.tzinfo else issued_at.replace(tzinfo=timezone.utc)
+            date_key = issued_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+        else:
+            date_key = str(issued_at or "")
+        raw_hash = f"{certificate_id}:{user_id}:{challenge_slug}:{date_key}"
+        return hashlib.sha256(raw_hash.encode("utf-8")).hexdigest()[:24]
+
+    @classmethod
+    def build_challenge_certificate(cls, enrollment, challenge=None, user=None):
+        """Builds a consistent Certificate model for a Monthly Challenge enrollment."""
+        cert_id = str(getattr(enrollment, "certificate_id", "") or "").strip()
+        if not cert_id:
+            return None
+        challenge_slug = (
+            getattr(challenge, "slug", None)
+            or getattr(enrollment, "challenge_slug", None)
+            or "monthly-challenge"
+        )
+        challenge_title = (
+            getattr(challenge, "title", None)
+            or "Monthly Challenge Excellence Award"
+        )
+        issue_time = getattr(enrollment, "certificate_issued_at", None) or datetime.now(timezone.utc)
+        v_hash = cls.compute_challenge_verification_hash(
+            cert_id,
+            str(enrollment.user_id),
+            challenge_slug,
+            issue_time,
+        )
+        user_name = getattr(user, "name", None) or "SkillRock Student"
+        user_email = getattr(user, "email", None) or ""
+        course_id = str(getattr(challenge, "id", challenge_slug)) if challenge else str(getattr(enrollment, "challenge_id", challenge_slug))
+        cert = cls({
+            "certificate_id": cert_id,
+            "user_id": str(enrollment.user_id),
+            "user_name": user_name,
+            "user_email": user_email,
+            "course_id": course_id,
+            "course_title": challenge_title,
+            "certificate_type": "challenge",
+            "challenge_slug": challenge_slug,
+            "issued_at": issue_time,
+            "verification_hash": v_hash,
+            "name_locked": True,
+            "name_locked_at": issue_time,
+        })
+        cert.display_course_title = challenge_title
+        return cert
+
     @classmethod
     def generate_cert_id(cls):
         year = datetime.now().year
@@ -2692,6 +2751,7 @@ class Certificate:
 
     @classmethod
     def get_by_id(cls, cert_id):
+        cert_id = cert_id.strip() if isinstance(cert_id, str) else ""
         if not cert_id:
             return None
         db = get_db()
@@ -2700,13 +2760,20 @@ class Certificate:
 
     @classmethod
     def get_by_cert_id(cls, cert_id):
+        cert_id = cert_id.strip() if isinstance(cert_id, str) else ""
         if not cert_id:
             return None
         db = get_db()
-        doc = db[cls.collection_name].find_one({"certificate_id": cert_id.strip().upper()})
+        doc = db[cls.collection_name].find_one(
+            {"certificate_id": {"$nin": ["", None], "$eq": cert_id.upper()}}
+        )
         if not doc:
-            doc = db[cls.collection_name].find_one({"certificate_id": cert_id.strip()})
-        return cls(doc) if doc else None
+            doc = db[cls.collection_name].find_one(
+                {"certificate_id": {"$nin": ["", None], "$eq": cert_id}}
+            )
+        if not doc or not str(doc.get("certificate_id") or "").strip():
+            return None
+        return cls(doc)
 
     @classmethod
     def get_by_user_course(cls, user_id, course_id):

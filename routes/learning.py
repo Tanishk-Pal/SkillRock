@@ -1134,6 +1134,7 @@ def _resolve_certificate_or_challenge(cert_id):
     """
     Resolves certificate from primary Certificate ledger or Monthly Challenge enrollments.
     """
+    cert_id = cert_id.strip() if isinstance(cert_id, str) else ""
     if not cert_id:
         return None
     certificate = Certificate.get_by_cert_id(cert_id)
@@ -1143,29 +1144,14 @@ def _resolve_certificate_or_challenge(cert_id):
         try:
             from models.challenge import ChallengeEnrollment, MonthlyChallenge
             enrollment = ChallengeEnrollment.get_by_certificate_id(cert_id)
-            if enrollment:
+            if enrollment and str(getattr(enrollment, "certificate_id", "") or "").strip():
                 enr_user = User.get_by_id(enrollment.user_id) if enrollment.user_id else None
-                user_name = enr_user.name if enr_user else "SkillRock Student"
-                user_email = enr_user.email if enr_user else ""
                 challenge = MonthlyChallenge.get_by_slug(enrollment.challenge_slug) or MonthlyChallenge.get_by_id(enrollment.challenge_id)
-                challenge_title = challenge.title if challenge else "Monthly Challenge Excellence Award"
-                issue_date = enrollment.certificate_issued_at or datetime.now(timezone.utc)
-                import hashlib
-                raw_hash = f"{enrollment.certificate_id}:{enrollment.user_id}:{challenge_title}"
-                verification_hash = hashlib.sha256(raw_hash.encode("utf-8")).hexdigest()[:24]
-
-                certificate = Certificate({
-                    "certificate_id": enrollment.certificate_id,
-                    "user_id": str(enrollment.user_id),
-                    "user_name": user_name,
-                    "user_email": user_email,
-                    "course_title": challenge_title,
-                    "issued_at": issue_date,
-                    "verification_hash": verification_hash,
-                    "name_locked": True,
-                    "name_locked_at": issue_date
-                })
-                certificate.display_course_title = challenge_title
+                certificate = Certificate.build_challenge_certificate(
+                    enrollment,
+                    challenge=challenge,
+                    user=enr_user,
+                )
         except Exception as e:
             logger.error(f"Error resolving challenge certificate {cert_id}: {e}")
     return certificate
@@ -1217,6 +1203,7 @@ def lock_certificate_name(cert_id):
     Allows a student to verify and permanently lock their official legal name
     on their certificate (one-time opportunity before download/print).
     """
+    cert_id = cert_id.strip() if isinstance(cert_id, str) else ""
     certificate = Certificate.get_by_cert_id(cert_id)
     if not certificate:
         certificate = Certificate.get_by_id(cert_id)
