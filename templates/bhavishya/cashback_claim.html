@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}50% Completion Cashback Tracker — Bhavishya 1.0 | SkillRock{% endblock %}
-{% block meta_description %}Claim your 50% fee refund (₹149.50) upon 100% completion of Bhavishya 1.0 on SkillRock.{% endblock %}
+{% block title %}100% Completion Refund Tracker — Bhavishya 1.0 | SkillRock{% endblock %}
+{% block meta_description %}Claim your 100% fee refund (₹299) upon 100% completion of Bhavishya 1.0 on SkillRock.{% endblock %}
 
 {% block content %}
 <div class="bh-cashback-container" style="max-width: 1000px; margin: 0 auto; padding: 24px 16px 80px;">
@@ -10,7 +10,7 @@
     <div style="display: flex; align-items: center; gap: 8px; color: #94A3B8; font-size: 13px; margin-bottom: 20px;">
         <a href="{{ url_for('bhavishya.dashboard') }}" style="color: #94A3B8; text-decoration: none;">Bhavishya 1.0</a>
         <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
-        <span style="color: #E2E8F0; font-weight: 600;">50% Completion Cashback</span>
+        <span style="color: #E2E8F0; font-weight: 600;">100% Completion Refund</span>
     </div>
 
     <!-- Header Card -->
@@ -22,21 +22,21 @@
                         Guaranteed Completion Incentive
                     </span>
                     <span style="background: rgba(16, 185, 129, 0.15); color: #34D399; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px;">
-                        ₹149.50 Net Cost
+                        ₹0 Net Cost (100% Refunded!)
                     </span>
                 </div>
                 <h1 style="font-size: 30px; font-weight: 800; color: #FFFFFF; margin: 0 0 10px;">
-                    50% Completion Cashback Tracker
+                    100% Completion Refund Tracker
                 </h1>
                 <p style="color: #94A3B8; font-size: 15px; margin: 0; line-height: 1.5;">
-                    At SkillRock, we believe students should be rewarded for finishing their education. Complete all 19 Bhavishya subjects and recruitment assessments within 24 weeks to get 50% of your fee back!
+                    At SkillRock, we believe students should be rewarded for finishing their education. Complete all 19 Bhavishya subjects and recruitment assessments within 30 days to get 100% of your fee back!
                 </p>
             </div>
 
             <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 20px 24px; text-align: center; min-width: 200px;">
                 <div style="font-size: 11px; color: #94A3B8; text-transform: uppercase; font-weight: 700;">Refund Amount</div>
-                <div style="font-size: 32px; font-weight: 800; color: #FBBF24; margin: 4px 0;">₹149.50</div>
-                <div style="font-size: 12px; color: #10B981; font-weight: 600;">50% of ₹299 Package</div>
+                <div style="font-size: 32px; font-weight: 800; color: #FBBF24; margin: 4px 0;">₹299</div>
+                <div style="font-size: 12px; color: #10B981; font-weight: 600;">100% of ₹299 Package</div>
             </div>
         </div>
     </div>
@@ -83,7 +83,7 @@
     <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 32px;">
         <h2 style="font-size: 20px; font-weight: 800; color: #F8FAFC; margin: 0 0 8px;">Submit or Update Your Cashback Claim</h2>
         <p style="color: #94A3B8; font-size: 14px; margin: 0 0 24px;">
-            Provide your verified UPI ID where our finance department will disburse your ₹149.50 completion cashback after administrative review.
+            Provide your verified UPI ID where our finance department will disburse your ₹299 completion refund after administrative review.
         </p>
 
         <form method="POST" action="{{ url_for('bhavishya.cashback_claim') }}">

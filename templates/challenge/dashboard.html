@@ -61,7 +61,7 @@
 
 {% block content %}
 <div class="container py-4" style="max-width: 1250px;">
-    <!-- Top 28-Day Command Center Header -->
+    <!-- Top 30-Day Command Center Header -->
     <div style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 20px; padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);">
         <div class="row g-3 align-items-center">
             <div class="col-12 col-lg-6">
@@ -72,11 +72,11 @@
                     </span>
                     {% if metrics.is_expired %}
                     <span style="background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 9999px;">
-                        28-Day Window Expired
+                        30-Day Window Expired
                     </span>
                     {% else %}
                     <span style="background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 9999px;">
-                        Active Sprint (Day {{ metrics.days_elapsed }} of 28)
+                        Active Sprint (Day {{ metrics.days_elapsed }} of 30)
                     </span>
                     {% endif %}
                 </div>
@@ -85,7 +85,7 @@
                     {{ challenge.title }}
                 </h1>
                 <p style="font-size: 0.85rem; color: #94A3B8; margin: 0;">
-                    Complete all 7 criteria within 28 days to unlock your SkillRock Certificate and 100% refund.
+                    Complete all 7 criteria within 30 days to unlock your SkillRock Certificate and 100% refund.
                 </p>
             </div>
 
@@ -124,7 +124,7 @@
                     </div>
                 </div>
 
-                <!-- 28-Day Countdown Progress Bar -->
+                <!-- 30-Day Countdown Progress Bar -->
                 <div style="margin-top: 12px;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #94A3B8; margin-bottom: 4px;">
                         <span>Enrolled: {{ metrics.enrolled_date_str }}</span>
@@ -888,7 +888,7 @@
                 Certificate of Completion Issued!
             </h2>
             <p style="font-size: 0.95rem; color: #CBD5E1; max-width: 600px; margin: 0 auto 18px;">
-                This certifies that <strong>{{ current_user.name }}</strong> has successfully fulfilled all 28-day requirements and passed the comprehensive assessment for <strong>{{ challenge.title }}</strong>.
+                This certifies that <strong>{{ current_user.name }}</strong> has successfully fulfilled all 30-day requirements and passed the comprehensive assessment for <strong>{{ challenge.title }}</strong>.
             </p>
 
             <div style="display: inline-block; background: rgba(0,0,0,0.3); border: 1px dashed rgba(196, 181, 253, 0.4); border-radius: 10px; padding: 10px 20px; margin-bottom: 24px;">
@@ -937,7 +937,7 @@
                     </div>
 
                     <p style="font-size: 0.85rem; color: var(--text-secondary, #94A3B8); margin-bottom: 18px; line-height: 1.5;">
-                        SkillRock guarantees a 100% refund of your ₹{{ enrollment.amount_paid|int }} enrolment fee upon fulfilling all published conditions before the 28-day countdown expires.
+                        SkillRock guarantees a 100% refund of your ₹{{ enrollment.amount_paid|int }} enrolment fee upon fulfilling all published conditions before the 30-day countdown expires.
                     </p>
 
                     <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -1020,7 +1020,7 @@
                         <i data-lucide="lock" style="width: 36px; height: 36px; color: #94A3B8; margin-bottom: 8px;"></i>
                         <h5 style="color: #E2E8F0; font-size: 0.95rem; margin-bottom: 4px;">Refund Form Locked</h5>
                         <p style="font-size: 0.8rem; color: #94A3B8; margin: 0;">
-                            The UPI claim form unlocks automatically once all 7 conditions on the left are marked complete before Day 28 ends.
+                            The UPI claim form unlocks automatically once all 7 conditions on the left are marked complete before Day 30 ends.
                         </p>
                     </div>
                     {% endif %}

@@ -1,6 +1,6 @@
 """
 Monthly Challenge Blueprint for SkillRock.
-Provides public catalog, detailed landing experience, 28-day student command center (9 tabs),
+Provides public catalog, detailed landing experience, 30-day student command center (9 tabs),
 interactive practice, interview prep, LeetCode-style coding sandbox, 50-MCQ assessment,
 certificate issuance, and 100% refund claim management.
 """
@@ -88,7 +88,7 @@ def catalog():
 def detail(slug):
     """
     Comprehensive Monthly Challenge landing experience.
-    Features: Hero (₹499 CTA, 28-day countdown, outcomes, refund guarantee),
+    Features: Hero (₹499 CTA, 30-day countdown, outcomes, refund guarantee),
     'What You Will Get' 8-card grid, 6-module curriculum outline, and refund criteria terms.
     """
     challenge = _get_challenge_or_404(slug)
@@ -118,14 +118,14 @@ def detail(slug):
 
 
 # ==============================================================================
-# 2. Student 28-Day Command Center Dashboard (9 Tabs)
+# 2. Student 30-Day Command Center Dashboard (9 Tabs)
 # ==============================================================================
 
 @challenge_bp.route("/challenge/<slug>/dashboard")
 @login_required
 def dashboard(slug):
     """
-    The 28-Day Student Command Center for enrolled learners.
+    The 30-Day Student Command Center for enrolled learners.
     Hosts 9 distinct tabs:
     1. Overview (Countdown & milestone tracker)
     2. Learn (6 YouTube modules with completion checkboxes)
@@ -163,7 +163,7 @@ def dashboard(slug):
     assessment_attempts = AssessmentAttempt.get_user_attempts(user_id, challenge.slug)
     refund_claim = RefundClaim.get_by_user_challenge(user_id, challenge.slug)
 
-    # 28-day countdown and progress calculations
+    # 30-day countdown and progress calculations
     metrics = enrollment.get_countdown_metrics(challenge.duration_days)
     progress_stats = enrollment.calculate_progress(
         total_modules=len(challenge.modules),
@@ -698,7 +698,7 @@ All 7 required challenge conditions were verified by SkillRock backend:
 - 100% Coding Arena Problems: Yes
 - Practical Assignment Submitted: Yes
 - Final 50-MCQ Assessment Passed (>=80%): Yes
-- Within 28-Day Deadline: Yes
+- Within 30-Day Deadline: Yes
 
 Review and process this payout at:
 https://skillrock.in/admin/challenges/refunds

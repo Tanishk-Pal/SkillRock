@@ -96,7 +96,7 @@
                 <!-- Refund Fine Print Banner -->
                 <div style="font-size: 0.8rem; color: #94A3B8; display: flex; align-items: center; gap: 6px;">
                     <i data-lucide="info" style="width: 14px; height: 14px; color: #10B981;"></i>
-                    <span><strong>100% Refund Condition:</strong> Complete all modules, practice MCQs, interview prep, coding problems, assignment, and pass the final exam in 28 days.</span>
+                    <span><strong>100% Refund Condition:</strong> Complete all modules, practice MCQs, interview prep, coding problems, assignment, and pass the final exam in 30 days.</span>
                 </div>
             </div>
 
@@ -114,7 +114,7 @@
                             </div>
                             <div style="font-size: 0.78rem; color: #34D399; font-weight: 600; display: flex; align-items: center; gap: 4px;">
                                 <i data-lucide="check" style="width: 14px; height: 14px;"></i>
-                                Fully refunded on 28-day challenge completion
+                                Fully refunded on 30-day challenge completion
                             </div>
                         </div>
                     </div>
@@ -214,7 +214,7 @@
                         <i data-lucide="banknote" style="width: 20px; height: 20px;"></i>
                     </div>
                     <h5 style="font-size: 1rem; font-weight: 700; color: #34D399; margin-bottom: 6px;">100% Refund Payout</h5>
-                    <p style="font-size: 0.82rem; color: var(--text-secondary, #94A3B8); margin: 0; line-height: 1.5;">Qualify for your full ₹499 refund via UPI upon meeting the 7 criteria in 28 days.</p>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary, #94A3B8); margin: 0; line-height: 1.5;">Qualify for your full ₹499 refund via UPI upon meeting the 7 criteria in 30 days.</p>
                 </div>
             </div>
         </div>
@@ -232,7 +232,7 @@
                 </h2>
             </div>
             <span style="font-size: 0.85rem; color: #94A3B8;">
-                {{ challenge.modules|length }} modules • 28 days pace
+                {{ challenge.modules|length }} modules • 30 days pace
             </span>
         </div>
 
@@ -287,7 +287,7 @@
         </div>
 
         <p style="font-size: 0.88rem; color: #94A3B8; line-height: 1.6; margin-bottom: 20px;">
-            SkillRock does not offer unconditional refunds. To qualify for a 100% return of your ₹{{ challenge.price|int }} enrolment fee, you must fulfil every single one of the published criteria below before the 28-day countdown expires:
+            SkillRock does not offer unconditional refunds. To qualify for a 100% return of your ₹{{ challenge.price|int }} enrolment fee, you must fulfil every single one of the published criteria below before the 30-day countdown expires:
         </p>
 
         <div class="row g-3">
@@ -323,7 +323,7 @@
                     </li>
                     <li style="display: flex; gap: 8px;">
                         <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10B981; flex-shrink: 0; margin-top: 2px;"></i>
-                        <span><strong>7. Strict 28-Day Deadline:</strong> All requirements above must be completed before Day 28 ends.</span>
+                        <span><strong>7. Strict 30-Day Deadline:</strong> All requirements above must be completed before Day 30 ends.</span>
                     </li>
                 </ul>
             </div>
@@ -332,7 +332,7 @@
         <div style="margin-top: 24px; text-align: center;">
             {% if is_enrolled %}
                 <a href="{{ url_for('challenge.dashboard', slug=challenge.slug) }}" class="btn btn-primary" style="padding: 10px 24px; font-weight: 700; background: #5B46F6; border-radius: 8px;">
-                    Go to Your 28-Day Dashboard
+                    Go to Your 30-Day Dashboard
                 </a>
             {% else %}
                 <a href="{{ url_for('payment.checkout', item_type='challenge', item_id=challenge.id) }}" class="btn btn-primary" style="padding: 10px 24px; font-weight: 800; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: #0F172A; border-color: #D97706; border-radius: 8px;">

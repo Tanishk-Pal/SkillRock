@@ -1,6 +1,6 @@
 """
 SkillRock — Monthly Challenge Platform Models
-Defines MongoDB models for Monthly Challenges, Curriculum Modules, Student Enrollments (28-day tracking),
+Defines MongoDB models for Monthly Challenges, Curriculum Modules, Student Enrollments (30-day tracking),
 Practice Arena MCQs, Placement Interview Preparation, Coding Arena Problems, 50-MCQ Assessment Engine,
 Practical Assignments, Rubric Reviews, and the 100% Refund Claim & Verification System.
 """
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class MonthlyChallenge:
     """
     SkillRock Monthly Challenge Course Document.
-    Launches each month at ₹499 enrolment fee with a 28-day completion window and 100% refund eligibility.
+    Launches each month at ₹499 enrolment fee with a 30-day completion window and 100% refund eligibility.
     """
     collection_name = "monthly_challenges"
 
@@ -28,11 +28,11 @@ class MonthlyChallenge:
         self.id = str(self._id) if self._id else str(self._data.get("challenge_id", ""))
         self.challenge_id = str(self._data.get("challenge_id", self.id or f"mc-{uuid.uuid4().hex[:8]}"))
         self.slug = self._data.get("slug") or slugify(self._data.get("title", "monthly-challenge"))
-        self.title = self._data.get("title", "Python Programming — 28-Day Challenge")
+        self.title = self._data.get("title", "Python Programming — 30-Day Challenge")
         self.tagline = self._data.get("tagline", "Learn. Practice. Complete. Get Certified.")
         self.promotional_message = self._data.get(
             "promotional_message",
-            "Complete your learning challenge within 28 days and get 100% of your eligible enrolment fee back!"
+            "Complete your learning challenge within 30 days and get 100% of your eligible enrolment fee back!"
         )
         self.short_description = self._data.get(
             "short_description",
@@ -48,7 +48,7 @@ class MonthlyChallenge:
         self.price = float(self._data.get("price", 499.0))
         self.original_price = float(self._data.get("original_price", 1999.0))
         self.currency = self._data.get("currency", "INR")
-        self.duration_days = int(self._data.get("duration_days", 28))
+        self.duration_days = int(self._data.get("duration_days", 30))
         self.difficulty = self._data.get("difficulty", "Beginner to Placement Ready")
         self.skills_covered = self._data.get("skills_covered", ["Python", "DSA", "OOP", "File Handling", "Problem Solving"])
         self.learning_outcomes = self._data.get("learning_outcomes", [
@@ -58,7 +58,7 @@ class MonthlyChallenge:
             "Ace technical interview rounds with curated placement questions.",
             "Build and deploy an evaluated real-world practical capstone application.",
             "Pass the rigorous 50-MCQ Final Assessment and receive a verified SkillRock Certificate.",
-            "Claim a 100% refund of your ₹499 enrolment fee upon completing all 28-day requirements."
+            "Claim a 100% refund of your ₹499 enrolment fee upon completing all 30-day requirements."
         ])
         self.youtube_course_url = self._data.get("youtube_course_url", "https://www.youtube.com/watch?v=_uQrJ0TkZlc")
         self.youtube_video_id = self._data.get("youtube_video_id", "_uQrJ0TkZlc")
@@ -68,7 +68,7 @@ class MonthlyChallenge:
         self.modules = self._data.get("modules", [])
         self.refund_terms = self._data.get(
             "refund_terms",
-            "Complete all mandatory learning modules, pass the 50-question final assessment (>=80%), receive approved practical assignment review, and earn your verified certificate within 28 days of enrollment to receive a 100% refund."
+            "Complete all mandatory learning modules, pass the 50-question final assessment (>=80%), receive approved practical assignment review, and earn your verified certificate within 30 days of enrollment to receive a 100% refund."
         )
         self.start_date = self._data.get("start_date") or datetime.now(timezone.utc)
         self.end_date = self._data.get("end_date") or (datetime.now(timezone.utc) + timedelta(days=60))
@@ -215,8 +215,8 @@ class MonthlyChallenge:
 
 class ChallengeEnrollment:
     """
-    Student Enrollment in a 28-day Monthly Challenge.
-    Calculates remaining days accurately from enrolment timestamp and enforces the 28-day refund deadline.
+    Student Enrollment in a 30-day Monthly Challenge.
+    Calculates remaining days accurately from enrolment timestamp and enforces the 30-day refund deadline.
     """
     collection_name = "challenge_enrollments"
 
@@ -244,7 +244,7 @@ class ChallengeEnrollment:
         self.payment_id = str(self._data.get("payment_id", ""))
         self.amount_paid = float(self._data.get("amount_paid", 499.0))
         
-        # Exact Timestamps for 28-Day Countdown
+        # Exact Timestamps for 30-Day Countdown
         enrolled_raw = self._data.get("enrolled_at")
         if isinstance(enrolled_raw, str):
             try:
@@ -261,11 +261,11 @@ class ChallengeEnrollment:
             try:
                 self.deadline_at = datetime.fromisoformat(deadline_raw.replace("Z", "+00:00"))
             except Exception:
-                self.deadline_at = self.enrolled_at + timedelta(days=28)
+                self.deadline_at = self.enrolled_at + timedelta(days=30)
         elif isinstance(deadline_raw, datetime):
             self.deadline_at = deadline_raw if deadline_raw.tzinfo else deadline_raw.replace(tzinfo=timezone.utc)
         else:
-            self.deadline_at = self.enrolled_at + timedelta(days=28)
+            self.deadline_at = self.enrolled_at + timedelta(days=30)
 
         # Progress Milestones
         self.completed_modules = list(self._data.get("completed_modules", self._data.get("modules_completed", [])))
@@ -369,7 +369,7 @@ class ChallengeEnrollment:
             self.assessment_passed and self.assignment_approved and bool(self.certificate_id)
         )
 
-    def get_countdown_metrics(self, duration_days=28):
+    def get_countdown_metrics(self, duration_days=30):
         now = datetime.now(timezone.utc)
         rem_sec = self.remaining_seconds
         rem_days = self.remaining_days
@@ -418,14 +418,14 @@ class ChallengeEnrollment:
         4. 100% Coding Arena Problems Solved
         5. Practical Capstone Assignment Submitted / Approved
         6. Final Assessment Passed (>=80%)
-        7. Completed Within 28 Days Deadline
+        7. Completed Within 30 Days Deadline
         """
         total_m = kwargs.get("total_modules", total_modules_count)
         total_p = kwargs.get("total_practice", 8)
         total_i = kwargs.get("total_interviews", 4)
         total_c = kwargs.get("total_coding", 4)
         assign_st = kwargs.get("assignment_submission_status", self.assignment_status)
-        duration_d = kwargs.get("duration_days", 28)
+        duration_d = kwargs.get("duration_days", 30)
 
         now = datetime.now(timezone.utc)
         within_deadline = now <= self.deadline_at
@@ -445,7 +445,7 @@ class ChallengeEnrollment:
             {"condition": "100% Coding Arena Problems Solved", "fulfilled": coding_ok, "status": f"{len(self.completed_coding_problems)}/{total_c}"},
             {"condition": "Practical Capstone Assignment Submitted", "fulfilled": assign_ok, "status": assign_st or self.assignment_status or "Pending"},
             {"condition": "Final Assessment Passed (>=80%)", "fulfilled": assess_ok, "status": f"{self.assessment_score}/50" if self.assessment_passed else "Pending"},
-            {"condition": "Completed Within 28 Days Deadline", "fulfilled": within_deadline, "status": f"{self.remaining_days} days left" if within_deadline else "Expired"}
+            {"condition": "Completed Within 30 Days Deadline", "fulfilled": within_deadline, "status": f"{self.remaining_days} days left" if within_deadline else "Expired"}
         ]
         fulfilled_count = sum(1 for c in criteria if c["fulfilled"])
 
@@ -524,17 +524,18 @@ class ChallengeEnrollment:
         return cls.get_user_enrollment(user_id, challenge_id)
 
     @classmethod
-    def get_or_create(cls, user_id, challenge_id, challenge_slug, amount_paid=499.0, payment_id=""):
+    def get_or_create(cls, user_id, challenge_id, challenge_slug, amount_paid=499.0, payment_id="", duration_days=30):
         enr = cls.get_user_enrollment(user_id, challenge_slug) or cls.get_user_enrollment(user_id, challenge_id)
         if not enr:
+            now = datetime.now(timezone.utc)
             enr = cls({
                 "user_id": str(user_id),
                 "challenge_id": str(challenge_id),
                 "challenge_slug": str(challenge_slug),
                 "amount_paid": float(amount_paid or 499.0),
                 "payment_id": str(payment_id or ""),
-                "enrolled_at": datetime.now(timezone.utc),
-                "deadline_at": datetime.now(timezone.utc) + timedelta(days=28)
+                "enrolled_at": now,
+                "deadline_at": now + timedelta(days=int(duration_days or 30))
             })
             enr.save()
         return enr

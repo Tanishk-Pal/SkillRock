@@ -7,7 +7,7 @@ Handles:
 - Socratic Conversational AI Engine powered by Gemini Key Pool
 - Isolated Secure Python Code Execution Sandbox
 - Multi-Agent Group Discussion & 5-Round Placement Simulator
-- 50% Completion Cashback Claims & Verification Tracking
+- 100% Completion Refund Claims & Verification Tracking
 """
 
 import sys
@@ -118,7 +118,7 @@ def dashboard():
     Main Bhavishya 1.0 Dashboard:
     - 19 learning cards organized across Technical, Placement, and Projects
     - Progress metric trackers, active streak, placement readiness score
-    - 50% completion cashback and certificate status indicators
+    - 100% completion refund and certificate status indicators
     """
     pkg = BhavishyaPackage()
     # Bhavishya 1.0 is 100% FREE for all students
@@ -788,13 +788,13 @@ def submit_simulator():
 
 
 # ==============================================================================
-# 10. 50% Completion Cashback Claims Portal
+# 10. 100% Completion Refund Claims Portal
 # ==============================================================================
 
 @bhavishya_bp.route("/cashback/claim", methods=["GET", "POST"])
 @login_required
 def cashback_claim():
-    """50% Completion Cashback claim submission and status audit page."""
+    """100% Completion Refund claim submission and status audit page."""
     record = BhavishyaCashback.get_by_user(str(current_user.id))
     progress = BhavishyaProgress.get_or_create_for_user(str(current_user.id))
 
@@ -818,7 +818,7 @@ def cashback_claim():
                 "user_name": current_user.name,
                 "user_email": current_user.email,
                 "original_amount": 299.0,
-                "cashback_amount": 149.50,
+                "cashback_amount": 299.0,
                 "upi_id": upi_id,
                 "status": BhavishyaCashback.STATUS_UNDER_VERIFICATION,
                 "applied_at": datetime.now(timezone.utc),
@@ -828,7 +828,7 @@ def cashback_claim():
             record.status = BhavishyaCashback.STATUS_UNDER_VERIFICATION
             record.applied_at = datetime.now(timezone.utc)
         record.save()
-        flash("Your 50% Completion Cashback claim has been submitted for verification! Our team verifies submissions within 48 hours.", "success")
+        flash("Your 100% Completion Refund claim has been submitted for verification! Our team verifies submissions within 48 hours.", "success")
         return redirect(url_for("bhavishya.cashback_claim"))
 
     return render_template(
@@ -837,7 +837,7 @@ def cashback_claim():
         progress=progress,
         completion_pct=pct,
         is_eligible=is_eligible,
-        refund_amount=149.50,
+        refund_amount=299.0,
     )
 
 

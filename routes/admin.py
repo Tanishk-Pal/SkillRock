@@ -49,6 +49,8 @@ from models import (
     slugify,
     extract_youtube_id
 )
+from models.mongo import _to_obj_id
+from models.roadmap import RoadmapCashback
 from config import Config
 from services.payment_service import grant_student_access, revoke_student_access
 
@@ -1954,7 +1956,7 @@ def challenge_edit(slug):
         try:
             ch.title = request.form.get("title", ch.title).strip()
             ch.price = float(request.form.get("price", ch.price or 499.0))
-            ch.duration_days = int(request.form.get("duration_days", ch.duration_days or 28))
+            ch.duration_days = int(request.form.get("duration_days", ch.duration_days or 30))
             ch.instructor = request.form.get("instructor", ch.instructor).strip()
             ch.difficulty = request.form.get("difficulty", ch.difficulty).strip()
             ch.is_active = bool(request.form.get("is_active") == "on" or request.form.get("is_active") == "true")
@@ -2222,7 +2224,7 @@ def cashback_process(request_id):
                         {
                             "amount": amount_paise,
                             "notes": {
-                                "reason": f"SkillRock 50% Completion Cashback: {req.roadmap_title}",
+                                "reason": f"SkillRock 100% Completion Refund: {req.roadmap_title}",
                                 "user_id": req.user_id,
                                 "approved_by": admin_identifier
                             }

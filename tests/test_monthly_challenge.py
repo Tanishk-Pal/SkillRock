@@ -125,11 +125,11 @@ class TestMonthlyChallengeSuite(unittest.TestCase):
     # ==========================================================================
 
     def test_2_challenge_models_and_metrics(self):
-        """Validates challenge configuration, duration, modules, and 28-day math."""
+        """Validates challenge configuration, duration, modules, and 30-day math."""
         ch = MonthlyChallenge.get_by_slug("python-28-day-challenge")
         self.assertIsNotNone(ch)
         self.assertEqual(ch.price, 499.0)
-        self.assertEqual(ch.duration_days, 28)
+        self.assertEqual(ch.duration_days, 30)
         self.assertEqual(len(ch.modules), 6)
         self.assertTrue(ch.is_active)
 
@@ -142,8 +142,8 @@ class TestMonthlyChallengeSuite(unittest.TestCase):
         )
         self.assertIsNotNone(enr)
         metrics = enr.get_countdown_metrics(ch.duration_days)
-        self.assertEqual(metrics["duration_days"], 28)
-        self.assertEqual(metrics["days_remaining"], 28)
+        self.assertEqual(metrics["duration_days"], 30)
+        self.assertEqual(metrics["days_remaining"], 30)
         self.assertFalse(metrics["is_expired"])
 
         # Check refund eligibility starts as unfulfilled
@@ -153,7 +153,7 @@ class TestMonthlyChallengeSuite(unittest.TestCase):
             total_interviews=4,
             total_coding=4,
             assignment_submission_status=None,
-            duration_days=28,
+            duration_days=30,
         )
         self.assertFalse(refund_eval["all_eligible"])
         self.assertEqual(len(refund_eval["criteria"]), 7)

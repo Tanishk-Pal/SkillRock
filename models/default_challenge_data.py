@@ -1,7 +1,7 @@
 """
 SkillRock — Default Monthly Challenge Curriculum Seeder
 Provides default production data for:
-- "Python Programming — 28-Day Challenge" (₹499 | 28 Days | 100% Refund Guarantee)
+- "Python Programming — 30-Day Challenge" (₹499 | 30 Days | 100% Refund Guarantee)
 - 6 Structured Modules with curated YouTube course content
 - Practice Arena Topic-wise MCQs
 - Placement Interview Preparation Questions
@@ -26,15 +26,15 @@ logger = logging.getLogger(__name__)
 DEFAULT_PYTHON_CHALLENGE = {
     "challenge_id": "python-28-day-challenge",
     "slug": "python-28-day-challenge",
-    "title": "Python Programming — 28-Day Challenge",
+    "title": "Python Programming — 30-Day Challenge",
     "tagline": "Learn. Practice. Complete. Get Certified.",
-    "promotional_message": "Complete your learning challenge within 28 days and get 100% of your eligible enrolment fee back!",
+    "promotional_message": "Complete your learning challenge within 30 days and get 100% of your eligible enrolment fee back!",
     "short_description": "Learn Python through a curated YouTube course, solve practical problems, prepare for technical interviews, and earn your SkillRock certificate.",
-    "full_description": """Welcome to the SkillRock Monthly Challenge! Over the next 28 days, you will embark on an intensive, structured curriculum covering foundational and advanced Python programming. 
+    "full_description": """Welcome to the SkillRock Monthly Challenge! Over the next 30 days, you will embark on an intensive, structured curriculum covering foundational and advanced Python programming. 
 
 You will study curated YouTube lessons, solve module-wise practice questions, master frequently asked placement interview problems, write code inside our interactive Coding Arena, complete an evaluated practical project, and prove your mastery in a comprehensive 50-question final assessment.
 
-Meet all graduation requirements within 28 days and receive a 100% refund of your eligible ₹499 enrolment fee!""",
+Meet all graduation requirements within 30 days and receive a 100% refund of your eligible ₹499 enrolment fee!""",
     "badge_text": "MONTHLY CHALLENGE",
     "month_display": "November 2026",
     "instructor": "Programming with Mosh & SkillRock Faculty",
@@ -43,7 +43,7 @@ Meet all graduation requirements within 28 days and receive a 100% refund of you
     "price": 499.0,
     "original_price": 1999.0,
     "currency": "INR",
-    "duration_days": 28,
+    "duration_days": 30,
     "difficulty": "Beginner to Placement Ready",
     "skills_covered": ["Python 3", "Data Structures", "Control Flow", "Object-Oriented Programming", "File I/O", "Exception Handling", "Algorithmic Thinking"],
     "learning_outcomes": [
@@ -61,7 +61,7 @@ Meet all graduation requirements within 28 days and receive a 100% refund of you
     "is_published": True,
     "is_programming": True,
     "supported_languages": ["python"],
-    "refund_terms": "Complete all mandatory modules, solve practical exercises, submit and pass the practical assignment rubric (>=70%), pass the 50-MCQ final assessment (>=80%), and receive your SkillRock certificate within 28 days of enrolment to qualify for a 100% refund of your ₹499 fee.",
+    "refund_terms": "Complete all mandatory modules, solve practical exercises, submit and pass the practical assignment rubric (>=70%), pass the 50-MCQ final assessment (>=80%), and receive your SkillRock certificate within 30 days of enrolment to qualify for a 100% refund of your ₹499 fee.",
     "modules": [
         {
             "module_id": "mod-1",
