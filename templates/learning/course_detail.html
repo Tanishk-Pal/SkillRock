@@ -446,24 +446,37 @@
                                     <i data-lucide="lock" style="width: 28px; height: 28px; color: #F59E0B;"></i>
                                 </div>
                                 {% if course.is_paid and course.price > 0 %}
-                                <div style="display: inline-block; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #FBBF24; font-size: 0.78rem; font-weight: 800; padding: 4px 12px; border-radius: 9999px; margin-bottom: 10px;">
-                                    PREMIUM COURSE — ₹{{ course.price|int }}
+                                <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #FBBF24; font-size: 0.78rem; font-weight: 800; padding: 4px 14px; border-radius: 9999px; margin-bottom: 12px;">
+                                    <span>PREMIUM COURSE — ₹{{ course.price|int }}</span>
+                                    <span style="color: #94A3B8;">•</span>
+                                    <span style="color: #34D399; font-weight: 800;">100% REFUNDABLE</span>
                                 </div>
-                                <h3 style="font-size: 1.35rem; font-weight: 800; color: #FFFFFF; margin-bottom: 8px;">
-                                    Premium Video Lectures & Certification
+                                <h3 style="font-size: 1.45rem; font-weight: 800; color: #FFFFFF; margin-bottom: 8px;">
+                                    Zero-Risk Learning: Complete in 30 Days &amp; Get 100% Refund!
                                 </h3>
-                                <p style="font-size: 0.88rem; color: #CBD5E1; line-height: 1.5; margin-bottom: 20px; max-width: 440px;">
-                                    Unlock full ad-free lecture streaming, hands-on capstone project review, and verifiable SkillRock certificate with instant UPI payment.
+                                <p style="font-size: 0.88rem; color: #CBD5E1; line-height: 1.5; margin-bottom: 14px; max-width: 460px;">
+                                    Commit to your learning today. Finish all modules and submit your project within <strong>30 days</strong>, and SkillRock will refund <strong>100% of your ₹{{ course.price|int }}</strong> directly to your UPI!
                                 </p>
+
+                                <!-- 30-Day 100% Refund Guarantee Highlight Box -->
+                                <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 100%); border: 1.5px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px 18px; margin-bottom: 20px; max-width: 460px; text-align: left; display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16, 185, 129, 0.25); color: #34D399; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i data-lucide="shield-check" style="width: 22px; height: 22px;"></i>
+                                    </div>
+                                    <div style="font-size: 0.82rem; color: #E2E8F0; line-height: 1.4;">
+                                        <strong style="color: #34D399;">100% Money-Back Guarantee:</strong> Complete within 30 days = ₹0 net cost. No questions asked.
+                                    </div>
+                                </div>
+
                                 {% if current_user.is_authenticated %}
-                                <a href="{{ url_for('payment.checkout', item_type='course', item_id=course.id) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; background: #D97706; border-color: #D97706; box-shadow: 0 4px 18px rgba(217, 119, 6, 0.45); text-decoration: none;">
-                                    <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
-                                    <span>Buy Now — ₹{{ course.price|int }} (Instant UPI Unlock)</span>
+                                <a href="{{ url_for('payment.checkout', item_type='course', item_id=course.id) }}" class="btn btn-primary" style="padding: 13px 30px; font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-color: #D97706; color: #0F172A; box-shadow: 0 4px 18px rgba(217, 119, 6, 0.45); text-decoration: none;">
+                                    <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                                    <span>Buy Now — ₹{{ course.price|int }} (100% Refundable)</span>
                                 </a>
                                 {% else %}
-                                <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='course', item_id=course.id)) }}" class="btn btn-primary" style="padding: 12px 28px; font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; background: #D97706; border-color: #D97706; box-shadow: 0 4px 18px rgba(217, 119, 6, 0.45); text-decoration: none;">
-                                    <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
-                                    <span>Sign In & Buy Now — ₹{{ course.price|int }}</span>
+                                <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='course', item_id=course.id)) }}" class="btn btn-primary" style="padding: 13px 30px; font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-color: #D97706; color: #0F172A; box-shadow: 0 4px 18px rgba(217, 119, 6, 0.45); text-decoration: none;">
+                                    <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                                    <span>Sign In &amp; Buy Now — ₹{{ course.price|int }}</span>
                                 </a>
                                 {% endif %}
                                 {% else %}
@@ -714,9 +727,9 @@
 
                             <!-- Not Enrolled Yet (Authenticated) -->
                             {% if course.is_paid and course.price > 0 and not verify_student_unlock(current_user, 'course', course.id) %}
-                            <a href="{{ url_for('payment.checkout', item_type='course', item_id=course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; background: #D97706; border-color: #D97706; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                                <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
-                                <span>Buy Now — ₹{{ course.price|int }}</span>
+                            <a href="{{ url_for('payment.checkout', item_type='course', item_id=course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-color: #D97706; color: #0F172A; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                                <span>Buy Now — ₹{{ course.price|int }} (100% Refundable)</span>
                             </a>
                             {% else %}
                             <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
@@ -731,9 +744,9 @@
 
                         <!-- Unauthenticated User -->
                         {% if course.is_paid and course.price > 0 %}
-                        <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='course', item_id=course.id)) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; background: #D97706; border-color: #D97706; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                            <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
-                            <span>Buy Now — ₹{{ course.price|int }}</span>
+                        <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='course', item_id=course.id)) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-color: #D97706; color: #0F172A; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                            <span>Buy Now — ₹{{ course.price|int }} (100% Refundable)</span>
                         </a>
                         {% else %}
                         <a href="{{ url_for('auth.register', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1.05rem; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
@@ -1412,18 +1425,36 @@
 
                 <div style="text-align: center; margin-bottom: 20px;">
                     {% if course.is_paid and course.price > 0 %}
-                    <div style="font-size: 2.1rem; font-weight: 800; color: #D97706; margin-bottom: 4px;">
-                        ₹{{ course.price|int }}
+                    <div style="display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-bottom: 4px;">
+                        <span style="font-size: 2.3rem; font-weight: 900; color: #F59E0B;">
+                            ₹{{ course.price|int }}
+                        </span>
+                        <span style="font-size: 0.76rem; color: #10B981; font-weight: 800; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 3px 10px; border-radius: 9999px;">
+                            100% Refundable
+                        </span>
                     </div>
-                    <div style="font-size: 0.82rem; color: var(--text-muted);">
-                        Premium Course & Project Certification
+                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+                        Premium Course &amp; Project Certification
+                    </div>
+
+                    <!-- 30-Day 100% Refund Guarantee Box -->
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.05) 100%); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 12px 14px; text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <i data-lucide="shield-check" style="width: 18px; height: 18px; color: #10B981; flex-shrink: 0;"></i>
+                            <span style="font-size: 0.8rem; font-weight: 800; color: #10B981; text-transform: uppercase;">
+                                30-Day 100% Refund Promise
+                            </span>
+                        </div>
+                        <p style="font-size: 0.78rem; color: var(--text-secondary); margin: 0; line-height: 1.45;">
+                            Complete this course within <strong>30 days</strong> and claim <strong>100% of your ₹{{ course.price|int }} fee back</strong> directly to your UPI. You learn for free if you stay consistent!
+                        </p>
                     </div>
                     {% else %}
                     <div style="font-size: 1.8rem; font-weight: 800; color: #10B981; margin-bottom: 4px;">
                         FREE
                     </div>
                     <div style="font-size: 0.82rem; color: var(--text-muted);">
-                        Curated Learning & Project Certification
+                        Curated Learning &amp; Project Certification
                     </div>
                     {% endif %}
                 </div>
@@ -1524,9 +1555,9 @@
 
                             <!-- Not Enrolled Yet (Authenticated) -->
                             {% if course.is_paid and course.price > 0 and not verify_student_unlock(current_user, 'course', course.id) %}
-                            <a href="{{ url_for('payment.checkout', item_type='course', item_id=course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1rem; background: #D97706; border-color: #D97706; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                                <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
-                                <span>Buy Now — ₹{{ course.price|int }}</span>
+                            <a href="{{ url_for('payment.checkout', item_type='course', item_id=course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1rem; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-color: #D97706; color: #0F172A; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                                <span>Buy Now — ₹{{ course.price|int }} (100% Refundable)</span>
                             </a>
                             {% else %}
                             <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
@@ -1541,9 +1572,9 @@
 
                         <!-- Unauthenticated User -->
                         {% if course.is_paid and course.price > 0 %}
-                        <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='course', item_id=course.id)) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1rem; background: #D97706; border-color: #D97706; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                            <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
-                            <span>Buy Now — ₹{{ course.price|int }}</span>
+                        <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='course', item_id=course.id)) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 13px; font-size: 1rem; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-color: #D97706; color: #0F172A; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                            <span>Buy Now — ₹{{ course.price|int }} (100% Refundable)</span>
                         </a>
                         {% else %}
                         <a href="{{ url_for('auth.register', next=request.path) }}" class="btn btn-primary" style="width: 100%; justify-content: center; font-weight: 700; padding: 12px; font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
@@ -1559,6 +1590,13 @@
                 <!-- Course Requirements Notice -->
 
                 <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.7; border-top: 1px solid var(--border-color); padding-top: 14px;">
+
+                    {% if course.is_paid and course.price > 0 %}
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; color: #10B981; font-weight: 700;">
+                        <i data-lucide="shield-check" style="width: 15px; height: 15px; color: #10B981;"></i>
+                        <span>100% fee refund on 30-day completion</span>
+                    </div>
+                    {% endif %}
 
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
 
