@@ -1,3 +1,6 @@
+import os
+os.environ["MONGODB_URI"] = ""
+os.environ["TESTING"] = "1"
 import unittest
 from flask import json
 from app import create_app
