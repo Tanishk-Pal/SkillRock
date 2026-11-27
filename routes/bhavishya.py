@@ -115,139 +115,10 @@ def call_bhavishya_gemini(prompt_text, system_instruction=""):
 @bhavishya_bp.route("/dashboard", strict_slashes=False)
 def dashboard():
     """
-    Main Bhavishya 1.0 Dashboard:
-    - 19 learning cards organized across Technical, Placement, and Projects
-    - Progress metric trackers, active streak, placement readiness score
-    - 100% completion refund and certificate status indicators
+    Bhavishya 1.0 is permanently decommissioned per user request.
+    Redirect visitors to the Learn & Build courses catalogue.
     """
-    pkg = BhavishyaPackage()
-    # Bhavishya 1.0 is 100% FREE for all students
-    is_unlocked = True
-    progress = None
-    cashback_status = None
-    user_id = None
-
-    if current_user.is_authenticated:
-        user_id = str(current_user.id)
-        progress = BhavishyaProgress.get_or_create_for_user(user_id)
-        cashback_record = BhavishyaCashback.get_by_user(user_id)
-        cashback_status = cashback_record.status if cashback_record else BhavishyaCashback.STATUS_IN_PROGRESS
-
-    # Fetch all published subjects grouped by category
-    tech_subjects = BhavishyaSubject.get_by_category(BhavishyaSubject.CATEGORY_TECHNICAL)
-    placement_subjects = BhavishyaSubject.get_by_category(BhavishyaSubject.CATEGORY_PLACEMENT)
-    project_subjects = BhavishyaSubject.get_by_category(BhavishyaSubject.CATEGORY_PROJECTS)
-
-    # Compute overall platform statistics
-    all_subjects = tech_subjects + placement_subjects + project_subjects
-    total_lessons = sum(s.total_lessons_count for s in all_subjects) or 1
-    completed_count = len(progress.completed_lesson_ids) if progress else 0
-    overall_percentage = round((completed_count / float(total_lessons)) * 100.0, 1) if progress else 0.0
-
-    # Determine "Continue Learning" subject and lesson
-    continue_subject = None
-    continue_lesson = None
-    if progress and progress.last_subject_slug:
-        continue_subject = BhavishyaSubject.get_by_slug(progress.last_subject_slug)
-        if continue_subject:
-            continue_lesson, _ = continue_subject.get_lesson_by_id(progress.last_lesson_id)
-            if not continue_lesson and continue_subject.chapters:
-                first_ch = continue_subject.chapters[0]
-                if first_ch.get("lessons"):
-                    continue_lesson = first_ch["lessons"][0]
-
-    if not continue_subject and tech_subjects:
-        continue_subject = tech_subjects[0]
-        if continue_subject.chapters and continue_subject.chapters[0].get("lessons"):
-            continue_lesson = continue_subject.chapters[0]["lessons"][0]
-
-    # Fetch Bhavishya 1.0 Live Lectures Batch configuration & modules
-    batch_config = BhavishyaBatchConfig.get_config("bhavishya-1-0")
-    active_live_lecture = BhavishyaLiveLecture.get_active_live("bhavishya-1-0")
-    next_scheduled_lecture = BhavishyaLiveLecture.get_next_scheduled("bhavishya-1-0")
-    live_modules = BhavishyaLiveLecture.get_modules_grouped("bhavishya-1-0")
-    all_live_lectures = BhavishyaLiveLecture.get_all("bhavishya-1-0")
-    completed_lectures_count = sum(1 for l in all_live_lectures if l.is_completed)
-
-    # Physics Wallah-style Dual Flagship Batches: Python & English
-    python_lectures = BhavishyaLiveLecture.get_all("bhavishya-1-0", subject_slug="python")
-    english_lectures = BhavishyaLiveLecture.get_all("bhavishya-1-0", subject_slug="english")
-    python_modules = BhavishyaLiveLecture.get_modules_grouped("bhavishya-1-0", subject_slug="python")
-    english_modules = BhavishyaLiveLecture.get_modules_grouped("bhavishya-1-0", subject_slug="english")
-    python_active_live = BhavishyaLiveLecture.get_active_live("bhavishya-1-0", subject_slug="python")
-    english_active_live = BhavishyaLiveLecture.get_active_live("bhavishya-1-0", subject_slug="english")
-    python_next = BhavishyaLiveLecture.get_next_scheduled("bhavishya-1-0", subject_slug="python")
-    english_next = BhavishyaLiveLecture.get_next_scheduled("bhavishya-1-0", subject_slug="english")
-
-    batch_courses = [
-        {
-            "id": "python-batch",
-            "slug": "python",
-            "title": "Python Mastery — Zero to Placement",
-            "badge_title": "Python Live Batch",
-            "tag": "Live Interactive Batch",
-            "certification": "With Certification",
-            "language": "Hinglish",
-            "teacher_name": "Tanishk Pal Sir",
-            "teacher_title": "Founder & Lead Python Educator",
-            "teacher_avatar": "/static/img/teacher_tanishk.svg",
-            "schedule": "Starts on 24 Nov 2026 | Daily Live 7:00 PM IST",
-            "total_lectures": len(python_lectures),
-            "modules_count": len(python_modules),
-            "active_live": python_active_live,
-            "next_scheduled": python_next,
-            "study_url": url_for("bhavishya.subject_detail", slug="python"),
-            "features": ["Daily Google Meet Live Classes", "Topic-wise DPPs with Instant Solutions", "Class Notes & Cheatsheets", "In-Browser Python IDE", "Ski AI Doubt Solver 24/7"],
-            "gradient": "linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)",
-            "accent": "#6366F1"
-        },
-        {
-            "id": "english-batch",
-            "slug": "english",
-            "title": "Professional English & Communication",
-            "badge_title": "English Academy",
-            "tag": "Speaking & Fluency Academy",
-            "certification": "With Certification",
-            "language": "Hinglish / English",
-            "teacher_name": "Ananya Sharma Ma'am",
-            "teacher_title": "Lead Communication & Verbal Coach",
-            "teacher_avatar": "/static/img/teacher_ananya.svg",
-            "schedule": "Starts on 24 Nov 2026 | Daily Live 8:30 PM IST",
-            "total_lectures": len(english_lectures),
-            "modules_count": len(english_modules),
-            "active_live": english_active_live,
-            "next_scheduled": english_next,
-            "study_url": url_for("bhavishya.subject_detail", slug="english"),
-            "features": ["Live Google Meet Speaking Circles", "Phonetics & Accent Softening", "Corporate Email & Standup Etiquette", "Behavioral Interview STAR Framework", "JAM & Impromptu Talk Drills"],
-            "gradient": "linear-gradient(135deg, #064E3B 0%, #047857 100%)",
-            "accent": "#10B981"
-        }
-    ]
-
-    return render_template(
-        "bhavishya/dashboard.html",
-        package=pkg,
-        is_unlocked=is_unlocked,
-        progress=progress,
-        overall_percentage=overall_percentage,
-        completed_count=completed_count,
-        total_lessons=total_lessons,
-        tech_subjects=tech_subjects,
-        placement_subjects=placement_subjects,
-        project_subjects=project_subjects,
-        continue_subject=continue_subject,
-        continue_lesson=continue_lesson,
-        cashback_status=cashback_status,
-        batch_config=batch_config,
-        active_live_lecture=active_live_lecture,
-        next_scheduled_lecture=next_scheduled_lecture,
-        live_modules=live_modules,
-        all_live_lectures=all_live_lectures,
-        completed_lectures_count=completed_lectures_count,
-        batch_courses=batch_courses,
-        python_lectures=python_lectures,
-        english_lectures=english_lectures
-    )
+    return redirect(url_for("learning.courses_list"))
 
 
 # ==============================================================================
@@ -256,20 +127,8 @@ def dashboard():
 
 @bhavishya_bp.route("/roadmap")
 def roadmap():
-    """Renders the comprehensive 24-week progressive Bhavishya learning roadmap."""
-    pkg = BhavishyaPackage()
-    is_unlocked = False
-    progress = None
-    if current_user.is_authenticated:
-        is_unlocked = verify_student_unlock(current_user, "bhavishya", "bhavishya-1-0")
-        progress = BhavishyaProgress.get_or_create_for_user(str(current_user.id))
-
-    return render_template(
-        "bhavishya/roadmap.html",
-        package=pkg,
-        is_unlocked=is_unlocked,
-        progress=progress,
-    )
+    """Bhavishya is decommissioned; redirect to courses."""
+    return redirect(url_for("learning.courses_list"))
 
 
 # ==============================================================================

@@ -837,10 +837,6 @@
 
                     </a>
 
-                    <a href="{{ url_for('bhavishya.dashboard') }}" class="btn btn-secondary btn-sm" style="background: rgba(168, 85, 247, 0.18); border-color: rgba(168, 85, 247, 0.4); color: #C084FC; border-radius: 9999px; padding: 6px 14px; font-weight: 600;">
-                        <i data-lucide="cpu" style="width: 14px; height: 14px;"></i>
-                        <span>Bhavishya 1.0</span>
-                    </a>
                     <a href="{{ url_for('challenge.catalog') }}" class="btn btn-secondary btn-sm" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%); border-color: rgba(245, 158, 11, 0.5); color: #FBBF24; border-radius: 9999px; padding: 6px 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
                         <i data-lucide="trophy" style="width: 14px; height: 14px; color: #F59E0B;"></i>
                         <span>Monthly Challenge</span>
@@ -906,18 +902,6 @@
                     <i data-lucide="trophy" style="color: #F59E0B;"></i>
                     <span>Monthly Challenge</span>
                     <span class="pw-nav-badge" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: #0F172A; font-weight: 800;">₹499 REFUND</span>
-                </a>
-
-                <a href="{{ url_for('bhavishya.dashboard') }}" 
-
-                   class="pw-nav-item {% if request.endpoint and 'bhavishya.' in request.endpoint %}active{% endif %}">
-
-                    <i data-lucide="cpu" style="color: #A855F7;"></i>
-
-                    <span>Bhavishya 1.0</span>
-
-                    <span class="pw-nav-badge" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: #FFFFFF; font-weight: 800;">🔴 LIVE BATCH</span>
-
                 </a>
 
                 <a href="{{ url_for('ai.ski_hub') }}" 
@@ -2037,11 +2021,11 @@
 
         </a>
 
-        <a href="{{ url_for('bhavishya.dashboard') }}" class="mobile-bottom-item {% if request.endpoint and 'bhavishya.' in request.endpoint %}active{% endif %}" aria-label="Bhavishya 1.0">
+        <a href="{{ url_for('challenge.catalog') }}" class="mobile-bottom-item {% if request.endpoint and 'challenge.' in request.endpoint %}active{% endif %}" aria-label="Monthly Challenge">
 
-            <i data-lucide="cpu" style="color: #A855F7;"></i>
+            <i data-lucide="trophy" style="color: #F59E0B;"></i>
 
-            <span>Bhavishya</span>
+            <span>Challenge</span>
 
         </a>
 
@@ -2379,18 +2363,15 @@
                 var title = "Opening Lesson...";
                 var subtext = "SkillRock is preparing your learning space";
                 var linkText = (link.textContent || "").toLowerCase();
-                if (href.includes("bhavishya")) {
-                    title = "Entering Bhavishya 1.0...";
-                    subtext = "Connecting to live classroom & educator stream";
+                if (href.includes("challenges")) {
+                    title = "Opening Monthly Challenge...";
+                    subtext = "Loading syllabus and challenge track";
                 } else if (href.includes("discover") || linkText.includes("exchange")) {
                     title = "Loading Skill Exchange...";
                     subtext = "Connecting you with peers and mentors";
                 } else if (href.includes("learning/certificate") || href.includes("/certificate/")) {
                     title = "Verifying Certificate...";
                     subtext = "Preparing official tamper-proof credential";
-                } else if (href.includes("challenges")) {
-                    title = "Opening Monthly Challenge...";
-                    subtext = "Loading syllabus and challenge track";
                 }
 
                 window.showSkillRockBookLoader(title, subtext);

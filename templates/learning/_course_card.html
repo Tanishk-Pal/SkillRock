@@ -52,7 +52,7 @@
         </div>
 
         <!-- Card Content -->
-        <div style="padding: 20px;">
+        <div class="course-card-body" style="padding: 20px;">
             <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
                 <i data-lucide="user" style="width: 13px; height: 13px;"></i>
                 <span>{{ course.instructor }}</span>
@@ -102,7 +102,7 @@
     </div>
 
     <!-- Footer / Call to Action -->
-    <div style="padding: 14px 20px; border-top: 1px solid var(--border-color); background: var(--bg-elevated); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+    <div class="course-card-footer" style="padding: 14px 20px; border-top: 1px solid var(--border-color); background: var(--bg-elevated); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
         <div>
             {% if (course.enrolled_count or 0) >= 50 %}
                 <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 600;">
