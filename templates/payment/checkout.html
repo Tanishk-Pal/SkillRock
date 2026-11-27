@@ -697,7 +697,7 @@
                     <!-- Quick 1-Click Pay in Summary Card -->
                     <button type="button" onclick="document.getElementById('btnRazorpayModal').click()" class="td-quick-pay-left-btn" style="width: 100%; margin-top: 12px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: #FFFFFF; border: none; padding: 11px 14px; border-radius: 10px; font-weight: 800; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35); transition: all 0.15s ease;">
                         <i data-lucide="zap" style="width: 15px; height: 15px; fill: #FFFFFF;"></i>
-                        <span>Pay ₹{{ price|int }} Now (1-Click)</span>
+                        <span id="leftQuickPayBtnText">Pay ₹{{ price|int }} Now (1-Click)</span>
                         <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -957,7 +957,7 @@
                     <!-- Secondary Quick Proceed Button at bottom of benefits -->
                     <button type="button" onclick="document.getElementById('btnRazorpayModal').click()" class="td-rzp-secondary-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: #EDE9FE; color: #6D28D9; border: 1.5px solid #C4B5FD; padding: 13px 20px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; cursor: pointer; transition: all 0.15s ease;">
                         <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
-                        <span>Pay ₹{{ price|int }} via Razorpay</span>
+                        <span id="secRzpBtnText">Pay ₹{{ price|int }} via Razorpay</span>
                         <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
                     </button>
 
@@ -1010,27 +1010,43 @@
     const sridStatusIcon = document.getElementById('sridStatusIcon');
     let sridDebounceTimer = null;
     let sridAbortController = null;
-    const basePrice = parseInt("{{ price|int }}", 10) || 299;
+    const basePrice = parseFloat("{{ price }}") || 199.0;
 
     function applyAmbassadorDiscount(data) {
-        const finalPrice = data.final_price || (basePrice === 299 ? 239 : Math.round(basePrice * 0.8));
-        const discountAmount = data.discount_amount || (basePrice - finalPrice);
+        const discountPct = 0.20;
+        const discountAmount = (data && data.discount_amount) ? parseFloat(data.discount_amount) : Math.round(basePrice * discountPct * 100) / 100;
+        const finalPrice = (data && data.final_price) ? parseFloat(data.final_price) : Math.round((basePrice - discountAmount) * 100) / 100;
+        const formattedFinal = (finalPrice % 1 === 0) ? finalPrice : finalPrice.toFixed(2);
+        const formattedDiscount = (discountAmount % 1 === 0) ? discountAmount : discountAmount.toFixed(2);
 
         // Update Left Price Card
         const leftPrice = document.getElementById('leftPriceAmount');
         if (leftPrice) {
-            leftPrice.innerHTML = `<span class="td-price-currency">₹</span>${finalPrice} <span style="font-size: 0.72rem; color: #16A34A; background: #DCFCE7; padding: 2px 6px; border-radius: 9999px; vertical-align: middle;">-₹${discountAmount} off</span>`;
+            leftPrice.innerHTML = `<span class="td-price-currency">₹</span>${formattedFinal} <span style="font-size: 0.72rem; color: #16A34A; background: #DCFCE7; padding: 2px 6px; border-radius: 9999px; vertical-align: middle;">-₹${formattedDiscount} (20% OFF)</span>`;
+        }
+
+        // Update Left Green 1-Click Pay Button
+        const leftQuickPayBtnText = document.getElementById('leftQuickPayBtnText');
+        if (leftQuickPayBtnText) {
+            leftQuickPayBtnText.innerText = `Pay ₹${formattedFinal} Now (1-Click)`;
         }
 
         // Update Top Payable Display
         const topPayable = document.getElementById('topPayableAmount');
         if (topPayable) {
-            topPayable.innerText = `₹${finalPrice}`;
+            topPayable.innerText = `₹${formattedFinal}`;
         }
 
         // Update Razorpay Master CTA Button
+        const rzpBtnText = document.getElementById('rzpBtnText');
         if (rzpBtnText) {
-            rzpBtnText.innerText = `Proceed to Pay ₹${finalPrice} via Razorpay`;
+            rzpBtnText.innerText = `Proceed to Pay ₹${formattedFinal} via Razorpay`;
+        }
+
+        // Update Secondary Quick Proceed Button
+        const secBtnText = document.getElementById('secRzpBtnText');
+        if (secBtnText) {
+            secBtnText.innerText = `Pay ₹${formattedFinal} via Razorpay`;
         }
 
         // Update Order Summary Table
@@ -1038,26 +1054,36 @@
         const discountAmt = document.getElementById('summaryDiscountAmount');
         const summaryPayable = document.getElementById('summaryPayableAmount');
         if (discountRow) discountRow.style.display = 'flex';
-        if (discountAmt) discountAmt.innerText = `-₹${discountAmount}`;
-        if (summaryPayable) summaryPayable.innerText = `₹${finalPrice}`;
+        if (discountAmt) discountAmt.innerText = `-₹${formattedDiscount}`;
+        if (summaryPayable) summaryPayable.innerText = `₹${formattedFinal}`;
     }
 
     function resetAmbassadorDiscount() {
+        const formattedBase = (basePrice % 1 === 0) ? basePrice : basePrice.toFixed(2);
         const leftPrice = document.getElementById('leftPriceAmount');
         if (leftPrice) {
-            leftPrice.innerHTML = `<span class="td-price-currency">₹</span>${basePrice}`;
+            leftPrice.innerHTML = `<span class="td-price-currency">₹</span>${formattedBase}`;
+        }
+        const leftQuickPayBtnText = document.getElementById('leftQuickPayBtnText');
+        if (leftQuickPayBtnText) {
+            leftQuickPayBtnText.innerText = `Pay ₹${formattedBase} Now (1-Click)`;
         }
         const topPayable = document.getElementById('topPayableAmount');
         if (topPayable) {
-            topPayable.innerText = `₹${basePrice}`;
+            topPayable.innerText = `₹${formattedBase}`;
         }
+        const rzpBtnText = document.getElementById('rzpBtnText');
         if (rzpBtnText) {
-            rzpBtnText.innerText = `Proceed to Pay ₹${basePrice} via Razorpay`;
+            rzpBtnText.innerText = `Proceed to Pay ₹${formattedBase} via Razorpay`;
+        }
+        const secBtnText = document.getElementById('secRzpBtnText');
+        if (secBtnText) {
+            secBtnText.innerText = `Pay ₹${formattedBase} via Razorpay`;
         }
         const discountRow = document.getElementById('summaryDiscountRow');
         const summaryPayable = document.getElementById('summaryPayableAmount');
         if (discountRow) discountRow.style.display = 'none';
-        if (summaryPayable) summaryPayable.innerText = `₹${basePrice}`;
+        if (summaryPayable) summaryPayable.innerText = `₹${formattedBase}`;
     }
 
     function validateAmbassadorId(digits) {
@@ -1082,7 +1108,7 @@
                 applyAmbassadorDiscount(data);
             } else if (!data.available) {
                 sridStatusIcon.innerHTML = '<i data-lucide="check-circle" style="color:#16a34a; width:16px; height:16px;"></i>';
-                sridFeedback.innerHTML = `<span style="color:#15803D; font-weight:700;">✅ 20% Discount Applied! Ambassador referral recorded.</span>`;
+                sridFeedback.innerHTML = `<span style="color:#15803D; font-weight:700;">✅ 20% Discount Applied! Referral SR${digits} recorded.</span>`;
                 applyAmbassadorDiscount(data);
             } else {
                 sridStatusIcon.innerHTML = '<i data-lucide="alert-circle" style="color:#dc2626; width:16px; height:16px;"></i>';
@@ -1095,7 +1121,7 @@
             if (err.name === 'AbortError') return;
             sridStatusIcon.innerHTML = '<i data-lucide="check-circle" style="color:#16a34a; width:16px; height:16px;"></i>';
             sridFeedback.innerHTML = `<span style="color:#15803D; font-weight:700;">✅ 20% Discount Applied! Referral SR${digits} recorded.</span>`;
-            applyAmbassadorDiscount({ final_price: (basePrice === 299 ? 239 : Math.round(basePrice * 0.8)), discount_amount: (basePrice === 299 ? 60 : Math.round(basePrice * 0.2)) });
+            applyAmbassadorDiscount({});
             if (window.lucide) window.lucide.createIcons();
         });
     }

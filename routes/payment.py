@@ -146,7 +146,7 @@ def record_ambassador_sale(srid, item, user, amount, payment_id, utr_number, sta
     orig_item_price = float(getattr(item, "original_price", getattr(item, "price", amount)) or amount or 299.0)
     net_paid = float(amount or 0.0)
     discount_val = round(orig_item_price * 0.20, 2) if net_paid < orig_item_price else 0.0
-    comm_val = round(net_paid * 0.25, 2)
+    comm_val = round(net_paid * 0.20, 2)
 
     sale_doc = {
         "srid": clean_srid,
@@ -321,16 +321,11 @@ def update_referral():
     if not re.match(r"^SR\d{4}$", clean_srid):
         return jsonify({"success": False, "error": "Invalid SRID format"}), 400
 
-    # 20% Ambassador Discount & 25% Commission Calculation (Applies specifically to Bhavishya 1.0)
-    item_type = session_doc.get("item_type", "bhavishya")
-    if item_type == "bhavishya":
-        discount_amount = round(orig_amount * 0.20, 2)
-        discounted_amount = round(orig_amount - discount_amount, 2)
-        commission_amount = round(discounted_amount * 0.25, 2)
-    else:
-        discount_amount = 0.0
-        discounted_amount = orig_amount
-        commission_amount = 0.0
+    # 20% Ambassador Discount & 20% Commission Calculation
+    item_type = session_doc.get("item_type", "course")
+    discount_amount = round(orig_amount * 0.20, 2)
+    discounted_amount = round(orig_amount - discount_amount, 2)
+    commission_amount = round(discounted_amount * 0.20, 2)
 
     new_qr = generate_upi_qr_base64(
         amount=discounted_amount,
@@ -514,10 +509,10 @@ def create_razorpay_order():
         orig_price = price
         discount_amount = 0.0
         commission_amount = 0.0
-        if clean_srid and item_type == "bhavishya":
+        if clean_srid:
             discount_amount = round(orig_price * 0.20, 2)
             price = round(orig_price - discount_amount, 2)
-            commission_amount = round(price * 0.25, 2)
+            commission_amount = round(price * 0.20, 2)
 
         amount_paise = int(round(price * 100))
         notes["item_title"] = getattr(item, "title", "Course")[:45]
@@ -702,7 +697,7 @@ def verify_razorpay_payment():
     if clean_srid:
         orig_price = float(order_doc.get("notes", {}).get("original_price") or (getattr(item, "price", amount_rupees) if item else amount_rupees))
         discount_amount = float(order_doc.get("notes", {}).get("discount_amount") or round(orig_price * 0.20, 2))
-        commission_amount = float(order_doc.get("notes", {}).get("commission_amount") or round(amount_rupees * 0.25, 2))
+        commission_amount = float(order_doc.get("notes", {}).get("commission_amount") or round(amount_rupees * 0.20, 2))
 
         new_payment["srid"] = clean_srid
         new_payment["ambassador_code"] = clean_srid
@@ -912,10 +907,10 @@ def submit_payment():
     commission_amount = 0.0
     payable_amount = base_item_price
 
-    if clean_srid and item_type == "bhavishya":
+    if clean_srid:
         discount_amount = round(base_item_price * 0.20, 2)
         payable_amount = round(base_item_price - discount_amount, 2)
-        commission_amount = round(payable_amount * 0.25, 2)
+        commission_amount = round(payable_amount * 0.20, 2)
 
     # Check if this UTR was already detected & credited via Bank SMS
     bank_credit = db.bank_credits.find_one({

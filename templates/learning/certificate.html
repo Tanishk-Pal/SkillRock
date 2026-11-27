@@ -273,6 +273,43 @@
         color: var(--text-main, #FFFFFF);
     }
 
+    /* Certificate Responsive Scaler Viewport */
+    .cert-viewport {
+        width: 100%;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        position: relative;
+        margin: 0 auto 24px auto;
+    }
+
+    .cert-scaler {
+        width: 960px;
+        flex-shrink: 0;
+        transform-origin: top center;
+    }
+
+    .mobile-cert-hint-banner {
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        .mobile-cert-hint-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.76rem;
+            color: #64748B;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px dashed rgba(99, 102, 241, 0.25);
+            border-radius: 8px;
+            padding: 7px 12px;
+            margin-bottom: 14px;
+            text-align: center;
+        }
+    }
+
     /* Print styles */
     @media print {
         body {

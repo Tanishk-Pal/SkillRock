@@ -183,7 +183,9 @@ class TestAmbassadorReferralCheckout(unittest.TestCase):
             pay = self.db.payments.find_one({"utr_number": utr})
             self.assertIsNotNone(pay)
             self.assertEqual(pay.get("srid"), "SR1001")
-            self.assertEqual(pay["amount"], 699.0)
+            self.assertEqual(pay["amount"], 559.20)
+            self.assertEqual(pay["original_price"], 699.0)
+            self.assertEqual(pay["discount_amount"], 139.80)
 
     # -------------------------------------------------------------------------
     # Scenario 3: Invalid SRID format handling
@@ -517,6 +519,124 @@ class TestAmbassadorReferralCheckout(unittest.TestCase):
         html = search_res.get_data(as_text=True)
         self.assertIn("Ambassador SRID:SR1001", html)
         self.assertIn(utr, html)
+
+    # -------------------------------------------------------------------------
+    # Scenario 13: Course 20% SRID Discount & 20% Ambassador Commission
+    # -------------------------------------------------------------------------
+    def test_scenario_13_course_srid_20_percent_discount_and_commission(self):
+        """
+        Verify that on a course (e.g. ₹199), entering SRID 1005:
+        1. Charges 20% discounted price (₹159.20 = 15920 paise) via Razorpay order.
+        2. Records 20% commission (₹31.84) in ambassador_sales on verification.
+        3. Is idempotent against duplicate signature replay.
+        """
+        import hmac
+        import hashlib
+        from config import Config
+
+        self._login("alpha.student@skillrock.test", "StudentPass123!")
+
+        # Create ₹199 course
+        course_199 = Course({
+            "title": "Python Programming Fundamentals",
+            "slug": "python-programming-fundamentals-199",
+            "youtube_url": "https://www.youtube.com/watch?v=kqtD5dpn9C8",
+            "instructor": "Curated Instructor",
+            "is_published": True,
+            "is_paid": True,
+            "price": 199.0,
+        })
+        course_199.save()
+
+        # Step 1: Create Razorpay Order with SRID 1005
+        with patch("routes.payment.get_razorpay_client") as mock_client_getter:
+            mock_client = MagicMock()
+            mock_client_getter.return_value = mock_client
+            mock_client.order.create.return_value = {
+                "id": "order_test_199_disc",
+                "amount": 15920,
+                "currency": "INR",
+                "receipt": "rcpt_test_199",
+                "notes": {
+                    "item_type": "course",
+                    "item_id": str(course_199.id),
+                    "srid": "SR1005",
+                    "original_price": "199.0",
+                    "discount_amount": "39.8",
+                    "commission_amount": "31.84",
+                }
+            }
+
+            order_res = self.client.post("/api/create-order", json={
+                "item_type": "course",
+                "item_id": str(course_199.id),
+                "srid": "1005",
+            })
+            self.assertEqual(order_res.status_code, 200)
+            order_data = order_res.get_json()
+            self.assertEqual(order_data["amount"], 15920)  # 15920 paise = ₹159.20!
+
+            # Verify order.create call args
+            create_args = mock_client.order.create.call_args[0][0]
+            self.assertEqual(create_args["amount"], 15920)
+            self.assertEqual(create_args["notes"]["srid"], "SR1005")
+            self.assertEqual(create_args["notes"]["original_price"], "199.0")
+            self.assertEqual(create_args["notes"]["discount_amount"], "39.8")
+            self.assertEqual(create_args["notes"]["commission_amount"], "31.84")
+
+        # Step 2: Verify Razorpay Payment Signature
+        order_id = "order_test_199_disc"
+        payment_id = "pay_test_199_sig"
+        secret = Config.RAZORPAY_KEY_SECRET
+        valid_sig = hmac.new(
+            secret.encode("utf-8"),
+            f"{order_id}|{payment_id}".encode("utf-8"),
+            hashlib.sha256
+        ).hexdigest()
+
+        verify_res = self.client.post("/api/verify-payment", json={
+            "razorpay_order_id": order_id,
+            "razorpay_payment_id": payment_id,
+            "razorpay_signature": valid_sig,
+            "item_type": "course",
+            "item_id": str(course_199.id),
+            "srid": "1005",
+        })
+        self.assertEqual(verify_res.status_code, 200)
+        verify_data = verify_res.get_json()
+        self.assertTrue(verify_data["success"])
+
+        # Step 3: Check Payment Record in MongoDB
+        pay_doc = self.db.payments.find_one({"razorpay_payment_id": payment_id})
+        self.assertIsNotNone(pay_doc)
+        self.assertEqual(pay_doc["amount"], 159.20)
+        self.assertEqual(pay_doc["original_price"], 199.0)
+        self.assertEqual(pay_doc["discount_amount"], 39.80)
+        self.assertEqual(pay_doc["commission_amount"], 31.84)
+        self.assertEqual(pay_doc["srid"], "SR1005")
+
+        # Step 4: Check Ambassador Sale Record in MongoDB
+        sale_doc = self.db.ambassador_sales.find_one({"srid": "SR1005"})
+        self.assertIsNotNone(sale_doc)
+        self.assertEqual(sale_doc["amount"], 159.20)
+        self.assertEqual(sale_doc["original_price"], 199.0)
+        self.assertEqual(sale_doc["discount_amount"], 39.80)
+        self.assertEqual(sale_doc["commission_amount"], 31.84)  # 20% of net paid ₹159.20
+
+        # Step 5: Test Idempotency (replay attack prevention)
+        replay_res = self.client.post("/api/verify-payment", json={
+            "razorpay_order_id": order_id,
+            "razorpay_payment_id": payment_id,
+            "razorpay_signature": valid_sig,
+        })
+        self.assertEqual(replay_res.status_code, 200)
+        self.assertEqual(self.db.payments.count_documents({"razorpay_payment_id": payment_id}), 1)
+        self.assertEqual(self.db.ambassador_sales.count_documents({"srid": "SR1005"}), 1)
+
+        # Cleanup
+        self.db.courses.delete_one({"_id": course_199.id})
+        self.db.payments.delete_one({"razorpay_payment_id": payment_id})
+        self.db.ambassador_sales.delete_one({"srid": "SR1005"})
 
 
 if __name__ == "__main__":
