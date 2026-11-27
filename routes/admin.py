@@ -244,14 +244,20 @@ def users_list():
             {"branch": {"$regex": safe_q, "$options": "i"}},
         ]
 
-    if role_filter in ["student", "admin"]:
+    if role_filter in ["student", "teacher", "admin"]:
         if role_filter == "admin":
             mongo_query["$or"] = [
                 {"role": "admin"},
                 {"email": "palt51419@gmail.com"}
             ]
+        elif role_filter == "teacher":
+            mongo_query["$or"] = [
+                {"role": "teacher"},
+                {"is_teacher": True}
+            ]
         else:
-            mongo_query["role"] = {"$ne": "admin"}
+            mongo_query["role"] = {"$nin": ["admin", "teacher"]}
+            mongo_query["is_teacher"] = {"$ne": True}
             mongo_query["email"] = {"$ne": "palt51419@gmail.com"}
 
     if status_filter == "banned":
@@ -522,6 +528,25 @@ def user_edit(user_id):
     user.year = year
     user.bio = bio
     user.role = role
+    db = get_db()
+    if role == "teacher":
+        user._data["is_teacher"] = True
+        db.authorized_teachers.update_one(
+            {"email": user.email},
+            {"$set": {
+                "email": user.email,
+                "title": user._data.get("teacher_title", "Faculty Instructor"),
+                "appointed_by": getattr(current_user, "email", "admin"),
+                "updated_at": datetime.now(timezone.utc)
+            }, "$setOnInsert": {"created_at": datetime.now(timezone.utc)}},
+            upsert=True
+        )
+    elif role == "student":
+        user._data["is_teacher"] = False
+        db.authorized_teachers.delete_one({"email": user.email})
+    elif role == "admin":
+        user._data["is_admin"] = True
+        user._data["is_teacher"] = True
 
     try:
         user.xp = int(xp_val) if xp_val else user.xp
@@ -2613,6 +2638,93 @@ def user_toggle_teacher(user_id):
         flash(f"Granted teacher role to {target_user.name} ({target_user.email})!", "success")
 
     return redirect(request.referrer or url_for("admin.users_list"))
+
+
+# ==============================================================================
+# Academic Curriculum & Subject Management for College Assessments
+# ==============================================================================
+
+@admin_bp.route("/academic/subjects")
+def academic_subjects():
+    """Lists all college academic subjects across 4 years with filters and test counts."""
+    from models.academic_assessment import AcademicSubject, CollegeAssessment, seed_default_academic_curriculum
+    db = get_db()
+    seed_default_academic_curriculum(db)
+
+    year_filter = request.args.get("year", "all")
+    query = {}
+    if year_filter in ["1", "2", "3", "4"]:
+        query["year"] = str(year_filter)
+
+    subjects = AcademicSubject.find_all(query)
+    
+    # Enrich with active test counts
+    enriched = []
+    for s in subjects:
+        test_count = db.college_assessments.count_documents({"subject_id": str(s.id)})
+        enriched.append({
+            "subject": s,
+            "test_count": test_count
+        })
+
+    teachers = list(db.users.find({
+        "$or": [{"role": "teacher"}, {"is_teacher": True}, {"role": "admin"}]
+    }))
+
+    return render_template(
+        "admin/academic_subjects.html",
+        subjects=enriched,
+        teachers=teachers,
+        year_filter=year_filter
+    )
+
+
+@admin_bp.route("/academic/subjects/create", methods=["POST"])
+def academic_subject_create():
+    """Creates or updates an academic subject for campus examinations."""
+    from models.academic_assessment import AcademicSubject
+    name = request.form.get("name", "").strip()
+    code = request.form.get("code", "").strip().upper()
+    year = request.form.get("year", "1").strip()
+    department = request.form.get("department", "Computer Science & Engineering").strip()
+    semester = int(request.form.get("semester", 1))
+    description = request.form.get("description", "").strip()
+    teacher_name = request.form.get("teacher_name", "Department Faculty").strip()
+    icon = request.form.get("icon", "book-open").strip()
+
+    if not name or not code:
+        flash("Subject name and course code are required.", "danger")
+        return redirect(url_for("admin.academic_subjects"))
+
+    subject = AcademicSubject({
+        "name": name,
+        "code": code,
+        "year": year,
+        "department": department,
+        "semester": semester,
+        "description": description,
+        "teacher_name": teacher_name,
+        "icon": icon,
+        "is_active": True
+    })
+    subject.save()
+    flash(f"Successfully registered academic subject '{name}' ({code}) for Year {year}!", "success")
+    return redirect(url_for("admin.academic_subjects", year=year))
+
+
+@admin_bp.route("/academic/subjects/<subject_id>/delete", methods=["POST"])
+def academic_subject_delete(subject_id):
+    """Deactivates or deletes an academic subject."""
+    from models.academic_assessment import AcademicSubject
+    subject = AcademicSubject.get_by_id(subject_id)
+    if subject:
+        name = subject.name
+        subject.delete()
+        flash(f"Removed academic subject '{name}'.", "info")
+    else:
+        flash("Subject not found.", "warning")
+    return redirect(url_for("admin.academic_subjects"))
+
 
 
 

@@ -803,6 +803,18 @@
 
                             {% endif %}
 
+                            {% if current_user.is_teacher or current_user.is_admin %}
+
+                            <a href="{{ url_for('teacher.assessments_dashboard') }}" class="pw-dropdown-item" role="menuitem" style="color: #A5B4FC;">
+
+                                <i data-lucide="graduation-cap"></i>
+
+                                <span>Teacher Workspace</span>
+
+                            </a>
+
+                            {% endif %}
+
                             <div class="pw-dropdown-divider"></div>
 
                             <!-- Clean Merged Logout with Exit Icon -->
@@ -922,6 +934,15 @@
                     <span class="pw-nav-badge" style="background: #10B981; color: #FFFFFF;">HOT</span>
 
                 </a>
+
+                {% if current_user.is_authenticated and (current_user.is_teacher or current_user.is_admin) %}
+                <a href="{{ url_for('teacher.assessments_dashboard') }}"
+                   class="pw-nav-item {% if request.endpoint and 'teacher.' in request.endpoint %}active{% endif %}">
+                    <i data-lucide="graduation-cap" style="color: #A5B4FC;"></i>
+                    <span>Teacher Workspace</span>
+                    <span class="pw-nav-badge" style="background: rgba(99,102,241,0.25); color: #C4B5FD; border: 1px solid rgba(129,140,248,0.3);">FACULTY</span>
+                </a>
+                {% endif %}
 
             </div>
 

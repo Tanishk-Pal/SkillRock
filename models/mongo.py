@@ -155,6 +155,17 @@ def init_indexes(db):
         db.challenge_refund_claims.create_index("user_id")
         db.challenge_refund_claims.create_index("status")
         db.challenge_submissions.create_index([("user_id", 1), ("challenge_id", 1)])
+
+        # College Academic Assessment System
+        db.academic_subjects.create_index("code", unique=True, sparse=True)
+        db.academic_subjects.create_index([("year", 1), ("is_active", 1)])
+        db.college_assessments.create_index("slug", unique=True)
+        db.college_assessments.create_index([("academic_year", 1), ("status", 1)])
+        db.college_assessments.create_index("subject_id")
+        db.college_assessments.create_index("teacher_id")
+        db.academic_questions.create_index([("subject_id", 1), ("question_type", 1)])
+        db.college_assessment_attempts.create_index([("user_id", 1), ("assessment_id", 1)])
+        db.college_assessment_attempts.create_index([("assessment_id", 1), ("status", 1)])
     except Exception as e:
         logger.debug(f"Index creation note: {e}")
 

@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Evaluate Submission — {{ attempt.user_name }} — SkillRock{% endblock %}
+
+{% block content %}
+<div class="evaluation-container" style="max-width: 1040px; margin: 0 auto; padding-bottom: 60px;">
+
+    <!-- Top Breadcrumb -->
+    <div style="margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #94A3B8; margin-bottom: 8px;">
+            <a href="{{ url_for('teacher.assessments_dashboard', tab='submissions') }}" style="color: inherit; text-decoration: none;">Student Submissions</a>
+            <span>&bull;</span>
+            <span style="color: #818CF8; font-weight: 700;">Evaluation &amp; Scorecard</span>
+        </div>
+        <h1 style="font-size: 1.85rem; font-weight: 800; color: #FFFFFF; margin: 0;">
+            Submission Review: {{ attempt.user_name }}
+        </h1>
+        <p style="font-size: 0.92rem; color: #94A3B8; margin-top: 4px;">
+            {{ attempt.assessment_title }} &bull; {{ attempt.subject_code }} (Year {{ attempt.academic_year }})
+        </p>
+    </div>
+
+    <!-- Candidate Score & Integrity Summary Banner -->
+    <div style="background: var(--bg-card, #1E293B); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px; margin-bottom: 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <div>
+            <div style="font-size: 0.76rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Current Score</div>
+            <div style="font-size: 2rem; font-weight: 800; color: {% if attempt.is_passed %}#10B981{% else %}#EF4444{% endif %}; margin-top: 4px;">
+                {{ attempt.score|round(1) }} <span style="font-size: 1.1rem; color: #94A3B8;">/ {{ attempt.max_score|round(1) }}</span>
+            </div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: {% if attempt.is_passed %}#10B981{% else %}#EF4444{% endif %};">
+                {{ attempt.percentage|round(1) }}% &bull; {% if attempt.is_passed %}PASSED{% else %}FAILED{% endif %}
+            </div>
+        </div>
+
+        <div>
+            <div style="font-size: 0.76rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Objective Breakdown</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #FFFFFF; margin-top: 8px;">
+                <span style="color: #10B981;">{{ attempt.correct_count }} Correct</span> &bull; 
+                <span style="color: #EF4444;">{{ attempt.incorrect_count }} Incorrect</span>
+            </div>
+            <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 4px;">{{ attempt.unanswered_count }} Unanswered Questions</div>
+        </div>
+
+        <div>
+            <div style="font-size: 0.76rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Anti-Cheat Status</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: {% if attempt.warning_count > 0 %}#F59E0B{% else %}#10B981{% endif %}; margin-top: 8px;">
+                {{ attempt.warning_count }} Recorded Warnings
+            </div>
+            <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 4px;">
+                {% if attempt.status == 'cancelled' %}
+                <span style="color: #EF4444; font-weight: 700;">Attempt Auto-Cancelled</span>
+                {% else %}
+                <span style="color: #10B981;">Clean Submission Window</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div>
+            <div style="font-size: 0.76rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Time Spent</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #FFFFFF; margin-top: 8px;">
+                {{ (attempt.time_taken_seconds // 60) }} Mins {{ (attempt.time_taken_seconds % 60) }} Secs
+            </div>
+            <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 4px;">
+                Allowed: {{ attempt.duration_minutes }} Mins
+            </div>
+        </div>
+    </div>
+
+    <!-- Integrity Events Log (If Any) -->
+    {% if attempt.integrity_events %}
+    <div style="background: rgba(239,68,68,0.06); border: 1.5px solid rgba(239,68,68,0.25); border-radius: 14px; padding: 20px; margin-bottom: 28px;">
+        <div style="font-size: 0.95rem; font-weight: 800; color: #EF4444; display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <i data-lucide="shield-alert" style="width: 18px; height: 18px;"></i>
+            <span>Recorded Integrity Incidents ({{ attempt.integrity_events|length }})</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            {% for evt in attempt.integrity_events %}
+            <div style="display: flex; justify-content: space-between; font-size: 0.84rem; background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 8px;">
+                <span style="color: #FFFFFF; font-weight: 600;">Warning {{ evt.warning_number }}: {{ evt.event_type }}</span>
+                <span style="color: #94A3B8;">{{ evt.details }} &bull; {{ evt.timestamp }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Questions & Student Answers Detailed Review -->
+    <div style="font-size: 1.15rem; font-weight: 800; color: #FFFFFF; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <i data-lucide="file-text" style="color: #6366F1; width: 20px; height: 20px;"></i>
+        <span>Question-by-Question Response Audit</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px;">
+        {% for q in questions %}
+        {% set resp = attempt.responses.get(q.id, {}) or attempt.responses.get(q.id|string, {}) %}
+        {% set ans = resp.get('answer') if resp is mapping else resp %}
+        <div style="background: var(--bg-card, #1E293B); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="background: rgba(99,102,241,0.2); color: #818CF8; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 4px;">{{ q.question_type|upper }}</span>
+                    <span style="font-size: 0.8rem; color: #94A3B8;">Topic: {{ q.topic }}</span>
+                </div>
+                <span style="font-weight: 700; color: #F59E0B; font-size: 0.85rem;">{{ q.marks }} Marks</span>
+            </div>
+
+            <div style="font-size: 1rem; font-weight: 600; color: #FFFFFF; line-height: 1.45; margin-bottom: 14px; white-space: pre-wrap;">{{ q.question_text }}</div>
+
+            <!-- Student Answer Display -->
+            <div style="background: rgba(0,0,0,0.22); border-radius: 10px; padding: 14px; margin-bottom: 10px;">
+                <div style="font-size: 0.74rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px;">Student Submitted Response:</div>
+                <div style="font-size: 0.92rem; color: #F1F5F9; font-weight: 600; white-space: pre-wrap;">{{ ans or 'No response submitted (Unanswered)' }}</div>
+            </div>
+
+            <!-- Authoritative Answer Key / Solution -->
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px; padding: 12px; font-size: 0.82rem; color: #CBD5E1;">
+                <span style="font-weight: 800; color: #10B981;">Expected Answer Key:</span> {{ q.correct_answers|join(', ') if q.correct_answers else 'Teacher manual rubric' }}
+                {% if q.explanation %}
+                <div style="margin-top: 4px; color: #94A3B8;"><em>Explanation:</em> {{ q.explanation }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Teacher Evaluation & Marks Modification Form -->
+    <div style="background: var(--bg-card, #1E293B); border: 1.5px solid rgba(99,102,241,0.3); border-radius: 16px; padding: 26px;">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #FFFFFF; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="edit-3" style="color: #6366F1; width: 20px; height: 20px;"></i>
+            <span>Final Grade Adjustment &amp; Feedback</span>
+        </h3>
+
+        <form method="POST" action="{{ url_for('teacher.attempt_grade', attempt_id=attempt.id) }}" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Total Awarded Score (Max: {{ attempt.max_score }}) *
+                    </label>
+                    <input type="number" step="0.5" min="0" max="{{ attempt.max_score }}" name="total_score" value="{{ attempt.score }}" required class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; font-size: 1.1rem; font-weight: 800;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Evaluation Status
+                    </label>
+                    <div style="padding: 10px 14px; background: rgba(16,185,129,0.12); color: #10B981; border: 1px solid rgba(16,185,129,0.25); border-radius: 8px; font-weight: 700; font-size: 0.95rem;">
+                        Manual Faculty Review Verified
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                    Teacher Feedback &amp; Suggestions for Student
+                </label>
+                <textarea name="teacher_feedback" rows="3" placeholder="Provide constructive feedback, notes on subjective derivation, or areas of improvement..." class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px;">{{ attempt.teacher_feedback }}</textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px;">
+                <a href="{{ url_for('teacher.assessments_dashboard', tab='submissions') }}" class="btn btn-secondary" style="border-radius: 10px; padding: 10px 20px;">
+                    Back
+                </a>
+                <button type="submit" class="btn btn-primary" style="background: #6366F1; font-weight: 800; border-radius: 10px; padding: 10px 24px;">
+                    Save &amp; Finalize Scorecard
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

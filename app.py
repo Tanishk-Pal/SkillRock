@@ -50,7 +50,8 @@ from routes import (
     roadmap_bp,
     bhavishya_bp,
     notifications_bp,
-    challenge_bp
+    challenge_bp,
+    teacher_bp
 )
 
 def create_app(config_class=Config):
@@ -104,6 +105,7 @@ def create_app(config_class=Config):
     app.register_blueprint(bhavishya_bp)
     app.register_blueprint(notifications_bp)
     app.register_blueprint(challenge_bp)
+    app.register_blueprint(teacher_bp)
 
     # Provide global utilities & model classes safely in Jinja templates
     from services.payment_service import verify_student_unlock

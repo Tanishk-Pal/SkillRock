@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Create Examination — Teacher Assessment Suite — SkillRock{% endblock %}
+
+{% block content %}
+<div class="test-creation-container" style="max-width: 1040px; margin: 0 auto; padding-bottom: 60px;">
+
+    <!-- Top Breadcrumb & Heading -->
+    <div style="margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #94A3B8; margin-bottom: 8px;">
+            <a href="{{ url_for('teacher.assessments_dashboard') }}" style="color: inherit; text-decoration: none;">Teacher Workspace</a>
+            <span>&bull;</span>
+            <span style="color: #818CF8; font-weight: 700;">Examination Builder</span>
+        </div>
+        <h1 style="font-size: 1.85rem; font-weight: 800; color: #FFFFFF; margin: 0;">
+            Schedule College Examination / Unit Test
+        </h1>
+        <p style="font-size: 0.92rem; color: #94A3B8; margin-top: 4px;">
+            Configure academic scope, scheduling window, questions, and anti-cheat proctoring rules.
+        </p>
+    </div>
+
+    <!-- Wizard Form -->
+    <form method="POST" action="{{ url_for('teacher.assessment_create') }}" style="display: flex; flex-direction: column; gap: 24px;">
+
+        <!-- STEP 1: BASIC INFORMATION & ACADEMIC SCOPE -->
+        <div style="background: var(--bg-card, #1E293B); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px;">
+            <div style="font-size: 1.1rem; font-weight: 800; color: #FFFFFF; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;">
+                <span style="width: 28px; height: 28px; border-radius: 50%; background: #6366F1; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">1</span>
+                <span>Basic Information &amp; Academic Scope</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                <div style="grid-column: 1 / -1;">
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Examination Title *
+                    </label>
+                    <input type="text" name="title" required placeholder="e.g. Unit Test 1: Linear Algebra & Matrix Eigenvalues" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; width: 100%; font-size: 0.95rem;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Subject *
+                    </label>
+                    <select name="subject_id" required class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; width: 100%;">
+                        {% for sub in subjects %}
+                        <option value="{{ sub.id }}">{{ sub.name }} ({{ sub.code }}) &bull; Year {{ sub.year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Academic Year *
+                    </label>
+                    <select name="academic_year" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; width: 100%;">
+                        <option value="1">First Year (1st Year)</option>
+                        <option value="2">Second Year (2nd Year)</option>
+                        <option value="3">Third Year (3rd Year)</option>
+                        <option value="4">Fourth Year (4th Year)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Assessment Type *
+                    </label>
+                    <select name="assessment_type" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; width: 100%;">
+                        <option value="Unit Test">Unit Test</option>
+                        <option value="Internal Assessment">Internal Assessment</option>
+                        <option value="Mid-Semester Examination">Mid-Semester Examination</option>
+                        <option value="End-Semester Examination">End-Semester Examination</option>
+                        <option value="Coding Assessment">Coding Assessment</option>
+                        <option value="Surprise Test">Surprise Test</option>
+                        <option value="Practice Test">Practice Test</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Class / Section Eligible
+                    </label>
+                    <input type="text" name="class_section" value="All Sections" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; width: 100%;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Duration (Minutes) *
+                    </label>
+                    <input type="number" name="duration_minutes" value="45" min="5" max="300" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; width: 100%;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Total Marks *
+                    </label>
+                    <input type="number" step="1" name="total_marks" value="30" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; width: 100%;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Passing Marks *
+                    </label>
+                    <input type="number" step="1" name="passing_marks" value="12" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; width: 100%;">
+                </div>
+
+                <div style="grid-column: 1 / -1;">
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Examination Instructions &amp; Syllabus Coverage
+                    </label>
+                    <textarea name="description" rows="2" placeholder="e.g. Covers Chapters 1 to 3. Scientific calculators allowed. Maintain full focus throughout the test." class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; width: 100%;"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: SCHEDULE & AVAILABILITY -->
+        <div style="background: var(--bg-card, #1E293B); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px;">
+            <div style="font-size: 1.1rem; font-weight: 800; color: #FFFFFF; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;">
+                <span style="width: 28px; height: 28px; border-radius: 50%; background: #6366F1; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">2</span>
+                <span>Schedule &amp; Availability Window</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Exam Date (YYYY-MM-DD)
+                    </label>
+                    <input type="date" name="exam_date" value="{{ None }}" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; width: 100%;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Window Opening Time
+                    </label>
+                    <input type="time" name="start_time" value="09:00" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; width: 100%;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Window Closing Time
+                    </label>
+                    <input type="time" name="end_time" value="23:59" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; width: 100%;">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px;">
+                        Maximum Allowed Attempts
+                    </label>
+                    <select name="max_attempts" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; width: 100%;">
+                        <option value="1">1 Attempt (Strict Examination)</option>
+                        <option value="2">2 Attempts (Internal Review)</option>
+                        <option value="3">3 Attempts (Practice Mode)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: QUESTION SELECTION FROM QUESTION BANK -->
+        <div style="background: var(--bg-card, #1E293B); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 1.1rem; font-weight: 800; color: #FFFFFF; display: flex; align-items: center; gap: 10px;">
+                    <span style="width: 28px; height: 28px; border-radius: 50%; background: #6366F1; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">3</span>
+                    <span>Link Questions from Question Bank</span>
+                </div>
+                <span style="font-size: 0.78rem; color: #818CF8; font-weight: 700;">Select questions to attach to this exam paper</span>
+            </div>
+
+            <div style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 6px;">
+                {% for q in questions %}
+                <label style="display: flex; align-items: flex-start; gap: 12px; background: rgba(0,0,0,0.22); padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); cursor: pointer;">
+                    <input type="checkbox" name="question_ids" value="{{ q.id }}" style="margin-top: 4px; accent-color: #6366F1; transform: scale(1.15);">
+                    <div style="flex: 1;">
+                        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px; flex-wrap: wrap;">
+                            <span style="background: rgba(99,102,241,0.2); color: #818CF8; font-size: 0.7rem; font-weight: 800; padding: 1px 6px; border-radius: 4px;">{{ q.question_type|upper }}</span>
+                            <span style="font-size: 0.75rem; color: #94A3B8;">{{ q.subject_name }} &bull; Topic: {{ q.topic }}</span>
+                            <span style="font-size: 0.75rem; color: #F59E0B; font-weight: 700;">{{ q.marks }} Marks</span>
+                        </div>
+                        <div style="font-size: 0.88rem; color: #F1F5F9; font-weight: 600;">{{ q.question_text|truncate(120) }}</div>
+                    </div>
+                </label>
+                {% else %}
+                <div style="text-align: center; padding: 24px; color: #94A3B8; font-size: 0.88rem;">
+                    No questions in the Question Bank yet. You can publish the test now and add questions anytime from your dashboard.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- STEP 4: CONFIGURABLE ANTI-CHEAT & PROCTORING POLICIES -->
+        <div style="background: var(--bg-card, #1E293B); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px;">
+            <div style="font-size: 1.1rem; font-weight: 800; color: #FFFFFF; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;">
+                <span style="width: 28px; height: 28px; border-radius: 50%; background: #6366F1; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">4</span>
+                <span>Configurable Anti-Cheat &amp; Integrity Settings</span>
+            </div>
+
+            <!-- Integrity Presets Radio Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 22px;">
+                <label style="background: rgba(0,0,0,0.2); border: 1.5px solid rgba(99,102,241,0.3); border-radius: 12px; padding: 16px; cursor: pointer; display: flex; gap: 10px;">
+                    <input type="radio" name="integrity_preset" value="standard" checked style="accent-color: #6366F1; margin-top: 2px;">
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #FFFFFF;">Standard Examination</div>
+                        <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 3px;">
+                            Fullscreen required, tab-switch &amp; copy-paste detection, 3 warning limit.
+                        </div>
+                    </div>
+                </label>
+
+                <label style="background: rgba(0,0,0,0.2); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; cursor: pointer; display: flex; gap: 10px;">
+                    <input type="radio" name="integrity_preset" value="basic" style="accent-color: #6366F1; margin-top: 2px;">
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #FFFFFF;">Basic Monitoring</div>
+                        <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 3px;">
+                            Passive focus-loss logging for assignments &amp; practice tests.
+                        </div>
+                    </div>
+                </label>
+
+                <label style="background: rgba(0,0,0,0.2); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; cursor: pointer; display: flex; gap: 10px;">
+                    <input type="radio" name="integrity_preset" value="strict" style="accent-color: #6366F1; margin-top: 2px;">
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #FFFFFF;">Strict Examination</div>
+                        <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 3px;">
+                            Camera verification prompt, strict auto-cancel on 4th warning.
+                        </div>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Granular Toggles -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+                <label style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;">
+                    <span style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">Fullscreen Entry Enforcement</span>
+                    <input type="checkbox" name="fullscreen_monitoring" checked style="accent-color: #6366F1; transform: scale(1.15);">
+                </label>
+
+                <label style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;">
+                    <span style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">Tab-Switch &amp; Window Blur Tracking</span>
+                    <input type="checkbox" name="tab_switch_monitoring" checked style="accent-color: #6366F1; transform: scale(1.15);">
+                </label>
+
+                <label style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;">
+                    <span style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">Block Copy &amp; Paste Operations</span>
+                    <input type="checkbox" name="copy_paste_monitoring" checked style="accent-color: #6366F1; transform: scale(1.15);">
+                </label>
+
+                <label style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;">
+                    <span style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">Disable Right-Click &amp; Context Menu</span>
+                    <input type="checkbox" name="context_menu_monitoring" checked style="accent-color: #6366F1; transform: scale(1.15);">
+                </label>
+
+                <label style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;">
+                    <span style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">Randomize Question Order per Student</span>
+                    <input type="checkbox" name="randomize_questions" checked style="accent-color: #6366F1; transform: scale(1.15);">
+                </label>
+
+                <label style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer;">
+                    <span style="font-size: 0.85rem; font-weight: 600; color: #E2E8F0;">Auto-Submit on Warning Threshold</span>
+                    <input type="checkbox" name="auto_submit_on_limit" checked style="accent-color: #6366F1; transform: scale(1.15);">
+                </label>
+            </div>
+        </div>
+
+        <!-- SUBMIT & PUBLISH BAR -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <a href="{{ url_for('teacher.assessments_dashboard') }}" class="btn btn-secondary" style="border-radius: 12px; padding: 12px 24px;">
+                Cancel
+            </a>
+
+            <div style="display: flex; gap: 12px;">
+                <button type="submit" name="status" value="draft" class="btn btn-secondary" style="border-radius: 12px; padding: 12px 20px; font-weight: 600;">
+                    Save as Draft
+                </button>
+                <button type="submit" name="status" value="published" class="btn btn-primary" style="background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; border-radius: 12px; padding: 12px 28px; font-weight: 800; box-shadow: 0 4px 15px rgba(99,102,241,0.35);">
+                    Publish Examination
+                </button>
+            </div>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}

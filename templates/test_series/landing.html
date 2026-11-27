@@ -8,6 +8,289 @@
 {% block content %}
 <div class="test-series-container" style="max-width: 1200px; margin: 0 auto; padding-bottom: 50px;">
 
+    <!-- ========================================================================= -->
+    <!-- 0. COLLEGE ACADEMIC EXAMINATION & ASSESSMENT SUITE (Years 1 - 4)        -->
+    <!-- ========================================================================= -->
+    <div id="academic-assessments-section" style="margin-bottom: 44px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+            <div>
+                <div style="display: inline-flex; align-items: center; gap: 7px; background: rgba(99,102,241,0.14); border: 1px solid rgba(129,140,248,0.3); padding: 4px 12px; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; color: #818CF8; margin-bottom: 8px;">
+                    <i data-lucide="graduation-cap" style="width: 14px; height: 14px;"></i>
+                    <span>College Academic Assessment Platform</span>
+                </div>
+                <h2 style="font-size: 1.7rem; font-weight: 800; color: var(--text-primary, #FFFFFF); margin-bottom: 6px; letter-spacing: -0.01em;">
+                    Semester Examinations & Unit Tests
+                </h2>
+                <p style="font-size: 0.92rem; color: var(--text-secondary, #94A3B8); margin: 0; max-width: 680px;">
+                    Select your academic year to access official college examinations, unit tests, and internal assessments configured by your department faculty.
+                </p>
+            </div>
+            
+            {% if current_user.is_authenticated and current_user.is_teacher %}
+            <a href="{{ url_for('teacher.assessments_dashboard') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; padding: 10px 18px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; border-radius: 12px; box-shadow: 0 4px 15px rgba(99,102,241,0.35);">
+                <i data-lucide="layout-dashboard" style="width: 16px; height: 16px;"></i>
+                <span>Teacher Workspace</span>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Four Academic Year Cards (Responsive 4-col desktop, 2x2 mobile) -->
+        <style>
+            .academic-years-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+            @media (max-width: 768px) {
+                .academic-years-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 12px;
+                }
+            }
+            .academic-year-card:hover {
+                transform: translateY(-3px);
+                border-color: #818CF8 !important;
+                box-shadow: 0 10px 25px rgba(99,102,241,0.25) !important;
+            }
+            .subject-bubble-scroll::-webkit-scrollbar {
+                display: none;
+            }
+        </style>
+
+        <div class="academic-years-grid">
+            <!-- 1st Year -->
+            <a href="{{ url_for('test_series.landing', year='1') }}" 
+               class="academic-year-card"
+               style="background: {% if selected_year == '1' %}linear-gradient(145deg, rgba(99,102,241,0.22), rgba(30,41,59,0.95)){% else %}var(--bg-card, #1E293B){% endif %}; border: 1.5px solid {% if selected_year == '1' %}#818CF8{% else %}rgba(255,255,255,0.08){% endif %}; border-radius: 16px; padding: 20px 16px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; transition: all 0.2s ease; position: relative; overflow: hidden; box-shadow: {% if selected_year == '1' %}0 8px 24px rgba(99,102,241,0.25){% else %}0 4px 14px rgba(0,0,0,0.2){% endif %};">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); color: #38BDF8; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                    <i data-lucide="compass" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div style="font-size: 1.05rem; font-weight: 800; color: #FFFFFF; margin-bottom: 3px;">First Year</div>
+                <div style="font-size: 0.74rem; color: #94A3B8; font-weight: 600;">Semester 1 &amp; 2</div>
+                {% if selected_year == '1' %}
+                <span style="position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: #818CF8; box-shadow: 0 0 8px #818CF8;"></span>
+                {% endif %}
+            </a>
+
+            <!-- 2nd Year -->
+            <a href="{{ url_for('test_series.landing', year='2') }}" 
+               class="academic-year-card"
+               style="background: {% if selected_year == '2' %}linear-gradient(145deg, rgba(99,102,241,0.22), rgba(30,41,59,0.95)){% else %}var(--bg-card, #1E293B){% endif %}; border: 1.5px solid {% if selected_year == '2' %}#818CF8{% else %}rgba(255,255,255,0.08){% endif %}; border-radius: 16px; padding: 20px 16px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; transition: all 0.2s ease; position: relative; overflow: hidden; box-shadow: {% if selected_year == '2' %}0 8px 24px rgba(99,102,241,0.25){% else %}0 4px 14px rgba(0,0,0,0.2){% endif %};">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); color: #10B981; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                    <i data-lucide="boxes" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div style="font-size: 1.05rem; font-weight: 800; color: #FFFFFF; margin-bottom: 3px;">Second Year</div>
+                <div style="font-size: 0.74rem; color: #94A3B8; font-weight: 600;">Semester 3 &amp; 4</div>
+                {% if selected_year == '2' %}
+                <span style="position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: #818CF8; box-shadow: 0 0 8px #818CF8;"></span>
+                {% endif %}
+            </a>
+
+            <!-- 3rd Year -->
+            <a href="{{ url_for('test_series.landing', year='3') }}" 
+               class="academic-year-card"
+               style="background: {% if selected_year == '3' %}linear-gradient(145deg, rgba(99,102,241,0.22), rgba(30,41,59,0.95)){% else %}var(--bg-card, #1E293B){% endif %}; border: 1.5px solid {% if selected_year == '3' %}#818CF8{% else %}rgba(255,255,255,0.08){% endif %}; border-radius: 16px; padding: 20px 16px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; transition: all 0.2s ease; position: relative; overflow: hidden; box-shadow: {% if selected_year == '3' %}0 8px 24px rgba(99,102,241,0.25){% else %}0 4px 14px rgba(0,0,0,0.2){% endif %};">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); color: #F59E0B; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                    <i data-lucide="cpu" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div style="font-size: 1.05rem; font-weight: 800; color: #FFFFFF; margin-bottom: 3px;">Third Year</div>
+                <div style="font-size: 0.74rem; color: #94A3B8; font-weight: 600;">Semester 5 &amp; 6</div>
+                {% if selected_year == '3' %}
+                <span style="position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: #818CF8; box-shadow: 0 0 8px #818CF8;"></span>
+                {% endif %}
+            </a>
+
+            <!-- 4th Year -->
+            <a href="{{ url_for('test_series.landing', year='4') }}" 
+               class="academic-year-card"
+               style="background: {% if selected_year == '4' %}linear-gradient(145deg, rgba(99,102,241,0.22), rgba(30,41,59,0.95)){% else %}var(--bg-card, #1E293B){% endif %}; border: 1.5px solid {% if selected_year == '4' %}#818CF8{% else %}rgba(255,255,255,0.08){% endif %}; border-radius: 16px; padding: 20px 16px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; transition: all 0.2s ease; position: relative; overflow: hidden; box-shadow: {% if selected_year == '4' %}0 8px 24px rgba(99,102,241,0.25){% else %}0 4px 14px rgba(0,0,0,0.2){% endif %};">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(168, 85, 247, 0.15); color: #C084FC; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                    <i data-lucide="award" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div style="font-size: 1.05rem; font-weight: 800; color: #FFFFFF; margin-bottom: 3px;">Fourth Year</div>
+                <div style="font-size: 0.74rem; color: #94A3B8; font-weight: 600;">Semester 7 &amp; 8</div>
+                {% if selected_year == '4' %}
+                <span style="position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: #818CF8; box-shadow: 0 0 8px #818CF8;"></span>
+                {% endif %}
+            </a>
+        </div>
+
+        <!-- Subject Selection Chips -->
+        <div style="background: var(--bg-card, #1E293B); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="layers" style="width: 15px; height: 15px; color: #818CF8;"></i>
+                    <span>Year {{ selected_year }} Academic Subjects ({{ year_subjects|length }})</span>
+                </div>
+                <span style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">Click any subject to view its examination papers</span>
+            </div>
+
+            <div class="subject-bubble-scroll" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none;">
+                {% for sub in year_subjects %}
+                <a href="{{ url_for('test_series.landing', year=selected_year, subject=sub.code) }}" 
+                   style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 9999px; text-decoration: none; font-size: 0.85rem; font-weight: 700; white-space: nowrap; transition: all 0.15s ease; {% if selected_subject_code == sub.code %}background: #6366F1; color: #FFFFFF; box-shadow: 0 4px 12px rgba(99,102,241,0.35);{% else %}background: rgba(255,255,255,0.05); color: #CBD5E1; border: 1px solid rgba(255,255,255,0.08);{% endif %}">
+                    <i data-lucide="{{ sub.icon or 'book-open' }}" style="width: 14px; height: 14px;"></i>
+                    <span>{{ sub.name }}</span>
+                    <span style="font-family: monospace; font-size: 0.72rem; opacity: 0.8; background: rgba(0,0,0,0.25); padding: 1px 6px; border-radius: 4px;">{{ sub.code }}</span>
+                </a>
+                {% else %}
+                <div style="font-size: 0.85rem; color: #94A3B8; padding: 8px 0;">No subjects registered for this academic year yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Active Subject Details & Assessment Listing -->
+        {% if active_subject %}
+        <div style="background: linear-gradient(180deg, rgba(30,41,59,0.7) 0%, rgba(15,23,42,0.85) 100%); border: 1.5px solid rgba(99,102,241,0.2); border-radius: 18px; padding: 24px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 18px; margin-bottom: 20px;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                        <span style="font-family: monospace; font-size: 0.8rem; font-weight: 800; background: rgba(99,102,241,0.2); color: #A5B4FC; border: 1px solid rgba(129,140,248,0.35); padding: 2px 8px; border-radius: 6px;">
+                            {{ active_subject.code }}
+                        </span>
+                        <span style="font-size: 0.82rem; color: #94A3B8;">Semester {{ active_subject.semester }} &bull; {{ active_subject.department }}</span>
+                    </div>
+                    <h3 style="font-size: 1.4rem; font-weight: 800; color: #FFFFFF; margin-bottom: 4px;">
+                        {{ active_subject.name }}
+                    </h3>
+                    <p style="font-size: 0.86rem; color: #94A3B8; margin: 0; max-width: 640px;">
+                        {{ active_subject.description or 'Curated academic curriculum for engineering students.' }}
+                    </p>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); padding: 8px 16px; border-radius: 12px;">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #F59E0B, #D97706); display: flex; align-items: center; justify-content: center; color: #0F172A; font-weight: 800; font-size: 0.9rem;">
+                        <i data-lucide="user-check" style="width: 18px; height: 18px;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700;">Faculty In-Charge</div>
+                        <div style="font-size: 0.88rem; font-weight: 700; color: #F1F5F9;">{{ active_subject.teacher_name or 'Department Faculty' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assessments List for Active Subject -->
+            <div style="font-size: 0.84rem; font-weight: 800; color: #CBD5E1; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="file-check-2" style="width: 16px; height: 16px; color: #10B981;"></i>
+                <span>Assigned Unit Tests &amp; Examinations ({{ subject_assessments|length }})</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;">
+                {% for item in subject_assessments %}
+                {% set a = item.assessment %}
+                <div style="background: var(--bg-surface, #1E293B); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 16px; transition: transform 0.2s ease, border-color 0.2s ease; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="background: rgba(99,102,241,0.15); color: #818CF8; border: 1px solid rgba(99,102,241,0.3); font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 9999px;">
+                                {{ a.assessment_type }}
+                            </span>
+                            
+                            <!-- Status Badge -->
+                            {% if item.status_badge == 'Live' %}
+                            <span style="background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.72rem; font-weight: 800; padding: 3px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                <span style="width: 6px; height: 6px; border-radius: 50%; background: #10B981; animation: pulse 1.5s infinite;"></span>
+                                Live Now
+                            </span>
+                            {% elif item.status_badge == 'In Progress' %}
+                            <span style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.35); font-size: 0.72rem; font-weight: 800; padding: 3px 9px; border-radius: 6px;">
+                                Attempt In Progress
+                            </span>
+                            {% elif item.status_badge == 'Result Published' %}
+                            <span style="background: rgba(168, 85, 247, 0.15); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.35); font-size: 0.72rem; font-weight: 800; padding: 3px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="check-circle" style="width: 12px; height: 12px;"></i>
+                                Score Released
+                            </span>
+                            {% elif item.status_badge == 'Completed' %}
+                            <span style="background: rgba(148, 163, 184, 0.15); color: #94A3B8; border: 1px solid rgba(148, 163, 184, 0.35); font-size: 0.72rem; font-weight: 800; padding: 3px 9px; border-radius: 6px;">
+                                Submitted &bull; Evaluating
+                            </span>
+                            {% else %}
+                            <span style="background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.35); font-size: 0.72rem; font-weight: 800; padding: 3px 9px; border-radius: 6px;">
+                                Upcoming
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <h4 style="font-size: 1.08rem; font-weight: 800; color: #FFFFFF; line-height: 1.35; margin-bottom: 8px;">
+                            {{ a.title }}
+                        </h4>
+                        <p style="font-size: 0.82rem; color: #94A3B8; line-height: 1.45; margin-bottom: 14px;">
+                            {{ a.description }}
+                        </p>
+
+                        <!-- Exam Specifications Strip -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: rgba(0,0,0,0.22); padding: 10px 12px; border-radius: 10px; margin-bottom: 14px; font-size: 0.78rem;">
+                            <div style="color: #CBD5E1; display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="clock" style="width: 13px; height: 13px; color: #818CF8;"></i>
+                                <span>{{ a.duration_minutes }} Minutes</span>
+                            </div>
+                            <div style="color: #CBD5E1; display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="award" style="width: 13px; height: 13px; color: #F59E0B;"></i>
+                                <span>{{ a.total_marks|int }} Marks (Pass: {{ a.passing_marks|int }})</span>
+                            </div>
+                            <div style="color: #CBD5E1; display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="shield-alert" style="width: 13px; height: 13px; color: #10B981;"></i>
+                                <span>{{ a.integrity_settings.preset|capitalize }} Proctoring</span>
+                            </div>
+                            <div style="color: #CBD5E1; display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="users" style="width: 13px; height: 13px; color: #38BDF8;"></i>
+                                <span>{{ a.class_section or 'All Sections' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div>
+                        {% if item.can_start %}
+                        <a href="{{ url_for('teacher.student_take_assessment', assessment_slug=a.slug) }}" 
+                           class="btn btn-primary" 
+                           style="width: 100%; justify-content: center; font-weight: 700; background: #6366F1; border-color: #6366F1; border-radius: 10px; padding: 10px;">
+                            <i data-lucide="play" style="width: 16px; height: 16px;"></i>
+                            <span>{% if item.status_badge == 'In Progress' %}Resume Examination{% else %}Start Examination{% endif %}</span>
+                        </a>
+                        {% elif item.can_view_result and item.user_attempt %}
+                        <a href="{{ url_for('teacher.student_assessment_result', attempt_id=item.user_attempt.id) }}" 
+                           class="btn btn-secondary" 
+                           style="width: 100%; justify-content: center; font-weight: 700; background: rgba(168, 85, 247, 0.15); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 10px; padding: 10px;">
+                            <i data-lucide="bar-chart-2" style="width: 16px; height: 16px;"></i>
+                            <span>View Result ({{ item.user_attempt.score|round(1) }}/{{ item.user_attempt.max_score|round(1) }})</span>
+                        </a>
+                        {% elif item.status_badge == 'Completed' %}
+                        <button disabled class="btn btn-secondary" style="width: 100%; justify-content: center; opacity: 0.6; border-radius: 10px; padding: 10px; font-weight: 600;">
+                            <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
+                            <span>Submitted &bull; Results Pending</span>
+                        </button>
+                        {% else %}
+                        <button disabled class="btn btn-secondary" style="width: 100%; justify-content: center; opacity: 0.5; border-radius: 10px; padding: 10px; font-weight: 600;">
+                            <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
+                            <span>Scheduled Exam</span>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div style="grid-column: 1 / -1; text-align: center; padding: 32px; background: rgba(0,0,0,0.15); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
+                    <i data-lucide="calendar-check" style="width: 32px; height: 32px; color: #94A3B8; margin-bottom: 8px;"></i>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #FFFFFF; margin-bottom: 4px;">No Active Examinations for {{ active_subject.name }}</div>
+                    <p style="font-size: 0.82rem; color: #94A3B8; margin: 0;">Department faculty will post upcoming unit tests and internal assessment dates here.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 1. PLACEMENT & INTERVIEW TEST SERIES (PRESERVED IN FULL BELOW)            -->
+    <!-- ========================================================================= -->
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 32px;">
+        <i data-lucide="briefcase" style="width: 20px; height: 20px; color: #F59E0B;"></i>
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #FFFFFF; margin: 0;">
+            Campus Placement Preparation &amp; Technical Screening Packs
+        </h3>
+    </div>
+
     <!-- 1. Hero Banner -->
     <div class="test-series-hero" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 40px 32px; color: #FFFFFF; margin-bottom: 30px; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.25);">
         <div style="position: absolute; top: -50px; right: -50px; width: 280px; height: 280px; background: radial-gradient(circle, rgba(99,102,241,0.22) 0%, rgba(99,102,241,0) 70%); border-radius: 50%; pointer-events: none;"></div>

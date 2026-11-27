@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ assessment.title }} — SkillRock College Examination</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='img/icon-192.png') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        :root {
+            --exam-bg: #0B0F19;
+            --exam-card: #131A2A;
+            --exam-text: #F1F5F9;
+            --exam-border: rgba(255,255,255,0.08);
+            --exam-primary: #818CF8;
+        }
+        body {
+            background: var(--exam-bg);
+            color: var(--exam-text);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .exam-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--exam-card);
+            border-bottom: 1.5px solid var(--exam-border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+        .timer-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.15rem;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 10px;
+            background: rgba(99,102,241,0.12);
+            color: var(--exam-primary);
+            border: 1px solid rgba(99,102,241,0.3);
+        }
+        .timer-warning {
+            background: rgba(239, 68, 68, 0.15) !important;
+            color: #EF4444 !important;
+            border-color: rgba(239, 68, 68, 0.4) !important;
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .exam-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+            max-width: 1300px;
+            margin: 24px auto;
+            padding: 0 20px;
+        }
+        @media (max-width: 900px) {
+            .exam-layout {
+                grid-template-columns: 1fr;
+            }
+            .palette-sidebar {
+                order: 2;
+            }
+        }
+        .question-card {
+            background: var(--exam-card);
+            border: 1.5px solid var(--exam-border);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-height: 480px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border: 1.5px solid var(--exam-border);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: rgba(255,255,255,0.02);
+        }
+        .option-item:hover {
+            border-color: var(--exam-primary);
+            background: rgba(99,102,241,0.06);
+        }
+        .option-item.selected {
+            border-color: var(--exam-primary);
+            background: rgba(99,102,241,0.18);
+            font-weight: 600;
+        }
+        .pal-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 1.5px solid var(--exam-border);
+            background: rgba(255,255,255,0.03);
+            color: var(--exam-text);
+            transition: all 0.15s ease;
+        }
+        .pal-btn.current {
+            border-color: #F59E0B;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+        }
+        .pal-btn.answered {
+            background: #10B981;
+            color: #FFFFFF;
+            border-color: #10B981;
+        }
+        .pal-btn.review {
+            background: #8B5CF6;
+            color: #FFFFFF;
+            border-color: #8B5CF6;
+        }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-box {
+            background: #1E293B;
+            border: 1.5px solid rgba(255,255,255,0.1);
+            border-radius: 18px;
+            padding: 32px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header with Breadcrumb & Authoritative Server Countdown -->
+    <header class="exam-header">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="font-weight: 800; font-size: 1.15rem; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="shield-check" style="color: #6366F1; width: 22px; height: 22px;"></i>
+                <span>SkillRock Academic Portal</span>
+            </div>
+            <div style="font-size: 0.85rem; color: #94A3B8; border-left: 1px solid rgba(255,255,255,0.15); padding-left: 14px;">
+                {{ assessment.subject_name }} ({{ assessment.subject_code }}) &bull; {{ assessment.title }}
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div id="saveStatus" style="font-size: 0.78rem; color: #10B981; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="cloud" style="width: 14px; height: 14px;"></i>
+                <span>Autosaved</span>
+            </div>
+
+            <div class="timer-badge" id="examTimerBadge">
+                <i data-lucide="clock" style="width: 18px; height: 18px;"></i>
+                <span id="examTimerText">--:--</span>
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="confirmSubmission()" style="font-weight: 700; background: #10B981; border: none; padding: 8px 18px; border-radius: 8px;">
+                Submit Exam
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Examination Layout -->
+    <main class="exam-layout">
+        <!-- Question Pane -->
+        <div class="question-card" id="questionCard">
+            <div>
+                <!-- Top Question Meta -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--exam-border);">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1rem; font-weight: 800; color: #FFFFFF;">
+                            Question <span id="currentQNum">1</span> of {{ questions|length }}
+                        </span>
+                        <span id="qTypeBadge" style="background: rgba(99,102,241,0.18); color: #818CF8; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 4px;">
+                            MCQ
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; font-weight: 700; color: #F59E0B;">
+                        +<span id="qMarks">2.0</span> Marks
+                    </div>
+                </div>
+
+                <!-- Question Text -->
+                <div id="qText" style="font-size: 1.05rem; font-weight: 600; line-height: 1.5; color: #FFFFFF; margin-bottom: 24px; white-space: pre-wrap;">
+                    Loading question...
+                </div>
+
+                <!-- Answer Container (Dynamically rendered according to question type) -->
+                <div id="optionsContainer" style="margin-bottom: 24px;"></div>
+            </div>
+
+            <!-- Bottom Navigation Controls -->
+            <div style="display: flex; justify-content: space-between; align-items: center; pt-4; border-top: 1px solid var(--exam-border); padding-top: 18px; flex-wrap: wrap; gap: 10px;">
+                <button type="button" class="btn btn-secondary" id="markReviewBtn" onclick="toggleMarkReview()" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 0.84rem;">
+                    <i data-lucide="bookmark" style="width: 14px; height: 14px;"></i>
+                    <span>Mark for Review</span>
+                </button>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" id="prevBtn" onclick="navigateQuestion(-1)" style="font-weight: 600; font-size: 0.84rem;">
+                        &larr; Previous
+                    </button>
+                    <button type="button" class="btn btn-primary" id="nextBtn" onclick="navigateQuestion(1)" style="font-weight: 700; font-size: 0.84rem; background: #6366F1;">
+                        Save &amp; Next &rarr;
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Palette & Integrity Sidebar -->
+        <div class="palette-sidebar">
+            <div style="background: var(--exam-card); border: 1.5px solid var(--exam-border); border-radius: 18px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                <!-- Candidate Info Card -->
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--exam-border);">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #6366F1, #8B5CF6); display: flex; align-items: center; justify-content: center; font-weight: 800; color: #FFFFFF;">
+                        {{ current_user.name[0]|upper }}
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; color: #FFFFFF; font-size: 0.92rem;">{{ current_user.name }}</div>
+                        <div style="font-size: 0.74rem; color: #94A3B8;">{{ attempt.roll_number }}</div>
+                    </div>
+                </div>
+
+                <!-- Question Grid Palette -->
+                <div style="font-size: 0.8rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 12px;">
+                    Question Palette
+                </div>
+                <div id="paletteGrid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px;">
+                    <!-- Rendered by JS -->
+                </div>
+
+                <!-- Palette Legend -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.75rem; color: #94A3B8; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 12px; height: 12px; border-radius: 3px; background: #10B981;"></span>
+                        <span>Answered</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 12px; height: 12px; border-radius: 3px; background: rgba(255,255,255,0.06); border: 1px solid var(--exam-border);"></span>
+                        <span>Unanswered</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 12px; height: 12px; border-radius: 3px; background: #8B5CF6;"></span>
+                        <span>Marked Review</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 12px; height: 12px; border-radius: 3px; border: 2px solid #F59E0B;"></span>
+                        <span>Current</span>
+                    </div>
+                </div>
+
+                <!-- Anti-Cheat Status & Warnings -->
+                <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 14px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 0.76rem; font-weight: 800; color: #F59E0B; text-transform: uppercase; display: flex; align-items: center; gap: 5px;">
+                            <i data-lucide="shield-alert" style="width: 14px; height: 14px;"></i>
+                            <span>Proctoring Warnings</span>
+                        </span>
+                        <span id="warningCounterDisplay" style="font-weight: 800; color: #F59E0B; font-size: 0.85rem;">
+                            {{ attempt.warning_count }} / {{ assessment.integrity_settings.max_warnings }}
+                        </span>
+                    </div>
+                    <p style="font-size: 0.72rem; color: #94A3B8; margin: 0; line-height: 1.4;">
+                        Do not navigate away, switch tabs, or exit fullscreen. Violations are logged and auto-cancel the test upon exceeding limit.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Warning Modal for Integrity Events -->
+    <div id="integrityWarningModal" class="modal-overlay">
+        <div class="modal-box" style="border: 2px solid #EF4444;">
+            <div style="width: 54px; height: 54px; border-radius: 50%; background: rgba(239,68,68,0.15); color: #EF4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                <i data-lucide="alert-triangle" style="width: 26px; height: 26px;"></i>
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #EF4444; margin-bottom: 8px;">
+                Proctoring Violation Detected!
+            </h3>
+            <p id="violationReason" style="font-size: 0.88rem; color: #CBD5E1; margin-bottom: 16px; line-height: 1.5;">
+                You switched windows or exited the assessment environment.
+            </p>
+            <div style="background: rgba(239,68,68,0.1); border-radius: 10px; padding: 12px; margin-bottom: 20px; font-weight: 800; color: #EF4444; font-size: 0.95rem;">
+                Warning <span id="modalWarnCount">1</span> of {{ assessment.integrity_settings.max_warnings }}
+            </div>
+            <button type="button" class="btn btn-primary" style="width: 100%; font-weight: 700; background: #6366F1;" onclick="dismissWarningModal()">
+                I Understand &bull; Return to Exam
+            </button>
+        </div>
+    </div>
+
+    <!-- Confirm Submission Modal -->
+    <div id="submitConfirmModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #FFFFFF; margin-bottom: 8px;">
+                Submit Examination?
+            </h3>
+            <p style="font-size: 0.88rem; color: #94A3B8; margin-bottom: 20px;">
+                Are you sure you want to finalize your examination? Once submitted, your answers cannot be modified.
+            </p>
+            <form method="POST" action="{{ url_for('teacher.student_submit_assessment', attempt_id=attempt.id) }}">
+                <div style="display: flex; gap: 12px;">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('submitConfirmModal').style.display='none';" style="flex: 1;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1; background: #10B981; font-weight: 800;">Confirm Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Client Assessment Runtime Script -->
+    <script>
+        const QUESTIONS = {{ questions|tojson }};
+        const ATTEMPT_ID = "{{ attempt.id }}";
+        const INTEGRITY = {{ assessment.integrity_settings|tojson }};
+        let remainingSeconds = {{ remaining_seconds }};
+        let currentIndex = 0;
+        let responses = {{ attempt.responses|tojson }} || {};
+        let warningCount = {{ attempt.warning_count }};
+        let isSubmitting = false;
+
+        // 1. Initialize Authoritative Countdown Timer
+        function initTimer() {
+            const timerText = document.getElementById("examTimerText");
+            const timerBadge = document.getElementById("examTimerBadge");
+
+            const interval = setInterval(() => {
+                if (remainingSeconds <= 0) {
+                    clearInterval(interval);
+                    timerText.innerText = "00:00";
+                    timerBadge.classList.add("timer-warning");
+                    autoSubmitOnDeadline();
+                    return;
+                }
+                remainingSeconds--;
+                const mins = Math.floor(remainingSeconds / 60);
+                const secs = remainingSeconds % 60;
+                timerText.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+                if (remainingSeconds < 300) {
+                    timerBadge.classList.add("timer-warning");
+                }
+            }, 1000);
+        }
+
+        // 2. Render Current Question
+        function renderQuestion(index) {
+            currentIndex = index;
+            const q = QUESTIONS[currentIndex];
+            if (!q) return;
+
+            document.getElementById("currentQNum").innerText = currentIndex + 1;
+            document.getElementById("qTypeBadge").innerText = q.question_type.toUpperCase();
+            document.getElementById("qMarks").innerText = q.marks;
+            document.getElementById("qText").innerText = q.question_text;
+
+            const optContainer = document.getElementById("optionsContainer");
+            optContainer.innerHTML = "";
+
+            const curResp = responses[q.id] || {};
+            const savedAns = curResp.answer;
+
+            // Render according to question type
+            if (q.question_type === "mcq" || q.question_type === "true_false") {
+                (q.options || []).forEach(opt => {
+                    const div = document.createElement("div");
+                    div.className = "option-item" + (savedAns === opt.id ? " selected" : "");
+                    div.innerHTML = `
+                        <input type="radio" name="opt" value="${opt.id}" ${savedAns === opt.id ? "checked" : ""} style="accent-color: #6366F1; transform: scale(1.15);">
+                        <span style="font-size: 0.95rem;">${opt.text}</span>
+                    `;
+                    div.onclick = () => {
+                        saveAnswer(q.id, opt.id);
+                        renderQuestion(currentIndex);
+                    };
+                    optContainer.appendChild(div);
+                });
+            } else if (q.question_type === "multiple_select") {
+                const currentSet = new Set(Array.isArray(savedAns) ? savedAns : (savedAns ? [savedAns] : []));
+                (q.options || []).forEach(opt => {
+                    const div = document.createElement("div");
+                    const isChecked = currentSet.has(opt.id);
+                    div.className = "option-item" + (isChecked ? " selected" : "");
+                    div.innerHTML = `
+                        <input type="checkbox" name="multi_opt" value="${opt.id}" ${isChecked ? "checked" : ""} style="accent-color: #6366F1; transform: scale(1.15);">
+                        <span style="font-size: 0.95rem;">${opt.text}</span>
+                    `;
+                    div.onclick = () => {
+                        if (currentSet.has(opt.id)) currentSet.delete(opt.id);
+                        else currentSet.add(opt.id);
+                        saveAnswer(q.id, Array.from(currentSet));
+                        renderQuestion(currentIndex);
+                    };
+                    optContainer.appendChild(div);
+                });
+            } else if (q.question_type === "coding") {
+                optContainer.innerHTML = `
+                    <div style="font-size: 0.78rem; font-weight: 700; color: #94A3B8; margin-bottom: 6px;">Python Solution Code:</div>
+                    <textarea id="codingTextarea" rows="10" class="form-control" style="font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; background: #0F172A; color: #38BDF8; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; width: 100%; padding: 12px;" placeholder="# Write your solution here...">${savedAns || q.coding_starter_code || ""}</textarea>
+                `;
+                document.getElementById("codingTextarea").onblur = (e) => {
+                    saveAnswer(q.id, e.target.value);
+                };
+            } else {
+                // Short/Long answer / Numerical / Fill Blanks
+                optContainer.innerHTML = `
+                    <input type="text" id="textInput" value="${savedAns || ''}" placeholder="Type your answer here..." class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 14px; width: 100%; font-size: 0.95rem;">
+                `;
+                document.getElementById("textInput").onblur = (e) => {
+                    saveAnswer(q.id, e.target.value);
+                };
+            }
+
+            renderPalette();
+            updateReviewButton();
+        }
+
+        // 3. Autosave Answer
+        function saveAnswer(questionId, answer) {
+            if (!responses[questionId]) responses[questionId] = {};
+            responses[questionId].answer = answer;
+
+            const indicator = document.getElementById("saveStatus");
+            indicator.style.color = "#F59E0B";
+            indicator.innerHTML = `<i data-lucide="loader" style="width: 14px; height: 14px;"></i><span>Saving...</span>`;
+            if (window.lucide) window.lucide.createIcons();
+
+            fetch(`/teacher/exam/${ATTEMPT_ID}/save-answer`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question_id: questionId, answer: answer, marked_for_review: responses[questionId].marked_for_review })
+            })
+            .then(res => res.json())
+            .then(data => {
+                indicator.style.color = "#10B981";
+                indicator.innerHTML = `<i data-lucide="cloud" style="width: 14px; height: 14px;"></i><span>Autosaved</span>`;
+                if (window.lucide) window.lucide.createIcons();
+                renderPalette();
+            })
+            .catch(() => {
+                indicator.style.color = "#EF4444";
+                indicator.innerHTML = `<i data-lucide="cloud-off" style="width: 14px; height: 14px;"></i><span>Offline</span>`;
+                if (window.lucide) window.lucide.createIcons();
+            });
+        }
+
+        function toggleMarkReview() {
+            const q = QUESTIONS[currentIndex];
+            if (!responses[q.id]) responses[q.id] = {};
+            responses[q.id].marked_for_review = !responses[q.id].marked_for_review;
+            saveAnswer(q.id, responses[q.id].answer);
+            updateReviewButton();
+            renderPalette();
+        }
+
+        function updateReviewButton() {
+            const q = QUESTIONS[currentIndex];
+            const isMarked = responses[q.id] && responses[q.id].marked_for_review;
+            const btn = document.getElementById("markReviewBtn");
+            if (isMarked) {
+                btn.style.background = "#8B5CF6";
+                btn.style.color = "#FFFFFF";
+                btn.style.borderColor = "#8B5CF6";
+            } else {
+                btn.style.background = "rgba(255,255,255,0.06)";
+                btn.style.color = "#CBD5E1";
+                btn.style.borderColor = "var(--exam-border)";
+            }
+        }
+
+        // 4. Render Palette Buttons
+        function renderPalette() {
+            const grid = document.getElementById("paletteGrid");
+            grid.innerHTML = "";
+
+            QUESTIONS.forEach((q, idx) => {
+                const btn = document.createElement("button");
+                btn.className = "pal-btn";
+                btn.innerText = idx + 1;
+
+                const cur = responses[q.id] || {};
+                const hasAns = cur.answer !== undefined && cur.answer !== "" && cur.answer !== null && (!Array.isArray(cur.answer) || cur.answer.length > 0);
+
+                if (cur.marked_for_review) btn.classList.add("review");
+                else if (hasAns) btn.classList.add("answered");
+
+                if (idx === currentIndex) btn.classList.add("current");
+
+                btn.onclick = () => renderQuestion(idx);
+                grid.appendChild(btn);
+            });
+        }
+
+        function navigateQuestion(delta) {
+            const newIdx = currentIndex + delta;
+            if (newIdx >= 0 && newIdx < QUESTIONS.length) {
+                renderQuestion(newIdx);
+            }
+        }
+
+        function confirmSubmission() {
+            document.getElementById("submitConfirmModal").style.display = "flex";
+        }
+
+        function autoSubmitOnDeadline() {
+            if (isSubmitting) return;
+            isSubmitting = true;
+            alert("Examination time has elapsed. Your answers are being submitted.");
+            fetch(`/teacher/exam/${ATTEMPT_ID}/submit`, { method: "POST" })
+                .then(() => window.location.href = "{{ url_for('test_series.landing') }}")
+                .catch(() => window.location.href = "{{ url_for('test_series.landing') }}");
+        }
+
+        // 5. Configurable Anti-Cheat Proctoring Engine
+        let lastEventTime = 0;
+        function recordIntegrityViolation(type, details) {
+            if (isSubmitting) return;
+            const now = Date.now();
+            if (now - lastEventTime < 4000) return; // 4s debounce
+            lastEventTime = now;
+
+            fetch(`/teacher/exam/${ATTEMPT_ID}/integrity-event`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ event_type: type, details: details })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.cancelled && data.redirect_url) {
+                    alert(data.cancellation_reason || "Assessment cancelled due to proctoring violations.");
+                    window.location.href = data.redirect_url;
+                    return;
+                }
+                if (data.recorded) {
+                    warningCount = data.warning_count;
+                    document.getElementById("warningCounterDisplay").innerText = `${warningCount} / ${data.max_warnings}`;
+                    document.getElementById("modalWarnCount").innerText = warningCount;
+                    document.getElementById("violationReason").innerText = details;
+                    document.getElementById("integrityWarningModal").style.display = "flex";
+                }
+            });
+        }
+
+        function dismissWarningModal() {
+            document.getElementById("integrityWarningModal").style.display = "none";
+        }
+
+        // Attach listeners based on examination's integrity policy
+        if (INTEGRITY.tab_switch_monitoring) {
+            document.addEventListener("visibilitychange", () => {
+                if (document.hidden) recordIntegrityViolation("tab_switch", "Tab visibility lost or browser minimized.");
+            });
+            window.addEventListener("blur", () => {
+                recordIntegrityViolation("window_blur", "Exam window lost active focus.");
+            });
+        }
+
+        if (INTEGRITY.copy_paste_monitoring) {
+            document.addEventListener("copy", (e) => { e.preventDefault(); recordIntegrityViolation("copy_attempt", "Copying examination content is prohibited."); });
+            document.addEventListener("paste", (e) => { e.preventDefault(); recordIntegrityViolation("paste_attempt", "Pasting into the examination window is prohibited."); });
+            document.addEventListener("cut", (e) => { e.preventDefault(); });
+        }
+
+        if (INTEGRITY.context_menu_monitoring) {
+            document.addEventListener("contextmenu", (e) => { e.preventDefault(); recordIntegrityViolation("context_menu", "Right-click context menu is disabled."); });
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C"))) {
+                e.preventDefault();
+                recordIntegrityViolation("dev_tools", "Developer console access prohibited.");
+            }
+        });
+
+        // Initialize on DOM load
+        document.addEventListener("DOMContentLoaded", () => {
+            initTimer();
+            renderQuestion(0);
+            if (window.lucide) window.lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

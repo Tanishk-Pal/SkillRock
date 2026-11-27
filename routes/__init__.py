@@ -15,6 +15,7 @@ from routes.roadmap import roadmap_bp
 from routes.bhavishya import bhavishya_bp
 from routes.notifications import notifications_bp
 from routes.challenge import challenge_bp
+from routes.teacher import teacher_bp
 
 __all__ = [
     "auth_bp",
@@ -34,4 +35,5 @@ __all__ = [
     "bhavishya_bp",
     "notifications_bp",
     "challenge_bp",
+    "teacher_bp",
 ]

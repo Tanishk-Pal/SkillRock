@@ -646,6 +646,10 @@
                 <i data-lucide="graduation-cap"></i>
                 <span>Faculty & Teachers</span>
             </a>
+            <a href="{{ url_for('admin.academic_subjects') }}" class="admin-nav-item {% if 'academic_subject' in request.endpoint %}active{% endif %}">
+                <i data-lucide="book-marked"></i>
+                <span>College Subjects</span>
+            </a>
             <a href="{{ url_for('admin.skills_list') }}" class="admin-nav-item {% if 'skills' in request.endpoint %}active{% endif %}">
                 <i data-lucide="award"></i>
                 <span>Skills Directory</span>

@@ -220,6 +220,76 @@ def landing():
         "Company-Style Placement Preparation"
     ]
 
+    # ---------------------------------------------------------------------
+    # Academic Examination System (Years 1 - 4 Curriculum & Subjects)
+    # ---------------------------------------------------------------------
+    from models.academic_assessment import (
+        AcademicSubject, CollegeAssessment, CollegeAssessmentAttempt, seed_default_academic_curriculum
+    )
+    from models.mongo import get_db
+    db = get_db()
+    seed_default_academic_curriculum(db)
+
+    selected_year = request.args.get("year", "1").strip()
+    if selected_year not in ["1", "2", "3", "4"]:
+        selected_year = "1"
+    selected_subject_code = request.args.get("subject", "").strip().upper()
+
+    all_academic_subjects = AcademicSubject.find_all({"is_active": True})
+    year_subjects = [s for s in all_academic_subjects if str(s.year) == str(selected_year)]
+
+    active_subject = None
+    if selected_subject_code:
+        for s in year_subjects:
+            if s.code == selected_subject_code:
+                active_subject = s
+                break
+    if not active_subject and year_subjects:
+        active_subject = year_subjects[0]
+        selected_subject_code = active_subject.code
+
+    # Subject assessments & student attempts
+    subject_assessments = []
+    if active_subject:
+        assessments_cursor = CollegeAssessment.find_all({
+            "subject_id": str(active_subject.id),
+            "status": {"$in": [CollegeAssessment.STATUS_PUBLISHED, CollegeAssessment.STATUS_SCHEDULED, CollegeAssessment.STATUS_CLOSED]}
+        })
+        for a in assessments_cursor:
+            user_attempt = None
+            if current_user.is_authenticated:
+                user_attempts = CollegeAssessmentAttempt.find_all({
+                    "user_id": str(current_user.id),
+                    "assessment_id": str(a.id)
+                }, limit=1)
+                user_attempt = user_attempts[0] if user_attempts else None
+
+            # Determine student-facing status
+            status_badge = a.live_status
+            can_start = False
+            can_view_result = False
+            if user_attempt:
+                if user_attempt.status == CollegeAssessmentAttempt.STATUS_IN_PROGRESS:
+                    status_badge = "In Progress"
+                    can_start = True
+                elif user_attempt.status in [CollegeAssessmentAttempt.STATUS_SUBMITTED, CollegeAssessmentAttempt.STATUS_EVALUATED]:
+                    if a.result_published:
+                        status_badge = "Result Published"
+                        can_view_result = True
+                    else:
+                        status_badge = "Completed"
+            else:
+                if a.live_status == "Live":
+                    can_start = True
+
+            subject_assessments.append({
+                "assessment": a,
+                "user_attempt": user_attempt,
+                "status_badge": status_badge,
+                "can_start": can_start,
+                "can_view_result": can_view_result
+            })
+
     return render_template(
         "test_series/landing.html",
         tests=filtered_tests,
@@ -231,7 +301,12 @@ def landing():
         search_q=search_q,
         active_tab=active_tab,
         user_test_stats=user_test_stats,
-        recent_attempts=student_attempts[:5]
+        recent_attempts=student_attempts[:5],
+        selected_year=selected_year,
+        year_subjects=year_subjects,
+        active_subject=active_subject,
+        selected_subject_code=selected_subject_code,
+        subject_assessments=subject_assessments
     )
 
 

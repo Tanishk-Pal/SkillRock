@@ -27,6 +27,7 @@
             <select name="role" class="admin-select" onchange="this.form.submit()">
                 <option value="all" {% if role_filter == 'all' %}selected{% endif %}>All Roles</option>
                 <option value="student" {% if role_filter == 'student' %}selected{% endif %}>Students Only</option>
+                <option value="teacher" {% if role_filter == 'teacher' %}selected{% endif %}>Teachers Only</option>
                 <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admins Only</option>
             </select>
         </div>

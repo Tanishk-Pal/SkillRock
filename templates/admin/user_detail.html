@@ -208,8 +208,9 @@
                     <div class="admin-form-group">
                         <label class="admin-label">System Role</label>
                         <select name="role" class="admin-select">
-                            <option value="student" {% if target_user.role != 'admin' %}selected{% endif %}>Student</option>
-                            <option value="admin" {% if target_user.role == 'admin' %}selected{% endif %}>Administrator</option>
+                            <option value="student" {% if target_user.role == 'student' and not target_user.is_teacher %}selected{% endif %}>Student</option>
+                            <option value="teacher" {% if target_user.role == 'teacher' or (target_user.is_teacher and not target_user.is_admin) %}selected{% endif %}>Faculty Teacher</option>
+                            <option value="admin" {% if target_user.role == 'admin' or target_user.is_admin %}selected{% endif %}>Administrator</option>
                         </select>
                     </div>
 

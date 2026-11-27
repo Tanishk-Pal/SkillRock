@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Workspace & Examination Suite — SkillRock{% endblock %}
+
+{% block content %}
+<div class="teacher-workspace-container" style="max-width: 1240px; margin: 0 auto; padding-bottom: 50px;">
+
+    <!-- Top Hero Header -->
+    <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border: 1.5px solid rgba(99,102,241,0.25); border-radius: 20px; padding: 32px; color: #FFFFFF; margin-bottom: 28px; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.3);">
+        <div style="position: absolute; top: -40px; right: -40px; width: 220px; height: 220px; background: radial-gradient(circle, rgba(99,102,241,0.22) 0%, rgba(99,102,241,0) 70%); border-radius: 50%; pointer-events: none;"></div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; position: relative; z-index: 2;">
+            <div>
+                <div style="display: inline-flex; align-items: center; gap: 7px; background: rgba(99,102,241,0.18); border: 1px solid rgba(129,140,248,0.35); padding: 5px 14px; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; color: #A5B4FC; margin-bottom: 12px;">
+                    <i data-lucide="graduation-cap" style="width: 16px; height: 16px;"></i>
+                    <span>Faculty Assessment Suite</span>
+                </div>
+                <h1 style="font-size: 2.1rem; font-weight: 800; line-height: 1.25; margin-bottom: 8px;">
+                    Teacher Workspace &amp; Campus Examination Suite
+                </h1>
+                <p style="font-size: 0.95rem; color: #94A3B8; margin: 0; max-width: 660px;">
+                    Create, schedule, monitor and evaluate college examinations, internal unit tests, and coding assessments for engineering students.
+                </p>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <a href="{{ url_for('teacher.assessment_create') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; padding: 11px 22px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; border-radius: 12px; box-shadow: 0 4px 15px rgba(99,102,241,0.35);">
+                    <i data-lucide="plus-circle" style="width: 18px; height: 18px;"></i>
+                    <span>Create Examination</span>
+                </a>
+                <a href="#questionBankModal" onclick="document.getElementById('addQuestionModal').style.display='flex';" class="btn btn-secondary" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18); color: #FFFFFF; padding: 11px 18px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; border-radius: 12px;">
+                    <i data-lucide="file-question" style="width: 18px; height: 18px;"></i>
+                    <span>Add to Question Bank</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Overview Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px;">
+        <div style="background: var(--bg-card, #1E293B); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 18px;">
+            <div style="font-size: 0.76rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Total Subjects</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #FFFFFF; margin-top: 4px;">{{ total_subjects }}</div>
+            <div style="font-size: 0.72rem; color: #818CF8; margin-top: 2px;">Years 1 through 4</div>
+        </div>
+
+        <div style="background: var(--bg-card, #1E293B); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 18px;">
+            <div style="font-size: 0.76rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Tests Created</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #FFFFFF; margin-top: 4px;">{{ total_tests }}</div>
+            <div style="font-size: 0.72rem; color: #10B981; margin-top: 2px;">{{ active_tests }} Active &bull; {{ upcoming_tests }} Upcoming</div>
+        </div>
+
+        <div style="background: var(--bg-card, #1E293B); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 18px;">
+            <div style="font-size: 0.76rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Student Attempts</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #FFFFFF; margin-top: 4px;">{{ total_attempts }}</div>
+            <div style="font-size: 0.72rem; color: #38BDF8; margin-top: 2px;">Total submissions logged</div>
+        </div>
+
+        <div style="background: var(--bg-card, #1E293B); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 18px;">
+            <div style="font-size: 0.76rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Pending Grading</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #F59E0B; margin-top: 4px;">{{ pending_evaluations }}</div>
+            <div style="font-size: 0.72rem; color: #FBBF24; margin-top: 2px;">Subjective &amp; Coding</div>
+        </div>
+
+        <div style="background: var(--bg-card, #1E293B); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 18px;">
+            <div style="font-size: 0.76rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Results Released</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #A855F7; margin-top: 4px;">{{ published_results }}</div>
+            <div style="font-size: 0.72rem; color: #C084FC; margin-top: 2px;">Verified scorecards</div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div style="display: flex; gap: 8px; border-bottom: 1.5px solid rgba(255,255,255,0.08); padding-bottom: 12px; margin-bottom: 24px; overflow-x: auto; scrollbar-width: none;">
+        <a href="{{ url_for('teacher.assessments_dashboard', tab='overview') }}" 
+           style="padding: 9px 18px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; {% if active_tab == 'overview' %}background: #6366F1; color: #FFFFFF;{% else %}color: #94A3B8; background: rgba(255,255,255,0.04);{% endif %}">
+            <i data-lucide="layout-grid" style="width: 16px; height: 16px;"></i>
+            <span>Overview</span>
+        </a>
+        <a href="{{ url_for('teacher.assessments_dashboard', tab='tests') }}" 
+           style="padding: 9px 18px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; {% if active_tab == 'tests' %}background: #6366F1; color: #FFFFFF;{% else %}color: #94A3B8; background: rgba(255,255,255,0.04);{% endif %}">
+            <i data-lucide="file-check-2" style="width: 16px; height: 16px;"></i>
+            <span>Examinations ({{ tests|length }})</span>
+        </a>
+        <a href="{{ url_for('teacher.assessments_dashboard', tab='questions') }}" 
+           style="padding: 9px 18px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; {% if active_tab == 'questions' %}background: #6366F1; color: #FFFFFF;{% else %}color: #94A3B8; background: rgba(255,255,255,0.04);{% endif %}">
+            <i data-lucide="help-circle" style="width: 16px; height: 16px;"></i>
+            <span>Question Bank ({{ questions|length }})</span>
+        </a>
+        <a href="{{ url_for('teacher.assessments_dashboard', tab='submissions') }}" 
+           style="padding: 9px 18px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; {% if active_tab == 'submissions' %}background: #6366F1; color: #FFFFFF;{% else %}color: #94A3B8; background: rgba(255,255,255,0.04);{% endif %}">
+            <i data-lucide="check-square" style="width: 16px; height: 16px;"></i>
+            <span>Submissions &amp; Grading</span>
+            {% if pending_evaluations > 0 %}
+            <span style="background: #F59E0B; color: #0F172A; font-size: 0.7rem; font-weight: 800; padding: 1px 6px; border-radius: 9999px;">{{ pending_evaluations }}</span>
+            {% endif %}
+        </a>
+    </div>
+
+    <!-- TAB 1: OVERVIEW & ACTIVE TESTS -->
+    {% if active_tab == 'overview' or active_tab == 'tests' %}
+    <div style="background: var(--bg-card, #1E293B); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 24px; margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <div style="font-size: 1.15rem; font-weight: 800; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="list-checks" style="color: #6366F1; width: 20px; height: 20px;"></i>
+                <span>Managed Examinations &amp; Unit Tests</span>
+            </div>
+            <a href="{{ url_for('teacher.assessment_create') }}" class="btn btn-primary btn-sm" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                New Test
+            </a>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                <thead>
+                    <tr style="border-bottom: 1.5px solid rgba(255,255,255,0.08); text-align: left; color: #94A3B8;">
+                        <th style="padding: 12px;">Test Title &amp; Subject</th>
+                        <th style="padding: 12px;">Year &amp; Type</th>
+                        <th style="padding: 12px;">Duration &amp; Marks</th>
+                        <th style="padding: 12px;">Integrity Preset</th>
+                        <th style="padding: 12px;">Status</th>
+                        <th style="padding: 12px; text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tests %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 14px 12px;">
+                            <div style="font-weight: 700; color: #FFFFFF; font-size: 0.95rem;">{{ t.title }}</div>
+                            <div style="font-size: 0.78rem; color: #94A3B8;">{{ t.subject_name }} ({{ t.subject_code }}) &bull; {{ t.teacher_name }}</div>
+                        </td>
+                        <td style="padding: 14px 12px;">
+                            <span style="background: rgba(99,102,241,0.15); color: #818CF8; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.74rem;">Year {{ t.academic_year }}</span>
+                            <div style="font-size: 0.76rem; color: #CBD5E1; margin-top: 3px;">{{ t.assessment_type }}</div>
+                        </td>
+                        <td style="padding: 14px 12px;">
+                            <div style="color: #FFFFFF; font-weight: 600;">{{ t.duration_minutes }} Mins</div>
+                            <div style="font-size: 0.75rem; color: #94A3B8;">{{ t.total_marks|int }} Marks (Pass: {{ t.passing_marks|int }})</div>
+                        </td>
+                        <td style="padding: 14px 12px;">
+                            <span style="font-size: 0.76rem; color: #10B981; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="shield" style="width: 12px; height: 12px;"></i>
+                                {{ t.integrity_settings.preset|capitalize }}
+                            </span>
+                        </td>
+                        <td style="padding: 14px 12px;">
+                            {% if t.result_published %}
+                            <span style="background: rgba(168, 85, 247, 0.15); color: #C084FC; font-weight: 800; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px;">Results Out</span>
+                            {% elif t.live_status == 'Live' %}
+                            <span style="background: rgba(16, 185, 129, 0.15); color: #10B981; font-weight: 800; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px;">Live Now</span>
+                            {% else %}
+                            <span style="background: rgba(245, 158, 11, 0.15); color: #F59E0B; font-weight: 800; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px;">{{ t.live_status }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 14px 12px; text-align: right;">
+                            <div style="display: inline-flex; align-items: center; gap: 8px;">
+                                {% if not t.result_published %}
+                                <form method="POST" action="{{ url_for('teacher.assessment_publish_results', aid=t.id) }}" style="display: inline;" onsubmit="return confirm('Publish examination results for {{ t.title }}?');">
+                                    <button type="submit" class="btn btn-sm" style="background: rgba(168, 85, 247, 0.15); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.3); padding: 4px 10px; font-size: 0.76rem; font-weight: 700;">
+                                        Publish Scores
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <a href="{{ url_for('teacher.assessment_export_csv', aid=t.id) }}" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.76rem;" title="Download CSV Gradebook">
+                                    <i data-lucide="download" style="width: 13px; height: 13px;"></i> CSV
+                                </a>
+                                <form method="POST" action="{{ url_for('teacher.assessment_delete', aid=t.id) }}" style="display: inline;" onsubmit="return confirm('Remove assessment {{ t.title }}?');">
+                                    <button type="submit" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.12); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.25); padding: 4px 8px;">
+                                        <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 32px; color: #94A3B8;">
+                            No examinations created yet. Click "Create Examination" to schedule your first unit test.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- TAB 2: QUESTION BANK -->
+    {% if active_tab == 'questions' %}
+    <div style="background: var(--bg-card, #1E293B); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 24px; margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <div style="font-size: 1.15rem; font-weight: 800; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="help-circle" style="color: #6366F1; width: 20px; height: 20px;"></i>
+                <span>Reusable Question Bank</span>
+            </div>
+            <button onclick="document.getElementById('addQuestionModal').style.display='flex';" class="btn btn-primary btn-sm" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                Create Question
+            </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
+            {% for q in questions %}
+            <div style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 18px; display: flex; justify-content: space-between; gap: 14px; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center; flex-wrap: wrap;">
+                        <span style="background: rgba(99,102,241,0.15); color: #818CF8; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 4px;">
+                            {{ q.question_type|upper }}
+                        </span>
+                        <span style="font-size: 0.76rem; color: #CBD5E1; font-weight: 600;">{{ q.subject_name }}</span>
+                        <span style="font-size: 0.74rem; color: #94A3B8;">&bull; Topic: {{ q.topic }}</span>
+                        <span style="font-size: 0.74rem; color: #F59E0B; font-weight: 700;">{{ q.marks }} Marks</span>
+                    </div>
+                    <div style="font-size: 0.95rem; font-weight: 600; color: #FFFFFF; line-height: 1.45; margin-bottom: 8px; white-space: pre-wrap;">{{ q.question_text }}</div>
+                    
+                    {% if q.options %}
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px; font-size: 0.8rem; color: #94A3B8;">
+                        {% for opt in q.options %}
+                        <div style="background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 6px;">
+                            <strong>{{ opt.id }}:</strong> {{ opt.text }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <form method="POST" action="{{ url_for('teacher.question_delete', qid=q.id) }}" onsubmit="return confirm('Delete this question?');">
+                    <button type="submit" class="btn btn-sm" style="background: rgba(239,68,68,0.12); color: #EF4444; border: 1px solid rgba(239,68,68,0.25); padding: 4px 8px;">
+                        <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 32px; color: #94A3B8;">No questions added yet. Click "Create Question" to populate your bank.</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- TAB 3: STUDENT SUBMISSIONS & GRADING -->
+    {% if active_tab == 'submissions' %}
+    <div style="background: var(--bg-card, #1E293B); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 24px; margin-bottom: 30px;">
+        <div style="font-size: 1.15rem; font-weight: 800; color: #FFFFFF; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="check-square" style="color: #10B981; width: 20px; height: 20px;"></i>
+            <span>Student Assessment Attempts &amp; Scorecards</span>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                <thead>
+                    <tr style="border-bottom: 1.5px solid rgba(255,255,255,0.08); text-align: left; color: #94A3B8;">
+                        <th style="padding: 12px;">Student Name</th>
+                        <th style="padding: 12px;">Assessment</th>
+                        <th style="padding: 12px;">Score &amp; Accuracy</th>
+                        <th style="padding: 12px;">Integrity Warnings</th>
+                        <th style="padding: 12px;">Status</th>
+                        <th style="padding: 12px; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for att in attempts %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 14px 12px;">
+                            <div style="font-weight: 700; color: #FFFFFF;">{{ att.user_name }}</div>
+                            <div style="font-size: 0.75rem; color: #94A3B8;">{{ att.user_email }}</div>
+                        </td>
+                        <td style="padding: 14px 12px;">
+                            <div style="color: #FFFFFF; font-weight: 600;">{{ att.assessment_title }}</div>
+                            <div style="font-size: 0.75rem; color: #94A3B8;">{{ att.subject_code }} &bull; Year {{ att.academic_year }}</div>
+                        </td>
+                        <td style="padding: 14px 12px;">
+                            <div style="font-weight: 800; color: {% if att.is_passed %}#10B981{% else %}#EF4444{% endif %}; font-size: 0.95rem;">
+                                {{ att.score|round(1) }} / {{ att.max_score|round(1) }} ({{ att.percentage|round(1) }}%)
+                            </div>
+                            <div style="font-size: 0.72rem; color: #94A3B8;">{{ att.correct_count }} Correct &bull; {{ att.incorrect_count }} Wrong</div>
+                        </td>
+                        <td style="padding: 14px 12px;">
+                            <span style="color: {% if att.warning_count > 0 %}#F59E0B{% else %}#10B981{% endif %}; font-weight: 700;">
+                                {{ att.warning_count }} Warnings
+                            </span>
+                        </td>
+                        <td style="padding: 14px 12px;">
+                            {% if att.needs_manual_review %}
+                            <span style="background: rgba(245, 158, 11, 0.15); color: #F59E0B; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 4px;">
+                                Needs Teacher Review
+                            </span>
+                            {% elif att.status == 'evaluated' %}
+                            <span style="background: rgba(16, 185, 129, 0.15); color: #10B981; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 4px;">
+                                Evaluated
+                            </span>
+                            {% else %}
+                            <span style="background: rgba(148, 163, 184, 0.15); color: #CBD5E1; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 4px;">
+                                {{ att.status|capitalize }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 14px 12px; text-align: right;">
+                            <a href="{{ url_for('teacher.attempt_grade', attempt_id=att.id) }}" class="btn btn-primary btn-sm" style="padding: 5px 12px; font-weight: 700; font-size: 0.78rem;">
+                                Review &amp; Grade
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 32px; color: #94A3B8;">No student submissions recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Modal: Quick Add Question to Question Bank -->
+<div id="addQuestionModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #1E293B; border: 1.5px solid rgba(99,102,241,0.3); border-radius: 16px; width: 100%; max-width: 600px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #FFFFFF; margin: 0;">Add Question to Bank</h3>
+            <button onclick="document.getElementById('addQuestionModal').style.display='none';" style="background: none; border: none; color: #94A3B8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+
+        <form method="POST" action="{{ url_for('teacher.question_create') }}" style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+                <label style="font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Subject *</label>
+                <select name="subject_id" required class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; width: 100%;">
+                    {% for sub in subjects %}
+                    <option value="{{ sub.id }}">{{ sub.name }} ({{ sub.code }}) &bull; Year {{ sub.year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Question Type</label>
+                    <select name="question_type" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; width: 100%;">
+                        <option value="mcq">Multiple Choice (MCQ)</option>
+                        <option value="multiple_select">Multiple Select</option>
+                        <option value="true_false">True / False</option>
+                        <option value="fill_blanks">Fill in the Blanks</option>
+                        <option value="numerical">Numerical (with tolerance)</option>
+                        <option value="coding">Coding Challenge</option>
+                        <option value="short_answer">Short / Long Answer</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Marks</label>
+                    <input type="number" step="0.5" name="marks" value="2.0" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; width: 100%;">
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Question Text *</label>
+                <textarea name="question_text" rows="3" required placeholder="Enter question formulation, problem statement, or code snippet..." class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; width: 100%;"></textarea>
+            </div>
+
+            <div>
+                <label style="font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Four Options (For MCQ)</label>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <input type="text" name="option_text" placeholder="Option 1" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 7px 10px;">
+                    <input type="text" name="option_text" placeholder="Option 2" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 7px 10px;">
+                    <input type="text" name="option_text" placeholder="Option 3" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 7px 10px;">
+                    <input type="text" name="option_text" placeholder="Option 4" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 7px 10px;">
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Correct Answer ID or Value (e.g. opt_1)</label>
+                <input type="text" name="single_correct" placeholder="e.g. opt_1 or exact keyword" class="form-control" style="background: #0F172A; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px 12px;">
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+                <button type="button" onclick="document.getElementById('addQuestionModal').style.display='none';" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="background: #6366F1; font-weight: 700;">Save Question</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
