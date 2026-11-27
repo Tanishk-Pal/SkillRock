@@ -145,6 +145,16 @@ def init_indexes(db):
         # Student User Access (One authoritative access record per user per item)
         db.user_access.create_index([("user_id", 1), ("item_type", 1), ("item_id", 1)], unique=True)
         db.user_access.create_index([("user_id", 1), ("is_active", 1)])
+
+        # Monthly Challenges & 100% Refund System
+        db.challenges.create_index("slug", unique=True)
+        db.challenges.create_index("is_active")
+        db.challenge_enrollments.create_index([("user_id", 1), ("challenge_id", 1)], unique=True)
+        db.challenge_enrollments.create_index("user_id")
+        db.challenge_refund_claims.create_index("enrollment_id", unique=True)
+        db.challenge_refund_claims.create_index("user_id")
+        db.challenge_refund_claims.create_index("status")
+        db.challenge_submissions.create_index([("user_id", 1), ("challenge_id", 1)])
     except Exception as e:
         logger.debug(f"Index creation note: {e}")
 

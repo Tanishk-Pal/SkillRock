@@ -2351,39 +2351,11 @@
                 if (link) handleNav(link);
             }, { passive: true });
 
-            document.addEventListener("click", function(e) {
-                if (e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
-                var link = e.target.closest("a");
-                if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
-                var href = link.getAttribute("href");
-                if (!href || href.startsWith("#") || href.startsWith("javascript:") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
-                if (link.origin && link.origin !== window.location.origin) return;
-
-                // Determine context-sensitive title for the book loader
-                var title = "Opening Lesson...";
-                var subtext = "SkillRock is preparing your learning space";
-                var linkText = (link.textContent || "").toLowerCase();
-                if (href.includes("challenges")) {
-                    title = "Opening Monthly Challenge...";
-                    subtext = "Loading syllabus and challenge track";
-                } else if (href.includes("discover") || linkText.includes("exchange")) {
-                    title = "Loading Skill Exchange...";
-                    subtext = "Connecting you with peers and mentors";
-                } else if (href.includes("learning/certificate") || href.includes("/certificate/")) {
-                    title = "Verifying Certificate...";
-                    subtext = "Preparing official tamper-proof credential";
-                }
-
-                window.showSkillRockBookLoader(title, subtext);
-                handleNav(link);
-            });
-
-            // Form Submissions: start progress bar and book animation without blocking viewport
+            // Form Submissions: start progress bar and graceful non-blocking loader
             document.addEventListener("submit", function(e) {
                 var form = e.target;
                 if (form && !form.target && (!form.method || form.method.toLowerCase() === "post")) {
                     startProgress();
-                    window.showSkillRockBookLoader("Processing & Saving...", "Please wait while SkillRock records your progress");
                 }
             });
 
@@ -2408,6 +2380,7 @@
 
     </script>
 
+    <script src="{{ url_for('static', filename='js/skillrock_router.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
     <script>

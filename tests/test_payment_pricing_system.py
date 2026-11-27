@@ -99,13 +99,6 @@ class TestPaymentPricingSystem(unittest.TestCase):
         })
         self.paid_course.save()
 
-    def tearDown(self):
-        self.db.users.delete_many({"email": {"$regex": r"@skillrock\.test$"}})
-        self.db.courses.delete_many({"slug": {"$in": ["intro-python-programming", "full-stack-web-development-bootcamp", "test-intro-python", "test-fullstack-bootcamp"]}})
-        self.db.tests.delete_many({"slug": "tcs-nqt-adv-quant"})
-        self.db.payments.delete_many({"$or": [{"gateway": "razorpay", "notes.test": True}, {"user_email": {"$regex": r"@skillrock\.test$"}}]})
-        self.db.user_access.delete_many({"$or": [{"notes.test": True}, {"user_email": {"$regex": r"@skillrock\.test$"}}]})
-
         # Create a Paid Mock Test (₹99)
         self.paid_test = TestDefinition({
             "title": "TCS NQT Advanced Quantitative Mock Test",
@@ -120,6 +113,13 @@ class TestPaymentPricingSystem(unittest.TestCase):
             "price": 99.0,
             "is_published": True,
         }).save()
+
+    def tearDown(self):
+        self.db.users.delete_many({"email": {"$regex": r"@skillrock\.test$"}})
+        self.db.courses.delete_many({"slug": {"$in": ["intro-python-programming", "full-stack-web-development-bootcamp", "test-intro-python", "test-fullstack-bootcamp"]}})
+        self.db.tests.delete_many({"slug": "tcs-nqt-adv-quant"})
+        self.db.payments.delete_many({"$or": [{"gateway": "razorpay", "notes.test": True}, {"user_email": {"$regex": r"@skillrock\.test$"}}]})
+        self.db.user_access.delete_many({"$or": [{"notes.test": True}, {"user_email": {"$regex": r"@skillrock\.test$"}}]})
 
     def login_user(self, email, password):
         return self.client.post("/login", data={

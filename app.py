@@ -172,7 +172,7 @@ def create_app(config_class=Config):
         
         # Cache static assets (CSS, JS, images, fonts) for high performance
         if request.path.startswith("/static/"):
-            response.headers["Cache-Control"] = "public, max-age=86400, stale-while-revalidate=604800"
+            response.headers["Cache-Control"] = "public, max-age=604800, stale-while-revalidate=2592000"
         elif request.path.startswith("/admin") or request.path.startswith("/auth") or request.path.startswith("/signin"):
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
             response.headers["Pragma"] = "no-cache"
@@ -193,7 +193,7 @@ def create_app(config_class=Config):
                     response.set_data(compressed)
                     response.headers["Content-Encoding"] = "gzip"
                     response.headers["Content-Length"] = len(compressed)
-                    response.headers["Vary"] = "Accept-Encoding"
+                    response.headers["Vary"] = "Accept-Encoding, X-Requested-With"
             except Exception:
                 pass
 
