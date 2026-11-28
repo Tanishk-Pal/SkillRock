@@ -89,78 +89,68 @@
     </div>
 
     <!-- Footer / Call to Action (Fixed to card bottom) -->
-    <div class="course-card-footer" style="margin-top: auto; padding: 14px 20px; border-top: 1px solid var(--border-color); background: var(--bg-elevated); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-        <div>
+    <div class="course-card-footer" style="margin-top: auto; padding: 12px 18px; border-top: 1px solid var(--border-color); background: var(--bg-elevated); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div style="flex-shrink: 0; min-width: 0;">
             {% if (course.enrolled_count or 0) >= 50 %}
-                <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 600;">
-                    <i data-lucide="users" style="width: 13px; height: 13px; display: inline-block; vertical-align: middle;"></i>
-                    {{ course.enrolled_count }} students
+                <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">
+                    <i data-lucide="users" style="width: 13px; height: 13px;"></i>
+                    <span>{{ course.enrolled_count }} students</span>
                 </span>
             {% else %}
-                <span class="badge" style="background: rgba(91, 70, 246, 0.12); color: #818CF8; border: 1px solid rgba(139, 92, 246, 0.3); font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;">
-                    Project-Based • GitHub Review
+                <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(99, 102, 241, 0.12); color: #A5B4FC; border: 1px solid rgba(99, 102, 241, 0.28); font-size: 0.72rem; font-weight: 700; padding: 4px 9px; border-radius: 6px; white-space: nowrap;">
+                    <i data-lucide="git-pull-request" style="width: 12px; height: 12px; color: #818CF8;"></i>
+                    <span>Project-Based</span>
                 </span>
             {% endif %}
         </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: flex-end; flex-shrink: 0; gap: 8px;">
         {% if course.id in completed_course_ids %}
-            <span style="display: inline-flex; align-items: center; gap: 5px; color: #10B981; font-size: 0.82rem; font-weight: 700;">
-                <i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i>
+            <span style="display: inline-flex; align-items: center; gap: 4px; color: #10B981; font-size: 0.78rem; font-weight: 700; white-space: nowrap;">
+                <i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i>
                 <span>Certified</span>
             </span>
-            <a href="{{ url_for('learning.course_detail', slug=course.slug or course.id) }}" class="btn btn-secondary btn-sm" style="padding: 6px 14px; font-weight: 600;">
+            <a href="{{ url_for('learning.course_detail', slug=course.slug or course.id) }}" class="btn btn-secondary btn-sm" style="padding: 6px 13px; font-weight: 600; font-size: 0.8rem; border-radius: 8px; white-space: nowrap;">
                 View Project
             </a>
         {% elif course.id in enrolled_course_ids %}
-            <span style="display: inline-flex; align-items: center; gap: 5px; color: #5B46F6; font-size: 0.82rem; font-weight: 700;">
-                <i data-lucide="play-circle" style="width: 16px; height: 16px;"></i>
-                <span>In Progress</span>
-            </span>
-            <a href="{{ url_for('learning.course_detail', slug=course.slug or course.id) }}" class="btn btn-primary btn-sm" style="padding: 6px 14px; font-weight: 600; background: #5B46F6;">
-                Continue
+            <a href="{{ url_for('learning.course_detail', slug=course.slug or course.id) }}" class="btn btn-primary btn-sm" style="padding: 6px 14px; font-weight: 700; font-size: 0.8rem; background: linear-gradient(135deg, #6366F1, #4F46E5); border-radius: 8px; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;">
+                <i data-lucide="play" style="width: 12px; height: 12px;"></i>
+                <span>Continue</span>
             </a>
         {% else %}
             {% if course.is_paid and course.price > 0 %}
-                <div style="display: flex; flex-direction: column; align-items: flex-end; margin-right: 4px;">
-                    <span style="display: inline-flex; align-items: center; gap: 4px; color: #F59E0B; font-size: 0.95rem; font-weight: 800; line-height: 1.1;">
-                        ₹{{ course.price|int }}
-                    </span>
-                    <span style="font-size: 0.68rem; color: #10B981; font-weight: 700; display: inline-flex; align-items: center; gap: 2px;">
-                        <i data-lucide="check" style="width: 10px; height: 10px;"></i> 100% Refundable
-                    </span>
-                </div>
                 {% if current_user.is_authenticated %}
                     {% if verify_student_unlock(current_user, 'course', course.id) %}
-                        <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary btn-sm" style="padding: 7px 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; background: #5B46F6; border-radius: 8px; text-decoration: none;">
+                        <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary btn-sm" style="padding: 6px 14px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; background: linear-gradient(135deg, #6366F1, #4F46E5); border-radius: 8px; text-decoration: none; white-space: nowrap;">
                             <span>Start Learning</span>
-                            <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+                            <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
                         </a>
                     {% else %}
-                        <a href="{{ url_for('payment.checkout', item_type='course', item_id=course.id) }}" class="btn btn-primary btn-sm" style="padding: 7px 16px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-color: #D97706; color: #0F172A; border-radius: 8px; text-decoration: none; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);">
+                        <a href="{{ url_for('payment.checkout', item_type='course', item_id=course.id) }}" class="btn btn-primary btn-sm" style="padding: 7px 15px; font-weight: 800; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 5px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border: 1px solid #F59E0B; color: #0F172A; border-radius: 8px; text-decoration: none; box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35); white-space: nowrap;">
                             <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
                             <span>Buy Now — ₹{{ course.price|int }}</span>
                         </a>
                     {% endif %}
                 {% else %}
-                    <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='course', item_id=course.id)) }}" class="btn btn-primary btn-sm" style="padding: 7px 16px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-color: #D97706; color: #0F172A; border-radius: 8px; text-decoration: none; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);">
+                    <a href="{{ url_for('auth.register', next=url_for('payment.checkout', item_type='course', item_id=course.id)) }}" class="btn btn-primary btn-sm" style="padding: 7px 15px; font-weight: 800; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 5px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border: 1px solid #F59E0B; color: #0F172A; border-radius: 8px; text-decoration: none; box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35); white-space: nowrap;">
                         <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
                         <span>Buy Now — ₹{{ course.price|int }}</span>
                     </a>
                 {% endif %}
             {% else %}
-                <span style="font-size: 0.82rem; color: #10B981; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                <span style="font-size: 0.78rem; color: #10B981; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; white-space: nowrap;">
                     <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10B981;"></span>
                     FREE
                 </span>
                 {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary btn-sm" style="padding: 6px 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; background: #5B46F6; border-radius: 8px; text-decoration: none;">
+                    <a href="{{ url_for('learning.start_course', slug=course.slug or course.id) }}" class="btn btn-primary btn-sm" style="padding: 6px 14px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; background: linear-gradient(135deg, #6366F1, #4F46E5); border-radius: 8px; text-decoration: none; white-space: nowrap;">
                         <span>Start Learning</span>
-                        <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+                        <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
                     </a>
                 {% else %}
-                    <a href="{{ url_for('auth.register', next=url_for('learning.course_detail', slug=course.slug or course.id)) }}" class="btn btn-primary btn-sm" style="padding: 6px 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; background: #5B46F6; border-radius: 8px; text-decoration: none;">
+                    <a href="{{ url_for('auth.register', next=url_for('learning.course_detail', slug=course.slug or course.id)) }}" class="btn btn-primary btn-sm" style="padding: 6px 14px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; background: linear-gradient(135deg, #6366F1, #4F46E5); border-radius: 8px; text-decoration: none; white-space: nowrap;">
                         <span>Start Learning</span>
-                        <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+                        <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
                     </a>
                 {% endif %}
             {% endif %}

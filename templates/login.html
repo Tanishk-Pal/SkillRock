@@ -1,34 +1,37 @@
 {% extends "base.html" %}
 
-{% block title %}Sign In — Skill Rock Learning & Skill Exchange{% endblock %}
+{% block title %}Sign In — Skill Rock Student Academy & Skill Exchange{% endblock %}
 
 {% block head %}
 <style>
-    /* Simplilearn-Style Split Screen Authentication Layout */
+    /* SkillRock Unified Authentication Layout */
     .simpli-auth-container {
-        max-width: 1060px;
-        margin: 30px auto 50px auto;
+        max-width: 1080px;
+        margin: 36px auto 60px auto;
         padding: 0 16px;
     }
 
     .simpli-auth-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 20px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 24px;
         overflow: hidden;
-        box-shadow: var(--shadow-card);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
         display: grid;
         grid-template-columns: 1.05fr 1fr;
-        min-height: 620px;
+        min-height: 640px;
+        backdrop-filter: blur(16px);
     }
 
     /* Left Column: Form Side */
     .simpli-form-side {
-        padding: 40px 42px;
+        padding: 42px 46px;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        background: var(--bg-card);
+        background: rgba(15, 23, 42, 0.95);
+        position: relative;
+        z-index: 2;
     }
 
     .simpli-brand-row {
@@ -43,33 +46,74 @@
         height: 44px;
         border-radius: 12px;
         object-fit: cover;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+        border: 1.5px solid rgba(255, 255, 255, 0.15);
     }
 
     .simpli-brand-name {
-        font-size: 1.35rem;
+        font-size: 1.4rem;
         font-weight: 800;
-        color: var(--text-main);
+        color: #FFFFFF;
         line-height: 1.1;
+        letter-spacing: -0.02em;
     }
 
     .simpli-brand-highlight {
-        color: #5B46F6;
+        color: #F59E0B;
     }
 
     .simpli-brand-tag {
         font-size: 0.72rem;
-        color: var(--text-secondary);
+        color: #94A3B8;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.06em;
     }
 
+    /* Interactive Tab Switcher */
+    .auth-tab-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        padding: 4px;
+        background: rgba(10, 14, 26, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        margin-bottom: 24px;
+    }
+
+    .auth-tab-btn {
+        padding: 10px 14px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        border: none;
+        background: transparent;
+        color: #94A3B8;
+        border-radius: 9px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .auth-tab-btn:hover {
+        color: #FFFFFF;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .auth-tab-btn.active {
+        background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+        color: #FFFFFF;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
     .simpli-form-title {
-        font-size: 1.7rem;
+        font-size: 1.75rem;
         font-weight: 800;
-        color: var(--text-main);
+        color: #FFFFFF;
         letter-spacing: -0.02em;
         margin-bottom: 6px;
         line-height: 1.2;
@@ -77,7 +121,7 @@
 
     .simpli-form-subtitle {
         font-size: 0.9rem;
-        color: var(--text-secondary);
+        color: #94A3B8;
         line-height: 1.5;
         margin-bottom: 22px;
     }
@@ -88,31 +132,31 @@
         align-items: center;
         justify-content: center;
         gap: 12px;
-        padding: 11px 18px;
-        font-weight: 600;
-        font-size: 0.92rem;
-        border: 1.5px solid var(--border-color);
-        background: var(--bg-card);
-        color: var(--text-main);
-        border-radius: 10px;
-        box-shadow: var(--shadow-sm);
-        transition: all 0.2s ease;
+        padding: 12px 18px;
+        font-weight: 700;
+        font-size: 0.94rem;
+        border: 1.5px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.06);
+        color: #FFFFFF;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         text-decoration: none;
         cursor: pointer;
     }
 
     .btn-google-auth:hover {
-        background: var(--bg-hover);
-        border-color: var(--border-focus);
-        box-shadow: var(--shadow-hover);
-        transform: translateY(-1px);
-        color: var(--text-main);
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(99, 102, 241, 0.5);
+        box-shadow: 0 6px 18px rgba(99, 102, 241, 0.25);
+        transform: translateY(-2px);
+        color: #FFFFFF;
     }
 
     .simpli-divider {
         display: flex;
         align-items: center;
-        margin: 20px 0;
+        margin: 22px 0;
         text-align: center;
     }
 
@@ -120,12 +164,12 @@
     .simpli-divider::after {
         content: "";
         flex: 1;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .simpli-divider span {
-        padding: 0 12px;
-        color: #94A3B8;
+        padding: 0 14px;
+        color: #64748B;
         font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.08em;
@@ -133,33 +177,38 @@
     }
 
     .form-group-item {
-        margin-bottom: 15px;
+        margin-bottom: 16px;
     }
 
     .simpli-label {
         display: block;
         font-weight: 700;
         font-size: 0.84rem;
-        color: var(--text-main);
+        color: #E2E8F0;
         margin-bottom: 6px;
     }
 
     .simpli-input {
         width: 100%;
-        padding: 11px 14px;
-        border: 1.5px solid var(--border-color);
-        border-radius: 9px;
-        font-size: 0.92rem;
-        color: var(--text-main);
+        padding: 12px 16px;
+        border: 1.5px solid rgba(255, 255, 255, 0.14);
+        border-radius: 10px;
+        font-size: 0.94rem;
+        color: #FFFFFF;
         outline: none;
-        transition: all 0.15s ease;
-        background: var(--bg-input);
+        transition: all 0.2s ease;
+        background: rgba(10, 14, 26, 0.85);
         font-family: inherit;
     }
 
+    .simpli-input::placeholder {
+        color: #64748B;
+    }
+
     .simpli-input:focus {
-        border-color: var(--border-focus);
-        box-shadow: 0 0 0 3.5px rgba(81, 69, 205, 0.18);
+        border-color: #6366F1;
+        box-shadow: 0 0 0 3.5px rgba(99, 102, 241, 0.25);
+        background: rgba(10, 14, 26, 0.95);
     }
 
     .password-wrap {
@@ -187,119 +236,99 @@
     }
 
     .password-toggle-btn:hover {
-        color: #5B46F6;
+        color: #818CF8;
     }
 
     .btn-signin-unified {
         width: 100%;
-        padding: 12px 20px;
-        font-size: 0.98rem;
-        font-weight: 700;
-        border-radius: 10px;
-        background: linear-gradient(135deg, #5B46F6 0%, #4B38E0 100%);
+        padding: 13px 22px;
+        font-size: 1rem;
+        font-weight: 800;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
         color: #FFFFFF;
         border: none;
-        box-shadow: 0 4px 14px rgba(91, 70, 246, 0.35);
+        box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        transition: all 0.2s ease;
-        margin-top: 10px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-top: 14px;
     }
 
     .btn-signin-unified:hover {
-        background: linear-gradient(135deg, #4B38E0 0%, #3730A3 100%);
-        box-shadow: 0 6px 18px rgba(91, 70, 246, 0.45);
-        transform: translateY(-1px);
+        background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+        box-shadow: 0 6px 22px rgba(99, 102, 241, 0.55);
+        transform: translateY(-2px);
     }
 
     .simpli-reassurance {
-        margin-top: 18px;
-        padding: 12px 14px;
-        background: var(--bg-elevated);
-        border: 1px dashed var(--border-color);
-        border-radius: 9px;
-        font-size: 0.78rem;
-        color: var(--text-secondary);
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
-
-    /* Right Column: Simplilearn-Style Hero & Showcase Side */
-    .simpli-hero-side {
-        position: relative;
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(30, 41, 59, 0.85) 100%), 
-                    url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1000&auto=format&fit=crop&q=80') center/cover no-repeat;
-        color: #FFFFFF;
-        padding: 44px 38px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        position: relative;
-        overflow: hidden;
-    }
-
-    /* Subtle side collage accent (matching Simplilearn's right mosaic strip) */
-    .simpli-hero-mosaic {
-        position: absolute;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        width: 140px;
+        margin-top: 20px;
+        padding: 14px 16px;
+        background: rgba(10, 14, 26, 0.6);
+        border: 1px dashed rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        font-size: 0.8rem;
+        color: #94A3B8;
         display: flex;
         flex-direction: column;
         gap: 8px;
-        opacity: 0.18;
-        pointer-events: none;
-        overflow: hidden;
     }
 
-    .simpli-mosaic-thumb {
-        width: 100%;
-        height: 130px;
-        object-fit: cover;
-        border-radius: 6px;
+    /* Right Column: SkillRock Academy Showcase Panel */
+    .simpli-hero-side {
+        position: relative;
+        background: radial-gradient(circle at 85% 15%, rgba(99, 102, 241, 0.25) 0%, transparent 60%),
+                    radial-gradient(circle at 15% 85%, rgba(245, 158, 11, 0.18) 0%, transparent 50%),
+                    linear-gradient(135deg, #0F172A 0%, #1E1B4B 60%, #0B0F19 100%);
+        color: #FFFFFF;
+        padding: 46px 42px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .simpli-hero-badge {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 5px 13px;
-        background: rgba(37, 99, 235, 0.3);
-        border: 1px solid rgba(96, 165, 250, 0.4);
+        padding: 6px 14px;
+        background: rgba(99, 102, 241, 0.2);
+        border: 1px solid rgba(139, 92, 246, 0.4);
         border-radius: 9999px;
         font-size: 0.74rem;
         font-weight: 800;
-        color: #93C5FD;
+        color: #C4B5FD;
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        margin-bottom: 18px;
+        margin-bottom: 20px;
         width: fit-content;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
     }
 
     .simpli-hero-headline {
         font-size: 2.2rem;
         font-weight: 800;
-        line-height: 1.18;
+        line-height: 1.2;
         letter-spacing: -0.02em;
         color: #FFFFFF;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
     }
 
     .simpli-hero-headline span {
-        background: linear-gradient(135deg, #60A5FA 0%, #93C5FD 100%);
+        background: linear-gradient(135deg, #A78BFA 0%, #818CF8 50%, #60A5FA 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
     .simpli-hero-lead {
-        font-size: 0.95rem;
-        color: #CBD5E1;
-        line-height: 1.55;
+        font-size: 0.94rem;
+        color: #94A3B8;
+        line-height: 1.6;
         margin-bottom: 28px;
     }
 
@@ -315,16 +344,16 @@
     .simpli-point-item {
         display: flex;
         align-items: flex-start;
-        gap: 12px;
+        gap: 14px;
     }
 
     .simpli-point-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        background: rgba(37, 99, 235, 0.25);
-        border: 1px solid rgba(59, 130, 246, 0.4);
-        color: #60A5FA;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(99, 102, 241, 0.18);
+        border: 1px solid rgba(99, 102, 241, 0.35);
+        color: #818CF8;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -350,8 +379,8 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-top: 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        padding-top: 22px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
         position: relative;
         z-index: 2;
     }
@@ -361,11 +390,11 @@
     }
 
     .simpli-stat-num {
-        font-size: 1.35rem;
+        font-size: 1.4rem;
         font-weight: 800;
         color: #FFFFFF;
         line-height: 1;
-        margin-bottom: 3px;
+        margin-bottom: 4px;
     }
 
     .simpli-stat-num span {
@@ -380,34 +409,33 @@
         letter-spacing: 0.04em;
     }
 
-    /* Responsive Breakdown for Tablet & Mobile */
+    /* Responsive Breakdown for Tablet & Mobile (Form comes FIRST) */
     @media (max-width: 920px) {
         .simpli-auth-card {
             grid-template-columns: 1fr;
-            border-radius: 16px;
-        }
-
-        .simpli-hero-side {
-            order: -1;
-            padding: 32px 24px;
-        }
-
-        .simpli-hero-headline {
-            font-size: 1.7rem;
-        }
-
-        .simpli-hero-mosaic {
-            display: none;
+            border-radius: 18px;
         }
 
         .simpli-form-side {
-            padding: 30px 24px;
+            order: 1 !important;
+            padding: 32px 24px;
+        }
+
+        .simpli-hero-side {
+            order: 2 !important;
+            padding: 34px 24px;
+            border-left: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .simpli-hero-headline {
+            font-size: 1.75rem;
         }
     }
 
     @media (max-width: 480px) {
         .simpli-auth-container {
-            margin: 15px auto 30px auto;
+            margin: 16px auto 36px auto;
             padding: 0 10px;
         }
 
@@ -416,7 +444,7 @@
         }
 
         .simpli-form-title {
-            font-size: 1.45rem;
+            font-size: 1.5rem;
         }
 
         .simpli-input {
@@ -429,7 +457,7 @@
 {% block content %}
 <div class="simpli-auth-container">
     <div class="simpli-auth-card">
-        <!-- Left Side: Interactive Sign In Form -->
+        <!-- Left Side: Interactive Sign In / Register Form -->
         <div class="simpli-form-side">
             <!-- Brand Logo & Header -->
             <div class="simpli-brand-row">
@@ -440,17 +468,29 @@
                 </div>
             </div>
 
-            <h1 class="simpli-form-title">Welcome back!</h1>
-            <p class="simpli-form-subtitle">
-                Log in or sign in with your email to access free courses, submit real projects, and swap skills.
+            <!-- Tab Switcher (Sign In vs Create Account) -->
+            <div class="auth-tab-group" role="tablist">
+                <button type="button" class="auth-tab-btn active" id="tabSignIn" onclick="switchAuthTab('signin')" role="tab" aria-selected="true">
+                    <i data-lucide="log-in" style="width: 15px; height: 15px;"></i>
+                    <span>Sign In</span>
+                </button>
+                <button type="button" class="auth-tab-btn" id="tabRegister" onclick="switchAuthTab('register')" role="tab" aria-selected="false">
+                    <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i>
+                    <span>Create Account</span>
+                </button>
+            </div>
+
+            <h1 class="simpli-form-title" id="authTitle">Welcome back!</h1>
+            <p class="simpli-form-subtitle" id="authSubtitle">
+                Sign in with your email or Google to access your courses, project sandboxes, and campus peers.
             </p>
 
             {% set current_next = request.args.get('next', '') or request.form.get('next', '') or next or '' %}
             {% if 'course' in current_next %}
-            <div style="background: rgba(91, 70, 246, 0.1); border: 1px solid rgba(91, 70, 246, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="sparkles" style="width: 16px; height: 16px; color: #5B46F6; flex-shrink: 0;"></i>
-                <span style="font-size: 0.82rem; color: var(--text-main); font-weight: 600;">
-                    Sign in or register below to auto-enroll and launch your course player immediately!
+            <div style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="sparkles" style="width: 18px; height: 18px; color: #818CF8; flex-shrink: 0;"></i>
+                <span style="font-size: 0.84rem; color: #E2E8F0; font-weight: 600;">
+                    Sign in or create your account below to auto-enroll and launch your course player immediately!
                 </span>
             </div>
             {% endif %}
@@ -467,14 +507,26 @@
             </a>
 
             <div class="simpli-divider">
-                <span>or log in with email</span>
+                <span id="dividerText">or continue with email</span>
             </div>
 
-            <!-- Unified Single Sign In Form -->
-            <form action="{{ url_for('auth.login', next=current_next) if current_next else url_for('auth.login') }}" method="POST" autocomplete="on">
+            <!-- Unified Authentication Form -->
+            <form action="{{ url_for('auth.login', next=current_next) if current_next else url_for('auth.login') }}" method="POST" autocomplete="on" id="authForm">
                 {% if current_next %}
                 <input type="hidden" name="next" value="{{ current_next }}">
                 {% endif %}
+
+                <!-- Full Name (Prominent for Create Account, Optional for Sign In) -->
+                <div class="form-group-item" id="nameGroup" style="display: none;">
+                    <label class="simpli-label">Full Name *</label>
+                    <input type="text" 
+                           id="nameInput"
+                           name="name" 
+                           class="simpli-input" 
+                           placeholder="e.g. Rahul Sharma" 
+                           value="{{ name or '' }}">
+                </div>
+
                 <!-- Email Address -->
                 <div class="form-group-item">
                     <label class="simpli-label">Email Address *</label>
@@ -495,60 +547,40 @@
                     </div>
                     <div class="password-wrap">
                         <input type="password" 
-                               id="passwordInput"
-                               name="password" 
-                               class="simpli-input" 
-                               placeholder="••••••••" 
-                               minlength="6"
-                               required>
+                                id="passwordInput"
+                                name="password" 
+                                class="simpli-input" 
+                                placeholder="••••••••" 
+                                minlength="6"
+                                required>
                         <button type="button" class="password-toggle-btn" id="togglePasswordBtn" aria-label="Toggle password visibility">
                             <i data-lucide="eye" id="togglePasswordIcon" style="width: 18px; height: 18px;"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Full Name (Only for new registrations) -->
-                <div class="form-group-item" style="margin-bottom: 18px;">
-                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
-                        <label class="simpli-label" style="margin-bottom: 0;">Full Name</label>
-                        <span style="font-size: 0.74rem; color: #94A3B8;">(Only required for new students)</span>
-                    </div>
-                    <input type="text" 
-                           name="name" 
-                           class="simpli-input" 
-                           placeholder="e.g. Rahul Sharma" 
-                           value="{{ name or '' }}">
-                </div>
-
                 <!-- Single Unified CTA Button -->
                 <button type="submit" class="btn-signin-unified" id="signInSubmitBtn">
-                    <span>Sign In</span>
+                    <span id="submitBtnText">Sign In</span>
                     <i data-lucide="arrow-right" style="width: 17px; height: 17px;"></i>
                 </button>
             </form>
 
             <!-- Reassurance Note -->
-            <div class="simpli-reassurance">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <i data-lucide="check-circle" style="width: 14px; height: 14px; color: #10B981; flex-shrink: 0;"></i>
+            <div class="simpli-reassurance" id="reassuranceBox">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="check-circle" style="width: 15px; height: 15px; color: #10B981; flex-shrink: 0;"></i>
                     <span><strong>Existing students:</strong> Instant login to your dashboard &amp; courses.</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #2563EB; flex-shrink: 0;"></i>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="sparkles" style="width: 15px; height: 15px; color: #818CF8; flex-shrink: 0;"></i>
                     <span><strong>New students:</strong> Auto-creates account + awards <strong>50 Welcome XP</strong>!</span>
                 </div>
             </div>
         </div>
 
-        <!-- Right Side: Simplilearn-Style Showcase & Explanation Panel -->
+        <!-- Right Side: SkillRock Academy Showcase Panel -->
         <div class="simpli-hero-side">
-            <!-- Decorative Right Mosaic Strip (as seen on Simplilearn) -->
-            <div class="simpli-hero-mosaic">
-                <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=300&auto=format&fit=crop&q=80" alt="student" class="simpli-mosaic-thumb">
-                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300&auto=format&fit=crop&q=80" alt="learning" class="simpli-mosaic-thumb">
-                <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=300&auto=format&fit=crop&q=80" alt="study" class="simpli-mosaic-thumb">
-            </div>
-
             <div>
                 <!-- Academy Pill -->
                 <div class="simpli-hero-badge">
@@ -561,48 +593,48 @@
                     Get Skilled. <span>Get Certified.</span> Get Ahead.
                 </h2>
                 <p class="simpli-hero-lead">
-                    Move beyond watching tutorials. Build real-world deployed projects, earn tamper-proof certificates, and exchange skills 1-on-1 with campus peers.
+                    Move beyond passively watching tutorials. Build real-world deployed projects, earn tamper-proof verified certificates, and exchange skills 1-on-1 with campus peers.
                 </p>
 
                 <!-- Value Proposition Highlights -->
                 <div class="simpli-hero-points">
                     <div class="simpli-point-item">
                         <div class="simpli-point-icon">
-                            <i data-lucide="play-circle" style="width: 17px; height: 17px;"></i>
+                            <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i>
                         </div>
                         <div class="simpli-point-text">
-                            <strong>100% Free Curated Courses</strong>
-                            <span>Learn Python, Full-Stack Web Development, and JavaScript from premier industry curricula.</span>
+                            <strong>Curated Tech Masterclasses</strong>
+                            <span>Learn Python, Full-Stack Web Development, DSA, and Cybersecurity from top industry curricula.</span>
                         </div>
                     </div>
 
                     <div class="simpli-point-item">
-                        <div class="simpli-point-icon" style="background: rgba(16, 185, 129, 0.25); border-color: rgba(16, 185, 129, 0.4); color: #34D399;">
-                            <i data-lucide="code-2" style="width: 17px; height: 17px;"></i>
+                        <div class="simpli-point-icon" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.35); color: #34D399;">
+                            <i data-lucide="code-2" style="width: 18px; height: 18px;"></i>
                         </div>
                         <div class="simpli-point-text">
                             <strong>Hands-On Real-World Projects</strong>
-                            <span>Submit public GitHub repositories and live deployments evaluated against transparent rubrics.</span>
+                            <span>Submit public GitHub repositories and live deployments evaluated against rigorous rubrics.</span>
                         </div>
                     </div>
 
                     <div class="simpli-point-item">
-                        <div class="simpli-point-icon" style="background: rgba(245, 158, 11, 0.25); border-color: rgba(245, 158, 11, 0.4); color: #FBBF24;">
-                            <i data-lucide="shield-check" style="width: 17px; height: 17px;"></i>
+                        <div class="simpli-point-icon" style="background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.35); color: #FBBF24;">
+                            <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
                         </div>
                         <div class="simpli-point-text">
                             <strong>Official Verified Certificates</strong>
-                            <span>Earn shareable credentials with unique IDs and public online verification (<code style="color: #93C5FD;">/verify/:id</code>) for LinkedIn &amp; resumes.</span>
+                            <span>Earn shareable credentials with unique IDs and online verification (<code style="color: #93C5FD;">/verify/:id</code>) for LinkedIn &amp; resumes.</span>
                         </div>
                     </div>
 
                     <div class="simpli-point-item">
-                        <div class="simpli-point-icon" style="background: rgba(139, 92, 246, 0.25); border-color: rgba(139, 92, 246, 0.4); color: #C4B5FD;">
-                            <i data-lucide="users" style="width: 17px; height: 17px;"></i>
+                        <div class="simpli-point-icon" style="background: rgba(139, 92, 246, 0.2); border-color: rgba(139, 92, 246, 0.35); color: #C4B5FD;">
+                            <i data-lucide="users" style="width: 18px; height: 18px;"></i>
                         </div>
                         <div class="simpli-point-text">
                             <strong>Peer-to-Peer Skill Swapping</strong>
-                            <span>Discover peers on your campus, chat in real-time, and schedule Google Meet sessions with AI guidance.</span>
+                            <span>Discover peers on your campus, chat in real-time, and schedule 1-on-1 video sessions with AI guidance.</span>
                         </div>
                     </div>
                 </div>
@@ -612,7 +644,7 @@
             <div class="simpli-hero-stats">
                 <div class="simpli-stat-box">
                     <div class="simpli-stat-num">100<span>%</span></div>
-                    <div class="simpli-stat-lbl">Free For Students</div>
+                    <div class="simpli-stat-lbl">Free / Refundable</div>
                 </div>
                 <div class="simpli-stat-box">
                     <div class="simpli-stat-num">Real<span>+</span></div>
@@ -628,6 +660,37 @@
 </div>
 
 <script>
+function switchAuthTab(mode) {
+    const tabSignIn = document.getElementById("tabSignIn");
+    const tabRegister = document.getElementById("tabRegister");
+    const nameGroup = document.getElementById("nameGroup");
+    const authTitle = document.getElementById("authTitle");
+    const authSubtitle = document.getElementById("authSubtitle");
+    const submitBtnText = document.getElementById("submitBtnText");
+    const dividerText = document.getElementById("dividerText");
+
+    if (mode === "register") {
+        if (tabSignIn) tabSignIn.classList.remove("active");
+        if (tabRegister) tabRegister.classList.add("active");
+        if (nameGroup) nameGroup.style.display = "block";
+        if (authTitle) authTitle.textContent = "Create Student Account";
+        if (authSubtitle) authSubtitle.textContent = "Join thousands of campus peers, learn real-world tech, and earn your first 50 Welcome XP!";
+        if (submitBtnText) submitBtnText.textContent = "Create Account & Start Learning";
+        if (dividerText) dividerText.textContent = "or sign up with email";
+    } else {
+        if (tabRegister) tabRegister.classList.remove("active");
+        if (tabSignIn) tabSignIn.classList.add("active");
+        if (nameGroup) nameGroup.style.display = "none";
+        if (authTitle) authTitle.textContent = "Welcome back!";
+        if (authSubtitle) authSubtitle.textContent = "Sign in with your email or Google to access your courses, project sandboxes, and campus peers.";
+        if (submitBtnText) submitBtnText.textContent = "Sign In";
+        if (dividerText) dividerText.textContent = "or log in with email";
+    }
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     // Password visibility toggle
     const toggleBtn = document.getElementById("togglePasswordBtn");
@@ -640,9 +703,18 @@ document.addEventListener("DOMContentLoaded", () => {
             pwdInput.setAttribute("type", isPassword ? "text" : "password");
             if (pwdIcon) {
                 pwdIcon.setAttribute("data-lucide", isPassword ? "eye-off" : "eye");
-                lucide.createIcons();
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
             }
         });
+    }
+
+    // Check if URL has ?mode=register or name pre-filled
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasName = {{ 'true' if name else 'false' }};
+    if (urlParams.get("mode") === "register" || window.location.pathname.includes("register") || hasName) {
+        switchAuthTab("register");
     }
 });
 </script>
