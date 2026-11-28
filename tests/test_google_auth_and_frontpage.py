@@ -47,6 +47,19 @@ class TestGoogleAuthAndFrontpage(unittest.TestCase):
         qs = parse_qs(parsed.query)
         self.assertEqual(qs.get("redirect_uri"), ["https://skillrock.onrender.com/auth/google/callback"])
 
+    def test_02b_google_login_on_new_render_domain(self):
+        """Visiting /auth/google on skill-rock.onrender.com should redirect to Google OAuth with skill-rock callback URI."""
+        response = self.client.get(
+            "/auth/google",
+            headers={"Host": "skill-rock.onrender.com", "X-Forwarded-Proto": "https"}
+        )
+        self.assertEqual(response.status_code, 302)
+        location = response.headers.get("Location", "")
+        self.assertTrue(location.startswith("https://accounts.google.com/o/oauth2/auth"))
+        parsed = urlparse(location)
+        qs = parse_qs(parsed.query)
+        self.assertEqual(qs.get("redirect_uri"), ["https://skill-rock.onrender.com/auth/google/callback"])
+
     def test_03_google_login_on_custom_domain(self):
         """Visiting /auth/google on skillrock.in should use the authorized callback and sign the origin in state."""
         response = self.client.get(

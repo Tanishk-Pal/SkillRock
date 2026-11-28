@@ -65,7 +65,8 @@ def send_admin_assignment_notification(student, course, assignment, submission):
     step_num = getattr(submission, "step_number", 1)
     github_url = getattr(submission, "github_url", "N/A")
     deployment_url = getattr(submission, "deployment_url", "N/A")
-    review_url = "https://skillrock.onrender.com/admin/submissions"
+    site_url = os.getenv("SITE_URL", "https://skillrock.in").rstrip("/")
+    review_url = f"{site_url}/admin/submissions"
 
     subject = f"🚀 [SkillRock] New Project Submission: {student_name} — {course_title}"
 

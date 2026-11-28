@@ -101,7 +101,8 @@ def build_reminder_email_content(student_name, course_title, course_slug, remind
     Constructs high-converting, professional HTML and plain text email content
     modeled after premier EdTech platforms (Coursera, Udemy, Physics Wallah).
     """
-    course_url = f"https://skillrock.onrender.com/learning/courses/{course_slug}"
+    site_url = os.getenv("SITE_URL", "https://skillrock.in").rstrip("/")
+    course_url = f"{site_url}/learning/courses/{course_slug}"
     first_name = (student_name or "Student").split()[0].title()
 
     if reminder_type == "certificate_waiting":
@@ -147,7 +148,7 @@ Resume link: {course_url}
 
 Best regards,
 SkillRock Student Academy
-https://skillrock.onrender.com
+{site_url}
 """
 
     html_body = f"""<!DOCTYPE html>

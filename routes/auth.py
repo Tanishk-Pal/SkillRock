@@ -23,7 +23,8 @@ auth_bp = Blueprint("auth", __name__)
 
 def is_safe_url(target):
     """
-    Validates that a redirection target is safe and strictly local.
+    Validates that a redirection target is safe and strictly local or between
+    authorized SkillRock production domains.
     Prevents open redirect vulnerabilities, protocol-relative bypasses (//),
     and script/data schemes.
     """
@@ -36,7 +37,16 @@ def is_safe_url(target):
     try:
         ref_url = urlparse(request.host_url)
         test_url = urlparse(urljoin(request.host_url, target))
-        return (test_url.scheme in ("http", "https") and ref_url.netloc == test_url.netloc)
+        if test_url.scheme in ("http", "https"):
+            allowed_hosts = {
+                ref_url.netloc,
+                "skillrock.in",
+                "www.skillrock.in",
+                "skill-rock.onrender.com",
+                "skillrock.onrender.com"
+            }
+            return test_url.netloc in allowed_hosts
+        return False
     except Exception:
         return False
 
@@ -53,13 +63,11 @@ def get_bridge_serializer():
 def get_actual_redirect_uri():
     """
     Computes the correct Google OAuth callback URI dynamically.
-    Guarantees zero redirect_uri_mismatch errors across both domains:
-    - If local dev: http://{host}/auth/google/callback
-    - If live production: uses the Google-authorized callback
-      https://skillrock.onrender.com/auth/google/callback
-      (or explicit GOOGLE_REDIRECT_URI if configured to match).
-    Cross-domain login from skillrock.in / www.skillrock.in is seamlessly bridged
-    back via cryptographically signed state and one-time token.
+    Guarantees zero redirect_uri_mismatch errors across all supported environments:
+    - skillrock.in / www.skillrock.in (Custom Domain)
+    - skill-rock.onrender.com (New Render Deployment)
+    - skillrock.onrender.com (Previous Render Deployment)
+    - localhost / 127.0.0.1 (Local Dev)
     """
     host = request.host.lower()
     is_local = host.startswith("localhost") or host.startswith("127.0.0.1")
@@ -70,14 +78,31 @@ def get_actual_redirect_uri():
             return configured
         return f"http://{request.host}/auth/google/callback"
 
-    # Check if a custom GOOGLE_REDIRECT_URI matches current host
     configured = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+
+    # 1. If explicit GOOGLE_REDIRECT_URI matches current host, use it directly
     if configured and host in configured:
         return configured
 
-    # Primary callback authorized in Google Cloud Console
-    # Using this callback avoids error 400 redirect_uri_mismatch regardless of whether
-    # the user is accessing via skillrock.in, www.skillrock.in, or skillrock.onrender.com
+    # 2. Dynamic resolution per active host
+    if "skill-rock.onrender.com" in host:
+        return "https://skill-rock.onrender.com/auth/google/callback"
+
+    if "www.skillrock.in" in host:
+        return "https://www.skillrock.in/auth/google/callback"
+
+    if "skillrock.in" in host:
+        # If explicitly configured in env, honor it; otherwise match host or fallback
+        if configured and "skillrock.in" in configured:
+            return configured
+        return "https://skillrock.onrender.com/auth/google/callback"
+
+    if "skillrock.onrender.com" in host:
+        return "https://skillrock.onrender.com/auth/google/callback"
+
+    # 3. Default fallback
+    if configured:
+        return configured
     return "https://skillrock.onrender.com/auth/google/callback"
 
 
@@ -245,10 +270,16 @@ def google_callback():
     # Log in user with persistent remember cookie
     login_user(user, remember=True)
 
-    # Cross-domain bridge: If login initiated on skillrock.in and callback landed on skillrock.onrender.com,
-    # generate a single-use signed token to log them in directly on skillrock.in
+    # Cross-domain bridge: If login initiated on skillrock.in, skill-rock.onrender.com, or skillrock.onrender.com
+    # and callback landed on a different domain, generate a single-use signed token to log them in directly on the origin domain
     current_host_url = request.host_url.rstrip("/")
-    if origin and ("skillrock.in" in origin or "skillrock.onrender.com" in origin) and not origin.startswith(current_host_url):
+    allowed_bridge_domains = [
+        "skillrock.in",
+        "www.skillrock.in",
+        "skill-rock.onrender.com",
+        "skillrock.onrender.com"
+    ]
+    if origin and any(d in origin for d in allowed_bridge_domains) and not origin.startswith(current_host_url):
         bridge_token = get_bridge_serializer().dumps({
             "user_id": str(user.id),
             "next": next_url,

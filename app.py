@@ -152,17 +152,18 @@ def create_app(config_class=Config):
         response.headers["Permissions-Policy"] = "camera=(self), microphone=(self), display-capture=(self), geolocation=()"
         response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
 
-        # CORS Allowed Origins: skillrock.in, www.skillrock.in, skillrock.onrender.com, and local dev
+        # CORS Allowed Origins: skillrock.in, www.skillrock.in, skill-rock.onrender.com, skillrock.onrender.com, and local dev
         origin = request.headers.get("Origin")
         allowed_origins = [
             "https://skillrock.in",
             "https://www.skillrock.in",
+            "https://skill-rock.onrender.com",
             "https://skillrock.onrender.com",
             "http://localhost:5000",
             "http://127.0.0.1:5000",
             "http://localhost:3000"
         ]
-        if origin and (origin in allowed_origins or "localhost:" in origin or "127.0.0.1:" in origin):
+        if origin and (origin in allowed_origins or ".onrender.com" in origin or "skillrock.in" in origin or "localhost:" in origin or "127.0.0.1:" in origin):
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Credentials"] = "true"
             response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
