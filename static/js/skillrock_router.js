@@ -437,7 +437,7 @@
                 // Must be same origin
                 if (url.origin !== window.location.origin) return false;
 
-                // Exclude hard auth/payment/checkout/ski/exam endpoints that require standard browser redirects
+                // Exclude hard auth/payment/checkout/ski/exam/certificate endpoints that require standard browser redirects
                 const path = url.pathname;
                 if (
                     path.startsWith('/auth/') ||
@@ -449,7 +449,9 @@
                     path.startsWith('/ski') ||
                     path.startsWith('/teacher/exam') ||
                     path.startsWith('/api/') ||
-                    path.startsWith('/static/')
+                    path.startsWith('/static/') ||
+                    path.includes('/certificate') ||
+                    path.includes('/verify')
                 ) {
                     return false;
                 }
